@@ -1,0 +1,128 @@
+import {
+  Button,
+  Center,
+  CloseButton,
+  Dialog,
+  HStack,
+  Image,
+  Portal,
+  Text,
+  VStack,
+} from "@chakra-ui/react";
+import { useState } from "react";
+import ScheduleCard from "../schedulecard";
+import CustomButton from "mangarine/components/customcomponents/button";
+
+type props = {
+  onOpenChange: any;
+  isOpen: any;
+};
+
+const CancelSubscription = ({ onOpenChange, isOpen }: props) => {
+  return (
+    <Dialog.Root
+      lazyMount
+      open={isOpen}
+      onOpenChange={onOpenChange}
+      placement={"center"}
+      size={"md"}
+
+      // motionPreset="slide-in-bottom"
+    >
+      {/* <Dialog.Trigger asChild>
+        <Button variant="outline">Open</Button>
+      </Dialog.Trigger> */}
+      <Portal>
+        <Dialog.Backdrop />
+        <Dialog.Positioner>
+          <Dialog.Content  p="8" rounded={"xl"} bg="bg_box">
+            {/* <Dialog.Header>
+              <Dialog.Title>Dialog Title</Dialog.Title>
+            </Dialog.Header> */}
+            <Dialog.Body>
+              <VStack
+              // w={{ base: "95%", md: "280px", lg: "340px", xl: "340px" }}
+              >
+                {/* Centering the image */}
+                {/* <Center alignItems={"center"} pt="4" pb="3">
+                  <Image
+                    src={"/icons/notcancel.svg"}
+                    alt="Regulations Image"
+                    // boxSize={6}
+                    objectFit="contain"
+
+                    // height="auto"
+                  />
+                </Center> */}
+                <Text
+                  textAlign={"start"}
+                  w="full"
+                  // px={"6"}
+                  fontSize={"1.5rem"}
+                  fontFamily={"Outfit"}
+                  color={"text_primary"}
+                  fontWeight={"600"}
+                >
+                  Cancel Subscription
+                </Text>
+
+                <Text
+                  textAlign={"start"}
+                  w="full"
+                  py={"6"}
+                  fontSize={"0.875rem"}
+                  fontFamily={"Outfit"}
+                  color={"text_primary"}
+                  fontWeight={"400"}
+                >
+                  You are currently subscribed to the Premium plan. By
+                  canceling, you will be reverted to the Free plan and will lose
+                  access to all premium features.
+                </Text>
+              </VStack>
+              {/* <ScheduleCard
+                title="Consultation Canceled Successfully"
+                imageSrc={"/icons/cancel.svg"}
+                content={""}
+                width="95%"
+                details="10% has been deducted, and the remaining amount is credited to your wallet."
+              /> */}
+            </Dialog.Body>
+            <Dialog.Footer mx="auto" w="90%" pt="32" pb={6}>
+              <HStack
+                w="full"
+                display={"flex"}
+                alignItems={"center"}
+                justifyContent={"center"}
+                flexDir={"row"}
+                // mx="auto"
+              >
+                <CustomButton
+                  customStyle={{
+                    w: "full",
+                  }}
+                  onClick={onOpenChange}
+                  // loading={isLoading}
+                  // onClick={handleSubmit(onSubmit, (error) => console.log(error))}
+                >
+                  <Text
+                    color={"button_text"}
+                    fontWeight={"600"}
+                    fontSize={"1rem"}
+                    lineHeight={"100%"}
+                  >
+                    Confirm Cancellation
+                  </Text>
+                </CustomButton>
+              </HStack>
+            </Dialog.Footer>
+            <Dialog.CloseTrigger asChild>
+              <CloseButton size="sm" />
+            </Dialog.CloseTrigger>
+          </Dialog.Content>
+        </Dialog.Positioner>
+      </Portal>
+    </Dialog.Root>
+  );
+};
+export default CancelSubscription;
