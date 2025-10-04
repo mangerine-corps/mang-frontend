@@ -16,11 +16,12 @@ import { usePosts } from "mangarine/state/hooks/post.hook";
 import { toaster } from "mangarine/components/ui/toaster";
 import ReportPoster from "../modals/reportposter";
 import { useAuth } from "mangarine/state/hooks/user.hook";
+import { isEmpty } from "es-toolkit/compat";
 
 type props = {
   onOpenChange: any;
   isOpen: any;
- data?: any;
+  data?: any;
   userId?: string;
 };
 
@@ -30,25 +31,25 @@ const ReportGroup = ({ onOpenChange, isOpen, data, userId }: props) => {
   const [open, setopen] = useState(false);
   const [value, setValue] = useState<string>("");
   const [report, setReport] = useState<string>("");
-   const {user} = useAuth()
-  const [reportGroup, { data:groupdata, error, isLoading }] = useReportGroupMutation();
+  const { user } = useAuth()
+  const [reportGroup, { data: groupdata, error, isLoading }] = useReportGroupMutation();
 
- 
+
   const openModal = () => {
     onOpenChange();
     setopen(true);
   };
   const grpId = data?.id.toString()
- console.log(grpId,"here")
+  console.log(grpId, "here")
   const handleSubmit = () => {
-    const reportDetails = value 
+    const reportDetails = value
+    const reason = report ?? reportDetails
     const formdata = {
-      reportDetails,
-      reason:report,
-      postId:grpId,
-      userId:user?.id
+      reason: !isEmpty(report) ? report : reportDetails,
+      groupId: grpId,
+      userId: user?.id
     };
-  console.log(formdata, "data")
+    console.log(formdata, "data")
     reportGroup(formdata)
       .unwrap()
       .then((res) => {
@@ -77,7 +78,7 @@ const ReportGroup = ({ onOpenChange, isOpen, data, userId }: props) => {
       placement={"center"}
       size={"lg"}
 
-      // motionPreset="slide-in-bottom"
+    // motionPreset="slide-in-bottom"
     >
       {/* <Dialog.Trigger asChild>
         <Button variant="outline">Open</Button>
@@ -86,7 +87,7 @@ const ReportGroup = ({ onOpenChange, isOpen, data, userId }: props) => {
         <Dialog.Backdrop />
         <Dialog.Positioner>
           <Dialog.Content p="8" rounded={"xl"} bg="bg_box">
-          
+
             <Dialog.Header>
               <Text
                 textAlign={"left"}
@@ -209,7 +210,7 @@ const ReportGroup = ({ onOpenChange, isOpen, data, userId }: props) => {
                 alignItems={"flex-end"}
                 justifyContent={"flex-end"}
                 flexDir={"row"}
-                // mx="auto"
+              // mx="auto"
               >
                 <CustomButton
                   customStyle={{
@@ -218,8 +219,8 @@ const ReportGroup = ({ onOpenChange, isOpen, data, userId }: props) => {
                     borderWidth: "2px",
                   }}
                   onClick={onOpenChange}
-                  // loading={isLoading}
-                  // onClick={handleSubmit(onSubmit, (error) => console.log(error))}
+                // loading={isLoading}
+                // onClick={handleSubmit(onSubmit, (error) => console.log(error))}
                 >
                   <Text
                     color={"text_primary"}

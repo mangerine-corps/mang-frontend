@@ -24,3 +24,5 @@ export interface GetProfileRecommendationsDto {
   userType?: string;
   isConsultant?: boolean;
 }
+
+

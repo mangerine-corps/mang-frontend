@@ -55,7 +55,7 @@ export const CommunityApi = createApi({
 
     updateCommunity: builder.mutation({
       query: ({ id, data }: { id: string; data: FormData }) => ({
-        url: `/${id}`,
+        url: `update/${id}`,
         method: "PATCH",
         body: data,
         formData: true,
@@ -71,7 +71,15 @@ export const CommunityApi = createApi({
     }),
 
     getTrendingCommunitiesByCategory: builder.mutation({
-      query: ({ category, page, limit }: { category: string; page?: number; limit?: number }) => ({
+      query: ({
+        category,
+        page,
+        limit,
+      }: {
+        category: string;
+        page?: number;
+        limit?: number;
+      }) => ({
         url: `/trending/${category}`,
         method: "GET",
         params: { page, limit },
@@ -131,19 +139,18 @@ export const CommunityApi = createApi({
         method: "DELETE",
       }),
     }),
-    pinCommunity:builder.mutation({
-      query:(communityId:string)=>({
-      url:`/${communityId}/pin`,
-       method:"POST"
-   })
-  }),
-      unPinCommunity:builder.mutation({
-      query:(communityId:string)=>({
-      url:`community/${communityId}/pin`,
-       method:"DELETE"
-   })
-  }),
-
+    pinCommunity: builder.mutation({
+      query: (communityId: string) => ({
+        url: `/${communityId}/pin`,
+        method: "POST",
+      }),
+    }),
+    unPinCommunity: builder.mutation({
+      query: (communityId: string) => ({
+        url: `community/${communityId}/pin`,
+        method: "DELETE",
+      }),
+    }),
   }),
 });
 
