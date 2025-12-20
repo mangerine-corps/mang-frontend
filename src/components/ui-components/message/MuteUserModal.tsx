@@ -114,7 +114,7 @@ export const MuteUserModal: React.FC<MuteUserModalProps> = ({
                         <Dialog.Body p="6">
                             <VStack gap={4} align="stretch">
                                 <Text fontSize="sm" color="gray.700">
-                                    Are you sure you want to mute <strong>{displayName}</strong>? You won't receive notifications from this conversation for the selected duration.
+                                    Are you sure you want to mute <strong>{displayName}</strong>? You won&apos;t receive notifications from this conversation for the selected duration.
                                 </Text>
 
                                 <VStack align="stretch" gap={2}>

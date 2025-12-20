@@ -3,9 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev --turbopack",
+    "dev": "dotenv -e .env -- next dev --turbopack",
     "build": "next build",
-    "start": "next start",
+    "start": "dotenv -e .env -- next start",
     "lint": "next lint",
     "prepare": "husky"
   },
@@ -79,6 +79,8 @@
     "@types/react-date-range": "^1.4.10",
     "@types/react-dom": "^19",
     "@types/react-slick": "^0.23.13",
+    "cross-env": "^7.0.3",
+    "dotenv-cli": "^7.4.2",
     "eslint": "^9",
     "eslint-config-next": "15.2.3",
     "husky": "^9.1.7",

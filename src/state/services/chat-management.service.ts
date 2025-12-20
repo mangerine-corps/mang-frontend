@@ -193,6 +193,7 @@ export const {
   useReportUserMutation,
   useDeleteConversationMutation,
   useCheckIfBlockedQuery,
+  useCheckIfMutedQuery,
   useCheckIfDeletedQuery,
   useGetUnreadTotalMessagesQuery,
   useGetUnreadByConversationQuery,
