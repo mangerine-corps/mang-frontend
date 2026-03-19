@@ -34,12 +34,32 @@ import { chatManagementApi } from "./services/chat-management.service";
 import { paymentApi } from "./services/payment.service";
 import { notificationsApi } from "./services/notifications.service";
 import { transactionApi } from "./services/transaction.service";
+import { extractAuthToken, registerAuthTokenResolver } from "../lib/api-client";
 
 const persistConfig = {
   key: "root",
   version: 1,
   storage,
-  blackList: [],
+  // Avoid persisting volatile API caches that frequently diverge from SSR.
+  blacklist: [
+    postsApi.reducerPath,
+    UserAuthApi.reducerPath,
+    ProfileApi.reducerPath,
+    BookmarkApi.reducerPath,
+    CommunityApi.reducerPath,
+    CommunityInviteApi.reducerPath,
+    settingsApi.reducerPath,
+    consultantsApi.reducerPath,
+    UserTypeApi.reducerPath,
+    profileRecommendationsApi.reducerPath,
+    availabilityApi.reducerPath,
+    appointmentApi.reducerPath,
+    chatApi.reducerPath,
+    chatManagementApi.reducerPath,
+    paymentApi.reducerPath,
+    notificationsApi.reducerPath,
+    transactionApi.reducerPath,
+  ],
 };
 
 // Combine reducers
@@ -115,7 +135,38 @@ export const createStore = () =>
   });
 
 export const store = createStore();
-export const persistor = persistStore(store);
+registerAuthTokenResolver(() => extractAuthToken(store.getState()));
+let persistorStarted = false;
+let persistorReady = false;
+const persistReadyListeners = new Set<() => void>();
+
+const notifyPersistReady = () => {
+  persistorReady = true;
+  persistReadyListeners.forEach((listener) => listener());
+  persistReadyListeners.clear();
+};
+
+export const startPersistor = (onReady?: () => void) => {
+  if (typeof window === "undefined") {
+    return;
+  }
+
+  if (persistorReady) {
+    onReady?.();
+    return;
+  }
+
+  if (onReady) {
+    persistReadyListeners.add(onReady);
+  }
+
+  if (persistorStarted) {
+    return;
+  }
+
+  persistStore(store, undefined, notifyPersistReady);
+  persistorStarted = true;
+};
 
 export type RootState = ReturnType<typeof reducers>;
 export type AppStore = ReturnType<typeof createStore>;

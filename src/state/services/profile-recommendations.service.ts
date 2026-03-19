@@ -1,18 +1,11 @@
-import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
-import { RootState } from '../store';
+import { createApi } from '@reduxjs/toolkit/query/react';
 import { ProfileRecommendationDto, GetProfileRecommendationsDto } from './types/profile-recommendations.types';
+import { axiosBaseQuery } from './axios-base-query';
 
 export const profileRecommendationsApi = createApi({
   reducerPath: 'profileRecommendationsApi',
-  baseQuery: fetchBaseQuery({
+  baseQuery: axiosBaseQuery({
     baseUrl: `${process.env.API_BASE_URL}/`,
-    prepareHeaders: (headers, { getState }) => {
-      const token = (getState() as RootState).userAuth?.token;
-      if (token) {
-        headers.set('Authorization', `Bearer ${token}`);
-      }
-      return headers;
-    },
   }),
   tagTypes: ['ProfileRecommendations'],
   endpoints: (builder) => ({
@@ -40,5 +33,4 @@ export const {
   useGetProfileRecommendationsQuery,
   useGetTrendingProfilesQuery,
 } = profileRecommendationsApi;
-
 

@@ -1,22 +1,12 @@
-import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
-import { RootState } from "../store";
-console.log(process.env.API_BASE_URL)
+import { createApi } from "@reduxjs/toolkit/query/react";
+import { axiosBaseQuery } from "./axios-base-query";
 
 export const UserAuthApi = createApi({
   reducerPath: "UserAuthApi",
-  baseQuery: fetchBaseQuery({
+  baseQuery: axiosBaseQuery({
     baseUrl: `${process.env.API_BASE_URL}`,
-    prepareHeaders: (headers, { getState }) => {
-      // By default, if we have a token in the store, let's use that for authenticated requests
-      const token =
-        (getState() as RootState).userAuth?.token?.token ??
-        (getState() as RootState).userAuth.preAuth.token;
-
-      headers.set("type", "agent");
-      if (token) {
-        headers.set("Authorization", `Bearer ${token}`);
-      }
-      return headers;
+    headers: {
+      type: "agent",
     },
   }),
 

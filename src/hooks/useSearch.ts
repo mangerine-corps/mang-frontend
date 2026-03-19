@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { useAuth } from 'mangarine/state/hooks/user.hook';
 import { useDebouncedValue } from 'mangarine/hooks/useDebouncedValue';
+import { apiClient } from 'mangarine/lib/api-client';
 
 export type SearchItem = {
   id: string;
@@ -18,7 +18,6 @@ export type SearchResponse = {
 };
 
 export function useSearch(initialLimit = 10) {
-  const { token } = useAuth();
   const [query, setQuery] = useState('');
   const debounced = useDebouncedValue(query, 400);
 
@@ -45,33 +44,23 @@ export function useSearch(initialLimit = 10) {
       const controller = new AbortController();
       controllerRef.current = controller;
 
-      const baseUrl = process.env.API_BASE_URL?.replace(/\/$/, '') || '';
-      const url = `${baseUrl}/search?query=${encodeURIComponent(debounced)}&limit=${initialLimit}`;
-
-      const res = await fetch(url, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      const response = await apiClient.get<SearchResponse>('/search', {
+        params: {
+          query: debounced,
+          limit: initialLimit,
         },
         signal: controller.signal,
       });
 
-      if (!res.ok) {
-        const text = await res.text();
-        throw new Error(text || `Search request failed with status ${res.status}`);
-      }
-
-      const json = (await res.json()) as SearchResponse;
-      setData(json);
+      setData(response.data);
     } catch (err: any) {
-      if (err?.name === 'AbortError') return;
-      setError(err?.message || 'Failed to fetch search results');
+      if (err?.name === 'AbortError' || err?.name === 'CanceledError' || err?.code === 'ERR_CANCELED') return;
+      setError(err?.response?.data?.message || err?.message || 'Failed to fetch search results');
       setData(null);
     } finally {
       setLoading(false);
     }
-  }, [debounced, token, initialLimit, hasQuery]);
+  }, [debounced, initialLimit, hasQuery]);
 
   useEffect(() => {
     search();

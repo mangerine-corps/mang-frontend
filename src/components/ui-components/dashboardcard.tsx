@@ -30,11 +30,11 @@ const DashboardCard = () => {
 
 
   const menuItems = [
-    // {
-    //   icon: "/icons/saved.svg",
-    //   label: "Saved Items",
-    //   action: () => router.push("/dashboard/saved"),
-    // },
+    {
+      icon: "/icons/saved.svg",
+      label: "Saved Items",
+      action: () => router.push("/dashboard/saved"),
+    },
     {
       icon: "/icons/payment.svg",
       label: "Payments",

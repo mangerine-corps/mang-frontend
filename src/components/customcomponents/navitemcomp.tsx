@@ -16,9 +16,10 @@ import { useState, useEffect } from "react";
 
 interface Props {
   link: NavLink;
+  isMobile?: boolean;
 }
 
-export const NavItem: React.FC<Props> = ({ link }) => {
+export const NavItem: React.FC<Props> = ({ link, isMobile }) => {
   const pathname = usePathname();
   const isActive = pathname === link.href;
   const { colorMode } = useColorMode();
@@ -30,25 +31,25 @@ export const NavItem: React.FC<Props> = ({ link }) => {
 
   return (
     <>
-      <LinkBox>
+      <LinkBox w={isMobile ? "full" : "auto"}>
         <LinkOverlay href={link.href}>
           <VStack
-            // space={4}
             spaceY="0"
-            // bg={isActive ? "blue.600" : "transparent"}
-            // px={2}
-            // py={2}
-            borderBottom={isActive ? "2px solid" : "2px solid transparent"}
-            // pl={isActive ? "0" : "2"}
-            borderColor={isActive ? "button_bg" : "transparent"}
-            color={isActive ? "button_bg" : "grey.300"}
-            _hover={{ color: "text_primary", borderColor: "button_bg" }}
+            w={isMobile ? "full" : "auto"}
+            bg={isMobile && isActive ? "#111D4A" : "transparent"}
+            px={isMobile ? 4 : 0}
+            py={isMobile ? 2 : 0}
+            rounded={isMobile ? "md" : "none"}
+            borderBottom={!isMobile && isActive ? "2px solid" : "2px solid transparent"}
+            borderColor={!isMobile && isActive ? "button_bg" : "transparent"}
+            color={isMobile && isActive ? "white" : isActive ? "button_bg" : "grey.300"}
+            _hover={{ color: isMobile ? "white" : "text_primary", bg: isMobile ? "#111D4A" : "transparent", borderColor: "button_bg" }}
             transition="all 0.2s"
-            alignItems="center"
-            justifyContent="center"
+            alignItems={isMobile ? "flex-start" : "center"}
+            justifyContent={isMobile ? "flex-start" : "center"}
             flexDir={{ base: "row", md: "column", lg: "column", xl: "column" }}
           >
-            <Box>
+            <Box filter={isMobile && isActive ? "brightness(0) invert(1)" : "none"}>
               {!isClient ? (
                 // Show a default icon during SSR to prevent hydration mismatch
                 <Box boxSize={5}>

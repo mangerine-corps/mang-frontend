@@ -1,16 +1,13 @@
 "use client";
 import {
-  Box,
   Drawer,
   HStack,
   Icon,
   Image,
   Stack,
   Text,
-  Textarea,
   VStack,
 } from "@chakra-ui/react";
-import { use, useState } from "react";
 
 import Biocard from "mangarine/components/ui-components/biocard";
 import DashboardCard from "mangarine/components/ui-components/dashboardcard";
@@ -86,9 +83,8 @@ const SideBar = ({
               spaceY={{base:"2",md:"4"}}
               w="full"
             >
-              <Biocard />
-
-              <DashboardCard />
+              {open ? <Biocard /> : null}
+              {open ? <DashboardCard /> : null}
             </VStack>
             <HStack
               alignItems={"center"}

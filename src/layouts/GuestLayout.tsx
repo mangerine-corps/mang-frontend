@@ -1,6 +1,7 @@
 import { Flex, HStack } from "@chakra-ui/react";
 import { isEmpty } from "es-toolkit/compat";
 import OnboardingCarousel from "mangarine/components/customcomponents/carousel";
+import { usePersistReady } from "mangarine/components/ui/provider";
 import { useAuth } from "mangarine/state/hooks/user.hook";
 import { useRouter } from "next/router";
 import React, { FC, useEffect } from "react";
@@ -12,14 +13,18 @@ type Props = {
 const GuestLayout: FC<Props> = ({ children }) => {
 
   const { token } = useAuth()
+  const persistReady = usePersistReady()
   const router = useRouter()
 
   useEffect(() => {
+    if (!persistReady) {
+      return
+    }
+
     if (!isEmpty(token)) {
-      console.log(token)
       router.replace('/home')
     }
-  }, [token,router])
+  }, [persistReady, token,router])
 
   return (
     <HStack

@@ -1,5 +1,5 @@
-import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
-import type { RootState } from "../store";
+import { createApi } from "@reduxjs/toolkit/query/react";
+import { axiosBaseQuery } from "./axios-base-query";
 
 export interface NotificationItem {
   id: string;
@@ -28,15 +28,8 @@ export interface PaginatedNotifications {
 export const notificationsApi = createApi({
   reducerPath: "notificationsApi",
   tagTypes: ["Notifications", "Notification"],
-  baseQuery: fetchBaseQuery({
+  baseQuery: axiosBaseQuery({
     baseUrl: `${process.env.API_BASE_URL}/`,
-    prepareHeaders: (headers, { getState }) => {
-      const token = (getState() as RootState).userAuth?.token;
-      if (token) {
-        headers.set("Authorization", `Bearer ${token}`);
-      }
-      return headers;
-    },
   }),
   endpoints: (builder) => ({
     getNotifications: builder.query<PaginatedNotifications, { page?: number; limit?: number; status?: string; type?: string; priority?: string; category?: string; search?: string }>({

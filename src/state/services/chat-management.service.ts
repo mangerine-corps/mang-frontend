@@ -1,5 +1,5 @@
-import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
-import { RootState } from '../store';
+import { createApi } from '@reduxjs/toolkit/query/react';
+import { axiosBaseQuery } from './axios-base-query';
 
 // Types for chat management
 export interface BlockUserRequest {
@@ -36,16 +36,8 @@ export interface ChatManagementResponse {
 // Create the API service
 export const chatManagementApi = createApi({
   reducerPath: 'chatManagementApi',
-  baseQuery: fetchBaseQuery({
-    baseUrl: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000',
-    prepareHeaders: (headers, { getState }) => {
-      // Get the token from localStorage or state
-      const token = (getState() as RootState).userAuth?.token;
-      if (token) {
-        headers.set('authorization', `Bearer ${token}`);
-      }
-      return headers;
-    },
+  baseQuery: axiosBaseQuery({
+    baseUrl: process.env.NEXT_PUBLIC_API_URL || process.env.API_BASE_URL || 'http://localhost:4000',
   }),
   tagTypes: ['ChatManagement'],
   endpoints: (builder) => ({

@@ -13,8 +13,8 @@ import {
   Badge,
 } from "@chakra-ui/react";
 import React, { useCallback, useRef, useState } from "react";
-import axios from "axios";
 import { useDirectUpload } from "mangarine/hooks/useDirectUpload";
+import { apiClient, createAuthorizationHeader } from "mangarine/lib/api-client";
 import { useAuth } from "mangarine/state/hooks/user.hook";
 import { toaster } from "mangarine/components/ui/toaster";
 import { v4 as uuidv4 } from "uuid";
@@ -262,10 +262,10 @@ const FileUploadComponent: React.FC<FileUploadComponentProps> = ({
     // If file was uploaded successfully, delete from Cloudflare R2 via backend
     if (file.publicId && file.status === "completed") {
       try {
-        const baseUrl = process.env.API_BASE_URL || "";
         // publicId holds the filename path we uploaded
-        await axios.delete(`${baseUrl}/cloudflare/file/${encodeURIComponent(file.publicId)}`, {
-          headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+        const authorizationHeader = createAuthorizationHeader(token);
+        await apiClient.delete(`/cloudflare/file/${encodeURIComponent(file.publicId)}`, {
+          headers: authorizationHeader ? { Authorization: authorizationHeader } : undefined,
         });
       } catch (error) {
         console.error("Failed to delete from Cloudflare:", error);

@@ -391,33 +391,19 @@ const addTag =(username:string)=>{
                         style={{ display: "none" }}
                       />
                     </Box>
-                    <Box>
-                      <FeedAction icon={videoimg} action={handleClick} />
-                      <input
-                        type="file"
-                        accept="video/*"
-                        ref={videoInputRef}
-                        className="hidden"
-                        onChange={handleMyVideoChange}
-                        style={{ display: "none" }}
-                      />
-                    </Box>
-
                     <Box pos={"relative"}>
                       <FeedAction
                         icon={smily}
                         action={() => setShowPicker(!showPicker)}
                       />
-                      {/* <input type="text" value={inputValue} readOnly /> */}
                       <Box ref={emojiRef} pos={"absolute"} zIndex={"max"}>
                         {showPicker && (
                           <EmojiPicker onEmojiClick={onEmojiClick} />
                         )}
                       </Box>
                     </Box>
-
-                    {/* <FeedAction icon={location} />
-                    <FeedAction icon={tag} /> */}
+                    <FeedAction icon={location} />
+                    <FeedAction icon={tag} />
                   </HStack>
                   <VStack
                     w="full"
@@ -492,13 +478,16 @@ const addTag =(username:string)=>{
                       borderRadius={"lg"}
                       px={5}
                       onClick={submitPost}
-                      bg={"primary.300"}
+                      bg={value ? "#111D4A" : "transparent"}
+                      borderWidth={value ? "2px" : "1px"}
+                      borderColor={value ? "#FC731AF7" : "gray.300"}
                       justifyContent="center"
                       alignItems="center"
                       loading={isLoading}
                       alignSelf="flex-end"
-                      color={"white"}
-                      // width={{ base: "100%", md: "auto" }}
+                      color={value ? "white" : "gray.400"}
+                      disabled={!value}
+                      transition="all 0.2s"
                     >
                       Post
                     </Button>

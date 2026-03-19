@@ -1,18 +1,11 @@
-import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
+import { createApi } from "@reduxjs/toolkit/query/react";
 import { ProfileApi } from "./profile.service";
-import { RootState } from "../store";
+import { axiosBaseQuery } from "./axios-base-query";
 
 export const consultantsApi = createApi({
   reducerPath: "consultantsApi",
-  baseQuery: fetchBaseQuery({
+  baseQuery: axiosBaseQuery({
     baseUrl: `${process.env.API_BASE_URL}/consultants`,
-    prepareHeaders: (headers, { getState }) => {
-      const token = (getState() as RootState).userAuth?.token;
-      if (token) {
-        headers.set("Authorization", `Bearer ${token}`);
-      }
-      return headers;
-    },
   }),
   tagTypes: ["Consultant", "FavoriteConsultant", "User"], // cache invalidation tags
   endpoints: (builder) => ({

@@ -82,8 +82,8 @@ const Header = () => {
       py={6} // smaller padding since we'll control height
       px={{ base: "12px", md: "16px", lg: "18px", xl: "32px" }}
       overflow="visible"
-      zIndex="max"
-      maxW="8xl"
+      zIndex="banner"
+      w="full"
       justifyContent="space-between"
       alignItems="center"
       minH="64px" // <-- fixes nav from shr

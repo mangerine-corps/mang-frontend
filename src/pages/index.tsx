@@ -11,6 +11,7 @@ import {
 } from "@chakra-ui/react";
 import { Logo } from "mangarine/components/Logo";
 import { useColorMode } from "mangarine/components/ui/color-mode";
+import { usePersistReady } from "mangarine/components/ui/provider";
 import { outfit } from "./_app";
 import { CustomLink } from "mangarine/components/Button";
 import { useAuth } from "mangarine/state/hooks/user.hook";
@@ -41,13 +42,18 @@ export default function Home() {
   const img = `${!isClient ? bg1 : colorMode === "dark" ? bg1Dark : bg1}`;
   const img2 = `${!isClient ? banner3 : colorMode === "dark" ? banner4 : banner3}`;
   const { token } = useAuth();
+  const persistReady = usePersistReady();
   const router = useRouter();
 
   useEffect(() => {
+    if (!persistReady) {
+      return;
+    }
+
     if (!isEmpty(token)) {
       router.replace("./home");
     }
-  }, [router, token]);
+  }, [persistReady, router, token]);
 
   return (
     <GuestLayout>

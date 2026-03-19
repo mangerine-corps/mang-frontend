@@ -184,13 +184,13 @@ const NewsItem: React.FC<NewsItemProps> = ({ post, isDetailPage = false }) => {
   return (
     <Box
       key={post?.id}
-      boxShadow={"xs"}
+      boxShadow="none"
       pos={"relative"}
       zIndex={"base"}
-      borderWidth={0.5}
+      borderWidth={1}
       bg="bg_box"
       alignItems={"flex-start"}
-      borderColor={"gray.50"}
+      borderColor={"#E8E8E9"}
       p={4}
       _selected={{
         bg: "transparent",

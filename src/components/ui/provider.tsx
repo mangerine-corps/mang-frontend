@@ -1,6 +1,7 @@
 "use client"
 
 import { ChakraProvider } from "@chakra-ui/react";
+import { createContext, useContext, useEffect, useState } from "react";
 import {
   ColorModeProvider,
   type ColorModeProviderProps,
@@ -8,14 +9,28 @@ import {
 import system from "mangarine/theme"
 
 import { Provider } from "react-redux";
-import { store } from "mangarine/state/store";
+import { startPersistor, store } from "mangarine/state/store";
+
+const PersistReadyContext = createContext(false);
+
+export const usePersistReady = () => useContext(PersistReadyContext);
 
 export function Providers(props: ColorModeProviderProps) {
+  const [persistReady, setPersistReady] = useState(false);
+
+  useEffect(() => {
+    startPersistor(() => {
+      setPersistReady(true);
+    });
+  }, []);
+
   return (
-    <Provider store={store}>
-      <ChakraProvider value={system}>
-        <ColorModeProvider {...props} />
-      </ChakraProvider>
-    </Provider>
+    <PersistReadyContext.Provider value={persistReady}>
+      <Provider store={store}>
+        <ChakraProvider value={system}>
+          <ColorModeProvider {...props} />
+        </ChakraProvider>
+      </Provider>
+    </PersistReadyContext.Provider>
   );
 }

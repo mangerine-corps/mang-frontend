@@ -1,5 +1,6 @@
 import { useState, useCallback } from 'react';
 import axios from 'axios';
+import { apiClient, createAuthorizationHeader } from 'mangarine/lib/api-client';
 
 interface UploadProgress {
   loaded: number;
@@ -16,7 +17,7 @@ interface UseDirectUploadReturn {
   upload: (
     file: File,
     folder?: string,
-    token?: string,
+    token?: unknown,
     onProgress?: (loaded: number, total: number, percentage: number) => void
   ) => Promise<DirectUploadResult>;
   progress: UploadProgress | null;
@@ -39,7 +40,7 @@ export const useDirectUpload = (): UseDirectUploadReturn => {
   const upload = useCallback(async (
     file: File,
     folder: string = 'videos',
-    token?: string,
+    token?: unknown,
     onProgress?: (loaded: number, total: number, percentage: number) => void
   ): Promise<DirectUploadResult> => {
     setIsUploading(true);
@@ -54,16 +55,16 @@ export const useDirectUpload = (): UseDirectUploadReturn => {
       const filename = `${folder}/${timestamp}_${randomString}.${extension}`;
 
       // Step 1: Get presigned URL from backend Cloudflare controller
-      const baseUrl = process.env.API_BASE_URL || '';
-      const presignedResponse = await axios.post(
-        `${baseUrl}/cloudflare/upload/presigned-url`,
+      const authorizationHeader = createAuthorizationHeader(token);
+      const presignedResponse = await apiClient.post(
+        '/cloudflare/upload/presigned-url',
         {
           filename,
           contentType: file.type,
           expiresIn: 3600, // 1 hour
         },
-        token
-          ? { headers: { Authorization: `Bearer ${token}` } }
+        authorizationHeader
+          ? { headers: { Authorization: authorizationHeader } }
           : undefined
       );
 
@@ -110,12 +111,12 @@ export const useDirectUpload = (): UseDirectUploadReturn => {
         form.append('file', file);
         form.append('folder', folder);
 
-        const proxyResp = await axios.post(
-          `${baseUrl}/cloudflare/upload/document`,
+        const proxyResp = await apiClient.post(
+          '/cloudflare/upload/document',
           form,
           {
             headers: {
-              ...(token ? { Authorization: `Bearer ${token}` } : {}),
+              ...(authorizationHeader ? { Authorization: authorizationHeader } : {}),
               // Let browser set correct multipart boundary
             },
             onUploadProgress: (progressEvent) => {

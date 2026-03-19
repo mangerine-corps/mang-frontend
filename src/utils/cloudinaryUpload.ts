@@ -1,6 +1,6 @@
 // src/lib/cloudinaryUpload.ts
-import axios from 'axios';
 import imageCompression from 'browser-image-compression';
+import { apiClient, createAuthorizationHeader } from 'mangarine/lib/api-client';
 
 interface CloudinaryUploadOptions {
   folder?: string;
@@ -11,7 +11,7 @@ interface CloudinaryUploadOptions {
 
 export async function uploadToCloudinary(
   file: File,
-  authToken: string,
+  authToken: unknown,
   uploadOptions: CloudinaryUploadOptions = {},
   onProgress?: (progressEvent: any) => void
 ): Promise<any> {
@@ -47,13 +47,14 @@ export async function uploadToCloudinary(
   if (uploadOptions.tags) uploadOptions.tags.forEach((t) => formData.append('tags', t));
 
   try {
-    const res = await axios.post(
-      `${process.env.API_BASE_URL}${endpoint}`,
+    const authorizationHeader = createAuthorizationHeader(authToken);
+
+    const res = await apiClient.post(
+      endpoint,
       formData,
       {
         headers: {
-          Authorization: `Bearer ${authToken}`,
-          'Content-Type': 'multipart/form-data',
+          ...(authorizationHeader ? { Authorization: authorizationHeader } : {}),
         },
         onUploadProgress: onProgress,
       }
@@ -78,16 +79,18 @@ export async function uploadToCloudinary(
 }
 
 // New function to delete resources
-export async function deleteCloudinaryResources(publicIds: string[], authToken: string): Promise<any> {
+export async function deleteCloudinaryResources(publicIds: string[], authToken: unknown): Promise<any> {
   if (!publicIds || publicIds.length === 0) {
     return { success: true, message: 'No public IDs to delete.' };
   }
   try {
+    const authorizationHeader = createAuthorizationHeader(authToken);
+
     // Cloudflare deletion is by filename; iterate and delete each
     const results = await Promise.allSettled(
       publicIds.map((filename) =>
-        axios.delete(`${process.env.API_BASE_URL}/cloudflare/file/${encodeURIComponent(filename)}`, {
-          headers: { Authorization: `Bearer ${authToken}` },
+        apiClient.delete(`/cloudflare/file/${encodeURIComponent(filename)}`, {
+          headers: authorizationHeader ? { Authorization: authorizationHeader } : undefined,
         })
       )
     );

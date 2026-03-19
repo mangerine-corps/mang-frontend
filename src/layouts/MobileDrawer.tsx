@@ -39,7 +39,8 @@ export const MobileDrawer = () => {
                   spaceY="8"
                   alignItems={"flex-start"}
                   justifyContent={"flex-start"}
-                  pl="8"
+                  w="full"
+                  px="4"
                 >
                   <Link href="#" mr="6">
                     <Image
@@ -56,7 +57,7 @@ export const MobileDrawer = () => {
                   </Link>
 
                   {NavLinks.map((link) => (
-                    <NavItem key={link.href} link={link} />
+                    <NavItem key={link.href} link={link} isMobile />
                   ))}
                 </VStack>
               </Drawer.Body>

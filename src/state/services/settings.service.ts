@@ -1,18 +1,11 @@
-import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
-import { RootState } from "../store";
+import { createApi } from "@reduxjs/toolkit/query/react";
+import { axiosBaseQuery } from "./axios-base-query";
 
 // define the API service
 export const settingsApi = createApi({
   reducerPath: "settingsApi",
-  baseQuery: fetchBaseQuery({
+  baseQuery: axiosBaseQuery({
     baseUrl: `${process.env.API_BASE_URL}/settings`,
-    prepareHeaders: (headers, { getState }) => {
-      const token = (getState() as RootState).userAuth?.token;
-      if (token) {
-        headers.set("Authorization", `Bearer ${token}`);
-      }
-      return headers;
-    },
   }),
   tagTypes: [
     "Settings",

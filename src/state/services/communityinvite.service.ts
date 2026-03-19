@@ -1,21 +1,12 @@
-import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
-import { RootState } from "../store";
+import { createApi } from "@reduxjs/toolkit/query/react";
+import { axiosBaseQuery } from "./axios-base-query";
 
 export const CommunityInviteApi = createApi({
     reducerPath: 'CommunityInviteApi',
-    baseQuery: fetchBaseQuery({
+    baseQuery: axiosBaseQuery({
         baseUrl: process.env.API_BASE_URL + "/invites/community-invites",
-        prepareHeaders: (headers, { getState }) => {
-          // By default, if we have a token in the store, let's use that for authenticated requests
-          const token =
-            (getState() as RootState).userAuth.token ??
-            (getState() as RootState).userAuth.preAuth.token;
-    
-          headers.set("type", "customer");
-          if (token) {
-            headers.set("Authorization", `Bearer ${token}`);
-          }
-          return headers;
+        headers: {
+          type: "customer",
         },
       }),
       endpoints: (builder)=>({

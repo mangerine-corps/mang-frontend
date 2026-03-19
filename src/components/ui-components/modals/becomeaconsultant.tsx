@@ -73,8 +73,8 @@ const BecomeAConsultantModal = ({ onOpenChange, isOpen }: props) => {
         <Button variant="outline">Open</Button>
       </Dialog.Trigger> */}
       <Portal>
-        <Dialog.Backdrop />
-        <Dialog.Positioner>
+        <Dialog.Backdrop css={{ position: "fixed", inset: 0, backdropFilter: "blur(4px)", zIndex: 2147483646 }} />
+        <Dialog.Positioner style={{ zIndex: 2147483647 }}>
           <Dialog.Content p="8" rounded={"xl"} bg="bg_box">
             {/* <Dialog.Header>
               <Dialog.Title>Dialog Title</Dialog.Title>
