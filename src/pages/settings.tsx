@@ -1,5 +1,5 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Box, Text, Image, Flex, Icon, Stack } from "@chakra-ui/react";
 import AppLayout from "mangarine/layouts/AppLayout";
 import AccountSetting from "mangarine/components/ui-components/accountsetting";
@@ -15,6 +15,7 @@ import { CgSearch } from "react-icons/cg";
 import Help from "mangarine/components/ui-components/settings/help";
 import { BiMenuAltLeft } from "react-icons/bi";
 import MenuList from "mangarine/components/ui-components/mybusiness/modals/settingsdrawer";
+import { useRouter } from "next/router";
 // import CancelSubscriptionModal from "mangarine/components/ui-components/cancelsubscriptionmodal"
 
 const menuData = [
@@ -80,6 +81,14 @@ const Settings = () => {
   const [activeTab, setActiveTab] = useState("account");
   const [searchTerm, setSearchTerm] = useState("");
   const [showMenuList, setShowMenuList] = useState<boolean>(false);
+  const router = useRouter();
+
+  useEffect(() => {
+    const tab = router.query.tab;
+    if (typeof tab === "string") {
+      setActiveTab(tab);
+    }
+  }, [router.query.tab]);
   // const  [hide, setHide] = useState<boolean>(false);
   const handleMobileTabChange = (activeTab) => {
     setActiveTab(activeTab.id);

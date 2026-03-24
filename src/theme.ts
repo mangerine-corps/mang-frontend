@@ -108,7 +108,7 @@ const system = createSystem(defaultConfig, {
           300: { value: "#FFFFFF" },
           400: { value: "#E4E3E3" },
           500: { value: "#FFFFFF" },
-          600: { value: "#E8E8E8" },
+          600: { value: "#F8F8F9" },
           700: { value: "#B5B5B5" },
           800: { value: "#8C8C8C" },
           900: { value: "#6B6B6B" },

@@ -6,6 +6,7 @@ export type SearchItem = {
   id: string;
   type: 'user' | 'group';
   name: string;
+  businessName?: string | null;
   profilePics?: string | null;
   banner?: string | null;
 };
@@ -44,7 +45,7 @@ export function useSearch(initialLimit = 10) {
       const controller = new AbortController();
       controllerRef.current = controller;
 
-      const response = await apiClient.get<SearchResponse>('/search', {
+      const response = await apiClient.get<any>('/search/people', {
         params: {
           query: debounced,
           limit: initialLimit,
@@ -52,7 +53,21 @@ export function useSearch(initialLimit = 10) {
         signal: controller.signal,
       });
 
-      setData(response.data);
+      const raw = response.data;
+      const items = raw?.data ?? raw?.results ?? [];
+      setData({
+        results: items.map((u: any) => ({
+          id: u.id,
+          type: (u.type as 'user' | 'group') ?? 'user',
+          name: u.fullName ?? u.name ?? '',
+          businessName: u.businessName ?? null,
+          profilePics: u.profilePics ?? null,
+          banner: u.profileBanner ?? u.banner ?? null,
+        })),
+        total: raw?.pagination?.totalItems ?? items.length,
+        page: raw?.pagination?.currentPage ?? 1,
+        limit: initialLimit,
+      });
     } catch (err: any) {
       if (err?.name === 'AbortError' || err?.name === 'CanceledError' || err?.code === 'ERR_CANCELED') return;
       setError(err?.response?.data?.message || err?.message || 'Failed to fetch search results');

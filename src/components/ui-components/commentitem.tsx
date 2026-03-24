@@ -49,6 +49,22 @@ import ReportComment from "./modals/reportcomment";
 
 const smily = "/icons/smily.svg";
 
+const timeAgo = (date: string) => {
+  const seconds = Math.floor((Date.now() - new Date(date).getTime()) / 1000);
+  if (seconds < 60) return `${seconds}s ago`;
+  const minutes = Math.floor(seconds / 60);
+  if (minutes < 60) return `${minutes}m ago`;
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `${hours}h ago`;
+  const days = Math.floor(hours / 24);
+  if (days < 7) return `${days}d ago`;
+  const weeks = Math.floor(days / 7);
+  if (weeks < 4) return `${weeks}w ago`;
+  const months = Math.floor(days / 30);
+  if (months < 12) return `${months}mo ago`;
+  return `${Math.floor(days / 365)}y ago`;
+};
+
 const CommentItem = ({
   comment,
   post,
@@ -307,28 +323,30 @@ const CommentItem = ({
               borderRadius="full"
               //   name={comment.author?.fullName}
             /> */}
-            <Avatar.Root shadow={"lg"} mx="4" w={10} h={10}>
+            <Avatar.Root shadow={"lg"} w={8} h={8}>
               <Avatar.Fallback name={`${comment.author?.fullName}`} />
               <Avatar.Image src={comment.author?.profilePics} />
             </Avatar.Root>
           </Flex>
 
-          <VStack alignItems={"flex-start"}>
-            <VStack>
+          <VStack alignItems={"flex-start"} gap={0}>
+            <HStack gap={2}>
               <Text
                 fontSize="sm"
                 color="text_primary"
                 fontWeight="semibold"
-                mr="4px"
               >
                 {comment.author?.fullName}
               </Text>
-              <Text fontSize="sm" color="grey.500">
-                {new Date(comment.createdAt).toLocaleString()}
+              <Text fontSize="xs" color="grey.500">
+                {timeAgo(comment.createdAt)}
               </Text>
-            </VStack>
+            </HStack>
+            <Text fontSize="xs" color="grey.500" lineHeight="short">
+              {comment.author?.businessName}
+            </Text>
 
-            <Text mt="8px" color="text_primary">
+            <Text color="text_primary" fontSize="sm">
               {comment.comment}
             </Text>
 

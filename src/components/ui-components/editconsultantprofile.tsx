@@ -196,24 +196,8 @@ const EditConsultantProfileCard = ({
                   </Box>
                 )}
               </HStack>
-              <Text
-                fontSize={{ base: "sm", lg: "md" }}
-                // pt="1"
-                lineHeight={"-3"}
-                color="gray.500"
-              >
-                {info?.occupation}
-              </Text>
 
-              <Text
-                fontSize={{ base: "sm", lg: "md" }}
-                color="gray.500"
-                lineClamp={"2"}
-                truncate="true"
-              >
-                {info?.bio}
-              </Text>
-              <Flex gap={3} alignItems="center" w="full" pb="2">
+              <Flex gap={3} alignItems="center" w="full">
                 <Flex alignItems="center">
                   <Image
                     src="/icons/locations.svg"
@@ -244,6 +228,24 @@ const EditConsultantProfileCard = ({
                   </Text>
                 </Flex>
               </Flex>
+
+              <Text
+                fontSize={{ base: "sm", lg: "md" }}
+                lineHeight={"-3"}
+                color="gray.500"
+              >
+                {info?.occupation}
+              </Text>
+
+              <Text
+                fontSize={{ base: "sm", lg: "md" }}
+                color="gray.500"
+                lineClamp={"2"}
+                truncate="true"
+                pb="2"
+              >
+                {info?.bio}
+              </Text>
             </VStack>
           </HStack>
 

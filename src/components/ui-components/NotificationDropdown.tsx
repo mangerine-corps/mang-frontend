@@ -19,6 +19,7 @@ interface NotificationDropdownProps {
   showConnectionStatus?: boolean;
   autoMarkAsRead?: boolean;
   onNotificationClick?: (notification: NotificationData) => void;
+  trigger?: (onClick: () => void, unreadCount: number) => React.ReactNode;
 }
 
 const NotificationDropdown: React.FC<NotificationDropdownProps> = ({
@@ -26,6 +27,7 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({
   showConnectionStatus = true,
   autoMarkAsRead = false,
   onNotificationClick,
+  trigger,
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const {
@@ -107,33 +109,36 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({
 
   return (
     <Box position="relative">
-      <IconButton
-        aria-label="Notifications"
-        onClick={() => setIsOpen(!isOpen)}
-        variant="ghost"
-        size="md"
-        color={textColor}
-        _hover={{ bg: 'gray.100' }}
-      >
-        <Bell size={20} />
-      </IconButton>
-      
-      {unreadCount > 0 && (
-        <Badge
-          position="absolute"
-          top="-2"
-          right="-2"
-          colorScheme="red"
-          borderRadius="full"
-          fontSize="xs"
-          minW="20px"
-          h="20px"
-          display="flex"
-          alignItems="center"
-          justifyContent="center"
-        >
-          {unreadCount > 99 ? '99+' : unreadCount}
-        </Badge>
+      {trigger ? trigger(() => setIsOpen(!isOpen), unreadCount) : (
+        <>
+          <IconButton
+            aria-label="Notifications"
+            onClick={() => setIsOpen(!isOpen)}
+            variant="ghost"
+            size="md"
+            color={textColor}
+            _hover={{ bg: 'gray.100' }}
+          >
+            <Bell size={20} />
+          </IconButton>
+          {unreadCount > 0 && (
+            <Badge
+              position="absolute"
+              top="-2"
+              right="-2"
+              colorScheme="red"
+              borderRadius="full"
+              fontSize="xs"
+              minW="20px"
+              h="20px"
+              display="flex"
+              alignItems="center"
+              justifyContent="center"
+            >
+              {unreadCount > 99 ? '99+' : unreadCount}
+            </Badge>
+          )}
+        </>
       )}
 
       {/* Dropdown Content */}
@@ -299,9 +304,6 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({
               bg="gray.50"
             >
               <Flex justify="space-between" align="center">
-                <Text fontSize="xs" color={mutedTextColor}>
-                  {notifications.length} total notifications
-                </Text>
                 <Button
                   size="xs"
                   variant="ghost"
@@ -313,6 +315,15 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({
                   _hover={{ bg: 'gray.200' }}
                 >
                   Mark all as read
+                </Button>
+                <Button
+                  size="xs"
+                  variant="ghost"
+                  color="blue.500"
+                  onClick={() => { setIsOpen(false); window.location.href = '/notifications'; }}
+                  _hover={{ bg: 'gray.200' }}
+                >
+                  See more
                 </Button>
               </Flex>
             </Box>

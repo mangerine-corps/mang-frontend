@@ -1,154 +1,119 @@
-import { Box, Flex, IconButton, Image, Avatar, Textarea } from "@chakra-ui/react";
+import { Box, Flex, HStack, Image, Avatar, Textarea, VStack } from "@chakra-ui/react";
 import EmojiPicker from "emoji-picker-react";
 import { useAuth } from "mangarine/state/hooks/user.hook";
 import { useAddCommentMutation } from "mangarine/state/services/posts.service";
 import { useMemo, useRef, useState } from "react";
 import { useClickAway } from "react-use";
 import { Button } from "../ui/button";
-import { GoArrowUp } from "react-icons/go";
 import { useDispatch } from "react-redux";
 import { incrementCommentCount } from "mangarine/state/reducers/post.reducer";
+import { MdInsertPhoto } from "react-icons/md";
+import FeedAction from "./feedaction";
 
 const smily = "/icons/smily.svg";
+const location = "/icons/loc.svg";
+const tag = "/icons/tag.svg";
 
 interface CommentInputWrapperProps {
   postId: string | string[];
-
 }
 
-const CommentInputWrapper: React.FC<CommentInputWrapperProps> = ({
-  postId,
-}) => {
+const CommentInputWrapper: React.FC<CommentInputWrapperProps> = ({ postId }) => {
   const { user } = useAuth();
   const [comment, setComment] = useState("");
+  const [isActive, setIsActive] = useState(false);
   const [addComment, { isLoading }] = useAddCommentMutation();
   const [, setErrorMessage] = useState("");
   const emojiRef = useRef(null);
-  const [, setShowCommentButton] = useState(false)
   const dispatch = useDispatch();
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
 
-  useClickAway(emojiRef, () => {
-    setShowPicker(false);
-  });
-
+  useClickAway(emojiRef, () => setShowPicker(false));
   const [showPicker, setShowPicker] = useState(false);
-  // const dispatch = useDispatch();
 
   const numericPostId = useMemo(() => {
     return Array.isArray(postId) ? postId[0] : postId;
   }, [postId]);
 
-  if (!numericPostId) {
-    console.error("Invalid postId:", postId);
-    return <div>Invalid post ID</div>;
-  }
+  if (!numericPostId) return <div>Invalid post ID</div>;
 
   const onEmojiClick = (emojiObject) => {
     setComment(`${comment} ${emojiObject.emoji}`);
   };
 
-  console.log(user);
-
   const handleCommentSubmit = async () => {
     if (comment.trim() === "") return;
     try {
-      const newComment = {
-        postId: numericPostId,
-        userId: user.id,
-        comment,
-      };
-      const response = await addComment(newComment).unwrap();
-      console.log(response, "response");
+      await addComment({ postId: numericPostId, userId: user.id, comment }).unwrap();
       setComment("");
-      // Optimistically bump the comment count for this post so UI reflects immediately
-      if (numericPostId) {
-        dispatch(incrementCommentCount({ postId: numericPostId as string }));
-      }
+      setIsActive(false);
+      if (numericPostId) dispatch(incrementCommentCount({ postId: numericPostId as string }));
     } catch (error: any) {
-      console.error("What happened:", error);
       setErrorMessage(error.message || "Failed to add the comment.");
     }
-
   };
 
   return (
-    <Flex alignItems="center" gap={4} my={6} alignSelf="stretch" rounded={"xs"}>
-      <Avatar.Root>
+    <Flex alignItems="flex-start" gap={4} my={6} alignSelf="stretch">
+      <Avatar.Root w={8} h={8} mt={1}>
         <Avatar.Fallback name={`${user?.fullName}`} />
         <Avatar.Image src={user?.profilePics} />
       </Avatar.Root>
 
-      <Flex
-        flex="1 0 0"
-        alignItems="center"
-        rounded={"lg"}
-        borderWidth={1}
-        borderColor={"gray.50"}
-        shadow={"sm"}
-        p={2}
-        position="relative"
-      >
+      <VStack flex={1} gap={0} rounded="lg" borderWidth={1} borderColor="gray.200" overflow="hidden" p={2}>
         <Textarea
           variant="subtle"
           placeholder="Add a comment..."
-          flex="1"
-          as="textarea"
           resize="none"
           bg="transparent"
-          focusRing={'none'}
-          focusRingColor={'transparent'}
-          ring={'none'}
+          focusRing="none"
+          focusRingColor="transparent"
+          _focus={{ outline: "none", boxShadow: "none" }}
           color="text_primary"
-          shadow={'none'}
-          ringColor={'transparent'}
-
-          //   rows={1}
-          //   isDisabled={isLoading}
-          _focus={{ outline: "none", focusRing: 'none', focusRingColor: 'transparent' }}
+          shadow="none"
+          border="none"
+          minH={isActive ? "80px" : "40px"}
+          transition="min-height 0.2s"
           value={comment}
+          onFocus={() => setIsActive(true)}
           onChange={(e) => setComment(e.target.value)}
         />
-        <IconButton
-          onClick={() => setShowPicker(!showPicker)}
-          pos={"relative"}
-          aria-label="Emoji"
-          variant="ghost"
-          size="sm"
-        >
-          {<Image src={smily} alt="Add emoji" />}
-          <Box
-            ref={emojiRef}
-            display="flex"
-            gap={2}
-            position="absolute"
-            right={4}
-          >
-            {showPicker && <EmojiPicker onEmojiClick={onEmojiClick} />}
-          </Box>
-        </IconButton>
 
-        {/* Icons */}
-      </Flex>
-      {
-        setShowCommentButton &&
-        <Box>
-          <Button
-            display="flex"
-            size={"md"}
-            onClick={handleCommentSubmit}
-            bg={"primary.300"}
-            justifyContent="center"
-            alignItems="center"
-            loading={isLoading}
-            rounded={'full'}
-            alignSelf="flex-end"
-            color={"white"}
-            width={{ base: "100%", md: "auto" }}
-          >
-            <GoArrowUp />
-          </Button>
-        </Box>
-      }
+        {isActive && (
+          <HStack w="full" px={3} pb={2} justifyContent="space-between" borderTopWidth={1} borderColor="gray.100" pt={2}>
+            <HStack spaceX={1}>
+              <Box>
+                <FeedAction icon="/icons/img.svg" action={() => fileInputRef.current?.click()} />
+                <input type="file" ref={fileInputRef} accept="image/*" style={{ display: "none" }} />
+              </Box>
+              <Box pos="relative">
+                <FeedAction icon={smily} action={() => setShowPicker(!showPicker)} />
+                <Box ref={emojiRef} pos="absolute" bottom="100%" left={0} zIndex="max">
+                  {showPicker && <EmojiPicker onEmojiClick={onEmojiClick} />}
+                </Box>
+              </Box>
+              <FeedAction icon={location} />
+              <FeedAction icon={tag} />
+            </HStack>
+
+            <Button
+              size="sm"
+              borderRadius="lg"
+              px={5}
+              onClick={handleCommentSubmit}
+              bg={comment ? "#111D4A" : "transparent"}
+              borderWidth={comment ? "2px" : "1px"}
+              borderColor={comment ? "#FC731AF7" : "gray.300"}
+              color={comment ? "white" : "gray.400"}
+              loading={isLoading}
+              disabled={!comment.trim()}
+              transition="all 0.2s"
+            >
+              Send
+            </Button>
+          </HStack>
+        )}
+      </VStack>
     </Flex>
   );
 };

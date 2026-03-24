@@ -23,6 +23,7 @@ import { usePostsPolling } from "mangarine/hooks/usePostsPolling";
 import TrendingCommunities from "mangarine/components/ui-components/trendingcommunities";
 import { useCommunity } from "mangarine/state/hooks/communities.hook";
 import TrendingEmptyState from "mangarine/components/ui-components/emptytrendingstate";
+import WhoToFollow from "mangarine/components/ui-components/whotofollow";
 
 const noScrollbar = {
   "&::-webkit-scrollbar": { width: "0px", height: "0px" },
@@ -182,10 +183,11 @@ function Home() {
           <Box w="full" cursor="pointer">
             {!isEmpty(upcomingConsultation) ? <ActivityBox /> : <ActivityEmptyState />}
           </Box>
-          {isConsultant && !isEmpty(upcomingConsultation) && <BookingCalendar />}
+          <BookingCalendar />
           <Stack display={{ base: "none", lg: "flex" }} w="full">
             {!isEmpty(trending) ? <TrendingCommunities /> : <TrendingEmptyState />}
           </Stack>
+          <WhoToFollow />
         </VStack>
 
         {/* Mobile right menu trigger */}

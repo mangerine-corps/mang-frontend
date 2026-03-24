@@ -19,24 +19,15 @@ const NewsAction: React.FC<NewsActionProps> = ({
   return (
     <HStack
       onClick={!isDisabled ? action : undefined}
-      spaceX={"0.5"}
+      spaceX={"0"}
+      gap={0.5}
       alignItems={"center"}
       cursor={action && !isDisabled ? "pointer" : "default"}
       _hover={!isDisabled && action ? { opacity: 0.8 } : {}}
     >
-      <Text color={"grey.500"} fontSize={"1rem"} fontFamily={"Outfit"}>
-        {count}
-      </Text>
-      {
-        typeof icon === 'string' ? (
-          <Image alt="action icon" src={icon} />
-
-        ) : (
-          icon
-        )
-      }
-      <Text color={"grey.500"} fontSize={"1rem"} fontFamily={"Outfit"} display={{ base: "none", md: "none", lg: "none", xl: "block" }}>
-        {desc}
+      {typeof icon === 'string' ? <Image alt="action icon" src={icon} /> : icon}
+      <Text color={"grey.500"} fontSize={"0.75rem"} fontFamily={"Outfit"}>
+        {count} {count === 1 ? desc.replace(/s$/, '') : desc}
       </Text>
     </HStack>
   );

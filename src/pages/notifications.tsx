@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { Box, VStack, HStack, Text, Badge, Button, Select, Input, InputGroup } from '@chakra-ui/react';
 import { useAuth } from '../state/hooks/user.hook';
-import { useSSENotificationContext, SSENotificationProvider } from '../contexts/SSENotificationContext';
+import { useSSENotificationContext } from '../contexts/SSENotificationContext';
 import { SSENotificationDisplay } from '../components/SSENotificationDisplay';
 import { NotificationData } from '../types/sse.types';
 import AppLayout from '../layouts/AppLayout';
@@ -452,32 +452,4 @@ const NotificationsPage: React.FC = () => {
     );
 };
 
-// Wrapper component with SSE provider
-const NotificationsPageWithSSE: React.FC = () => {
-    const { user, token } = useAuth();
-
-    if (!user) {
-        return (
-            <AppLayout>
-                <Box p={8} textAlign="center">
-                    <Text>Please log in to view notifications</Text>
-                </Box>
-            </AppLayout>
-        );
-    }
-
-    return (
-        <SSENotificationProvider
-            userId={user.id}
-            options={{
-                mode: 'secure',
-                token: token,
-                autoReconnect: true
-            }}
-        >
-            <NotificationsPage />
-        </SSENotificationProvider>
-    );
-};
-
-export default NotificationsPageWithSSE; 
+export default NotificationsPage; 

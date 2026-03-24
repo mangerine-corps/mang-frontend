@@ -42,7 +42,7 @@ export const NavItem: React.FC<Props> = ({ link, isMobile }) => {
             rounded={isMobile ? "md" : "none"}
             borderBottom={!isMobile && isActive ? "2px solid" : "2px solid transparent"}
             borderColor={!isMobile && isActive ? "button_bg" : "transparent"}
-            color={isMobile && isActive ? "white" : isActive ? "button_bg" : "grey.300"}
+            color={isMobile && isActive ? "white" : isActive ? "button_bg" : "#494949"}
             _hover={{ color: isMobile ? "white" : "text_primary", bg: isMobile ? "#111D4A" : "transparent", borderColor: "button_bg" }}
             transition="all 0.2s"
             alignItems={isMobile ? "flex-start" : "center"}

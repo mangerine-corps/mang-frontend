@@ -21,6 +21,8 @@ import { toaster } from "../ui/toaster";
 import { useAuth } from "mangarine/state/hooks/user.hook";
 import { useRouter } from "next/router";
 import { IoVideocamOutline } from "react-icons/io5";
+import UploadToPremiumModal from "./modals/uploadtopremium";
+import ImageLightbox from "./imagelightbox";
 
 const smily = "/icons/smily.svg";
 const location = "/icons/loc.svg";
@@ -45,12 +47,13 @@ const FeedInput = ({ onCreated }: FeedInputProps) => {
   const [showPicker, setShowPicker] = useState(false);
   const [selectedImage, setSelectedImage] = useState<File[]>([]);
   const [imagePreview, setImagePreview] = useState<string[]>([]);
-  const [, setOpenImageLimit] = useState(false);
+  const [openImageLimit, setOpenImageLimit] = useState(false);
   const videoInputRef = useRef<HTMLInputElement | null>(null);
   const [tags, setTags] = useState<string[]>([]);
   const [selectedVideo, setSelectedVideo] = useState<File | null>(null);
   const [videoPreview, setVideoPreview] = useState<string | null>(null);
   const [, setEditingImageIndex] = useState<number | null>(null);
+  const [lightboxSrc, setLightboxSrc] = useState<string | null>(null);
 
   // const [, setIsPreviewMode] = useState(false);
   const dispatch = useDispatch();
@@ -208,12 +211,12 @@ const addTag =(username:string)=>{
 
   return (
     <>
+      <UploadToPremiumModal isOpen={openImageLimit} onOpenChange={() => setOpenImageLimit(false)} />
       <HStack
         rounded={"15px"}
-        boxShadow={"sm"}
-        borderWidth={0.8}
+        borderWidth={1}
         alignItems={"flex-start"}
-        borderColor={"grey.300"}
+        borderColor={"#E8E8E9"}
         bg="bg_box"
         // h="full"
         // p={4}
@@ -233,13 +236,13 @@ const addTag =(username:string)=>{
             w={"full"}
             // minH={"2rem"}
             rounded={"15px"}
-            boxShadow={"sm"}
-            borderWidth={0.8}
+            borderWidth={2}
             minH={"100px"}
             my={4}
             position="relative"
             cursor="pointer"
             mr="4"
+            borderColor={"#E8E8E9"}
           >
             <HStack
               p={4}
@@ -294,6 +297,8 @@ const addTag =(username:string)=>{
                         height={selectedImage.length > 1 ? "auto" : "auto"}
                         maxHeight={selectedImage.length > 1 ? "auto" : "auto"}
                         borderRadius="md"
+                        cursor="pointer"
+                        onClick={() => setLightboxSrc(src)}
                       />
 
                       {/* edit image button */}
@@ -501,9 +506,9 @@ const addTag =(username:string)=>{
             w={"full"}
             // minH={"2rem"}
             rounded={"15px"}
-            boxShadow={"sm"}
+            borderWidth={1}
             cursor={"pointer"}
-            borderWidth={0.8}
+            borderColor={"#E8E8E9"}
             onClick={() => {
               setShowTextBox(true);
             }}
@@ -522,6 +527,7 @@ const addTag =(username:string)=>{
 
         {/* <CreatePostModal isOpen={isModalOpen} onClose={closeModal} /> */}
       </HStack>
+      {lightboxSrc && <ImageLightbox src={lightboxSrc} onClose={() => setLightboxSrc(null)} />}
     </>
   );
 };

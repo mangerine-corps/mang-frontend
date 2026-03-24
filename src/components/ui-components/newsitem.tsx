@@ -48,6 +48,7 @@ import ReportPost from "./modals/reportpost";
 import { MessageSquareText } from "lucide-react";
 import DeletePost from "./deletepost";
 import { useReportCommentMutation } from "../../state/services/posts.service";
+import ImageLightbox from "./imagelightbox";
 interface NewsItemProps {
   post: Post;
   isDetailPage?: boolean;
@@ -96,6 +97,7 @@ const NewsItem: React.FC<NewsItemProps> = ({ post, isDetailPage = false }) => {
   // const [addFollower] = useFollowUserMutation();
   // const [unfollowUser] = useUnfollowUserMutation();
   const [view, setView] = useState<boolean>(false);
+  const [lightboxSrc, setLightboxSrc] = useState<string | null>(null);
 
   const [showCollections, setShowCollections] = useState(false);
   // Hook manages isFollowing state and label consistently across app
@@ -205,52 +207,22 @@ const NewsItem: React.FC<NewsItemProps> = ({ post, isDetailPage = false }) => {
         />
       )}
       <HStack alignItems={"flex-start"} justifyContent={"space-between"}>
-        <HStack alignItems={"flex-start"}>
-          <Avatar.Root shadow={"lg"} mx="4" w={10} h={10}>
+        <HStack alignItems={"flex-start"} flex={1}>
+          <Avatar.Root w={10} h={10} flexShrink={0} alignSelf="flex-start">
             <Avatar.Fallback name={`${post?.creator?.fullName}`} />
             <Avatar.Image src={post?.creator?.profilePics} />
           </Avatar.Root>
 
-          <VStack
-            onClick={() => router.replace("/profile")}
-            mb={1}
-            align={"left"}
-            gap={0}
-            alignItems={"flex-start"}
-          >
-            <HStack>
-              <Text
-                fontSize={"1rem"}
-                fontFamily={"Outfit"}
-                color={"text_primary"}
-                fontWeight={"600"}
-              >
+          <VStack align={"left"} gap={0} alignItems={"flex-start"} flex={1}>
+            <HStack onClick={() => router.replace("/profile")} mb={1} cursor="pointer">
+              <Text fontSize={"1rem"} fontFamily={"Outfit"} color={"text_primary"} fontWeight={"600"}>
                 {post?.creator?.fullName}
               </Text>
-              <Text
-                fontSize={"0.875rem"}
-                fontFamily={"Outfit"}
-                color={"grey.500"}
-                fontWeight={"400"}
-              >
+              <Text fontSize={"0.875rem"} fontFamily={"Outfit"} color={"grey.500"} fontWeight={"400"}>
                 {post?.creator?.businessName}
               </Text>
             </HStack>
-            {/* <Text
-              fontSize={"12px"}
-              fontFamily={"Outfit"}
-              color={"grey.500"}
-              fontWeight={"400"}
-            >
-              {post?.creator?.businessName}
-            </Text> */}
-            <Text
-              fontSize={"12px"}
-              pt="1"
-              fontFamily={"Outfit"}
-              color={"grey.500"}
-              fontWeight={"400"}
-            >
+            <Text fontSize={"12px"} fontFamily={"Outfit"} color={"grey.500"} fontWeight={"400"}>
               {new Date(post?.createdAt).toLocaleTimeString("en-US", {
                 hour: "numeric",
                 minute: "numeric",
@@ -330,8 +302,7 @@ const NewsItem: React.FC<NewsItemProps> = ({ post, isDetailPage = false }) => {
         </Menu.Root>
       </HStack>
 
-      {/* conditionally truncate content */}
-      <Box onClick={() => handlePostClick(post?.id)} cursor="pointer">
+      <Box onClick={() => handlePostClick(post?.id)} cursor="pointer" mt={3}>
         <Text
           fontSize={"0.875rem"}
           fontFamily={"Outfit"}
@@ -356,7 +327,7 @@ const NewsItem: React.FC<NewsItemProps> = ({ post, isDetailPage = false }) => {
         {size(post?.images) > 0 && (
           <HStack mt={5} alignItems={"stretch"} spaceX={4}>
             {post?.images.map((url, index) => (
-              <Box flex={1} key={index}>
+              <Box flex={1} key={index} onClick={(e) => { e.stopPropagation(); setLightboxSrc(url); }} cursor="pointer">
                 <Image
                   h="200px"
                   w="full"
@@ -371,7 +342,8 @@ const NewsItem: React.FC<NewsItemProps> = ({ post, isDetailPage = false }) => {
           </HStack>
         )}
 
-        {/* Render video if present */}
+        <ImageLightbox src={lightboxSrc} onClose={() => setLightboxSrc(null)} />
+
         {post?.video && (
           <Box mt={5}>
             <video controls style={{ width: "100%", borderRadius: "6px" }}>
@@ -419,7 +391,7 @@ const NewsItem: React.FC<NewsItemProps> = ({ post, isDetailPage = false }) => {
             </Icon>
           }
           count={likeCount || 0}
-          desc=""
+          desc="Likes"
           action={handleLikeClick}
           isDisabled={isLikeLoading}
         />
@@ -443,7 +415,7 @@ const NewsItem: React.FC<NewsItemProps> = ({ post, isDetailPage = false }) => {
             </Icon>
           }
           count={unlikeCount || 0}
-          desc=""
+          desc="Dislikes"
           action={handleUnlikeClick}
           isDisabled={isLikeLoading}
         />
@@ -466,7 +438,7 @@ const NewsItem: React.FC<NewsItemProps> = ({ post, isDetailPage = false }) => {
             </Icon>
           }
           count={post?.commentCount}
-          desc=""
+          desc="Comments"
           action={toggleComment}
           isDisabled={!(post?.allowComments ?? true)}
         />
@@ -476,11 +448,8 @@ const NewsItem: React.FC<NewsItemProps> = ({ post, isDetailPage = false }) => {
               <FiEye />
             </Icon>
           }
-          count={
-            // Prefer the incremented value when on detail page; otherwise show the value from the post payload
-            views?.data?.viewCount ?? post?.views ?? 0
-          }
-          desc=""
+          count={views?.data?.viewCount ?? post?.views ?? 0}
+          desc="Views"
           action={() => {}}
         />
 
@@ -494,7 +463,7 @@ const NewsItem: React.FC<NewsItemProps> = ({ post, isDetailPage = false }) => {
                   </Icon>
                 }
                 count={post?.shareCount}
-                desc=""
+                desc="Shares"
               />
             </Button>
           </Menu.Trigger>

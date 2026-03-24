@@ -14,6 +14,15 @@ function Biocard() {
   const { data: missingFieldsResponse } = useGetMissingFieldsQuery(undefined);
   const { data: profileCompletionResponse } = useGetProfileCompletionQuery(undefined);
   const refreshedUser = (userInfo as any)?.data ?? userInfo;
+  const profileCompletionPercent =
+    (profileCompletionResponse as any)?.data?.profileCompletionPercent ??
+    refreshedUser?.profileCompletionPercent ??
+    user?.profileCompletionPercent ??
+    0;
+
+  const goToProfile = () => {
+    router.push("/profile");
+  };
 
   const navigateTo = (field: string) => {
     // Map fields to likely routes
@@ -40,11 +49,11 @@ function Biocard() {
       maxW={{ base: "full", md: "340px", lg: "400px" }} // don’t stretch too wide on large screens
       // pb="12px"
       borderRadius="lg"
-      // bg="red.800"
-      shadow={{ base: "sm", md: "md", lg: "xs", xl: "xs" }}
+      border="1px solid"
+      borderColor="#E8E8E9"
       bg="bg_box"
       onClick={() => {
-        router.push("./profile");
+        goToProfile();
       }}
     >
       <Box
@@ -126,19 +135,18 @@ function Biocard() {
           </Text>
         </VStack>
         {
-          <VStack alignItems="flex-start" w="full">
+          <VStack alignItems="flex-start" w="full" gap="1">
+            <Progress.Root
+              value={profileCompletionPercent}
+              w="full"
+            >
+              <Progress.Track w="full">
+                <Progress.Range bg="#00A991" />
+              </Progress.Track>
+            </Progress.Root>
             <HStack w="full" justifyContent="space-between" alignItems="center">
-              <Text mb="2" color="text_primary" fontSize="sm" fontWeight="500">
-                {(refreshedUser?.isConsultant ?? user?.isConsultant)
-                  ? "Complete your consultant profile"
-                  : "Complete your profile"}{" "}
-                (
-                {(profileCompletionResponse as any)?.data
-                  ?.profileCompletionPercent ??
-                  refreshedUser?.profileCompletionPercent ??
-                  user?.profileCompletionPercent ??
-                  0}
-                %)
+              <Text color="text_primary" fontSize="sm" fontWeight="500">
+                Profile {profileCompletionPercent}% Complete
               </Text>
               <IconButton
                 aria-label="View missing fields"
@@ -152,21 +160,21 @@ function Biocard() {
                 <IoIosEye />
               </IconButton>
             </HStack>
-            <Progress.Root
-              value={
-                (profileCompletionResponse as any)?.data
-                  ?.profileCompletionPercent ??
-                refreshedUser?.profileCompletionPercent ??
-                user?.profileCompletionPercent ??
-                0
-              }
-              maxW="240px"
+            <Button
+              bg="button_bg"
+              color="button_text"
+              size="sm"
+              mt="2"
               w="full"
+              borderRadius="md"
+              justifyContent="center"
+              onClick={(e) => {
+                e.stopPropagation();
+                goToProfile();
+              }}
             >
-              <Progress.Track>
-                <Progress.Range />
-              </Progress.Track>
-            </Progress.Root>
+              Complete your profile
+            </Button>
           </VStack>
         }
         {showMissingModal && (
