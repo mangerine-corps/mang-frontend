@@ -1,6 +1,8 @@
 import {
+  Box,
   Drawer,
   HStack,
+  Image,
   Skeleton,
   SkeletonCircle,
   Text,
@@ -49,6 +51,12 @@ const CommentSection = ({ post }: CommentSectionProps) => {
     }
   }, [data]);
 
+  const hasComments = Array.isArray(comments) && size(comments) > 0;
+  const visibleComments =
+    Array.isArray(comments) && size(comments) > 2
+      ? comments.slice(0, 2)
+      : comments;
+
   return (
     <VStack alignItems={"flex-start"} w="full" px="6">
       {isLoading ? (
@@ -94,35 +102,65 @@ const CommentSection = ({ post }: CommentSectionProps) => {
         </>
       ) : (
         <VStack w="full" gap="2">
-          {!isEmpty(comments) &&
-            size(comments) > 0 && (
-              <VStack w="full" alignItems={"flex-start"}>
-                {comments.map((comment: any) => (
-                  <CommentItem key={comment.id} comment={comment} post={post} onDeleted={handleCommentDeleted} />
-                ))}
-              </VStack>
-            ) &&
-            size(comments) > 2 ? (
-             <VStack w="full">
-                {comments.slice(0,2).map((comment: any) => (
-                  <CommentItem key={comment.id} comment={comment} post={post} onDeleted={handleCommentDeleted} />
-                ))}
-               <Text
-                onClick={() => {
-                  setShowMore(true)
-                }}
-                cursor='pointer'
+          {hasComments ? (
+            <VStack w="full" alignItems={"flex-start"}>
+              {visibleComments.map((comment: any) => (
+                <CommentItem
+                  key={comment.id}
+                  comment={comment}
+                  post={post}
+                  onDeleted={handleCommentDeleted}
+                />
+              ))}
+              {size(comments) > 2 && (
+                <Text
+                  onClick={() => {
+                    setShowMore(true);
+                  }}
+                  cursor="pointer"
+                  fontFamily="Outfit"
+                  fontSize="0.875rem"
+                  fontWeight="500"
+                  color="text_primary"
+                >
+                  See More
+                </Text>
+              )}
+            </VStack>
+          ) : (
+            <VStack w="full" py="6" gap="3">
+              <Box
+                w="101px"
+                h="80px"
+                display="flex"
+                alignItems="center"
+                justifyContent="center"
               >
-                See More
+                <Image
+                  src="/message.png"
+                  alt="No comments"
+                  w="101px"
+                  h="80px"
+                />
+              </Box>
+              <Text
+                fontFamily="Outfit"
+                fontSize="1rem"
+                fontWeight="600"
+                color="text_primary"
+              >
+                No comment yet !
               </Text>
-             </VStack>
-            ) : (
-              <VStack w="full" alignItems={"flex-start"}>
-                {comments.map((comment: any) => (
-                  <CommentItem key={comment.id} comment={comment} post={post} onDeleted={handleCommentDeleted} />
-                ))}
-              </VStack>
-            )}
+              <Text
+                fontFamily="Outfit"
+                fontSize="0.875rem"
+                fontWeight="400"
+                color="grey.500"
+              >
+                Be the first to comment
+              </Text>
+            </VStack>
+          )}
         </VStack>
       )}
       <CommentList open={showMore} onOpenChange={()=>{setShowMore(false)}} data={comments} post={post}/>
