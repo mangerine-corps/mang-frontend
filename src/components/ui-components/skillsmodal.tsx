@@ -1,7 +1,6 @@
 import {
   Box,
   Button,
-  Drawer,
   HStack,
   Input,
   InputGroup,
@@ -12,7 +11,6 @@ import {
 import { useEffect, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
-import { FaTimes } from "react-icons/fa";
 import { HiMiniPlus } from "react-icons/hi2";
 import moment from "moment";
 import * as Yup from "yup";
@@ -25,6 +23,7 @@ import {
 import { useProfile } from "mangarine/state/hooks/profile.hook";
 import CustomInput from "../customcomponents/Input";
 import { toaster } from "../ui/toaster";
+import TopRightDrawer from "../ui/top-right-drawer";
 
 // ------------------ Validation Schema ------------------ //
 const skillsSchema = Yup.object().shape({
@@ -222,8 +221,10 @@ const SkillItem = ({
         <Button
           w="45%"
           rounded="6px"
-          bg="primary.300"
+          bg="#111D4A"
+          borderColor="#111D4A"
           color="white"
+          _hover={{ bg: "#111D4A" }}
           // disabled={isDisabled || !formState.isValid}
           loading={isLoading}
           onClick={handleSave}
@@ -259,61 +260,57 @@ const SkillsModal = ({
   };
 
   return (
-    <Drawer.Root open={open} onOpenChange={onOpenChange} size="md">
-      <Drawer.Backdrop />
-      <Drawer.Positioner zIndex={"max"}>
-        <Drawer.Content pt="6" px="3">
-          <Drawer.Header>
-            <HStack justify="space-between" w="full" px="6" py={4}>
-              <Text fontSize="2.5rem" fontWeight="700" color="text_primary">
-                Skills
-              </Text>
-              <Box
-                as="button"
-                border={0.5}
-                rounded={4}
-                p={2}
-                borderColor="gray.150"
-                shadow="md"
-                onClick={onOpenChange}
-              >
-                <FaTimes />
-              </Box>
-            </HStack>
-          </Drawer.Header>
+    <TopRightDrawer
+      open={open}
+      onOpenChange={onOpenChange}
+      title="Skills"
+      headerAction={
+        <Box
+          as="button"
+          border={0.5}
+          rounded={4}
+          p={2}
+          borderColor="gray.150"
+          shadow="md"
+          color="text_primary"
+          onClick={handleAddSkillBlock}
+        >
+          <HiMiniPlus />
+        </Box>
+      }
+      bodyProps={{
+        px: { base: "4", lg: "5" },
+        py: { base: "4", lg: "5" },
+        pb: { base: "14", lg: "16" },
+      }}
+    >
+      <VStack w="full" spaceY={4}>
+        {map(localSkills, (skill) => (
+          <SkillItem
+            key={skill.id}
+            skill={skill}
+            onClose={onOpenChange}
+          />
+        ))}
+      </VStack>
 
-          <Drawer.Body px="2" py="8" bg="bg_box">
-            <VStack w="full" spaceY={4}>
-              {map(localSkills, (skill) => (
-                <SkillItem
-                  key={skill.id}
-                  skill={skill}
-                  onClose={onOpenChange}
-                />
-              ))}
-            </VStack>
-
-            {/* Add More Skills */}
-            <HStack mt={6} onClick={handleAddSkillBlock} cursor="pointer">
-              <Box
-                border={0.5}
-                rounded={4}
-                py={2}
-                px={2}
-                borderColor="gray.150"
-                shadow="md"
-                color={"text_primary"}
-              >
-                <HiMiniPlus />
-              </Box>
-              <Text fontSize="0.875rem" fontWeight="600" color="gray.500">
-                Add Skills
-              </Text>
-            </HStack>
-          </Drawer.Body>
-        </Drawer.Content>
-      </Drawer.Positioner>
-    </Drawer.Root>
+      <HStack mt={6} onClick={handleAddSkillBlock} cursor="pointer">
+        <Box
+          border={0.5}
+          rounded={4}
+          py={2}
+          px={2}
+          borderColor="gray.150"
+          shadow="md"
+          color={"text_primary"}
+        >
+          <HiMiniPlus />
+        </Box>
+        <Text fontSize="0.875rem" fontWeight="600" color="gray.500">
+          Add Skills
+        </Text>
+      </HStack>
+    </TopRightDrawer>
   );
 };
 

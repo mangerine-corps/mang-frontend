@@ -7,6 +7,7 @@ import { FieldError } from "react-hook-form";
 type Props = {
   onChange: (value: string) => void;
   onBlur?: React.FocusEventHandler<HTMLInputElement> | undefined;
+  onFocus?: React.FocusEventHandler<HTMLInputElement> | undefined;
   value: string | number;
   error?: FieldError | undefined;
   isError?: boolean;
@@ -28,11 +29,13 @@ type Props = {
   min?: string;
   max?: string;
   inputStyle?: SystemStyleObject;
+  onKeyDown?: React.KeyboardEventHandler<HTMLInputElement>;
 };
 const CustomInput = ({
   value,
   onChange,
   onBlur,
+  onFocus,
   error,
   isError,
   label,
@@ -50,13 +53,14 @@ const CustomInput = ({
   size = "md",
   min,
   inputStyle = {},
+  onKeyDown: onKeyDownProp,
 }: Props) => {
 
   const handleKeyDown = (event) => {
-    // Prevent default behavior for ArrowUp and ArrowDown keys
     if (event.key === 'ArrowUp' || event.key === 'ArrowDown') {
       event.preventDefault();
     }
+    onKeyDownProp?.(event);
   };
 
   return (
@@ -99,11 +103,7 @@ const CustomInput = ({
           boxShadow="inset 6px 6px 12px rgba(0, 0, 0, 0.2)"
           size={size}
           type={type}
-          onKeyDown={(e) => {
-            if (type == 'number') {
-              handleKeyDown(e)
-            }
-          }}
+          onKeyDown={handleKeyDown}
           borderColor={
             !isEmpty(error)
               ? "error.100"
@@ -141,6 +141,7 @@ const CustomInput = ({
             }
           }}
           onBlur={onBlur}
+          onFocus={onFocus}
           fontSize={"14px"}
           color={"text_primary"}
           {...inputStyle}

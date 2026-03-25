@@ -144,7 +144,7 @@ export const useFollow = ({
         closable: true,
       });
     }
-  }, [canFollow, user, targetUserId, mutateFollow, dispatch, postIdContext]);
+  }, [canFollow, user, targetUserId, isFollowing, mutateFollow, mutateUnfollow, followLegacy, unfollowLegacy, refetch, dispatch, postIdContext]);
 
   return {
     isFollowing,

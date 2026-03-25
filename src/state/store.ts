@@ -34,6 +34,7 @@ import { chatManagementApi } from "./services/chat-management.service";
 import { paymentApi } from "./services/payment.service";
 import { notificationsApi } from "./services/notifications.service";
 import { transactionApi } from "./services/transaction.service";
+import { searchApi } from "./services/search.service";
 import { extractAuthToken, registerAuthTokenResolver } from "../lib/api-client";
 
 const persistConfig = {
@@ -59,6 +60,7 @@ const persistConfig = {
     paymentApi.reducerPath,
     notificationsApi.reducerPath,
     transactionApi.reducerPath,
+    searchApi.reducerPath,
   ],
 };
 
@@ -92,6 +94,7 @@ const reducers = combineReducers({
   [paymentApi.reducerPath]: paymentApi.reducer,
   [notificationsApi.reducerPath]: notificationsApi.reducer,
   [transactionApi.reducerPath]: transactionApi.reducer,
+  [searchApi.reducerPath]: searchApi.reducer,
 });
 
 // Root reducer with reset logic
@@ -131,6 +134,7 @@ export const createStore = () =>
         paymentApi.middleware,
         notificationsApi.middleware,
         transactionApi.middleware,
+        searchApi.middleware,
       ]),
   });
 

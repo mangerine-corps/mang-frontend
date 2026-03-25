@@ -184,7 +184,15 @@ const ConsultantProfile = () => {
   }, [router.query]);
 
   const appearance: Appearance = {
-    theme: "stripe",
+    theme: "flat",
+    variables: {
+      colorPrimary: "#111D4A",
+      colorText: "#111827",
+      colorTextSecondary: "#6B7280",
+      colorBackground: "#FFFFFF",
+      borderRadius: "12px",
+      fontFamily: "Outfit, sans-serif",
+    },
   };
 
   const loader = "auto";
@@ -407,6 +415,7 @@ const ConsultantProfile = () => {
                     >
                       <PaymentCard
                         paymentDetails={showPayment.paymentDetails}
+                        onBack={() => setShowPayment(undefined)}
                       />
                     </Elements>
                   </Box>

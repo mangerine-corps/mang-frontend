@@ -1,10 +1,9 @@
-import { Box, Button, Drawer, HStack, Text, VStack } from "@chakra-ui/react";
+import { Box, Button, HStack, Text, VStack } from "@chakra-ui/react";
 import { useEffect, useState } from "react";
 
 import * as Yup from "yup";
 
 import { HiMiniPlus } from "react-icons/hi2";
-import moment from "moment";
 import {
   useAddExperienceMutation,
   useDeleteExperienceMutation,
@@ -15,10 +14,15 @@ import { isEmpty, size } from "es-toolkit/compat";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { Controller, useForm } from "react-hook-form";
 import { Checkbox } from "../ui/checkbox";
-import { FaTimes } from "react-icons/fa";
 import CustomInput from "../customcomponents/Input";
 import CustomSelect from "../customcomponents/select";
 import { toaster } from "../ui/toaster";
+import TopRightDrawer from "../ui/top-right-drawer";
+
+const createDraftExperience = () => ({
+  id: `draft-experience-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+  isDraft: true,
+});
 
 const experienceType = [
   {
@@ -149,6 +153,11 @@ const ExperienceItem = ({
   //   []
   // );
   const handleDeleteExpereince = () => {
+    if (experience?.isDraft) {
+      handleDeleted(experience.id);
+      return;
+    }
+
     deleteExperience(experience.id)
       .unwrap()
       .then(() => {
@@ -427,16 +436,17 @@ const ExperienceItem = ({
             </Text>
           </Button>
           <Button
-            bg="primary.300"
+            bg="#111D4A"
             borderWidth={1}
             color={"white"}
-            borderColor={"gray.50"}
+            borderColor={"#111D4A"}
             py={2}
             w="45%"
             px={4}
             loading={isLoading}
             _hover={{
               textDecor: "none",
+              bg: "#111D4A",
             }}
             // isDisabled={isEmpty(selectedDay) || selectedTime == ''}
             rounded={"6px"}
@@ -460,159 +470,81 @@ const ExperienceItem = ({
 const ExperienceModal = ({
   open,
   onOpenChange,
+  startWithDraft = false,
 }: {
   open: boolean;
   onOpenChange: () => void;
+  startWithDraft?: boolean;
 }) => {
   const { experiences } = useProfile();
   const [tempExperience, setTempExperience] = useState(experiences);
 
   const addNewExperience = () => {
-    const formData = {
-      id: moment().unix(),
-    };
-    const newExperience = !isEmpty(tempExperience)
-      ? [...tempExperience, formData]
-      : [formData];
-    setTempExperience(newExperience);
+    setTempExperience((prev) => [
+      createDraftExperience(),
+      ...(Array.isArray(prev) ? prev : []),
+    ]);
   };
-   useEffect(() => {
-     if (experiences && experiences.length > 0) {
-       setTempExperience(experiences);
-     }
-   }, [experiences]);
   const handleDeleteExperience = (id: string) => {
     const newExperience = tempExperience.filter(
       (experience) => experience.id !== id
     );
     setTempExperience(newExperience);
   };
-  console.log(experiences);
 
-  useEffect(() => {}, [experiences, tempExperience]);
+  useEffect(() => {
+    if (!open) {
+      return;
+    }
+
+    const nextExperiences = Array.isArray(experiences) ? experiences : [];
+    setTempExperience(
+      startWithDraft
+        ? [createDraftExperience(), ...nextExperiences]
+        : nextExperiences
+    );
+  }, [experiences, open, startWithDraft]);
 
   return (
-    <Drawer.Root size={"sm"} open={open} onOpenChange={onOpenChange}>
-      <Drawer.Backdrop />
-      <Drawer.Trigger>
-        {/* <Image
-          onClick={() => {
-            isOpen;
-          }}
+    <TopRightDrawer
+      open={open}
+      onOpenChange={onOpenChange}
+      title="Experience"
+      headerAction={
+        <Box
+          as="button"
+          border={0.5}
+          rounded={4}
+          py={2}
+          px="2"
           cursor={"pointer"}
-          src="/icons/edit.svg"
-          alt={edit}
-        /> */}
-      </Drawer.Trigger>
-      <Drawer.Positioner zIndex={'max'}>
-        <Drawer.Content>
-          <Drawer.Header>
-            <Drawer.Title>
-              <VStack
-                spaceY={6}
-                w="full"
-                justifyContent={"space-between"}
-                alignItems={"center"}
-                px="6"
-              >
-                <HStack w="full" py={4} justifyContent={"space-between"}>
-                  <Text
-                    fontWeight={700}
-                    fontSize={"2.5rem"}
-                    fontFamily={"Outfit"}
-                    color={"text_primary"}
-                    // textAlign={"start"}
-                  >
-                    Experience
-                  </Text>
-                  <HStack spaceX={4}>
-                    {/* <Box
-                      border={0.5}
-                      rounded={4}
-                      py={2}
-                      px="2"
-                      onClick={addNewExperience}
-                      borderColor={"gray.150"}
-                      shadow={"md"}
-                    >
-                      <Text
-                        color="text_primary"
-                        fontSize={"1rem"}
-                        fontWeight={"600"}
-                      >
-                        <HiMiniPlus />
-                      </Text>
-                    </Box> */}
-                    <Box
-                      border={0.5}
-                      rounded={4}
-                      py={2}
-                      px="2"
-                      onClick={onOpenChange}
-                      borderColor={"gray.150"}
-                      shadow={"md"}
-                    >
-                      {/* <Image
-                        cursor={"pointer"}
-                        onClick={onOpenChange}
-                        w={4}
-                        h={4}
-                        // src={close}
-                        alt={"close-image"}
-                      /> */}
-                      <Text
-                        color="text_primary"
-                        fontSize={"0.8rem"}
-                        fontWeight={"400"}
-                      >
-                        <FaTimes />
-                      </Text>
-                    </Box>
-                  </HStack>
-                </HStack>
-              </VStack>
-            </Drawer.Title>
-          </Drawer.Header>
-          <Drawer.Body px="3" py="8">
-            <VStack w="full" spaceY="4">
-              {size(tempExperience) > 0 &&
-                tempExperience.map((experience) => (
-                  <ExperienceItem
-                    key={experience.id}
-                    handleDeleted={handleDeleteExperience}
-                    experience={experience}
-                    onClose={onOpenChange}
-                  />
-                ))}
-
-             <HStack w="full" align="center" justify={"flex-start"}>
-               <Box
-                border={0.5}
-                rounded={4}
-                py={2}
-                px="2"
-                cursor={"pointer"}
-                onClick={addNewExperience}
-                borderColor={"gray.150"}
-                shadow={"md"}
-              >
-                <Text color="text_primary" fontSize={"1rem"} fontWeight={"600"}>
-                  <HiMiniPlus />
-                </Text>
-                {/* <Text color="text_primary" fontSize={"1rem"} fontWeight={"600"}>
-                  <HiMiniMinus />
-                </Text> */}
-              </Box>
-              <Text color="grey.500" fontSize={"1rem"} fontWeight={"600"}>
-                 Add Experience
-                </Text>
-             </HStack>
-            </VStack>
-          </Drawer.Body>
-          <Drawer.Footer />
-        </Drawer.Content>
-      </Drawer.Positioner>
-    </Drawer.Root>
+          onClick={addNewExperience}
+          borderColor={"gray.150"}
+          shadow={"md"}
+        >
+          <Text color="text_primary" fontSize={"1rem"} fontWeight={"600"}>
+            <HiMiniPlus />
+          </Text>
+        </Box>
+      }
+      bodyProps={{
+        px: { base: "4", lg: "5" },
+        py: { base: "4", lg: "5" },
+        pb: { base: "14", lg: "16" },
+      }}
+    >
+      <VStack w="full" spaceY="4">
+        {size(tempExperience) > 0 &&
+          tempExperience.map((experience) => (
+            <ExperienceItem
+              key={experience.id}
+              handleDeleted={handleDeleteExperience}
+              experience={experience}
+              onClose={onOpenChange}
+            />
+          ))}
+      </VStack>
+    </TopRightDrawer>
   );
 };
 

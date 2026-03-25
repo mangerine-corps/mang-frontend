@@ -1,16 +1,14 @@
 
 "use client";;
-import { Box, Drawer, HStack, Image, Text, VStack } from "@chakra-ui/react";
+import { Box, HStack, Image, Text } from "@chakra-ui/react";
 import { useUpdateProfileVideoMutation } from "mangarine/state/services/profile.service";
 import { useState } from "react";
-import { FaTimes } from "react-icons/fa";
 import { Button } from "../ui/button";
 import { toaster } from "../ui/toaster";
 import { useDispatch } from "react-redux";
 import { setUpdatedInfo } from 'mangarine/state/reducers/auth.reducer';
+import TopRightDrawer from "../ui/top-right-drawer";
 
-
-const coverphoto = "";
 const video = "/icons/upload.svg";
 
 const EditIntroVideoModal = ({
@@ -86,97 +84,23 @@ const EditIntroVideoModal = ({
 
 
   return (
-    <Drawer.Root size={"md"} open={open} onOpenChange={onOpenChange}>
-      <Drawer.Backdrop />
-      <Drawer.Trigger>
-        {/* <Image
-        onClick={() => {
-          isOpen;
-        }}
-        cursor={"pointer"}
-        src="/icons/edit.svg"
-        alt={edit}
-      /> */}
-      </Drawer.Trigger>
-      <Drawer.Positioner zIndex={"max"}>
-        <Drawer.Content pt="6" px="3">
-          <Drawer.Header>
-            <Drawer.Title>
-              <VStack
-                spaceY={6}
-                w="full"
-                justifyContent={"space-between"}
-                alignItems={"center"}
-                px="3"
-              >
-                <HStack w="full" py={4} justifyContent={"space-between"}>
-                  <Text
-                    fontWeight={700}
-                    fontSize={"2rem"}
-                    fontFamily={"Outfit"}
-                    color={"text_primary"}
-                    // textAlign={"start"}
-                  >
-                    Edit Introduction Video
-                  </Text>
-                  <HStack spaceX={4}>
-                    {/* <Box
-                      border={0.5}
-                      rounded={4}
-                      py={2}
-                      px="2"
-                      onClick={handleVideoClick}
-                      borderColor={"gray.150"}
-                      shadow={"md"}
-                    >
-                      <Text
-                        color="text_primary"
-                        fontSize={"1rem"}
-                        fontWeight={"600"}
-                      >
-                        <HiMiniPlus />
-                      </Text>
-                    </Box> */}
-                    <Box
-                      border={0.5}
-                      rounded={4}
-                      py={2}
-                      px="2"
-                      onClick={onOpenChange}
-                      borderColor={"gray.150"}
-                      shadow={"md"}
-                    >
-                      {/* <Image
-                      cursor={"pointer"}
-                      onClick={onOpenChange}
-                      w={4}
-                      h={4}
-                      // src={close}
-                      alt={"close-image"}
-                    /> */}
-                      <Text
-                        color="text_primary"
-                        fontSize={"0.8rem"}
-                        fontWeight={"400"}
-                      >
-                        <FaTimes />
-                      </Text>
-                    </Box>
-                  </HStack>
-                </HStack>
-              </VStack>
-            </Drawer.Title>
-          </Drawer.Header>
-          <Drawer.Body px="3" py="8">
-            <Box
-              borderRadius="lg"
-              //   background="red.900"
-              boxShadow="0px 0px 4px 0px rgba(0, 0, 0, 0.10)"
-              width="100%"
-              height={300}
-              //   maxHeight="200px"
-              position="relative"
-            >
+    <TopRightDrawer
+      open={open}
+      onOpenChange={onOpenChange}
+      title="Edit Introduction Video"
+      bodyProps={{
+        px: { base: "4", lg: "6" },
+        py: { base: "4", lg: "5" },
+        pb: { base: "14", lg: "16" },
+      }}
+    >
+      <Box
+        borderRadius="lg"
+        boxShadow="0px 0px 4px 0px rgba(0, 0, 0, 0.10)"
+        width="100%"
+        height={300}
+        position="relative"
+      >
               <input
                 id="hidden-video-input"
                 type="file"
@@ -229,76 +153,70 @@ const EditIntroVideoModal = ({
                   />
                 </Box>
               )}
-            </Box>
-            <HStack w="full">
-              <HStack
-                w="100%"
-                display={"flex"}
-                mt="8"
-                alignItems={"center"}
-                flexDir={"row"}
-                spaceX={6}
-              >
-                <Button
-                  borderColor="primary.300"
-                  borderWidth={1}
-                  color={"white"}
-                  bg={"white"}
-                  py={2}
-                  rounded="6px"
-                  w="45%"
-                  px={4}
-                  _hover={{
-                    textDecor: "none",
-                  }}
-                  // isDisabled={isEmpty(selectedDay) || selectedTime == ''}
-
-                  onClick={onOpenChange}
-                >
-                  <Text
-                    ml={2}
-                    className="text5"
-                    color={"primary.300"}
-                    fontSize={"0.875rem"}
-                    fontWeight={"500"}
-                  >
-                    Cancel
-                  </Text>
-                </Button>
-                <Button
-                  bg="primary.300"
-                  borderWidth={1}
-                  color={"white"}
-                  borderColor={"gray.50"}
-                  py={2}
-                  w="45%"
-                  px={4}
-                  loading={isLoading}
-                  loadingText={"Uploading"}
-                  _hover={{
-                    textDecor: "none",
-                  }}
-                  // isDisabled={isEmpty(selectedDay) || selectedTime == ''}
-                  rounded={"6px"}
-                  onClick={changeVideo}
-                >
-                  <Text
-                    ml={2}
-                    className="text5"
-                    color={"white"}
-                    fontSize={"0.875rem"}
-                    fontWeight={"500"}
-                  >
-                    Upload
-                  </Text>
-                </Button>
-              </HStack>
-            </HStack>
-          </Drawer.Body>
-          <Drawer.Footer />
-        </Drawer.Content>
-      </Drawer.Positioner>
-    </Drawer.Root>
+      </Box>
+      <HStack w="full">
+        <HStack
+          w="100%"
+          display={"flex"}
+          mt="8"
+          alignItems={"center"}
+          flexDir={"row"}
+          spaceX={6}
+        >
+          <Button
+            borderColor="primary.300"
+            borderWidth={1}
+            color={"white"}
+            bg={"white"}
+            py={2}
+            rounded="6px"
+            w="45%"
+            px={4}
+            _hover={{
+              textDecor: "none",
+            }}
+            onClick={onOpenChange}
+          >
+            <Text
+              ml={2}
+              className="text5"
+              color={"primary.300"}
+              fontSize={"0.875rem"}
+              fontWeight={"500"}
+            >
+              Cancel
+            </Text>
+          </Button>
+          <Button
+            bg="#111D4A"
+            borderWidth={1}
+            color={"white"}
+            borderColor={"#111D4A"}
+            py={2}
+            w="45%"
+            px={4}
+            loading={isLoading}
+            loadingText={"Uploading"}
+            _hover={{
+              textDecor: "none",
+              bg: "#111D4A",
+            }}
+            rounded={"6px"}
+            onClick={changeVideo}
+          >
+            <Text
+              ml={2}
+              className="text5"
+              color={"white"}
+              fontSize={"0.875rem"}
+              fontWeight={"500"}
+            >
+              Upload
+            </Text>
+          </Button>
+        </HStack>
+      </HStack>
+    </TopRightDrawer>
   );
 };
 

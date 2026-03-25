@@ -1,7 +1,6 @@
 import {
   Box,
   Button,
-  Drawer,
   Field,
   HStack,
   Icon,
@@ -14,24 +13,26 @@ import { useEffect, useState } from "react";
 import * as yup from "yup";
 
 import { HiMiniPlus } from "react-icons/hi2";
-import moment from "moment";
 import {
   useAddEducationMutation,
   useDeleteEducationMutation,
 } from "mangarine/state/services/profile.service";
 
 import { useProfile } from "mangarine/state/hooks/profile.hook";
-import { isEmpty, size } from "es-toolkit/compat";
+import { size } from "es-toolkit/compat";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { Controller, useForm } from "react-hook-form";
 import { Checkbox } from "../ui/checkbox";
-import { FaTimes } from "react-icons/fa";
 import CustomInput from "../customcomponents/Input";
 import { useDispatch } from "react-redux";
 import { setCurrentEdu } from "mangarine/state/reducers/profile.reducer";
 import { toaster } from "../ui/toaster";
+import TopRightDrawer from "../ui/top-right-drawer";
 
-
+const createDraftEducation = () => ({
+  id: `draft-education-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+  isDraft: true,
+});
 
 const educationSchema = yup.object().shape({
   school_name: yup.string().required("Full name is required"),
@@ -123,6 +124,11 @@ useEffect(() => {
       });
   };
   const handleDeleteEducation = () => {
+    if (education?.isDraft) {
+      handleDeleted(education.id);
+      return;
+    }
+
     deleteEducation(education.id)
       .unwrap()
       .then((payload) => {
@@ -409,16 +415,17 @@ useEffect(() => {
             </Text>
           </Button>
           <Button
-            bg="primary.300"
+            bg="#111D4A"
             borderWidth={1}
             color={"white"}
-            borderColor={"gray.50"}
+            borderColor={"#111D4A"}
             py={2}
             w="45%"
             loading={isLoading}
             px={4}
             _hover={{
               textDecor: "none",
+              bg: "#111D4A",
             }}
             // isDisabled={isEmpty(selectedDay) || selectedTime == ''}
             rounded={"6px"}
@@ -442,9 +449,11 @@ useEffect(() => {
 const EducationModal = ({
   open,
   onOpenChange,
+  startWithDraft = false,
 }: {
   open: boolean;
   onOpenChange: () => void;
+  startWithDraft?: boolean;
 }) => {
   // const [showToast, setShowToast] = useState(false);
   // const [isCheck, setIsCheck] = useState(false);
@@ -455,139 +464,74 @@ const EducationModal = ({
 
 
   const addNewEducation = () => {
-    const formData = {
-      id: moment().unix(),
-    };
-    const newEducation = !isEmpty(tempEducation)
-      ? [...tempEducation, formData]
-      : [formData];
-    setTempEducation(newEducation);
-    // onOpenChange();
+    setTempEducation((prev) => [
+      createDraftEducation(),
+      ...(Array.isArray(prev) ? prev : []),
+    ]);
   };
-   useEffect(() => {
-     if (educations && educations.length > 0) {
-       setTempEducation(educations);
-     }
-   }, [educations]);
+
   const handleDeleteEducation = (id: string) => {
     const newEducation = tempEducation.filter((edu) => edu.id !== id);
     setTempEducation(newEducation);
-    onOpenChange()
   };
 
   useEffect(() => {
-    console.log(educations, tempEducation)
-    if (!isEmpty(educations)) {
-      console.log(educations, 'inside state')
-      setTempEducation(educations)
+    if (!open) {
+      return;
     }
-  }, []);
+
+    const nextEducations = Array.isArray(educations) ? educations : [];
+    setTempEducation(
+      startWithDraft
+        ? [createDraftEducation(), ...nextEducations]
+        : nextEducations
+    );
+  }, [educations, open, startWithDraft]);
 
   return (
-    <Drawer.Root open={open} onOpenChange={onOpenChange} size="sm">
-      <Drawer.Backdrop />
-
-      <Drawer.Positioner zIndex={"max"}>
-        <Drawer.Content pt="6">
-          <Drawer.Header>
-            <Drawer.Title>
-              <VStack
-                spaceY={6}
-                w="full"
-                justifyContent={"space-between"}
-                alignItems={"center"}
-                px="4"
-              >
-                <HStack w="full" py={4} justifyContent={"space-between"}>
-                  <Text
-                    fontWeight={700}
-                    fontSize={"2rem"}
-                    fontFamily={"Outfit"}
-                    color={"text_primary"}
-                    // textAlign={"start"}
-                  >
-                    Education
-                  </Text>
-                  <HStack spaceX={4}>
-                    <Box
-                      border={0.5}
-                      rounded={4}
-                      py={2}
-                      px="2"
-                      onClick={onOpenChange}
-                      borderColor={"gray.150"}
-                      shadow={"md"}
-                    >
-                      {/* <Image
-                        cursor={"pointer"}
-                        onClick={onOpenChange}
-                        w={4}
-                        h={4}
-                        // src={close}
-                        alt={"close-image"}
-                      /> */}
-                      <Text
-                        color="text_primary"
-                        fontSize={"0.8rem"}
-                        fontWeight={"400"}
-                      >
-                        <FaTimes />
-                      </Text>
-                    </Box>
-                  </HStack>
-                </HStack>
-              </VStack>
-            </Drawer.Title>
-          </Drawer.Header>
-          <Drawer.Body px="2" py="8" bg="bg_box">
-            <VStack w="full" spaceY="4">
-              {size(tempEducation) > 0
-                ? tempEducation.map((edu) => (
-                    <>
-                      <EducationItem
-                        key={edu.id}
-                        handleDeleted={handleDeleteEducation}
-                        education={edu}
-                        onClose={onOpenChange}
-                      />
-                    </>
-                  ))
-                : ""}
-              <HStack align="center" w="full">
-                <Box
-                  border={0.5}
-                  rounded={4}
-                  py={2}
-                  px="2"
-                  onClick={addNewEducation}
-                  borderColor={"gray.150"}
-                  shadow={"md"}
-                >
-                  <Text
-                    color="text_primary"
-                    fontSize={"1rem"}
-                    fontWeight={"600"}
-                  >
-                    <HiMiniPlus />
-                  </Text>
-                </Box>
-                <Text
-                  fontWeight={700}
-                  fontSize={"1rem"}
-                  fontFamily={"Outfit"}
-                  // color={"black"}
-                  color="text_primary"
-                  // textAlign={"start"}
-                >
-                  Add Education
-                </Text>
-              </HStack>
-            </VStack>
-          </Drawer.Body>
-          <Drawer.Footer />
-        </Drawer.Content>
-      </Drawer.Positioner>
-    </Drawer.Root>
+    <TopRightDrawer
+      open={open}
+      onOpenChange={onOpenChange}
+      title="Education"
+      headerAction={
+        <Box
+          as="button"
+          border={0.5}
+          rounded={4}
+          py={2}
+          px="2"
+          onClick={addNewEducation}
+          borderColor={"gray.150"}
+          shadow={"md"}
+        >
+          <Text
+            color="text_primary"
+            fontSize={"1rem"}
+            fontWeight={"600"}
+          >
+            <HiMiniPlus />
+          </Text>
+        </Box>
+      }
+      bodyProps={{
+        px: { base: "4", lg: "5" },
+        py: { base: "4", lg: "5" },
+        pb: { base: "14", lg: "16" },
+      }}
+    >
+      <VStack w="full" spaceY="4">
+        {size(tempEducation) > 0
+          ? tempEducation.map((edu) => (
+              <EducationItem
+                key={edu.id}
+                handleDeleted={handleDeleteEducation}
+                education={edu}
+                onClose={onOpenChange}
+              />
+            ))
+          : ""}
+      </VStack>
+    </TopRightDrawer>
   );
 };
 

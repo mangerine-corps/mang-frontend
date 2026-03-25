@@ -1,10 +1,9 @@
-import { Text, VStack, Image, Box, HStack, AspectRatio, Button, Flex } from "@chakra-ui/react";
+import { Text, VStack, Image, Box, HStack, AspectRatio, Flex } from "@chakra-ui/react";
 import { isEmpty } from "lodash";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import EditIntroVideoModal from "./editintrovideo";
-import { useRouter } from "next/router";
-import IntroductionEmptyState from "./emptyIntroductoryvid";
 import { outfit } from "mangarine/pages/_app";
+import SectionActionButton from "./sectionactionbutton";
 
 interface EditIntroductionVideoCardProps {
   title: string;
@@ -35,11 +34,8 @@ const EditIntroductionVideoCard = ({
   // const { isOpen, onOpen, onClose } = useDisclosure();
   // const { user } = useAuth();
   const [open, setOpen] = useState<boolean>(false);
-  const route = useRouter()
-
-  useEffect(() => {
-
-  }, [videoLink])
+  const isEditable = Boolean(edit);
+  const hasVideo = !isEmpty(videoLink);
 
   return (
     <VStack
@@ -47,7 +43,7 @@ const EditIntroductionVideoCard = ({
       borderColor={"#0000001A"}
       rounded={"15px"}
       py="6"
-      shadow={"sm"}
+      boxShadow="0px 0px 4px 0px #0000001A"
       // wordSpacing={"3"}
       w={width}
       bg="bg_box"
@@ -56,7 +52,7 @@ const EditIntroductionVideoCard = ({
         w="full"
         px="4"
         alignItems="center"
-        justifyContent={"space-between"}
+        justifyContent={"flex-start"}
       >
         <Text
           textAlign={"left"}
@@ -68,22 +64,6 @@ const EditIntroductionVideoCard = ({
         >
           {title}
         </Text>
-        {route.pathname === "/profile" ? (
-          <Box
-            cursor={"pointer"}
-            py={1}
-            px="1"
-            onClick={() => {
-              setOpen(true);
-            }}
-          >
-            <Text color="text_primary" fontSize="1rem">
-              {edit}
-            </Text>
-          </Box>
-        ) : (
-          ""
-        )}
       </HStack>
       <EditIntroVideoModal
         open={open}
@@ -94,7 +74,7 @@ const EditIntroductionVideoCard = ({
 
       {imageSrc && (
         <Box position="relative" w="full" h="auto" px="4">
-          {!isEmpty(videoLink) ? (
+          {hasVideo ? (
             // <video
             //   src={videoLink}
             //   controls
@@ -154,44 +134,11 @@ const EditIntroductionVideoCard = ({
                 Add an introductory video to showcase your expertise and connect
                 better with clients.
               </Text>
-              {route.pathname === "/profile" && (
-                <Button
-                  bg="primary.500"
-                  borderWidth={1}
-                  color={"white"}
-                  borderColor={"gray.50"}
-                  py={2}
-                  my="3"
-                  cursor="pointer"
-                  w="full"
-                  px={4}
-                  _hover={{
-                    textDecor: "none",
-                  }}
-                  onClick={() => {
-                    setOpen(true);
-                  }}
-                  // loading={isLoading}
-                  // isDisabled={isEmpty(selectedDay) || selectedTime == ''}
-                  rounded={"6px"}
-                  // onClick={onClick}
-                >
-                  <Text
-                    ml={2}
-                    className="text5"
-                    color={"white"}
-                    fontSize={"0.875rem"}
-                    fontWeight={"500"}
-                  >
-                    Upload Video
-                  </Text>
-                </Button>
-              )}
             </Box>
             // <IntroductionEmpt onClick={()=>{}} />yState
           )}
 
-          {playIconSrc && (
+          {hasVideo && playIconSrc && (
             <Image
               src="/icons/whitePlay.svg"
               alt="Play icon"
@@ -203,6 +150,19 @@ const EditIntroductionVideoCard = ({
               cursor="pointer"
             />
           )}
+        </Box>
+      )}
+
+      {isEditable && !hasVideo && (
+        <Box w="full" px="4" pt="4">
+          <SectionActionButton
+            title={title}
+            label="Upload Video"
+            fullWidth
+            onClick={() => {
+              setOpen(true);
+            }}
+          />
         </Box>
       )}
     </VStack>

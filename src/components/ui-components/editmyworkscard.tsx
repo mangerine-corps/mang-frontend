@@ -17,32 +17,27 @@ import { useDeleteWorkMutation } from "mangarine/state/services/profile.service"
 import { HiMiniPlus } from "react-icons/hi2";
 
 import { IoEllipsisVerticalOutline } from "react-icons/io5";
-import { BiPlus, BiTrash } from "react-icons/bi";
 import AddWorkDrawer from "./addworkdrawer";
-import { useRouter } from "next/router";
 import BoxLoader from "./profile/boxloader";
 import { toaster } from "../ui/toaster";
 // import { IoEllipsisVerticalOutline } from "react-icons/io5";
 
 const WorkItem = ({
   work,
-  handleDelete,
   handleEdit,
+  editable,
 }: {
   work: any;
-  handleDelete: (id: string) => void;
   handleEdit: (item: any) => void;
+  editable: boolean;
 }) => {
-  const [deleteWork, {isLoading:delwork}] = useDeleteWorkMutation();
-  const router = useRouter();
-   console.log(work, "wrks")
-  const [edit, setEdit] = useState<boolean>(false);
-  const handleDeleteWork = (item) => {
-    console.log(item.id, "work del")
+  const [deleteWork] = useDeleteWorkMutation();
+
+  const handleDeleteWork = () => {
     deleteWork(work.id)
       .unwrap()
       .then((res) => {
-        const {data,message}= res
+        const { message } = res;
         toaster.create({
           type: "success",
           title: "Success",
@@ -84,7 +79,7 @@ const WorkItem = ({
           borderRadius="8px"
         />
 
-        {router.pathname === "/profile" ? (
+        {editable ? (
           <Menu.Root>
             <Menu.Trigger asChild>
               <Button
@@ -125,9 +120,7 @@ const WorkItem = ({
                     value="export-b"
                     _hover={{ bg: "primary." }}
                     roundedTop={"6px"}
-                    onClick={() => {
-                      handleDeleteWork(work);
-                    }}
+                    onClick={handleDeleteWork}
                   >
                     <Menu.ItemCommand>
                       {" "}
@@ -173,13 +166,14 @@ const EditMyWorksCard = ({
   title,
   width,
   works,
+  edit,
   isLoading,
 }: EditMyWorksCardProps) => {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
 
   const [open, setOpen] = useState<boolean>(false);
   const [selected, setSelected] = useState(null);
-  const route = useRouter();
+  const isEditable = Boolean(edit);
 
   const handleScroll = () => {
     if (scrollContainerRef.current) {
@@ -190,7 +184,10 @@ const EditMyWorksCard = ({
     setOpen(true);
     setSelected(item);
   };
-  const handleDelete = () => {};
+  const openAddDrawer = () => {
+    setSelected(null);
+    setOpen(true);
+  };
   // const { open, onOpen, onClose } = useDisclosure();
   return (
     <VStack
@@ -221,15 +218,13 @@ const EditMyWorksCard = ({
           {title}
         </Text>
 
-        {route.pathname === "/profile" && (
+        {isEditable && size(works) > 0 && (
           <Box
             border={0.5}
             rounded={4}
             py={2}
             px="2"
-            onClick={() => {
-              setOpen(true);
-            }}
+            onClick={openAddDrawer}
             borderColor={"grey.300"}
             shadow={"md"}
           >
@@ -298,14 +293,42 @@ const EditMyWorksCard = ({
                   handleEdit={handleEdit}
                   key={work.id}
                   work={work}
-                  handleDelete={handleDelete}
+                  editable={isEditable}
                 />
               ))
             ) : (
-              <Box w="full">
-                <Text color="text_primary" textAlign={"center"}>
-                  You have no work
-                </Text>
+              <Box w="full" py={{ base: 6, lg: 10 }}>
+                <VStack gap={4} w="full">
+                  <Image
+                    src="/jobs.png"
+                    alt="No work added yet"
+                    maxW={{ base: "120px", lg: "160px" }}
+                    h="auto"
+                  />
+                  <Text
+                    color="text_primary"
+                    textAlign={"center"}
+                    fontSize={{ base: "0.95rem", lg: "1rem" }}
+                    maxW="360px"
+                  >
+                    Showcase your best work by adding projects or a portfolio.
+                  </Text>
+                  {isEditable && (
+                    <Button
+                      variant="outline"
+                      bg="transparent"
+                      color="#111D4A"
+                      borderColor="#111D4A"
+                      borderWidth="1px"
+                      px={6}
+                      rounded="md"
+                      onClick={openAddDrawer}
+                      _hover={{ bg: "rgba(17, 29, 74, 0.06)" }}
+                    >
+                      Add Work
+                    </Button>
+                  )}
+                </VStack>
               </Box>
             )}
           </>

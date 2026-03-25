@@ -6,6 +6,7 @@ import {
   Text,
   Textarea,
   VStack,
+  Icon,
 } from "@chakra-ui/react";
 import { useEffect, useState } from "react";
 import CustomButton from "mangarine/components/customcomponents/button";
@@ -15,6 +16,7 @@ import { useReportPostMutation } from "mangarine/state/services/posts.service";
 import { usePosts } from "mangarine/state/hooks/post.hook";
 import { toaster } from "mangarine/components/ui/toaster";
 import { isEmpty } from "es-toolkit/compat";
+import { CheckCircle } from "lucide-react";
 
 type props = {
   onOpenChange: any;
@@ -29,6 +31,7 @@ const ReportPost = ({ onOpenChange, isOpen, postId, userId }: props) => {
   const [open, setopen] = useState(false);
   const [value, setValue] = useState<string>("");
   const [report, setReport] = useState<string>("");
+  const [submitted, setSubmitted] = useState(false);
 
   const [reportPost, { data, error, isLoading }] = useReportPostMutation();
 
@@ -61,8 +64,12 @@ const ReportPost = ({ onOpenChange, isOpen, postId, userId }: props) => {
           type: "success",
           closable: true,
         });
-        onOpenChange();
-        setopen(false);
+        setSubmitted(true);
+        setTimeout(() => {
+          setSubmitted(false);
+          onOpenChange();
+          setopen(false);
+        }, 2000);
       })
       .catch((error) => {
         console.error("Error reporting post:", error, formdata);
@@ -108,6 +115,31 @@ const ReportPost = ({ onOpenChange, isOpen, postId, userId }: props) => {
               <Dialog.Title></Dialog.Title>
             </Dialog.Header>
             <Dialog.Body>
+              {submitted ? (
+                <VStack py="12" gap={4} alignItems="center">
+                  <Icon color="green.500">
+                    <CheckCircle size={64} />
+                  </Icon>
+                  <Text
+                    fontSize="1.25rem"
+                    fontFamily="Outfit"
+                    fontWeight="600"
+                    color="text_primary"
+                    textAlign="center"
+                  >
+                    Report submitted successfully
+                  </Text>
+                  <Text
+                    fontSize="0.875rem"
+                    fontFamily="Outfit"
+                    color="grey.500"
+                    textAlign="center"
+                  >
+                    Thank you for helping keep the community safe.
+                  </Text>
+                </VStack>
+              ) : (
+              <>
               <VStack alignItems={"flex-start"} py="2" pt="8">
                 <Text
                   textAlign={"left"}
@@ -207,6 +239,8 @@ const ReportPost = ({ onOpenChange, isOpen, postId, userId }: props) => {
                 h="6lh"
                 onChange={(e) => setReport(e.target.value)}
               />
+              </>
+              )}
             </Dialog.Body>
             <Dialog.Footer mx="auto" w="100%" pb={6}>
               <HStack

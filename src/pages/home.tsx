@@ -116,7 +116,7 @@ function Home() {
         gridTemplateColumns={{ base: "1fr", md: "1fr 2fr", lg: "1fr 2fr 1fr" }}
         gap={4}
         w="full"
-        pos="relative"
+        h="full"
         css={noScrollbar}
       >
         {/* Left sidebar */}
@@ -124,17 +124,16 @@ function Home() {
           display={{ base: "none", md: "flex" }}
           alignItems="stretch"
           spaceY={2}
-          pos="sticky"
-          top={0}
-          alignSelf="flex-start"
-          h="fit-content"
+          h="full"
+          overflowY="auto"
+          css={noScrollbar}
         >
           <Biocard />
           <DashboardCard />
         </VStack>
 
         {/* Center feed */}
-        <Stack bg="bg_box" rounded="xl" px={4} pb={4} h="full" w="full">
+        <Stack bg="bg_box" rounded="xl" px={4} pb={4} h="full" w="full" overflowY="auto" css={noScrollbar}>
           <FeedInput />
           {initialLoading ? (
             <VStack css={noScrollbar}>
@@ -145,7 +144,7 @@ function Home() {
           ) : isError ? (
             <PostEmptyState />
           ) : (
-            <Stack overflowY="scroll" css={noScrollbar}>
+            <Stack css={noScrollbar}>
               {!isEmpty(combinedPosts) && size(combinedPosts) > 0 ? (
                 <>
                   {combinedPosts.map((post: Post) => post && <NewsItem key={post?.id} post={post} />)}
@@ -173,10 +172,7 @@ function Home() {
           display={{ base: "none", md: "flex" }}
           alignItems="stretch"
           spaceY={2}
-          pos="sticky"
-          top={0}
-          alignSelf="flex-start"
-          h="fit-content"
+          h="full"
           overflowY="auto"
           css={noScrollbar}
         >

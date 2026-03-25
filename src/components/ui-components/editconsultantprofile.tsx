@@ -47,6 +47,8 @@ const EditConsultantProfileCard = ({
   // locationSrc,
   // dobSrc,
 }: EditConsultantProfileCardProps) => {
+  const businessLabel =
+    info?.businessName?.trim?.() || info?.occupation?.trim?.();
   const route = useRouter();
   const [open, setOpen] = useState<boolean>(false);
   const [report, setReport] = useState(false);
@@ -118,256 +120,90 @@ const EditConsultantProfileCard = ({
         borderRadius="2xl"
         boxShadow="sm"
         bg="bg_box"
-        p={{ base: 3, lg: 4 }}
+        overflow="hidden"
       >
-        {/* Banner */}
-        <Image
-          src={info?.profileBanner}
-          alt="profile banner"
-          h={{ base: "150px", lg: "220px" }}
-          w="full"
-          borderRadius="xl"
-          objectFit="cover"
-        />
+        {/* Cover photo / grey fallback */}
+        <Box position="relative" h={{ base: "130px", lg: "180px" }} w="full">
+          {info?.profileBanner ? (
+            <Image
+              src={info.profileBanner}
+              alt="profile banner"
+              h="full"
+              w="full"
+              objectFit="cover"
+            />
+          ) : (
+            <Box h="full" w="full" bg="gray.200" />
+          )}
 
-        {/* Content Row (Avatar + Text + Actions) */}
-        <Flex
-          mt={{ base: -2, lg: -10 }} // lift avatar up into banner
-          pl={{ base: 2, lg: 6 }}
-          pr={{ base: 2, lg: 6 }}
-          align="center"
-          justify="space-between"
-          flexDir={{ base: "column", md: "row" }}
-        >
-          {/* Avatar + Text */}
-          <HStack align="flex-end" spaceX={{ base: 3, lg: 6 }}>
-            {/* Avatar */}
-            <Box
-              flexShrink={0} //
-              rounded="full"
-              overflow="hidden"
-              border="3px solid"
-              borderColor="white"
-              boxSize={{
-                base: "80px",
-                sm: "140px",
-                md: "160px",
-                lg: "180px",
-              }}
-            >
-              <Avatar.Root
-                style={{
-                  width: "100%",
-                  height: "100%",
-                  borderRadius: "50%",
-                }}
-              >
-                <Avatar.Fallback>{info?.fullName}</Avatar.Fallback>
-                <Avatar.Image
-                  src={info?.profilePics}
-                  // alt={info?.fullName}
-                  style={{
-                    width: "100%",
-                    height: "100%",
-                    objectFit: "cover",
-                  }}
-                />
-              </Avatar.Root>
-            </Box>
-            {/* Texts */}
-            <VStack align="flex-start" maxW="lg">
-              <HStack>
-                <Text
-                  fontSize={{ base: "lg", lg: "2xl" }}
-                  fontWeight="600"
-                  pt="6"
-                  lineHeight={"0"}
-                  color="text_primary"
-                >
-                  {info?.fullName}
-                </Text>
-                {info?.isVerified && checkmarkSrc && (
-                  <Box
-                    display={{ base: "hidden", lg: "block" }}
-                    color="yellow.500"
-                    fontSize={"1rem"}
-                  >
-                    <RiVerifiedBadgeFill />
-                  </Box>
-                )}
-              </HStack>
-
-              <Flex gap={3} alignItems="center" w="full">
-                <Flex alignItems="center">
-                  <Image
-                    src="/icons/locations.svg"
-                    alt="Location Icon"
-                    boxSize={{ base: 3, lg: "4" }}
-                  />
-                  <Text
-                    fontSize={{ base: "10px", lg: "12px" }}
-                    color="text_primary"
-                  >
-                    {info?.location}
-                  </Text>
-                </Flex>
-
-                <Flex alignItems="center" gap={1}>
-                  <Image
-                    src="/icons/doblogo.svg"
-                    alt="DOB Icon"
-                    boxSize={{ base: 3, lg: "4" }}
-                  />
-                  <Text
-                    fontSize={{ base: "10px", lg: "12px" }}
-                    color="text_primary"
-                  >
-                    {info?.dateOfBirth
-                      ? format(new Date(info.dateOfBirth), "do, MMM yyyy")
-                      : ""}
-                  </Text>
-                </Flex>
-              </Flex>
-
-              <Text
-                fontSize={{ base: "sm", lg: "md" }}
-                lineHeight={"-3"}
-                color="gray.500"
-              >
-                {info?.occupation}
-              </Text>
-
-              <Text
-                fontSize={{ base: "sm", lg: "md" }}
-                color="gray.500"
-                lineClamp={"2"}
-                truncate="true"
-                pb="2"
-              >
-                {info?.bio}
-              </Text>
-            </VStack>
-          </HStack>
-
-          {/* Actions */}
-          <Stack
-            // mt={{ base: 4, md: 0 }}
-            alignItems={"flex-start"}
-            justifyContent={"flex-start"}
-            h="full"
-          >
+          {/* Actions — top-right of cover */}
+          <Box position="absolute" top={3} right={3}>
             {editable ? (
-              <Button variant="ghost" size="sm" onClick={() => setOpen(true)}>
-                {<BiSolidEditAlt />}
+              <Button
+                variant="outline"
+                size="sm"
+                bg="bg_box"
+                borderColor="#B5B9C7"
+                onClick={() => setOpen(true)}
+              >
+                <BiSolidEditAlt />
               </Button>
             ) : (
-              <HStack
-                spaceX={2}
-                alignItems={"flex-start"}
-                justifyContent={"flex-start"}
-                h="full"
-              >
-                <Button size="sm" variant="outline">
+              <HStack spaceX={2}>
+                <Button size="sm" variant="outline" bg="bg_box" borderColor="#B5B9C7">
                   <Image alt="notif" src="/icons/notif.svg" />
                 </Button>
-                {/* <Button size="sm" variant="outline">
-                  <Image alt="upload" src="/icons/upload.svg" />
-                </Button> */}
                 <Menu.Root>
                   <Menu.Trigger asChild>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      // borderColor={"grey.300"}
-                      shadow={"md"}
-                    >
-                      <Stack
-                        justifyContent={"center"}
-                        alignItems={"center"}
-                        aria-label="Options"
-                      >
-                        <IoEllipsisVerticalOutline
-                          size={6}
-                          color={"grey.300"}
-                        />
+                    <Button variant="outline" size="sm" bg="bg_box" borderColor="#B5B9C7" shadow="md">
+                      <Stack justifyContent="center" alignItems="center" aria-label="Options">
+                        <IoEllipsisVerticalOutline size={6} color="grey.300" />
                       </Stack>
                     </Button>
                   </Menu.Trigger>
                   <Portal>
                     <Menu.Positioner>
-                      <Menu.Content px="3" py="3" spaceY={"2"}>
+                      <Menu.Content px="3" py="3" spaceY="2">
                         <Menu.Item
                           value="export-a"
                           _hover={{ bg: "primary." }}
-                          roundedTop={"6px"}
+                          roundedTop="6px"
                           color="text_primary"
                           fontSize="1rem"
-                          onClick={() => {
-                            handleCopyLink();
-                          }}
+                          onClick={handleCopyLink}
                           py="2"
                         >
                           <Menu.ItemCommand>
-                            {" "}
                             <Image alt="link Icon" src="/icons/link.svg" />
-                          </Menu.ItemCommand>{" "}
+                          </Menu.ItemCommand>
                           Copy link to profile
                         </Menu.Item>
-                        {/* <Menu.Item
-                            value="export-a"
-                            _hover={{ bg: "primary." }}
-                            roundedTop={"6px"}
-                            color="text_primary"
-                            fontSize="1rem"
-                            py="2"
-                            onClick={() => { }}
-                          >
-                            <Menu.ItemCommand>
-                              {" "}
-                              <Image
-                                // onClick={open}
-                                alt="link Icon"
-                                src="/icons/mute.svg"
-                              />
-                            </Menu.ItemCommand>{" "}
-                            Mute {info?.fullName}
-                          </Menu.Item> */}
                         <Menu.Item
                           value="export-b"
                           _hover={{ bg: "primary." }}
-                          roundedTop={"6px"}
+                          roundedTop="6px"
                           color="text_primary"
                           fontSize="1rem"
                           py="2"
-                          onClick={()=>{setBlock(true)}}
+                          onClick={() => setBlock(true)}
                         >
                           <Menu.ItemCommand>
-                            {" "}
-                            <Image
-                              // onClick={open}
-                              alt="link Icon"
-                              src="/icons/block.svg"
-                            />
-                          </Menu.ItemCommand>{" "}
+                            <Image alt="link Icon" src="/icons/block.svg" />
+                          </Menu.ItemCommand>
                           Block {info?.fullName}
                         </Menu.Item>
                         <Menu.Item
                           value="export-c"
                           _hover={{ bg: "primary." }}
-                          roundedTop={"6px"}
+                          roundedTop="6px"
                           color="text_primary"
                           fontSize="1rem"
                           py="2"
                           onClick={openReportModal}
                         >
                           <Menu.ItemCommand>
-                            {" "}
-                            <Image
-                              // onClick={open}
-                              alt="link Icon"
-                              src="/icons/report.svg"
-                            />
-                          </Menu.ItemCommand>{" "}
+                            <Image alt="link Icon" src="/icons/report.svg" />
+                          </Menu.ItemCommand>
                           Report {info?.fullName}
                         </Menu.Item>
                       </Menu.Content>
@@ -376,8 +212,53 @@ const EditConsultantProfileCard = ({
                 </Menu.Root>
               </HStack>
             )}
-          </Stack>
-        </Flex>
+          </Box>
+        </Box>
+
+        {/* Avatar + Info row */}
+        <HStack px={{ base: 4, lg: 6 }} align="flex-end" gap={4} pb={4}>
+          {/* Avatar — half overlapping cover */}
+          <Box
+            mt={{ base: "-20px", lg: "-28px" }}
+            flexShrink={0}
+            rounded="full"
+            border="3px solid"
+            borderColor="#B5B9C7"
+            bg="bg_box"
+            overflow="hidden"
+            boxSize={{ base: "80px", lg: "112px" }}
+          >
+            <Avatar.Root style={{ width: "100%", height: "100%", borderRadius: "50%" }}>
+              <Avatar.Fallback>{info?.fullName}</Avatar.Fallback>
+              <Avatar.Image
+                src={info?.profilePics}
+                style={{ width: "100%", height: "100%", objectFit: "cover" }}
+              />
+            </Avatar.Root>
+          </Box>
+
+          {/* Name / business name / location */}
+          <VStack align="flex-start" gap={0.5} pb={1} flex={1} minW={0}>
+            <Text fontSize={{ base: "md", lg: "lg" }} fontWeight="700" color="text_primary" fontFamily="Outfit" lineClamp={1}>
+              {info?.fullName}
+            </Text>
+
+            {businessLabel && (
+              <Text fontSize={{ base: "0.78rem", lg: "0.85rem" }} color="grey.500" fontFamily="Outfit" lineClamp={1}>
+                {businessLabel}
+              </Text>
+            )}
+
+            {info?.location && (
+              <HStack gap={1} mt={0.5}>
+                <Image src="/icons/locations.svg" alt="Location" boxSize="13px" />
+                <Text fontSize={{ base: "0.72rem", lg: "0.78rem" }} color="text_primary" fontFamily="Outfit">
+                  {info.location}
+                </Text>
+              </HStack>
+            )}
+          </VStack>
+        </HStack>
       </Box>
 
       <EditConsultDrawer

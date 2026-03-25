@@ -3,7 +3,6 @@ import {
   Avatar,
   Box,
   Button,
-  Drawer,
   HStack,
   Icon,
   Image,
@@ -35,11 +34,11 @@ import { isEmpty } from "es-toolkit/compat";
 import { setUpdatedInfo } from "mangarine/state/reducers/auth.reducer";
 import Toast from "./Error";
 import CustomInput from "../customcomponents/Input";
-import { FaTimes } from "react-icons/fa";
 import { toaster } from "../ui/toaster";
 import FileUploader from "../customcomponents/fileupload";
 import VideoUploader from "../customcomponents/videoUpload";
 import { useUpdateDetailsMutation } from "mangarine/state/services/auth.service";
+import TopRightDrawer from "../ui/top-right-drawer";
 const profileSchema = Yup.object().shape({
   fullName: Yup.string().required("full name is required"),
   Title: Yup.string(),
@@ -229,60 +228,24 @@ const EditConsultDrawer = ({
     }
   };
   return (
-    <Drawer.Root size={"md"} open={open} onOpenChange={onOpenChange}>
-      <Drawer.Backdrop />
-      <Drawer.Trigger></Drawer.Trigger>
-      <Drawer.Positioner zIndex={"max"}>
-        <Drawer.Content pt="6" px="3">
-          <Drawer.Header>
-            <Drawer.Title>
-              <VStack
-                spaceY={6}
-                w="full"
-                justifyContent={"space-between"}
-                alignItems={"center"}
-                // px="6"
-              >
-                <HStack w="full" py={4} px="3" justifyContent={"space-between"}>
-                  <Text
-                    fontWeight={700}
-                    fontSize={"2rem"}
-                    fontFamily={"Outfit"}
-                    color={"text_primary"}
-                    // textAlign={"start"}
-                  >
-                    Edit Profile
-                  </Text>
-                  <HStack spaceX={4}>
-                    <Box
-                      border={0.5}
-                      rounded={4}
-                      py={2}
-                      px="2"
-                      onClick={onOpenChange}
-                      borderColor={"gray.150"}
-                      shadow={"md"}
-                    >
-                      <Text
-                        color="text_primary"
-                        fontSize={"0.8rem"}
-                        fontWeight={"400"}
-                      >
-                        <FaTimes />
-                      </Text>
-                    </Box>
-                  </HStack>
-                </HStack>
-              </VStack>
-            </Drawer.Title>
-          </Drawer.Header>
-          <Drawer.Body px="3" py="8">
-            <VStack
-              spaceY={6}
-              w="full"
-              justifyContent={"flex-start"}
-              alignItems={"flex-start"}
-            >
+    <TopRightDrawer
+      open={open}
+      onOpenChange={onOpenChange}
+      title="Edit Profile"
+      size="md"
+      borderRadius="0"
+      bodyProps={{
+        px: { base: "4", lg: "6" },
+        py: { base: "4", lg: "5" },
+        pb: { base: "14", lg: "20" },
+      }}
+    >
+      <VStack
+        spaceY={6}
+        w="full"
+        justifyContent={"flex-start"}
+        alignItems={"flex-start"}
+      >
               <Box
                 borderRadius="lg"
                 // background="red.900"
@@ -589,11 +552,11 @@ const EditConsultDrawer = ({
                 <VideoUploader handleChange={(file) => setVideo(file)} />
               </Box>
 
-              <HStack
-                w="full"
-                alignItems={"center"}
-                justifyContent={"space-between"}
-              >
+                <HStack
+                  w="full"
+                  alignItems={"center"}
+                  justifyContent={"space-between"}
+                >
                 <HStack w="100%" display={"flex"} flexDir={"row"} spaceX={6}>
                   <Button
                     borderColor="primary.300"
@@ -622,16 +585,17 @@ const EditConsultDrawer = ({
                     </Text>
                   </Button>
                   <Button
-                    bg="primary.300"
+                    bg="#111D4A"
                     borderWidth={1}
                     color={"white"}
-                    borderColor={"gray.50"}
+                    borderColor={"#111D4A"}
                     py={2}
                     w="45%"
                     //   isLoading={isLoading}
                     px={4}
                     _hover={{
                       textDecor: "none",
+                      bg: "#111D4A",
                     }}
                     // isDisabled={isEmpty(selectedDay) || selectedTime == ''}
                     rounded={"6px"}
@@ -649,12 +613,8 @@ const EditConsultDrawer = ({
                   </Button>
                 </HStack>
               </HStack>
-            </VStack>
-          </Drawer.Body>
-          <Drawer.Footer />
-        </Drawer.Content>
-      </Drawer.Positioner>
-    </Drawer.Root>
+      </VStack>
+    </TopRightDrawer>
   );
 };
 

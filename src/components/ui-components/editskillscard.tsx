@@ -3,9 +3,8 @@ import { Box, HStack, Text, VStack } from "@chakra-ui/react";
 import { map } from "lodash";
 import { useState } from "react";
 import SkillsModal from "./skillsmodal";
-import { BiSolidEditAlt } from "react-icons/bi";
-import { useRouter } from "next/router";
 import Loader from "./profile/loader";
+import SectionActionButton from "./sectionactionbutton";
 
 interface EditSkillCardProps {
   title: string;
@@ -18,12 +17,12 @@ interface EditSkillCardProps {
 const EditSkillCard = ({
   title,
   skills,
+  edit,
   isLoading,
 }: EditSkillCardProps) => {
 
   const [open, setOpen] = useState<boolean>(false)
-  // const { isOpen, onOpen, onClose } = useDisclosure();
-  const route = useRouter()
+  const isEditable = Boolean(edit);
 
 
   return (
@@ -32,7 +31,7 @@ const EditSkillCard = ({
       borderColor={"bg_box"}
       rounded={"15px"}
       py="6"
-      shadow={"sm"}
+      boxShadow="0px 0px 4px 0px #0000001A"
       wordSpacing={"2"}
       w={"full"}
       bg="bg_box"
@@ -46,7 +45,7 @@ const EditSkillCard = ({
               w="full"
               px="4"
               alignItems="center"
-              justifyContent={"space-between"}
+              justifyContent={"flex-start"}
             // onClick={onOpen}
             >
               <Text
@@ -60,19 +59,17 @@ const EditSkillCard = ({
               >
                 {title}
               </Text>
-              {route.pathname === "/profile" ? <Box
-                cursor={"pointer"}
-                onClick={() => {
-                  setOpen(true);
-                }}
-                mt={3}
-              // pr={"2rem"}
-              >
-                <Text color="text_primary" fontSize={"1rem"}>
-                  <BiSolidEditAlt />
-                </Text>
-              </Box> : ""}
             </HStack>
+            <Text
+              w="full"
+              px="4"
+              pb="2"
+              color="grey.500"
+              fontSize="0.875rem"
+              fontFamily="Outfit"
+            >
+              Tell people what you're great at
+            </Text>
 
             {map(skills, (skill) => (
               <VStack pl={4} w="full" alignItems={"flex-start"}>
@@ -100,6 +97,18 @@ const EditSkillCard = ({
                 </Text>
               </VStack>
             ))}
+
+            {isEditable && (
+              <Box w="full" px="4" pt="4">
+                <SectionActionButton
+                  title={title}
+                  fullWidth
+                  onClick={() => {
+                    setOpen(true);
+                  }}
+                />
+              </Box>
+            )}
           </>
         )
       }

@@ -2,9 +2,8 @@ import { Box, HStack, Text, VStack } from "@chakra-ui/react";
 import { useState } from "react";
 import { size } from "lodash";
 import ExperienceModal from "./experiencemodal";
-import { BiSolidEditAlt } from "react-icons/bi";
-import { useRouter } from "next/router";
 import Loader from "./profile/loader";
+import SectionActionButton from "./sectionactionbutton";
 //import ExperienceModal from "./experience";
 
 interface EditExperienceCardProps {
@@ -20,19 +19,21 @@ const EditExperienceCard = ({
   title,
   experiences,
   width = "full",
+  edit,
   isLoading,
 }: EditExperienceCardProps) => {
   // const { isOpen, onOpen, onClose } = useDisclosure();
 
   const [open, setOpen] = useState<boolean>(false);
-  const route = useRouter();
+  const [startWithDraft, setStartWithDraft] = useState(false);
+  const isEditable = Boolean(edit);
   return (
     <VStack
       borderWidth={0.5}
       borderColor={"bg-box"}
       rounded={"15px"}
       py="6"
-      shadow={"sm"}
+      boxShadow="0px 0px 4px 0px #0000001A"
       wordSpacing={"2"}
       w={width}
       bg="bg_box"
@@ -45,7 +46,7 @@ const EditExperienceCard = ({
             w="full"
             px="3"
             alignItems="center"
-            justifyContent={"space-between"}
+            justifyContent={"flex-start"}
           >
             <Text
               textAlign={"left"}
@@ -58,23 +59,17 @@ const EditExperienceCard = ({
             >
               {title}
             </Text>
-            {route.pathname === "/profile" ? (
-              <Box
-                cursor={"pointer"}
-                onClick={() => {
-                  setOpen(true);
-                }}
-                mt={3}
-                // pr={"2rem"}
-              >
-                <Text color="text_primary" fontSize={"1rem"}>
-                  <BiSolidEditAlt />
-                </Text>
-              </Box>
-            ) : (
-              ""
-            )}
           </HStack>
+          <Text
+            w="full"
+            px="4"
+            pb="2"
+            color="grey.500"
+            fontSize="0.875rem"
+            fontFamily="Outfit"
+          >
+            Showcase your professional journey
+          </Text>
 
           {size(experiences) > 0 ? (
             experiences.map((experience) => (
@@ -133,14 +128,29 @@ const EditExperienceCard = ({
               No Experience found
             </Text>
           )}
+
+          {isEditable && (
+            <Box w="full" px="4" pt="4">
+              <SectionActionButton
+                title={title}
+                fullWidth
+                onClick={() => {
+                  setStartWithDraft(true);
+                  setOpen(true);
+                }}
+              />
+            </Box>
+          )}
         </>
       )}
 
       <ExperienceModal
         open={open}
         onOpenChange={() => {
-          setOpen(!open);
+          setOpen(false);
+          setStartWithDraft(false);
         }}
+        startWithDraft={startWithDraft}
       />
     </VStack>
   );

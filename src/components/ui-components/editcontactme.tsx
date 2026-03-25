@@ -1,13 +1,13 @@
-import { Box, Drawer, HStack, Text, VStack } from "@chakra-ui/react";
+import { Box, HStack, Text, VStack } from "@chakra-ui/react";
 import { Checkbox } from "../ui/checkbox";
 
 import { outfit } from "mangarine/pages/_app";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Button } from "../ui/button";
 
 interface EditContactMeCardProps {
   title: string;
-  // info: any;
+  info?: any;
   width?: string | object;
   edit?: any;
   consultantId?: string
@@ -16,14 +16,13 @@ import * as Yup from "yup";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { Controller, useForm } from "react-hook-form";
 import CustomInput from "../customcomponents/Input";
-import { FaTimes } from "react-icons/fa";
-import { useRouter } from "next/router";
 import { toaster } from "../ui/toaster";
 import { useUpdateContactInfoMutation } from "mangarine/state/services/profile.service";
 import { useDispatch } from "react-redux";
 import { setContactDetails } from "mangarine/state/reducers/profile.reducer";
 import { useProfile } from "mangarine/state/hooks/profile.hook";
 import { useAuth } from "mangarine/state/hooks/user.hook";
+import TopRightDrawer from "../ui/top-right-drawer";
 // type contactData = {
 //   email: string;
 //   phone_number: string;
@@ -33,16 +32,17 @@ import { useAuth } from "mangarine/state/hooks/user.hook";
 const phoneRegex = /^[0-9]{10,15}$/;
 
 const contactSchema = Yup.object().shape({
+  email: Yup.string().email("Enter a valid email address").optional(),
   mobileNumber: Yup.string()
     .matches(phoneRegex, "Phone number is not valid")
     .required("Phone number is required"),
-   website_link: Yup.string()
+  websiteAddress: Yup.string()
     .trim()
-    .required("Website is required")
-    .min(10, "Website must be at least 10 characters")
-    .max(2083, "Website must be at most 2083 characters")
-    .matches(/^https?:\/\//i, "URL must start with http:// or https://")
-    .url("Enter a valid URL"),
+    .test(
+      "website-url",
+      "URL must start with http:// or https://",
+      (value) => !value || /^https?:\/\//i.test(value)
+    ),
   phoneVisible: Yup.boolean(),
   emailVisible: Yup.boolean(),
   webVisible: Yup.boolean(),
@@ -51,62 +51,165 @@ const contactSchema = Yup.object().shape({
 const EditContactMeCard = ({
   title,
   width = "full",
-  // info,
+  info,
   edit,
 }: EditContactMeCardProps) => {
-  const {contact} = useProfile()
-  const { user } = useAuth()
-  const [open, setOpen] = useState<boolean>()
-  const [phoneVisible, setPhoneVisible] = useState<boolean>(false)
-   const [webVisible, setWebVisible] = useState<boolean>(false)
-  const route = useRouter()
-  const dispatch = useDispatch()
-  const [updateContactInfo, { isLoading }] = useUpdateContactInfoMutation()
+  const { contact } = useProfile();
+  const { user } = useAuth();
+  const [open, setOpen] = useState<boolean>(false);
+  const dispatch = useDispatch();
+  const [updateContactInfo, { isLoading }] = useUpdateContactInfoMutation();
+  const isEditable = Boolean(edit);
+  const existingContact = useMemo(
+    () => ({
+      email:
+        (isEditable ? contact?.email : undefined) ??
+        info?.email ??
+        (isEditable ? user?.email : undefined) ??
+        "",
+      mobileNumber:
+        (isEditable ? contact?.mobileNumber : undefined) ??
+        info?.mobileNumber ??
+        (isEditable ? user?.mobileNumber : undefined) ??
+        "",
+      websiteAddress:
+        (isEditable
+          ? contact?.websiteAddress ??
+            contact?.website_link ??
+            contact?.websiteLink ??
+            contact?.website
+          : undefined) ??
+        info?.websiteAddress ??
+        info?.website_link ??
+        info?.websiteLink ??
+        info?.website ??
+        (isEditable
+          ? user?.websiteAddress ??
+            user?.website_link ??
+            user?.websiteLink ??
+            user?.website
+          : undefined) ??
+        "",
+      phoneVisible: Boolean(
+        (isEditable ? contact?.phoneVisible : undefined) ??
+          info?.phoneVisible ??
+          false
+      ),
+      emailVisible: Boolean(
+        (isEditable ? contact?.emailVisible : undefined) ??
+          info?.emailVisible ??
+          false
+      ),
+      webVisible: Boolean(
+        (isEditable
+          ? contact?.webVisible ?? contact?.websiteVisible
+          : undefined) ??
+          info?.webVisible ??
+          info?.websiteVisible ??
+          false
+      ),
+    }),
+    [
+      isEditable,
+      contact?.email,
+      contact?.mobileNumber,
+      contact?.websiteAddress,
+      contact?.website_link,
+      contact?.websiteLink,
+      contact?.website,
+      contact?.phoneVisible,
+      contact?.emailVisible,
+      contact?.webVisible,
+      contact?.websiteVisible,
+      info?.email,
+      info?.mobileNumber,
+      info?.websiteAddress,
+      info?.website_link,
+      info?.websiteLink,
+      info?.website,
+      info?.phoneVisible,
+      info?.emailVisible,
+      info?.webVisible,
+      info?.websiteVisible,
+      user?.email,
+      user?.mobileNumber,
+      user?.websiteAddress,
+      user?.website_link,
+      user?.websiteLink,
+      user?.website,
+    ]
+  );
   const {
     control,
     handleSubmit,
-    getValues,
-     formState: { errors },
+    reset,
+    formState: { errors },
   } = useForm({
     resolver: yupResolver(contactSchema),
     defaultValues: {
-      website_link: user?.websiteAddress ?? '',
-      mobileNumber: user?.mobileNumber ?? '',
-      phoneVisible: phoneVisible,
-      emailVisible: false,
-      webVisible: false
+      email: existingContact.email,
+      mobileNumber: existingContact.mobileNumber,
+      websiteAddress: existingContact.websiteAddress,
+      phoneVisible: existingContact.phoneVisible,
+      emailVisible: existingContact.emailVisible,
+      webVisible: existingContact.webVisible,
     },
   });
+
   useEffect(() => {
-    console.log( contact, user, "user");
-  }, [contact, user]);
-
-
+    reset({
+      email: existingContact.email,
+      mobileNumber: existingContact.mobileNumber,
+      websiteAddress: existingContact.websiteAddress,
+      phoneVisible: existingContact.phoneVisible,
+      emailVisible: existingContact.emailVisible,
+      webVisible: existingContact.webVisible,
+    });
+  }, [existingContact, reset]);
 
   const onSubmit = (data: any) => {
-    const value = getValues()
-    const formdata={
-      mobileNumber:value.mobileNumber,
-      websiteAddress:value.website_link
-    }
-    updateContactInfo(formdata).unwrap().then((res)=>{
-      console.log(res)
-      dispatch(setContactDetails(res.data))
-       toaster.create({
-        type:"success",
-        title:"Success",
-        description:res.message,
-        closable:true
-       });
-      setOpen(false)
-    }).catch((err)=>{  toaster.create({
-        type:"error",
-        title:"Error",
-        description:err.message,
-        closable:true
-       });})
+    const formdata = {
+      mobileNumber: data.mobileNumber,
+      websiteAddress: data.websiteAddress,
+      phoneVisible: Boolean(data.phoneVisible),
+      emailVisible: Boolean(data.emailVisible),
+      webVisible: Boolean(data.webVisible),
+    };
 
-    console.log(data, "button ") }
+    updateContactInfo(formdata)
+      .unwrap()
+      .then((res) => {
+        dispatch(
+          setContactDetails({
+            ...existingContact,
+            ...res.data,
+            mobileNumber: res.data?.mobileNumber ?? data.mobileNumber,
+            websiteAddress: res.data?.websiteAddress ?? data.websiteAddress,
+            phoneVisible: res.data?.phoneVisible ?? data.phoneVisible,
+            emailVisible: res.data?.emailVisible ?? data.emailVisible,
+            webVisible:
+              res.data?.webVisible ??
+              res.data?.websiteVisible ??
+              data.webVisible,
+          })
+        );
+        toaster.create({
+          type: "success",
+          title: "Success",
+          description: res.message,
+          closable: true,
+        });
+        setOpen(false);
+      })
+      .catch((err) => {
+        toaster.create({
+          type: "error",
+          title: "Error",
+          description: err.message,
+          closable: true,
+        });
+      });
+  };
   return (
     <VStack
       className={outfit.className}
@@ -115,7 +218,7 @@ const EditContactMeCard = ({
       rounded={"12px"}
       py="6"
       bg="bg_box"
-      shadow={"sm"}
+      boxShadow="0px 0px 4px 0px #0000001A"
       wordSpacing={"2"}
       w={width}
     >
@@ -137,241 +240,211 @@ const EditContactMeCard = ({
         >
           {title}
         </Text>
-
-        {route.pathname === "/profile" ? (
+        {isEditable ? (
           <Box
             cursor={"pointer"}
-            // py={1}
-            // px="1"
             onClick={() => {
               setOpen(true);
             }}
-            // borderColor={"gray.150"}
-            // shadow={"md"}
           >
             <Text color="text_primary" fontSize="1rem">
               {edit}
             </Text>
           </Box>
-        ) : (
-          ""
-        )}
+        ) : null}
       </HStack>
-      <Drawer.Root size={"md"} open={open} onOpenChange={() => setOpen(false)}>
-        <Drawer.Backdrop />
-        <Drawer.Positioner zIndex="max">
-          <Drawer.Content pt="6">
-            <Drawer.Header>
-              <Drawer.Title>
-                <VStack
-                  spaceY={6}
-                  w="full"
-                  justifyContent={"space-between"}
-                  alignItems={"center"}
-                  px="6"
-                ></VStack>
-              </Drawer.Title>
-            </Drawer.Header>
-            <Drawer.Body px="6" py="8">
-              <VStack
-                spaceY={6}
-                w="full"
-                justifyContent={"flex-start"}
-                alignItems={"flex-start"}
+      <TopRightDrawer
+        open={open}
+        onOpenChange={() => setOpen(false)}
+        title="Contact Me"
+        bodyProps={{
+          px: { base: "4", lg: "6" },
+          py: { base: "4", lg: "5" },
+          pb: { base: "14", lg: "16" },
+        }}
+      >
+        <VStack
+          spaceY={6}
+          w="full"
+          justifyContent={"flex-start"}
+          alignItems={"flex-start"}
+        >
+          <Box w="full">
+            <Controller
+              name="email"
+              control={control}
+              render={({ field: { value } }) => (
+                <CustomInput
+                  label="Email Address"
+                  placeholder="Enter your email address"
+                  id="contact_email"
+                  required={false}
+                  name="email"
+                  value={value}
+                  size="md"
+                  onChange={() => {}}
+                  hasRightIcon={false}
+                  type={"email"}
+                  disabled
+                />
+              )}
+            />
+            <HStack mt="2" alignItems={"center"}>
+              <Controller
+                name="emailVisible"
+                control={control}
+                render={({ field: { onChange, value } }) => (
+                  <Checkbox
+                    checked={!!value}
+                    variant="outline"
+                    rounded="lg"
+                    onCheckedChange={(e) => {
+                      onChange(e.checked);
+                    }}
+                  />
+                )}
+              />
+              <Text
+                pl="2px"
+                fontSize={"0.875rem"}
+                fontFamily={"outfit"}
+                fontWeight={"400"}
+                color="#999999"
               >
-                <HStack w="full" justifyContent={"space-between"}>
-                  <Text
-                    fontWeight={700}
-                    fontSize={"2rem"}
-                    fontFamily={"Outfit"}
-                    color={"text_primary"}
-                    // textAlign={"start"}
-                  >
-                    Contact Me
-                  </Text>
-                  <HStack>
-                    <Box
-                      border={"1px"}
-                      rounded={4}
-                      py={2}
-                      px="2"
-                      borderColor={"bg_box"}
-                      onClick={() => setOpen(false)}
-                    >
-                      <Text
-                        color="text_primary"
-                        fontSize={"0.8rem"}
-                        fontWeight={"400"}
-                      >
-                        <FaTimes />
-                      </Text>
-                    </Box>
-                  </HStack>
-                </HStack>
-
-                <Box w="full">
-                  <Box w="full">
-                    <Controller
-                      name="mobileNumber"
-                      control={control}
-                      render={({ field: { onChange, value } }) => (
-                        <CustomInput
-                          label="phone Number  "
-                          placeholder="Enter your phone number here"
-                          id="phone_number"
-                          required={true}
-                          name="mobileNumber"
-                          value={value}
-                          size="md"
-                          onChange={onChange}
-                          // @ts-expect-error 'build error'
-                          error={errors?.mobileNumber?.message}
-                          hasRightIcon={false}
-                          type={"text"}
-                          inputMode="numeric"
-                          pattern="[0-9]*"
-                        />
-                      )}
-                    />
-                  </Box>
-                  <HStack mt="2" alignItems={"center"}>
-                    <Controller
-                      name="phoneVisible"
-                      control={control}
-                      render={({ field: { onChange, value } }) => (
-                        <Checkbox
-                          checked={!!value}
-                          variant="outline"
-                          rounded="lg"
-                          // error={errors.PhoneVis}
-                          onCheckedChange={(e) => {
-                            onChange(e.checked);
-                          }}
-                        />
-                      )}
-                    />
-                    <Text
-                      pl="2px"
-                      fontSize={"0.875rem"}
-                      fontFamily={"outfit"}
-                      fontWeight={"400"}
-                    >
-                      Make visible to public
-                    </Text>
-                  </HStack>
-                </Box>
-                <Box w="full">
-                  <Box w="full">
-                    <Controller
-                      name="website_link"
-                      control={control}
-                      render={({ field: { onChange, value } }) => (
-                        <CustomInput
-                          label="Personal Website Link "
-                          placeholder="Website link here"
-                          id="website_link"
-                          required={true}
-                          name="website_link"
-                          value={value}
-                          size="md"
-                          onChange={onChange}
-                          // @ts-expect-error "build error"
-                          error={errors.website_link?.message   }
-                          hasRightIcon={false}
-                          type={"text"}
-                        />
-                      )}
-                    />
-                  </Box>
-                  <HStack py="2" alignItems={"center"}>
-                    <Controller
-                      name="webVisible"
-                      control={control}
-                      render={({ field: { onChange, value } }) => (
-                        <Checkbox
-                          checked={!!value}
-                          variant="outline"
-                          rounded="lg"
-                          onCheckedChange={(e) => {
-                            onChange(e.checked);
-                          }}
-                        />
-                      )}
-                    />
-
-                    <Text
-                      pl="2px"
-                      fontSize={"0.875rem"}
-                      fontFamily={"outfit"}
-                      fontWeight={"400"}
-                    >
-                      Make visible to public
-                    </Text>
-                  </HStack>
-                </Box>
-
-                <HStack w="100%" display={"flex"} flexDir={"row"} spaceX={6}>
-                  {/* <Button
-                    borderColor="primary.300"
-                    borderWidth={1}
-                    color={"white"}
-                    bg={"white"}
-                    py={2}
-                    rounded="6px"
-                    w="45%"
-                    px={4}
-                    _hover={{
-                      textDecor: "none",
+                Make visible to public
+              </Text>
+            </HStack>
+          </Box>
+          <Box w="full">
+            <Box w="full">
+              <Controller
+                name="mobileNumber"
+                control={control}
+                render={({ field: { onChange, value } }) => (
+                  <CustomInput
+                    label="phone Number  "
+                    placeholder="Enter your phone number here"
+                    id="phone_number"
+                    required={true}
+                    name="mobileNumber"
+                    value={value}
+                    size="md"
+                    onChange={onChange}
+                    // @ts-expect-error 'build error'
+                    error={errors?.mobileNumber?.message}
+                    hasRightIcon={false}
+                    type={"text"}
+                    inputMode="numeric"
+                    pattern="[0-9]*"
+                  />
+                )}
+              />
+            </Box>
+            <HStack mt="2" alignItems={"center"}>
+              <Controller
+                name="phoneVisible"
+                control={control}
+                render={({ field: { onChange, value } }) => (
+                  <Checkbox
+                    checked={!!value}
+                    variant="outline"
+                    rounded="lg"
+                    onCheckedChange={(e) => {
+                      onChange(e.checked);
                     }}
-                    // isDisabled={isEmpty(selectedDay) || selectedTime == ''}
-
-                    onClick={() => { }}
-                  >
-                    <Text
-                      ml={2}
-                      className="text5"
-                      color={"text_primary"}
-                      fontSize={"0.875rem"}
-                      fontWeight={"500"}
-                    >
-                      Delete Contact
-                    </Text>
-                  </Button> */}
-                  <Button
-                    bg="primary.300"
-                    borderWidth={1}
-                    color={"white"}
-                    borderColor={"gray.50"}
-                    py={2}
-                    w="45%"
-                    px={4}
-                    _hover={{
-                      textDecor: "none",
+                  />
+                )}
+              />
+              <Text
+                pl="2px"
+                fontSize={"0.875rem"}
+                fontFamily={"outfit"}
+                fontWeight={"400"}
+                color="#999999"
+              >
+                Make visible to public
+              </Text>
+            </HStack>
+          </Box>
+          <Box w="full">
+            <Controller
+              name="websiteAddress"
+              control={control}
+              render={({ field: { onChange, value } }) => (
+                <CustomInput
+                  label="Personal Website Link"
+                  placeholder="https://yourwebsite.com"
+                  id="website_address"
+                  required={false}
+                  name="websiteAddress"
+                  value={value}
+                  size="md"
+                  onChange={onChange}
+                  // @ts-expect-error 'build error'
+                  error={errors?.websiteAddress?.message}
+                  hasRightIcon={false}
+                  type={"text"}
+                />
+              )}
+            />
+            <HStack mt="2" alignItems={"center"}>
+              <Controller
+                name="webVisible"
+                control={control}
+                render={({ field: { onChange, value } }) => (
+                  <Checkbox
+                    checked={!!value}
+                    variant="outline"
+                    rounded="lg"
+                    onCheckedChange={(e) => {
+                      onChange(e.checked);
                     }}
-                    loading={isLoading}
-                    // isDisabled={isEmpty(selectedDay) || selectedTime == ''}
-                    rounded={"6px"}
-                    onClick={handleSubmit(onSubmit, (error) =>
-                      console.log(error, "error")
-                    )}
-                  >
-                    <Text
-                      ml={2}
-                      className="text5"
-                      color={"white"}
-                      fontSize={"0.875rem"}
-                      fontWeight={"500"}
-                    >
-                      Save Contact
-                    </Text>
-                  </Button>
-                </HStack>
-              </VStack>
-            </Drawer.Body>
-            <Drawer.Footer />
-          </Drawer.Content>
-        </Drawer.Positioner>
-      </Drawer.Root>
+                  />
+                )}
+              />
+              <Text
+                pl="2px"
+                fontSize={"0.875rem"}
+                fontFamily={"outfit"}
+                fontWeight={"400"}
+                color="#999999"
+              >
+                Make visible to public
+              </Text>
+            </HStack>
+          </Box>
+          <HStack w="100%" display={"flex"} flexDir={"row"} spaceX={6}>
+            <Button
+              bg="#111D4A"
+              borderWidth={1}
+              color={"white"}
+              borderColor={"#111D4A"}
+              py={2}
+              w="45%"
+              px={4}
+              _hover={{
+                textDecor: "none",
+                bg: "#111D4A",
+              }}
+              loading={isLoading}
+              rounded={"6px"}
+              onClick={handleSubmit(onSubmit, (error) =>
+                console.log(error, "error")
+              )}
+            >
+              <Text
+                ml={2}
+                className="text5"
+                color={"white"}
+                fontSize={"0.875rem"}
+                fontWeight={"500"}
+              >
+                Save Contact
+              </Text>
+            </Button>
+          </HStack>
+        </VStack>
+      </TopRightDrawer>
 
       {/* Email section */}
       <Text
@@ -396,7 +469,7 @@ const EditContactMeCard = ({
         color={"grey.500"}
         fontWeight={"400"}
       >
-        {contact?.email}
+        {existingContact.email || "-"}
       </Text>
 
       {/* Phone number section */}
@@ -422,10 +495,9 @@ const EditContactMeCard = ({
         color={"grey.500"}
         fontWeight={"400"}
       >
-        {contact?.mobileNumber}
+        {existingContact.mobileNumber || "-"}
       </Text>
 
-      {/* Website section */}
       <Text
         textAlign={"left"}
         w="full"
@@ -442,13 +514,15 @@ const EditContactMeCard = ({
         textAlign={"left"}
         w="full"
         px={"4"}
+        lineHeight={"shorter"}
         fontSize={"0.875rem"}
         fontFamily={"Outfit"}
         color={"grey.500"}
         fontWeight={"400"}
       >
-        {contact?.websiteAddress}
+        {existingContact.websiteAddress || "-"}
       </Text>
+
       {/* <ContactMeModal isOpen={isOpen}  onClose={onClose}/> */}
     </VStack>
   );

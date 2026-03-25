@@ -2,9 +2,8 @@ import { Box, HStack, Text, VStack } from "@chakra-ui/react";
 import { size } from "es-toolkit/compat";
 import { useState } from "react";
 import LanguageModal from "./langauagemodal";
-import { BiSolidEditAlt } from "react-icons/bi";
-import { useRouter } from "next/router";
 import Loader from "./profile/loader";
+import SectionActionButton from "./sectionactionbutton";
 
 interface EditLanguageCardProps {
   title: string;
@@ -15,11 +14,12 @@ interface EditLanguageCardProps {
   isLoading: boolean
 }
 
-const EditLanguageCard = ({ title, languages, isLoading }: EditLanguageCardProps) => {
+const EditLanguageCard = ({ title, languages, edit, isLoading }: EditLanguageCardProps) => {
   //const { isOpen, onOpen, onClose } = useDisclosure();
 
-  const [open, setOpen] = useState<boolean>();
-  const route = useRouter()
+  const [open, setOpen] = useState<boolean>(false);
+  const [startWithDraft, setStartWithDraft] = useState(false);
+  const isEditable = Boolean(edit);
 
 
   return (
@@ -29,7 +29,7 @@ const EditLanguageCard = ({ title, languages, isLoading }: EditLanguageCardProps
       rounded={"15px"}
       py="6"
       bg="bg_box"
-      shadow={"sm"}
+      boxShadow="0px 0px 4px 0px #0000001A"
       wordSpacing={"2"}
       w={"full"}
     >
@@ -42,7 +42,7 @@ const EditLanguageCard = ({ title, languages, isLoading }: EditLanguageCardProps
               w="full"
               px="4"
               alignItems="center"
-              justifyContent={"space-between"}
+              justifyContent={"flex-start"}
             >
               <Text
                 textAlign={"left"}
@@ -55,23 +55,17 @@ const EditLanguageCard = ({ title, languages, isLoading }: EditLanguageCardProps
               >
                 {title}
               </Text>
-              {route.pathname === "/profile" ? (
-                <Box
-                  cursor={"pointer"}
-                  onClick={() => {
-                    setOpen(true);
-                  }}
-                  mt={3}
-                // pr={"2rem"}
-                >
-                  <Text color="text_primary" fontSize={"1rem"}>
-                    <BiSolidEditAlt />
-                  </Text>
-                </Box>
-              ) : (
-                ""
-              )}
             </HStack>
+            <Text
+              w="full"
+              px="4"
+              pb="2"
+              color="grey.500"
+              fontSize="0.875rem"
+              fontFamily="Outfit"
+            >
+              Tell us which language you speak
+            </Text>
 
             {size(languages) > 0 ? (
               languages.map((language) => (
@@ -113,6 +107,19 @@ const EditLanguageCard = ({ title, languages, isLoading }: EditLanguageCardProps
                 No Languages found
               </Text>
             )}
+
+            {isEditable && (
+              <Box w="full" px="4" pt="4">
+                <SectionActionButton
+                  title={title}
+                  fullWidth
+                  onClick={() => {
+                    setStartWithDraft(true);
+                    setOpen(true);
+                  }}
+                />
+              </Box>
+            )}
           </>
         )
       }
@@ -121,8 +128,10 @@ const EditLanguageCard = ({ title, languages, isLoading }: EditLanguageCardProps
       <LanguageModal
         open={open}
         onOpenChange={() => {
-          setOpen(!open);
+          setOpen(false);
+          setStartWithDraft(false);
         }}
+        startWithDraft={startWithDraft}
       />
     </VStack>
   );

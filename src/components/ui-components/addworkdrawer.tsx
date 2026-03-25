@@ -1,7 +1,6 @@
 "use client";
 import {
   Box,
-  Drawer,
   HStack,
   Image,
   Text,
@@ -25,9 +24,9 @@ import {
 } from "mangarine/state/services/profile.service";
 import CustomInput from "../customcomponents/Input";
 import { Button } from "../ui/button";
-import { FaTimes } from "react-icons/fa";
 import { toaster } from "../ui/toaster";
 import { isEmpty, size } from "es-toolkit/compat";
+import TopRightDrawer from "../ui/top-right-drawer";
 
 const upload = "/icons/imgplc.svg";
 const workSchema = yup.object().shape({
@@ -192,60 +191,22 @@ const AddWorkDrawer = ({
   };
 
   return (
-    <Drawer.Root size={"md"} open={open} onOpenChange={onOpenChange}>
-      <Drawer.Backdrop />
-      <Drawer.Trigger></Drawer.Trigger>
-      <Drawer.Positioner zIndex="max">
-        <Drawer.Content pt="6" px="3">
-          <Drawer.Header>
-            <Drawer.Title>
-              <VStack
-                spaceY={6}
-                w="full"
-                justifyContent={"space-between"}
-                alignItems={"center"}
-                px="4"
-              >
-                <HStack w="full" py={4} px="3" justifyContent={"space-between"}>
-                  <Text
-                    fontWeight={700}
-                    fontSize={"2rem"}
-                    fontFamily={"Outfit"}
-                    color={"text_primary"}
-                  // textAlign={"start"}
-                  >
-                    {size(work) > 0 ? "Edit Work" : "Add Work"}
-                  </Text>
-                  <HStack spaceX={4}>
-                    <Box
-                      border={0.5}
-                      rounded={4}
-                      py={2}
-                      px="2"
-                      onClick={onOpenChange}
-                      borderColor={"gray.150"}
-                      shadow={"md"}
-                    >
-                      <Text
-                        color="text_primary"
-                        fontSize={"0.8rem"}
-                        fontWeight={"400"}
-                      >
-                        <FaTimes />
-                      </Text>
-                    </Box>
-                  </HStack>
-                </HStack>
-              </VStack>
-            </Drawer.Title>
-          </Drawer.Header>
-          <Drawer.Body px="3" py="8">
-            <VStack
-              spaceY={6}
-              w="full"
-              justifyContent={"flex-start"}
-              alignItems={"flex-start"}
-            >
+    <TopRightDrawer
+      open={open}
+      onOpenChange={onOpenChange}
+      title={size(work) > 0 ? "Edit Work" : "Add Work"}
+      bodyProps={{
+        px: { base: "4", lg: "6" },
+        py: { base: "4", lg: "5" },
+        pb: { base: "14", lg: "16" },
+      }}
+    >
+      <VStack
+        spaceY={6}
+        w="full"
+        justifyContent={"flex-start"}
+        alignItems={"flex-start"}
+      >
               <Controller
                 name="title"
                 control={control}
@@ -398,20 +359,18 @@ const AddWorkDrawer = ({
                     </Text>
                   </Button>
                   <Button
-                    bg="primary.300"
+                    bg="#111D4A"
                     borderWidth={1}
                     color={"white"}
-                    borderColor={"gray.50"}
+                    borderColor={"#111D4A"}
                     py={2}
                     w="45%"
-                      // isLoading={isLoading}
                     px={4}
                     _hover={{
                       textDecor: "none",
+                      bg: "#111D4A",
                     }}
-                    loading={addwork}
-                    // isDisabled={isEmpty(selectedDay) || selectedTime == ''}
-                    // isLoading={isLoading}
+                    loading={size(work) > 0 ? isLoading : addwork}
                     onClick={handleSubmit(createWork, (error) =>
                       console.log(error)
                     )}
@@ -428,12 +387,8 @@ const AddWorkDrawer = ({
                   </Button>
                 </HStack>
               </HStack>
-            </VStack>
-          </Drawer.Body>
-          <Drawer.Footer />
-        </Drawer.Content>
-      </Drawer.Positioner>
-    </Drawer.Root>
+      </VStack>
+    </TopRightDrawer>
   );
 };
 

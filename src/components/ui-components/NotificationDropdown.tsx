@@ -1,293 +1,229 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState } from 'react';
 import {
   Box,
   Flex,
   Text,
-  Badge,
-  IconButton,
-  Button,
   VStack,
-  Avatar,
-  Image,
+  Spinner,
+  HStack,
 } from '@chakra-ui/react';
-import { Bell, X, Check, MessageCircle, Calendar, CreditCard, AlertCircle } from 'lucide-react';
+import { Bell, X, MessageCircle, Calendar, CreditCard, AlertCircle } from 'lucide-react';
+import { useRouter } from 'next/router';
+import {
+  useGetNotificationsQuery,
+  useMarkAsReadMutation,
+  useMarkAllAsReadMutation,
+  NotificationItem,
+} from 'mangarine/state/services/notifications.service';
 import { useNotifications } from '../../hooks/useNotifications';
-import { NotificationData } from '../../types/sse.types';
 
 interface NotificationDropdownProps {
-  maxNotifications?: number;
-  showConnectionStatus?: boolean;
-  autoMarkAsRead?: boolean;
-  onNotificationClick?: (notification: NotificationData) => void;
   trigger?: (onClick: () => void, unreadCount: number) => React.ReactNode;
 }
 
-const NotificationDropdown: React.FC<NotificationDropdownProps> = ({
-  maxNotifications = 10,
-  showConnectionStatus = true,
-  autoMarkAsRead = false,
-  onNotificationClick,
-  trigger,
-}) => {
+const getNotificationIcon = (type: string) => {
+  switch (type) {
+    case 'message': return <MessageCircle size={15} />;
+    case 'appointment': return <Calendar size={15} />;
+    case 'payment': return <CreditCard size={15} />;
+    default: return <AlertCircle size={15} />;
+  }
+};
+
+const formatTimestamp = (ts?: string) => {
+  if (!ts) return '';
+  const now = new Date();
+  const diff = now.getTime() - new Date(ts).getTime();
+  const minutes = Math.floor(diff / 60000);
+  const hours = Math.floor(diff / 3600000);
+  const days = Math.floor(diff / 86400000);
+  if (minutes < 1) return 'Just now';
+  if (minutes < 60) return `${minutes}m ago`;
+  if (hours < 24) return `${hours}h ago`;
+  if (days < 7) return `${days}d ago`;
+  return new Date(ts).toLocaleDateString();
+};
+
+const NotificationDropdown: React.FC<NotificationDropdownProps> = ({ trigger }) => {
   const [isOpen, setIsOpen] = useState(false);
-  const {
-    notifications,
-    unreadCount,
-    markAsRead,
-    isConnected,
-    status,
-    getUnreadNotifications,
-  } = useNotifications();
+  const router = useRouter();
 
-  // Hardcoded colors for now - replace with theme values later
-  const bgColor = 'white';
-  const borderColor = 'gray.200';
-  const textColor = 'gray.800';
-  const mutedTextColor = 'gray.500';
+  const { isConnected } = useNotifications();
 
-  // Get notifications to display (prioritize unread)
-  const displayNotifications = React.useMemo(() => {
-    const unread = getUnreadNotifications();
-    const read = notifications.filter(n => n.read).slice(0, maxNotifications - unread.length);
-    return [...unread, ...read].slice(0, maxNotifications);
-  }, [notifications, getUnreadNotifications, maxNotifications]);
+  const { data: notifData, isLoading } = useGetNotificationsQuery(
+    { limit: 15 },
+    { pollingInterval: 30000 }
+  );
 
-  // Handle notification click
-  const handleNotificationClick = useCallback((notification: NotificationData) => {
-    if (autoMarkAsRead && !notification.read) {
-      markAsRead(notification.id);
+  const [markAsRead] = useMarkAsReadMutation();
+  const [markAllAsRead] = useMarkAllAsReadMutation();
+
+  const notifications: NotificationItem[] = notifData?.data ?? [];
+  const unreadCount = notifications.filter((n) => n.status === 'unread').length;
+
+  const handleMarkAll = async () => {
+    await markAllAsRead();
+  };
+
+  const handleItemClick = async (n: NotificationItem) => {
+    if (n.status === 'unread') {
+      markAsRead({ notificationId: n.id });
     }
-    onNotificationClick?.(notification);
     setIsOpen(false);
-  }, [autoMarkAsRead, markAsRead, onNotificationClick]);
-
-  // Get notification icon based on type
-  const getNotificationIcon = (type: string) => {
-    switch (type) {
-      case 'message':
-        return <MessageCircle size={16} />;
-      case 'appointment':
-        return <Calendar size={16} />;
-      case 'payment':
-        return <CreditCard size={16} />;
-      case 'system':
-      default:
-        return <AlertCircle size={16} />;
-    }
-  };
-
-  // Get notification color based on priority
-  const getNotificationColor = (priority?: string) => {
-    switch (priority) {
-      case 'urgent':
-        return 'red';
-      case 'high':
-        return 'orange';
-      case 'medium':
-        return 'blue';
-      case 'low':
-        return 'gray';
-      default:
-        return 'blue';
-    }
-  };
-
-  // Format timestamp
-  const formatTimestamp = (timestamp: Date) => {
-    const now = new Date();
-    const diff = now.getTime() - timestamp.getTime();
-    const minutes = Math.floor(diff / 60000);
-    const hours = Math.floor(diff / 3600000);
-    const days = Math.floor(diff / 86400000);
-
-    if (minutes < 1) return 'Just now';
-    if (minutes < 60) return `${minutes}m ago`;
-    if (hours < 24) return `${hours}h ago`;
-    if (days < 7) return `${days}d ago`;
-    return timestamp.toLocaleDateString();
   };
 
   return (
     <Box position="relative">
-      {trigger ? trigger(() => setIsOpen(!isOpen), unreadCount) : (
-        <>
-          <IconButton
-            aria-label="Notifications"
-            onClick={() => setIsOpen(!isOpen)}
-            variant="ghost"
-            size="md"
-            color={textColor}
-            _hover={{ bg: 'gray.100' }}
-          >
-            <Bell size={20} />
-          </IconButton>
+      {trigger ? (
+        trigger(() => setIsOpen((o) => !o), unreadCount)
+      ) : (
+        <Box cursor="pointer" onClick={() => setIsOpen((o) => !o)} position="relative">
+          <Bell size={20} />
           {unreadCount > 0 && (
-            <Badge
+            <Box
               position="absolute"
-              top="-2"
-              right="-2"
-              colorScheme="red"
-              borderRadius="full"
-              fontSize="xs"
-              minW="20px"
-              h="20px"
-              display="flex"
-              alignItems="center"
-              justifyContent="center"
+              top={-1}
+              right={-1}
+              bg="red.500"
+              color="white"
+              rounded="full"
+              minW="16px"
+              h="16px"
+              fontSize="9px"
+              lineHeight="16px"
+              textAlign="center"
+              px={0.5}
             >
               {unreadCount > 99 ? '99+' : unreadCount}
-            </Badge>
+            </Box>
           )}
-        </>
+        </Box>
       )}
 
-      {/* Dropdown Content */}
       {isOpen && (
         <Box
           position="absolute"
-          top="100%"
+          top="calc(100% + 10px)"
           right="0"
-          mt={2}
-          bg={bgColor}
-          border="1px"
-          borderColor={borderColor}
-          borderRadius="md"
-          boxShadow="lg"
-          w="400px"
-          maxH="500px"
+          bg="bg_box"
+          borderWidth="1px"
+          borderColor="input_border"
+          rounded="xl"
+          shadow="lg"
+          w="380px"
+          maxH="520px"
           overflow="hidden"
-          zIndex="dropdown"
+          zIndex="max"
         >
           {/* Header */}
           <Flex
             justify="space-between"
             align="center"
-            p={4}
-            borderBottom="1px"
-            borderColor={borderColor}
+            px={4}
+            py={3}
+            borderBottomWidth="1px"
+            borderColor="input_border"
           >
-            <Flex gap={2} align="center">
-              <Text fontWeight="bold" fontSize="lg" color={textColor}>
+            <HStack gap={2}>
+              <Text fontWeight="600" fontSize="0.95rem" color="text_primary" fontFamily="Outfit">
                 Notifications
               </Text>
               {unreadCount > 0 && (
-                <Badge colorScheme="red" borderRadius="full" fontSize="xs">
-                  {unreadCount}
-                </Badge>
-              )}
-            </Flex>
-            
-            <Flex gap={2} align="center">
-              {showConnectionStatus && (
                 <Box
-                  w={2}
-                  h={2}
-                  borderRadius="full"
-                  bg={isConnected ? "green.400" : "red.400"}
-                  title={`Connection: ${status}`}
-                />
+                  bg="red.500"
+                  color="white"
+                  rounded="full"
+                  minW="18px"
+                  h="18px"
+                  fontSize="10px"
+                  lineHeight="18px"
+                  textAlign="center"
+                  px={1}
+                >
+                  {unreadCount}
+                </Box>
               )}
-              <Button
-                size="xs"
-                variant="ghost"
-                onClick={() => setIsOpen(false)}
-                _hover={{ bg: 'gray.100' }}
-              >
-                <X size={16} />
-              </Button>
-            </Flex>
+              <Box
+                w={2}
+                h={2}
+                rounded="full"
+                bg={isConnected ? 'green.400' : 'red.400'}
+                title={isConnected ? 'Live' : 'Disconnected'}
+              />
+            </HStack>
+            <Box
+              as="button"
+              onClick={() => setIsOpen(false)}
+              color="grey.400"
+              _hover={{ color: 'text_primary' }}
+              p={1}
+            >
+              <X size={16} />
+            </Box>
           </Flex>
 
-          {/* Notifications List */}
-          <Box maxH="400px" overflowY="auto">
-            {displayNotifications.length === 0 ? (
-              <Flex
-                direction="column"
-                align="center"
-                justify="center"
-                p={8}
-                color={mutedTextColor}
-              >
-                <Bell size={32} />
-                <Text mt={2} fontSize="sm">
-                  No notifications
-                </Text>
-                <Text fontSize="xs" textAlign="center">
-                  {isConnected ? 'You\'re all caught up!' : 'Connecting...'}
+          {/* List */}
+          <Box maxH="400px" overflowY="auto" css={{ '&::-webkit-scrollbar': { width: 0 } }}>
+            {isLoading ? (
+              <Flex justify="center" align="center" py={10}>
+                <Spinner size="sm" />
+              </Flex>
+            ) : notifications.length === 0 ? (
+              <Flex direction="column" align="center" justify="center" py={10} gap={2}>
+                <Bell size={28} color="gray" />
+                <Text fontSize="0.875rem" color="grey.400" fontFamily="Outfit">
+                  No notifications yet
                 </Text>
               </Flex>
             ) : (
               <VStack gap={0} align="stretch">
-                {displayNotifications.map((notification, index) => (
-                  <Box key={notification.id}>
+                {notifications.map((n, idx) => (
+                  <Box key={n.id}>
                     <Flex
-                      p={4}
+                      px={4}
+                      py={3}
+                      gap={3}
                       cursor="pointer"
-                      _hover={{ bg: 'gray.50' }}
-                      onClick={() => handleNotificationClick(notification)}
+                      _hover={{ bg: 'main_background' }}
+                      onClick={() => handleItemClick(n)}
+                      align="flex-start"
                       position="relative"
                     >
-                      {/* Unread indicator */}
-                      {!notification.read && (
+                      {n.status === 'unread' && (
                         <Box
                           position="absolute"
                           left={2}
                           top="50%"
                           transform="translateY(-50%)"
-                          w={2}
-                          h={2}
-                          borderRadius="full"
+                          w={1.5}
+                          h={1.5}
+                          rounded="full"
                           bg="blue.500"
                         />
                       )}
-
-                      {/* Notification icon */}
-                      <Box
-                        color={getNotificationColor(notification.priority) + '.500'}
-                        mr={3}
-                        mt={0.5}
-                      >
-                        {getNotificationIcon(notification.type)}
+                      <Box color="grey.400" mt={0.5} flexShrink={0}>
+                        {getNotificationIcon(n.type)}
                       </Box>
-
-                      {/* Notification content */}
                       <Box flex={1} minW={0}>
                         <Text
-                          fontSize="sm"
-                          fontWeight={notification.read ? "normal" : "semibold"}
-                          color={textColor}
+                          fontSize="0.85rem"
+                          fontWeight={n.status === 'unread' ? '600' : '400'}
+                          color="text_primary"
+                          fontFamily="Outfit"
+                          lineClamp={1}
                         >
-                          {notification.title}
+                          {n.title}
                         </Text>
-                        <Text
-                          fontSize="xs"
-                          color={mutedTextColor}
-                          mt={1}
-                        >
-                          {notification.message}
+                        <Text fontSize="0.78rem" color="grey.500" fontFamily="Outfit" lineClamp={2} mt={0.5}>
+                          {n.message}
                         </Text>
-                        <Text
-                          fontSize="xs"
-                          color={mutedTextColor}
-                          mt={1}
-                        >
-                          {formatTimestamp(notification.timestamp)}
+                        <Text fontSize="0.72rem" color="grey.400" fontFamily="Outfit" mt={1}>
+                          {formatTimestamp(n.createdAt)}
                         </Text>
                       </Box>
-
-                      {/* Priority badge */}
-                      {notification.priority && notification.priority !== 'medium' && (
-                        <Badge
-                          colorScheme={getNotificationColor(notification.priority)}
-                          size="sm"
-                          ml={2}
-                        >
-                          {notification.priority}
-                        </Badge>
-                      )}
                     </Flex>
-                    {index < displayNotifications.length - 1 && (
-                      <Box borderBottom="1px" borderColor={borderColor} />
+                    {idx < notifications.length - 1 && (
+                      <Box borderBottomWidth="1px" borderColor="input_border" />
                     )}
                   </Box>
                 ))}
@@ -296,37 +232,36 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({
           </Box>
 
           {/* Footer */}
-          {displayNotifications.length > 0 && (
-            <Box
-              p={3}
-              borderTop="1px"
-              borderColor={borderColor}
-              bg="gray.50"
+          {notifications.length > 0 && (
+            <Flex
+              justify="space-between"
+              align="center"
+              px={4}
+              py={2.5}
+              borderTopWidth="1px"
+              borderColor="input_border"
             >
-              <Flex justify="space-between" align="center">
-                <Button
-                  size="xs"
-                  variant="ghost"
-                  onClick={() => {
-                    displayNotifications.forEach(n => {
-                      if (!n.read) markAsRead(n.id);
-                    });
-                  }}
-                  _hover={{ bg: 'gray.200' }}
-                >
-                  Mark all as read
-                </Button>
-                <Button
-                  size="xs"
-                  variant="ghost"
-                  color="blue.500"
-                  onClick={() => { setIsOpen(false); window.location.href = '/notifications'; }}
-                  _hover={{ bg: 'gray.200' }}
-                >
-                  See more
-                </Button>
-              </Flex>
-            </Box>
+              <Box
+                as="button"
+                fontSize="0.78rem"
+                color="grey.500"
+                fontFamily="Outfit"
+                _hover={{ color: 'text_primary' }}
+                onClick={handleMarkAll}
+              >
+                Mark all as read
+              </Box>
+              <Box
+                as="button"
+                fontSize="0.78rem"
+                color="blue.500"
+                fontFamily="Outfit"
+                _hover={{ textDecoration: 'underline' }}
+                onClick={() => { setIsOpen(false); router.push('/notifications'); }}
+              >
+                See all
+              </Box>
+            </Flex>
           )}
         </Box>
       )}
@@ -334,4 +269,4 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({
   );
 };
 
-export default NotificationDropdown; 
+export default NotificationDropdown;

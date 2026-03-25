@@ -29,6 +29,8 @@ import { CgSearch } from "react-icons/cg";
 import CustomInput from "mangarine/components/customcomponents/Input";
 import { isEmpty, size } from "es-toolkit/compat";
 import { useSearch } from "mangarine/hooks/useSearch";
+import FilterSearch from "mangarine/components/ui-components/filtersearch";
+import { useSaveRecentSearchMutation } from "mangarine/state/services/search.service";
 import { useGetUnreadTotalMessagesQuery } from "mangarine/state/services/chat-management.service";
 import NotificationDropdown from "mangarine/components/ui-components/NotificationDropdown";
 import { outfit } from "mangarine/pages/_app";
@@ -109,6 +111,8 @@ const Header = () => {
   const { colorMode } = useColorMode();
   const { query, setQuery, results, loading, hasQuery, error } = useSearch(10);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [isSearchFocused, setIsSearchFocused] = useState(false);
+  const [saveRecentSearch] = useSaveRecentSearchMutation();
   const { data: unreadMsgs } = useGetUnreadTotalMessagesQuery();
   useEffect(() => {
     setIsClient(true);
@@ -154,20 +158,29 @@ const Header = () => {
     setIsSearchOpen(Boolean(hasQuery));
   }, [hasQuery]);
 
-  const handleResultClick = (item: { id: string; type: 'user' | 'group' }) => {
+  const handleResultClick = (item: { id: string; type: 'user' | 'group'; name?: string }) => {
     if (item.type === 'user') {
       router.push(`/profile?profileId=${item.id}`);
     } else {
       router.push(`/groups/${item.id}`);
     }
     setIsSearchOpen(false);
+    setIsSearchFocused(false);
+    if (item.type === 'user' && item.name) {
+      saveRecentSearch({ query: item.name, type: 'user', targetId: item.id }).catch(() => {});
+    }
+  };
+
+  const handleFilterSearchSelect = (item: { id: string; name: string; type: 'user' | 'consultant' }) => {
+    router.push(`/profile?profileId=${item.id}`);
+    setIsSearchFocused(false);
   };
 
 
   return (
     <Flex
       as="header"
-      mb={{ base: "0", md: "16px" }}
+      mb={0}
       bg="main_background"
       py={6} // smaller padding since we'll control height
       px={{ base: "12px", md: "16px", lg: "18px", xl: "32px" }}
@@ -219,6 +232,15 @@ const Header = () => {
             onChange={(val) => setQuery(val)}
             hasLeftIcon={true}
             type={"text"}
+            onFocus={() => setIsSearchFocused(true)}
+            onBlur={() => setTimeout(() => setIsSearchFocused(false), 150)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" && query.trim()) {
+                setIsSearchOpen(false);
+                setIsSearchFocused(false);
+                router.push(`/search?q=${encodeURIComponent(query.trim())}`);
+              }
+            }}
             inputStyle={{
               bg: "main_background",
               shadow: "lg",
@@ -230,7 +252,19 @@ const Header = () => {
             }
           />
 
-          {isSearchOpen && (
+          {isSearchFocused && !hasQuery && (
+            <Box
+              position="absolute"
+              top="calc(100% + 8px)"
+              left={0}
+              right={0}
+              zIndex="max"
+            >
+              <FilterSearch onSelect={handleFilterSearchSelect} />
+            </Box>
+          )}
+
+          {isSearchOpen && hasQuery && (
             <Box
               position="absolute"
               top="calc(100% + 8px)"
@@ -267,7 +301,7 @@ const Header = () => {
                       p={3}
                       rounded="md"
                       _hover={{ bg: "main_bg", cursor: "pointer" }}
-                      onClick={() => handleResultClick(item)}
+                      onClick={() => handleResultClick({ id: item.id, type: item.type, name: item.name })}
                       gap={4}
                     >
                       <Icon size={"md"} color="grey.500">

@@ -9,6 +9,7 @@ import EditExperienceCard from "mangarine/components/ui-components/editexperienn
 import EditIntroductionVideoCard from "mangarine/components/ui-components/editintroductoryvideo";
 import EditLanguageCard from "mangarine/components/ui-components/editlanguage";
 import EditMyWorksCard from "mangarine/components/ui-components/editmyworkscard";
+import ProfileActivitySection from "mangarine/components/ui-components/profileactivitysection";
 import EditSkillCard from "mangarine/components/ui-components/editskillscard";
 import RatingAndReviewComponent from "mangarine/components/ui-components/ratingscard";
 import StatusCard from "mangarine/components/ui-components/statscard";
@@ -269,6 +270,8 @@ const Profile = () => {
             isLoading={workLoading}
           />
 
+          <ProfileActivitySection isOwnProfile={isOwnProfile} />
+
           {user?.isConsultant === true && (
             <Box w="full" my="4">
               <DynamicTabs data={user}
@@ -344,7 +347,7 @@ const Profile = () => {
             <Box mt={4} w="full">
               <EditContactMeCard
                 title={"Contact Me"}
-                // info={contact}
+                info={displayUser}
                 edit={isOwnProfile ? <BiSolidEditAlt /> : undefined}
               />
             </Box>

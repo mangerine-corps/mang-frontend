@@ -1,13 +1,10 @@
-import { Box, Button, Drawer, HStack, Text, VStack } from "@chakra-ui/react";
+import { Box, Button, HStack, Text, VStack } from "@chakra-ui/react";
 import { useEffect, useState } from "react";
 
 import * as Yup from "yup";
 import { HiMiniPlus } from "react-icons/hi2";
 import { isEmpty, size } from "lodash";
 
-import moment from "moment";
-
-import { FaTimes } from "react-icons/fa";
 import {
   useAddLanguageMutation,
   useDeleteLanguageMutation,
@@ -20,6 +17,14 @@ import { useDispatch } from "react-redux";
 import { setLanguages } from "mangarine/state/reducers/profile.reducer";
 import { useMount } from "react-use";
 import { toaster } from "../ui/toaster";
+import TopRightDrawer from "../ui/top-right-drawer";
+
+const createDraftLanguage = () => ({
+  id: `draft-language-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+  language: "",
+  proficiency: "",
+  isDraft: true,
+});
 
 const languages = [
   {
@@ -181,6 +186,11 @@ const LanguageItem = ({
   };
 
   const handleDeleteLanguage = () => {
+    if (language?.isDraft) {
+      handleDeleted(language.id);
+      return;
+    }
+
     deleteLanguage(language.id)
       .unwrap()
       .then(() => {
@@ -258,8 +268,8 @@ const LanguageItem = ({
         />
       </HStack>
 
-      <HStack w="full" alignItems={"center"} justifyContent={"space-between"}>
-        <HStack w="100%" display={"flex"} flexDir={"row"} spaceX={6}>
+      <HStack w="full" alignItems={"center"} justifyContent={"flex-end"}>
+        <HStack w="auto" display={"flex"} flexDir={"row"} spaceX={4}>
           <Button
             borderColor="primary.300"
             borderWidth={1}
@@ -267,7 +277,7 @@ const LanguageItem = ({
             bg={"white"}
             py={2}
             rounded="6px"
-            w="45%"
+            minW="160px"
             px={4}
             _hover={{
               textDecor: "none",
@@ -287,15 +297,16 @@ const LanguageItem = ({
             </Text>
           </Button>
           <Button
-            bg="primary.300"
+            bg="#111D4A"
             borderWidth={1}
             color={"white"}
-            borderColor={"gray.50"}
+            borderColor={"#111D4A"}
             py={2}
-            w="45%"
+            minW="160px"
             px={4}
             _hover={{
               textDecor: "none",
+              bg: "#111D4A",
             }}
             loading={isLoading}
             // isDisabled={isEmpty(selectedDay) || selectedTime == ''}
@@ -321,33 +332,37 @@ const LanguageItem = ({
 const LanguageModal = ({
   open,
   onOpenChange,
+  startWithDraft = false,
 }: {
   open: boolean;
   onOpenChange: () => void;
+  startWithDraft?: boolean;
 }) => {
   const { languages } = useProfile();
   const [tempLanguages, settempLanguages] = useState(languages);
 
   const addNewLanguage = () => {
-    const formData = {
-      id: moment().unix(),
-      language: "",
-      proficiency: "",
-    };
-    const newLanguage = !isEmpty(tempLanguages)
-      ? [...tempLanguages, formData]
-      : [formData];
-    settempLanguages(newLanguage);
+    settempLanguages((prev) => [
+      ...(Array.isArray(prev) ? prev : []),
+      createDraftLanguage(),
+    ]);
   };
   const handleDeleteLanguage = (id: string) => {
     const newLanguages = tempLanguages.filter((lang) => lang.id !== id);
     settempLanguages(newLanguages);
   };
   useEffect(() => {
-    if (languages && languages.length > 0) {
-      settempLanguages(languages);
+    if (!open) {
+      return;
     }
-  }, [languages]);
+
+    const nextLanguages = Array.isArray(languages) ? languages : [];
+    settempLanguages(
+      startWithDraft
+        ? [...nextLanguages, createDraftLanguage()]
+        : nextLanguages
+    );
+  }, [languages, open, startWithDraft]);
   useMount(() => {
     console.log(languages);
   });
@@ -357,106 +372,57 @@ const LanguageModal = ({
   }, [languages, tempLanguages]);
 
   return (
-    <Drawer.Root size={"sm"} open={open} onOpenChange={onOpenChange}>
-      <Drawer.Backdrop />
-
-      <Drawer.Positioner zIndex={'max'}>
-        <Drawer.Content>
-          <Drawer.Header>
-            <Drawer.Title>
-              <VStack
-                spaceY={6}
-                w="full"
-                justifyContent={"space-between"}
-                alignItems={"center"}
-                px="6"
-              >
-                <HStack w="full" py={4} justifyContent={"space-between"}>
-                  <Text
-                    fontWeight={700}
-                    fontSize={"2rem"}
-                    fontFamily={"Outfit"}
-                    color={"text_primary"}
-                    // textAlign={"start"}
-                  >
-                    Language
-                  </Text>
-                  <HStack spaceX={4}>
-                    <Box
-                      border={0.5}
-                      rounded={4}
-                      py={2}
-                      px="2"
-                      onClick={addNewLanguage}
-                      borderColor={"gray.150"}
-                      shadow={"md"}
-                    >
-                      <Text
-                        color="text_primary"
-                        fontSize={"1rem"}
-                        fontWeight={"600"}
-                      >
-                        <HiMiniPlus />
-                      </Text>
-                    </Box>
-                    <Box
-                      border={0.5}
-                      rounded={4}
-                      py={2}
-                      px="2"
-                      onClick={onOpenChange}
-                      borderColor={"gray.150"}
-                      shadow={"md"}
-                    >
-                      {/* <Image
-                      cursor={"pointer"}
-                      onClick={onOpenChange}
-                      w={4}
-                      h={4}
-                      // src={close}
-                      alt={"close-image"}
-                    /> */}
-                      <Text
-                        color="text_primary"
-                        fontSize={"0.8rem"}
-                        fontWeight={"400"}
-                      >
-                        <FaTimes />
-                      </Text>
-                    </Box>
-                  </HStack>
-                </HStack>
-              </VStack>
-            </Drawer.Title>
-          </Drawer.Header>
-          <Drawer.Body px="3" py="8">
-            <VStack w="full" spaceY="4">
-              {size(tempLanguages) > 0 ? (
-                tempLanguages.map((language) => (
-                  <LanguageItem
-                    key={language.id}
-                    handleDeleted={handleDeleteLanguage}
-                    language={language}
-                    onClose={onOpenChange}
-                  />
-                ))
-              ) : (
-                <Text
-                  fontWeight={700}
-                  fontSize={"1rem"}
-                  fontFamily={"Outfit"}
-                  color={"text_primary"}
-                  // textAlign={"start"}
-                >
-                  No Languages found
-                </Text>
-              )}
-            </VStack>
-          </Drawer.Body>
-          <Drawer.Footer />
-        </Drawer.Content>
-      </Drawer.Positioner>
-    </Drawer.Root>
+    <TopRightDrawer
+      open={open}
+      onOpenChange={onOpenChange}
+      title="Language"
+      headerAction={
+        <Box
+          border={0.5}
+          rounded={4}
+          py={2}
+          px="2"
+          onClick={addNewLanguage}
+          borderColor={"gray.150"}
+          shadow={"md"}
+        >
+          <Text
+            color="text_primary"
+            fontSize={"1rem"}
+            fontWeight={"600"}
+          >
+            <HiMiniPlus />
+          </Text>
+        </Box>
+      }
+      bodyProps={{
+        px: { base: "4", lg: "5" },
+        py: { base: "4", lg: "5" },
+        pb: { base: "14", lg: "16" },
+      }}
+    >
+      <VStack w="full" spaceY="4">
+        {size(tempLanguages) > 0 ? (
+          tempLanguages.map((language) => (
+            <LanguageItem
+              key={language.id}
+              handleDeleted={handleDeleteLanguage}
+              language={language}
+              onClose={onOpenChange}
+            />
+          ))
+        ) : (
+          <Text
+            fontWeight={700}
+            fontSize={"1rem"}
+            fontFamily={"Outfit"}
+            color={"text_primary"}
+          >
+            No Languages found
+          </Text>
+        )}
+      </VStack>
+    </TopRightDrawer>
   );
 };
 

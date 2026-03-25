@@ -1,4 +1,4 @@
-import { Flex, VStack } from '@chakra-ui/react';
+import { Box, Flex, VStack } from '@chakra-ui/react';
 import React, { FC, useEffect } from 'react'
 import Header from './Header';
 import { usePersistReady } from 'mangarine/components/ui/provider';
@@ -9,10 +9,11 @@ import { SSENotificationProvider } from 'mangarine/contexts/SSENotificationConte
 
 
 type Props = {
-  children: React.ReactElement
+  children: React.ReactElement;
+  subHeader?: React.ReactNode;
 }
 
-const AppLayout: FC<Props> = ({ children }) => {
+const AppLayout: FC<Props> = ({ children, subHeader }) => {
   const { token, user } = useAuth()
   const persistReady = usePersistReady()
   const  router = useRouter()
@@ -33,15 +34,30 @@ const AppLayout: FC<Props> = ({ children }) => {
       userId={persistReady ? user?.id : undefined}
       options={persistReady && user?.id ? { mode: 'secure', token, autoReconnect: true } : undefined}
     >
-      <VStack gap={0} h="full" alignItems="stretch">
+      <VStack gap={0} h="100vh" alignItems="stretch">
         <Header />
+
+        {subHeader ? (
+          <Box
+            w="full"
+            bg="main_background"
+            px={{ base: "12px", md: "16px", lg: "18px", xl: "32px" }}
+            borderBottomWidth="1px"
+            borderColor="input_border"
+            mb={{ base: "0", md: "16px" }}
+          >
+            {subHeader}
+          </Box>
+        ) : (
+          <Box mb={{ base: "0", md: "16px" }} />
+        )}
 
         <Flex
           flex={1}
-          minH="80vh"
+          minH={0}
           w="full"
           px={{ base: "12px", md: "16px", lg: "18px", xl: "32px" }}
-          overflowY="scroll"
+          overflow="hidden"
           css={{
             "&::-webkit-scrollbar": { width: "0px", height: "0px" },
             "&::-webkit-scrollbar-track": { width: "0px", background: "transparent", height: "0px" },

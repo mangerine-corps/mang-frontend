@@ -3,9 +3,8 @@ import { Box, HStack, Text, VStack } from "@chakra-ui/react";
 import { size } from "lodash";
 import { useState } from "react";
 import EducationModal from "./educationmodal";
-import { BiSolidEditAlt } from "react-icons/bi";
-import { useRouter } from "next/router";
 import Loader from "./profile/loader";
+import SectionActionButton from "./sectionactionbutton";
 
 interface EditEducationCardProps {
   title: string;
@@ -20,11 +19,13 @@ const EditEducationCard = ({
   title,
   educations,
   width = "full",
+  edit,
   isLoading,
 }: EditEducationCardProps) => {
 
   const [open, setOpen] = useState<boolean>(false);
-  const route = useRouter()
+  const [startWithDraft, setStartWithDraft] = useState(false);
+  const isEditable = Boolean(edit);
 
 
   return (
@@ -33,7 +34,7 @@ const EditEducationCard = ({
       borderColor={"bg_box"}
       rounded={"15px"}
       py="6"
-      shadow={"sm"}
+      boxShadow="0px 0px 4px 0px #0000001A"
       w={width}
       bg="bg_box"
     >
@@ -46,7 +47,7 @@ const EditEducationCard = ({
               w="full"
               px="4"
               alignItems="center"
-              justifyContent={"space-between"}
+              justifyContent={"flex-start"}
             >
               <Text
                 textAlign={"left"}
@@ -59,19 +60,17 @@ const EditEducationCard = ({
               >
                 {title}
               </Text>
-              {route.pathname === "/profile" && <Box
-                cursor={"pointer"}
-                onClick={() => {
-                  setOpen(true);
-                }}
-                mt={3}
-              // pr={"2rem"}
-              >
-                <Text color="text_primary" fontSize={"1rem"}>
-                  <BiSolidEditAlt />
-                </Text>
-              </Box>}
             </HStack>
+            <Text
+              w="full"
+              px="4"
+              pb="2"
+              color="grey.500"
+              fontSize="0.875rem"
+              fontFamily="Outfit"
+            >
+              Add your academic background
+            </Text>
 
             {size(educations) > 0 ? (
               educations.map((education) => (
@@ -127,6 +126,19 @@ const EditEducationCard = ({
                 No Education found
               </Text>
             )}
+
+            {isEditable && (
+              <Box w="full" px="4" pt="4">
+                <SectionActionButton
+                  title={title}
+                  fullWidth
+                  onClick={() => {
+                    setStartWithDraft(true);
+                    setOpen(true);
+                  }}
+                />
+              </Box>
+            )}
           </>
         )
       }
@@ -136,7 +148,9 @@ const EditEducationCard = ({
         open={open}
         onOpenChange={() => {
           setOpen(false);
+          setStartWithDraft(false);
         }}
+        startWithDraft={startWithDraft}
       />
     </VStack>
   );
