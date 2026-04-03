@@ -54,7 +54,7 @@ const PaymentSetting = () => {
                   font="outfit"
                   fontWeight="600"
                   lineHeight={{base: "18px",  sm: "20px",  md: "22px",  lg: "24px",  xl: "24px" }}
-                  fontSize="1rem"
+                  fontSize="1.2rem"
                   color="text_primary"
                   mb={2}
                 >
@@ -125,7 +125,7 @@ const PaymentSetting = () => {
                 color="gray.600"
                 font="outfit"
                 fontWeight="400"
-                fontSize="1rem"
+                fontSize="1.2rem"
               >
                 Set as default
               </Text>
@@ -148,7 +148,7 @@ const PaymentSetting = () => {
 
       <HStack w="100%" justify="space-between">
         <Text
-          fontSize="1rem"
+          fontSize="1.2rem"
           fontWeight="600"
           lineHeight={{base: "18px",  sm: "20px",  md: "22px",  lg: "24px",  xl: "24px" }}
           font="outfit"
@@ -168,7 +168,7 @@ const PaymentSetting = () => {
             setCancelSub(true);
           }}
           color="blue.700"
-          fontSize="1rem"
+          fontSize="1.2rem"
           fontWeight="600"
           mt={4}
           font="outfit"

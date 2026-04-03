@@ -94,7 +94,7 @@ const GeneralSetting = () => {
   return (
     <Box w="full" p={8} borderRadius="lg" boxShadow="lg" bg="bg_box" mt={{ base: 4, md: 8, lg: 0, xl: "flex" }}>
       <HX justify="space-between" mb={4}>
-        <Text fontSize={{ base: "1rem", md: "1.3rem" }} fontWeight="600" lineHeight={{ base: "20px", sm: "24px", md: "28px", lg: "32px", xl: "36px", }} font="outfit" color="text_primary">
+        <Text fontSize={{ base: "1.1rem", md: "1.4rem" }} fontWeight="600" lineHeight={{ base: "20px", sm: "24px", md: "28px", lg: "32px", xl: "36px", }} font="outfit" color="text_primary">
           General Settings
         </Text>
 
@@ -102,7 +102,7 @@ const GeneralSetting = () => {
       {(isLoading || isFetching) && (
         <HX py={2}><Spinner size="sm" /><Text ml={2}>Loading...</Text></HX>
       )}
-      <Text fontSize={{ base: "1rem", md: "1.1rem" }} fontWeight="600" lineHeight={{ base: "20px", sm: "24px", md: "28px", lg: "32px", xl: "36px", }} font="outfit" color="text_primary" mb={6}>
+      <Text fontSize={{ base: "1.1rem", md: "1.3rem" }} fontWeight="600" lineHeight={{ base: "20px", sm: "24px", md: "28px", lg: "32px", xl: "36px", }} font="outfit" color="text_primary" mb={6}>
         Language Preference
       </Text>
 
@@ -127,7 +127,7 @@ const GeneralSetting = () => {
         )}
       />
 
-      <Text fontSize={{ base: "1rem", md: "1.1rem" }} fontWeight="600" lineHeight={{ base: "20px", sm: "24px", md: "28px", lg: "32px", xl: "36px", }} font="outfit" color="text_primary" my={6}>
+      <Text fontSize={{ base: "1.1rem", md: "1.3rem" }} fontWeight="600" lineHeight={{ base: "20px", sm: "24px", md: "28px", lg: "32px", xl: "36px", }} font="outfit" color="text_primary" my={6}>
         Time Zone
       </Text>
 
@@ -152,7 +152,7 @@ const GeneralSetting = () => {
         )}
       />
 
-      <Text fontSize={{ base: "1rem", md: "1.1rem" }} fontWeight="600" lineHeight={{ base: "20px", sm: "24px", md: "28px", lg: "32px", xl: "36px", }} font="outfit" color="text_primary" mt={10} mb={8}>
+      <Text fontSize={{ base: "1.1rem", md: "1.3rem" }} fontWeight="600" lineHeight={{ base: "20px", sm: "24px", md: "28px", lg: "32px", xl: "36px", }} font="outfit" color="text_primary" mt={10} mb={8}>
         Interface Theme
       </Text>
 

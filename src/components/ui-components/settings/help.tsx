@@ -21,18 +21,12 @@ const Help = () => {
       default:
         return (
           <Box
-            //w={{ base: "95%", md: "280px", lg: "340px", xl: "340px" }}
-
             borderRadius="lg"
             boxShadow="lg"
             bg="main_background"
-            // p={8}
+            p={8}
             w="full"
-            h="auto"
-            // overflowY={"scroll"}
-            //px={6}
-            //py={6}
-            // marginLeft={40}
+            minH="full"
             mt={0}
           >
             <Text

@@ -1,50 +1,46 @@
 "use client"
 
 import {
-  Box,
-  Toaster as ChakraToaster,
   Portal,
-  Spinner,
-  Stack,
+  Toaster as ChakraToaster,
   Toast,
   createToaster,
 } from "@chakra-ui/react"
 
 export const toaster = createToaster({
-  placement: "top-end",
+  placement: "top",
   pauseOnPageIdle: true,
-  duration: 3000
+  duration: 3000,
 })
 
 export const Toaster = () => {
   return (
     <Portal>
-      <ChakraToaster toaster={toaster} insetInline={{ mdDown: "4" }}>
+      <ChakraToaster toaster={toaster}>
         {(toast) => (
-          <Toast.Root 
-            width={{ md: "sm" }}
-            p='1em'
-            textStyle='body1'
+          <Toast.Root
+            px={5}
+            py={3}
+            bg="#FFF8EC"
+            borderWidth="1px"
+            borderColor="#F0D9B5"
+            rounded="lg"
+            shadow="sm"
             display="flex"
-            alignContent="center"
-            justifyContent="space-between"
+            alignItems="center"
+            justifyContent="center"
+            minW="320px"
+            maxW="520px"
+          >
+            <Toast.Description
+              fontFamily="Outfit"
+              fontSize="0.875rem"
+              fontWeight="500"
+              color="#1A1A1A"
+              textAlign="center"
             >
-            {toast.type === "loading" ? (
-              <Spinner size="sm" color="blue.solid" />
-            ) : (
-              <Toast.Indicator />
-            )}
-            <Stack gap="1" flex="1" maxWidth="100%">
-              {toast.title && <Toast.Title>{toast.title}</Toast.Title>}
-              {toast.description && (
-                <Toast.Description>{toast.description}</Toast.Description>
-              )}
-            </Stack>
-            {toast.action && (
-              <Toast.ActionTrigger>{toast.action.label}</Toast.ActionTrigger>
-            )}
-            <Toast.CloseTrigger top='15px'/>
-            {/* {toast.meta?.closable && <Toast.CloseTrigger />} */}
+              {toast.description ?? toast.title}
+            </Toast.Description>
           </Toast.Root>
         )}
       </ChakraToaster>

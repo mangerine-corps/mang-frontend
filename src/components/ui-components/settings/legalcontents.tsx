@@ -8,7 +8,7 @@ type props = {
 };
 const LegalContent = ({ title, onClick }: props) => {
   return (
-    <HStack     _hover={{ backgroundColor: "bg_box" }} spaceX="6" onClick={onClick}   cursor={"pointer"} w="full" py="1.5">
+    <HStack _hover={{ backgroundColor: "bg_box" }} spaceX="6" onClick={onClick} cursor={"pointer"} w="full" py="5" borderBottomWidth="1px" borderBottomColor="border_but">
       <VStack alignItems={"flex-start"} justifyContent={"space-between"} w="full" pl="8">
         <Text
           font="outfit"
@@ -21,9 +21,9 @@ const LegalContent = ({ title, onClick }: props) => {
         </Text>
       </VStack>
 
-      <Text fontSize={"sm"} color="text_primary"  pr="8">
-        <IoChevronForwardOutline fontSize={"sm"} color="text_primary" />
-      </Text>
+      <Box pr="8" color="text_primary" fontSize="1.25rem">
+        <IoChevronForwardOutline />
+      </Box>
     </HStack>
   );
 };

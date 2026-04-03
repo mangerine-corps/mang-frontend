@@ -25,7 +25,7 @@ const ContentComp = ({ title, desc, extra, intro }: Props) => {
       </Text>
       <Text
         fontFamily="outfit"
-        fontSize={{ base: "0.8rem", md: "0.875rem", lg: "1rem" }}
+        fontSize={{ base: "1rem", md: "1.1rem", lg: "1.2rem" }}
         fontWeight="400"
         color="text_primary"
         whiteSpace="pre-wrap"
@@ -38,7 +38,7 @@ const ContentComp = ({ title, desc, extra, intro }: Props) => {
         {isEmpty(desc) ? (
           <Text
             fontFamily="outfit"
-            fontSize={{ base: "0.8rem", md: "0.875rem", lg: "1rem" }}
+            fontSize={{ base: "1rem", md: "1.1rem", lg: "1.2rem" }}
             fontWeight="400"
             color="text_primary"
             whiteSpace="pre-wrap"
@@ -50,7 +50,7 @@ const ContentComp = ({ title, desc, extra, intro }: Props) => {
             <HStack alignItems="flex-start" w="full">
               <Text
                 fontFamily="outfit"
-                fontSize={{ base: "0.8rem", md: "0.875rem", lg: "1rem" }}
+                fontSize={{ base: "1rem", md: "1.1rem", lg: "1.2rem" }}
                 fontWeight="500"
                 color="text_primary"
               >
@@ -58,7 +58,7 @@ const ContentComp = ({ title, desc, extra, intro }: Props) => {
               </Text>
               <Text
                 fontFamily="outfit"
-                fontSize={{ base: "0.8rem", md: "0.875rem", lg: "1rem" }}
+                fontSize={{ base: "1rem", md: "1.1rem", lg: "1.2rem" }}
                 fontWeight="400"
                 color="text_primary"
                 whiteSpace="pre-wrap"

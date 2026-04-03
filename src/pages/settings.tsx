@@ -25,6 +25,7 @@ const menuData = [
     icon: "/icons/account1.svg",
     href: "/accountsetting",
     iconBg: "/icons/right.svg",
+    iconCircleBg: "rgba(54, 56, 83, 0.12)",
   },
   {
     id: "privacy",
@@ -32,6 +33,7 @@ const menuData = [
     icon: "/icons/privacy.svg",
     href: "/",
     iconBg: "/icons/right.svg",
+    iconCircleBg: "rgba(252, 115, 26, 0.12)",
   },
   {
     id: "notification",
@@ -39,6 +41,7 @@ const menuData = [
     icon: "/icons/notification.svg",
     href: "/notification",
     iconBg: "/icons/right.svg",
+    iconCircleBg: "rgba(13, 188, 157, 0.12)",
   },
   {
     id: "payment",
@@ -46,6 +49,7 @@ const menuData = [
     icon: "/icons/payment1.svg",
     href: "/payment",
     iconBg: "/icons/right.svg",
+    iconCircleBg: "rgba(247, 26, 252, 0.12)",
   },
   {
     id: "security",
@@ -53,6 +57,7 @@ const menuData = [
     icon: "/icons/security.svg",
     href: "/security",
     iconBg: "/icons/right.svg",
+    iconCircleBg: "rgba(24, 25, 35, 0.10)",
   },
   {
     id: "general",
@@ -60,6 +65,7 @@ const menuData = [
     icon: "/icons/general.svg",
     href: "/general",
     iconBg: "/icons/right.svg",
+    iconCircleBg: "rgba(252, 216, 26, 0.15)",
   },
   {
     id: "help",
@@ -67,6 +73,7 @@ const menuData = [
     icon: "/icons/support.svg",
     href: "/support",
     iconBg: "/icons/right.svg",
+    iconCircleBg: "rgba(25, 118, 210, 0.12)",
   },
   {
     id: "legal",
@@ -74,6 +81,7 @@ const menuData = [
     icon: "/icons/legal.svg",
     href: "",
     iconBg: "/icons/right.svg",
+    iconCircleBg: "rgba(48, 188, 13, 0.12)",
   },
 ];
 
@@ -124,13 +132,12 @@ const Settings = () => {
       {/* <CancelSubscriptionModal /> */}
       <Box
         w="full"
-        //marginTop="92px"
+        h="full"
         borderRight="1px"
         borderBottom="1px"
         borderLeft="1px"
         spaceX={{ base: "0", md: "0", lg: "3" }}
         overflow="hidden"
-        // gap="1"
         display="flex"
         pos={"relative"}
       >
@@ -138,8 +145,10 @@ const Settings = () => {
           flex={1.5}
           borderRight="1px"
           h="full"
+          minH="90vh"
           borderColor="gray.200"
-          display={{ base: "none", md: "none", lg: "block", xl: "block" }}
+          display={{ base: "none", md: "none", lg: "flex", xl: "flex" }}
+          flexDirection="column"
         >
           <Box>
             <CustomInput
@@ -168,16 +177,14 @@ const Settings = () => {
             as="nav"
             display="flex"
             flexDirection="column"
-            //  w={{ base: "95%", md: "280px", lg: "340px", xl: "340px" }}
-            h="full"
-            // pb="14px"
+            flex={1}
+            overflowY="auto"
             borderRadius="16px"
             boxShadow="sm"
             bg="main_background"
-            //mt="14px"
-            //px="16px"
-            //py="16px"
-            // gap="8px"
+            css={{
+              "&::-webkit-scrollbar": { width: "0px" },
+            }}
           >
             {menuData.map((item) => (
               <Flex
@@ -207,13 +214,23 @@ const Settings = () => {
                 borderBottomColor="border_but"
               >
                 <Flex align="center">
-                  <Image
-                    src={item.icon}
-                    alt={item.text}
-                    boxSize="4"
+                  <Box
+                    display="flex"
+                    alignItems="center"
+                    justifyContent="center"
+                    boxSize="10"
+                    borderRadius="full"
+                    bg={item.iconCircleBg}
+                    flexShrink={0}
                     marginRight={4}
-                  />
-                  <Text>{item.text}</Text>
+                  >
+                    <Image
+                      src={item.icon}
+                      alt={item.text}
+                      boxSize="5"
+                    />
+                  </Box>
+                  <Text fontSize="1.5rem" fontFamily="Outfit" fontWeight="500">{item.text}</Text>
                 </Flex>
                 <Image src={item.iconBg} alt="arrow" />
               </Flex>

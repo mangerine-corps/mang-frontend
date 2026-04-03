@@ -1,114 +1,68 @@
-import { Text, VStack } from '@chakra-ui/react';
-import React, { useState } from 'react'
-import CustomButton from '../customcomponents/button';
-import { toaster } from '../ui/toaster';
+import { Box, Button, Flex, Text, VStack } from '@chakra-ui/react';
 import { useUnblockUserMutation } from 'mangarine/state/services/profile.service';
-// import { useUnblockUserMutation } from 'mangarine/state/services/chat-management.service';
+import { toaster } from '../ui/toaster';
 
 type props = {
-    title:string,
-    details:string,
-    onClick?:any,
-    buttonText:string,
-    info:any
-}
+  title?: string;
+  details?: string;
+  onClick?: any;
+  buttonText?: string;
+  info: any;
+  onUnblocked?: () => void;
+};
 
-export const BlockedComp = ({title,details,onClick,buttonText, info}:props) => {
+export const BlockedComp = ({ info, onUnblocked }: props) => {
   const [unblockUser, { isLoading }] = useUnblockUserMutation();
-  const [reportUserId, setReportUserId] = useState<string | undefined>(
-    undefined
-  );
-  const handleunBlockUser = async () => {
+
+  const handleUnblock = async () => {
     try {
       if (!info?.id) throw new Error("User ID is missing");
-      await unblockUser({
-        userId: info.id,
-        reason: "unBlocked from profile menu",
-      }).unwrap();
-      toaster.create({
-        title: "User unblocked",
-        type: "success",
-        description: `${info?.fullName ?? "User"} has been unblocked successfully`,
-        closable: true,
-      });
-      // dispatch(setBlockedConsultant({ id, isBlocked: showblockPage }));
+      await unblockUser({ userId: info.id, reason: "unBlocked from profile menu" }).unwrap();
+      toaster.create({ description: `${info?.fullName ?? "User"} has been unblocked.` });
+      onUnblocked?.();
     } catch (err: any) {
-      toaster.create({
-        title: "Unblock failed",
-        type: "error",
-        description:
-          err?.data?.message || err?.message || "Unable to unblock user",
-        closable: true,
-      });
+      toaster.create({ description: err?.data?.message || err?.message || "Unable to unblock user." });
     }
   };
 
-  // const openReportModal = () => {
-  //   if (info?.id) setReportUserId(info.id);
-  //   setReport(true);
-  // };
   return (
-    <VStack
-      h="full"
-      alignItems={"center"}
-      justifyContent={"center"}
-      // spaceY={"6"}
-      w="55%"
-      // w={{ base: "95%", md: "280px", lg: "340px", xl: "400px" }}
-    >
-      {/* Centering the image */}
-      {/* <Center alignItems={"center"} pt="4" pb="3">
-                  <Image
-                    src={"/icons/notcancel.svg"}
-                    alt="Regulations Image"
-                    // boxSize={6}
-                    objectFit="contain"
-
-                    // height="auto"
-                  />
-                </Center> */}
-      <Text
-        textAlign={"left"}
-        // px={"6"}
-        fontSize={"2.5rem"}
-        fontFamily={"Outfit"}
-        color={"text_primary"}
-        fontWeight={"600"}
-        w="full"
-        pb="3"
-      >
-        {title}
-      </Text>
-
-      <Text
-        textAlign={"left"}
-        w="full"
-        pb={"8"}
-        fontSize={"1.5rem"}
-        fontFamily={"Outfit"}
-        color={"text_primary"}
-        fontWeight={"400"}
-      >
-        {details}
-      </Text>
-      <CustomButton
-        customStyle={{
-          w: "full",
-        }}
-        // onClick={onClick}
-        loading={isLoading}
-        onClick={handleunBlockUser}
-        // onClick={handleSubmit(onSubmit, (error) => console.log(error))}
-      >
+    <VStack gap={6} align="center" py={12} w="full">
+      <VStack gap={2} align="center" maxW="360px">
         <Text
-          color={"button_text"}
-          fontWeight={"600"}
-          fontSize={"1rem"}
-          lineHeight={"100%"}
+          textAlign="center"
+          fontSize={{ base: "1.3rem", lg: "1.5rem" }}
+          fontFamily="Outfit"
+          color="text_primary"
+          fontWeight="700"
         >
-          Unblock
+          You have blocked this User
         </Text>
-      </CustomButton>
+        <Text
+          textAlign="center"
+          fontSize="0.9rem"
+          fontFamily="Outfit"
+          color="grey.500"
+          fontWeight="400"
+        >
+          This user has been blocked by you. Unblock to view their content
+        </Text>
+      </VStack>
+
+      <Button
+        bg="#111D4A"
+        color="white"
+        px={10}
+        h="44px"
+        borderRadius="10px"
+        fontSize="0.875rem"
+        fontWeight="600"
+        fontFamily="Outfit"
+        _hover={{ bg: "#111D4A" }}
+        loading={isLoading}
+        onClick={handleUnblock}
+      >
+        Unblock
+      </Button>
     </VStack>
   );
-}
+};

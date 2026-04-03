@@ -37,7 +37,7 @@ const HeaderContent = ({title,desc,extra,onClick}:props) => {
         <HStack>
           <Text
             font="outfit"
-                 fontSize={{base:"0.8rem",md:"0.875rem",lg:"1rem"}}
+                 fontSize={{ base: "1rem", md: "1.1rem", lg: "1.2rem" }}
             fontWeight="500"
             color="text_primary"
           >
@@ -45,7 +45,7 @@ const HeaderContent = ({title,desc,extra,onClick}:props) => {
           </Text>
           <Text
             font="outfit"
-                 fontSize={{base:"0.8rem",md:"0.875rem",lg:"1rem"}}
+                 fontSize={{ base: "1rem", md: "1.1rem", lg: "1.2rem" }}
             fontWeight="400"
             color="text_primary"
           >

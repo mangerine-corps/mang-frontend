@@ -81,7 +81,7 @@ your content solely for operating and improving the Service."
             {" "}
             <Text
               fontFamily="outfit"
-              fontSize={{ base: "0.8rem", md: "0.875rem", lg: "1rem" }}
+              fontSize={{ base: "1rem", md: "1.1rem", lg: "1.2rem" }}
               fontWeight="400"
               color="text_primary"
               whiteSpace="pre-wrap"
@@ -93,7 +93,7 @@ your content solely for operating and improving the Service."
             {" "}
             <Text
               fontFamily="outfit"
-              fontSize={{ base: "0.8rem", md: "0.875rem", lg: "1rem" }}
+              fontSize={{ base: "1rem", md: "1.1rem", lg: "1.2rem" }}
               fontWeight="400"
               color="text_primary"
               whiteSpace="pre-wrap"
@@ -103,7 +103,7 @@ your content solely for operating and improving the Service."
             {" "}
             <Text
               fontFamily="outfit"
-              fontSize={{ base: "0.8rem", md: "0.875rem", lg: "1rem" }}
+              fontSize={{ base: "1rem", md: "1.1rem", lg: "1.2rem" }}
               fontWeight="400"
               color="text_primary"
               whiteSpace="pre-wrap"
@@ -113,7 +113,7 @@ your content solely for operating and improving the Service."
             {" "}
             <Text
               fontFamily="outfit"
-              fontSize={{ base: "0.8rem", md: "0.875rem", lg: "1rem" }}
+              fontSize={{ base: "1rem", md: "1.1rem", lg: "1.2rem" }}
               fontWeight="400"
               color="text_primary"
               whiteSpace="pre-wrap"
@@ -169,7 +169,7 @@ Terms or applicable law."
             {" "}
             <Text
               fontFamily="outfit"
-              fontSize={{ base: "0.8rem", md: "0.875rem", lg: "1rem" }}
+              fontSize={{ base: "1rem", md: "1.1rem", lg: "1.2rem" }}
               fontWeight="400"
               color="text_primary"
               whiteSpace="pre-wrap"
@@ -181,7 +181,7 @@ Terms or applicable law."
             {" "}
             <Text
               fontFamily="outfit"
-              fontSize={{ base: "0.8rem", md: "0.875rem", lg: "1rem" }}
+              fontSize={{ base: "1rem", md: "1.1rem", lg: "1.2rem" }}
               fontWeight="400"
               color="text_primary"
               whiteSpace="pre-wrap"

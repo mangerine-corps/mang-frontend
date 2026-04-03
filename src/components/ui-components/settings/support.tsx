@@ -107,7 +107,7 @@ const Support = ({ onClick }: { onClick: () => void }) => {
       <Text
         color="text_primary"
         fontFamily="Outfit"
-        fontSize={{ base: "0.8rem", md: "0.875rem", lg: "1rem" }}
+        fontSize={{ base: "1rem", md: "1.1rem", lg: "1.2rem" }}
         fontStyle="normal"
         fontWeight="400"
         pb="3"
@@ -205,7 +205,7 @@ const Support = ({ onClick }: { onClick: () => void }) => {
       <Text
         color="text_primary"
         fontFamily="Outfit"
-        fontSize={{ base: "0.8rem", md: "0.875rem", lg: "1rem" }}
+        fontSize={{ base: "1rem", md: "1.1rem", lg: "1.2rem" }}
         fontStyle="normal"
         pt="2"
         fontWeight="400"

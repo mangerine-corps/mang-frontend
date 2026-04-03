@@ -1,47 +1,23 @@
-import { Box, Stack, VStack } from "@chakra-ui/react";
+import { Box, VStack } from "@chakra-ui/react";
 import Biocard from "mangarine/components/ui-components/biocard";
 import DashboardCard from "mangarine/components/ui-components/dashboardcard";
-import FavouriteConsultants from "mangarine/components/ui-components/favouriteconsultants";
-import ScheduleCard from "mangarine/components/ui-components/schedulecard";
 import AppLayout from "mangarine/layouts/AppLayout";
-
 import ScheduledConsultation from "mangarine/components/ui-components/scheduledconsultation";
-import { useEffect, useState } from "react";
-import FavouriteConsultantsComp from "mangarine/components/ui-components/favourite_consultants_card";
-import { useRouter } from "next/router";
+import ProspectiveFollowing from "mangarine/components/ui-components/prospectivefollowing";
+import { useEffect } from "react";
 import { useGetConsultantsQuery } from "mangarine/state/services/consultant.service";
 import { useDispatch } from "react-redux";
-import {
-  selectConsultant,
-  setConsultants,
-} from "mangarine/state/reducers/consultant.reducer";
+import { setConsultants } from "mangarine/state/reducers/consultant.reducer";
 import ConsultationPage from "mangarine/components/ui-components/consultationpage";
-import ConsultationDetailsBox from "mangarine/components/ui-components/consultationdetailsbox";
-import { useConsultants } from "mangarine/state/hooks/consultant.hook";
-import { isEmpty } from "es-toolkit/compat";
 
 const Consultation = () => {
-  const [showSchConsult, setShowSchConsult] = useState<boolean>(false);
-  const [showFavs, setShowFavs] = useState<boolean>(false);
- const { favorite } = useConsultants();
-  const router = useRouter();
   const dispatch = useDispatch();
-  const {
-    data: consultantData,
-    isLoading,
-    isError,
-  } = useGetConsultantsQuery(undefined);
+  const { data: consultantData } = useGetConsultantsQuery(undefined);
   const myConsultdata = consultantData?.data?.consultants;
 
   useEffect(() => {
-    console.log(myConsultdata, "data");
-    dispatch(setConsultants(myConsultdata));
+    if (myConsultdata) dispatch(setConsultants(myConsultdata));
   }, [myConsultdata, dispatch]);
-
-  const handleConsultantClick = (consultantId: string) => {
-    dispatch(selectConsultant(consultantId));
-    router.push(`consultant/${consultantId}`);
-  };
   return (
     <AppLayout>
       <Box
@@ -137,33 +113,8 @@ const Consultation = () => {
           alignSelf="flex-start"
         >
           <>
-
-
-            {(!isEmpty(favorite)) ? (
-              <FavouriteConsultantsComp />
-            ) : (
-              <Box
-               
-              >
-                <FavouriteConsultants
-                  title={"Favourite Consultants"}
-                  content={"No Favourite Consultants!"}
-                  details={
-                    "You haven't added any consultants to your favorites yet. Tap the ♥ icon to start saving your favorite consultants!"
-                  }
-                  imageSrc={"/icons/emptyct.svg"}
-                />
-              </Box>
-            )}
-
-            {/* <Stack
-              flex={1.5}
-              display={{ base: "none", lg: "flex" }}
-              flexDir={{ lg: "column" }}
-              spaceY={"6"}
-            >
-              <BookingCalendarCard />
-            </Stack> */}
+            <ScheduledConsultation />
+            <ProspectiveFollowing />
           </>
         </VStack>
       </Box>

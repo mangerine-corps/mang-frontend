@@ -139,7 +139,7 @@ const onSave = async () => {
 
           <Text
             font="outfit"
-            fontSize={{ base: "0.875rem", sm: "1rem", md: "1rem", lg: "1.125rem", }}
+            fontSize={{ base: "1rem", sm: "1.1rem", md: "1.1rem", lg: "1.2rem" }}
             fontWeight="400"
             color="grey.300"
             // lineHeight={{ base: "20px", sm: "24px", md: "28px", lg: "32px", xl: "36px",}}
@@ -157,7 +157,7 @@ const onSave = async () => {
               label: 'Platform announcement', checked: platformAnnouncementEmail, onChange: setPlatformAnnouncementEmail
             }].map((row, idx) => (
               <Switch.Root key={idx} w="full" alignItems={"flex-start"} justifyContent={"space-between"} checked={row.checked} onCheckedChange={(e) => row.onChange(!!(e as any).checked)}>
-                <Switch.Label color={"text_primary"} fontSize={{ base: "0.875rem", sm: "1rem", lg: "1rem" }} fontWeight={"400"}>
+                <Switch.Label color={"text_primary"} fontSize={{ base: "1rem", sm: "1.1rem", lg: "1.1rem" }} fontWeight={"400"}>
                   {row.label}
                 </Switch.Label>
                 <Switch.HiddenInput />
@@ -190,7 +190,7 @@ const onSave = async () => {
               label: 'Payment Reminder', checked: paymentReminderEmail, onChange: setPaymentReminderEmail
             }].map((row, idx) => (
               <Switch.Root key={idx} w="full" alignItems={"flex-start"} justifyContent={"space-between"} checked={row.checked} onCheckedChange={(e) => row.onChange(!!(e as any).checked)}>
-                <Switch.Label color={"text_primary"} fontSize={{ base: "0.875rem", sm: "1rem", lg: "1rem" }} fontWeight={"400"}>
+                <Switch.Label color={"text_primary"} fontSize={{ base: "1rem", sm: "1.1rem", lg: "1.1rem" }} fontWeight={"400"}>
                   {row.label}
                 </Switch.Label>
                 <Switch.HiddenInput />
@@ -222,7 +222,7 @@ const onSave = async () => {
 
           <Text
             font="outfit"
-            fontSize={{ base: "0.875rem", sm: "1rem", md: "1rem", lg: "1.125rem", }}
+            fontSize={{ base: "1rem", sm: "1.1rem", md: "1.1rem", lg: "1.2rem" }}
             fontWeight="400"
             color="grey.300"
             // lineHeight={{ base: "20px", sm: "24px", md: "28px", lg: "32px", xl: "36px",}}
@@ -240,7 +240,7 @@ const onSave = async () => {
               label: 'Platform announcement', checked: platformAnnouncementPush, onChange: setPlatformAnnouncementPush
             }].map((row, idx) => (
               <Switch.Root key={idx} w="full" alignItems={"flex-start"} justifyContent={"space-between"} checked={row.checked} onCheckedChange={(e) => row.onChange(!!(e as any).checked)}>
-                <Switch.Label color={"text_primary"} fontSize={{ base: "0.875rem", sm: "1rem", lg: "1rem" }} fontWeight={"400"}>
+                <Switch.Label color={"text_primary"} fontSize={{ base: "1rem", sm: "1.1rem", lg: "1.1rem" }} fontWeight={"400"}>
                   {row.label}
                 </Switch.Label>
                 <Switch.HiddenInput />

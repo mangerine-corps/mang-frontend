@@ -60,7 +60,7 @@ const SecuritySetting = () => {
         Two-Factor Authentication (2FA)
       </Text>
       <Text
-        fontSize="0.875rem"
+        fontSize="1.1rem"
         fontWeight="500"
         // lineHeight="36px"
         font="outfit"
@@ -78,7 +78,7 @@ const SecuritySetting = () => {
       >
         <VStack alignItems={"flex-start"} justifyContent={"flex-start"}>
           <Text
-            fontSize="1rem"
+            fontSize="1.2rem"
             fontWeight="600"
             // lineHeight="36px"
             font="outfit"
@@ -88,7 +88,7 @@ const SecuritySetting = () => {
             Email Address
           </Text>
           <Text
-            fontSize="0.875rem"
+            fontSize="1.1rem"
             fontWeight="400"
             // lineHeight="36px"
             font="outfit"
@@ -105,7 +105,7 @@ const SecuritySetting = () => {
             onClick={() => {
               setTfa(true);
             }}
-            fontSize="1rem"
+            fontSize="1.2rem"
             fontWeight="600"
             // lineHeight="36px"
             font="outfit"
@@ -120,7 +120,7 @@ const SecuritySetting = () => {
             onClick={() => {
               setTfa(false);
             }}
-            fontSize="1rem"
+            fontSize="1.2rem"
             fontWeight="600"
             // lineHeight="36px"
             font="outfit"
@@ -155,7 +155,7 @@ const SecuritySetting = () => {
               w="full"
             >
               <Text
-                fontSize="1rem"
+                fontSize="1.2rem"
                 fontWeight="600"
                 // lineHeight="36px"
                 font="outfit"
@@ -165,7 +165,7 @@ const SecuritySetting = () => {
                 2FA Setup
               </Text>
               <Text
-                fontSize="0.875rem"
+                fontSize="1.1rem"
                 fontWeight="400"
                 // lineHeight="36px"
                 font="outfit"
@@ -178,7 +178,7 @@ const SecuritySetting = () => {
             <Stack w="15%" alignItems={"flex-end"} justifyContent={"flex-end"}>
               {tfa ? (
                 <Text
-                  fontSize="1rem"
+                  fontSize="1.2rem"
                   fontWeight="600"
                   // lineHeight="36px"
                   font="outfit"
@@ -189,7 +189,7 @@ const SecuritySetting = () => {
                 </Text>
               ) : (
                 <Text
-                  fontSize="1rem"
+                  fontSize="1.2rem"
                   fontWeight="600"
                   // lineHeight="36px"
                   font="outfit"
@@ -214,7 +214,7 @@ const SecuritySetting = () => {
             >
               <Switch.Label
                 font="outfit"
-                fontSize="1rem"
+                fontSize="1.2rem"
                 fontWeight="400"
                 color="text_primary"
                 lineHeight={{ base: "20px", sm: "24px", md: "28px", lg: "32px", xl: "36px",}}
@@ -231,7 +231,7 @@ const SecuritySetting = () => {
             >
               <Switch.Label
                 font="outfit"
-                fontSize="1rem"
+                fontSize="1.2rem"
                 fontWeight="400"
                 color="text_primary"
                 lineHeight={{ base: "20px", sm: "24px", md: "28px", lg: "32px", xl: "36px",}}
@@ -248,7 +248,7 @@ const SecuritySetting = () => {
             >
               <Switch.Label
                 font="outfit"
-                fontSize="1rem"
+                fontSize="1.2rem"
                 fontWeight="400"
                 color="text_primary"
                 lineHeight={{ base: "20px", sm: "24px", md: "28px", lg: "32px", xl: "36px",}}
@@ -265,7 +265,7 @@ const SecuritySetting = () => {
             >
               <Switch.Label
                 font="outfit"
-                fontSize="1rem"
+                fontSize="1.2rem"
                 fontWeight="400"
                 color="text_primary"
                 lineHeight={{ base: "20px", sm: "24px", md: "28px", lg: "32px", xl: "36px",}}
@@ -286,7 +286,7 @@ const SecuritySetting = () => {
       >
         <VStack alignItems={"flex-start"} justifyContent={"flex-start"}>
           <Text
-            fontSize="1rem"
+            fontSize="1.2rem"
             fontWeight="600"
             // lineHeight="36px"
             font="outfit"
@@ -296,7 +296,7 @@ const SecuritySetting = () => {
             Phone Number
           </Text>
           <Text
-            fontSize="0.875rem"
+            fontSize="1.1rem"
             fontWeight="400"
             // lineHeight="36px"
             font="outfit"
@@ -313,7 +313,7 @@ const SecuritySetting = () => {
             onClick={() => {
               setPtfa(true);
             }}
-            fontSize="1rem"
+            fontSize="1.2rem"
             fontWeight="600"
             // lineHeight="36px"
             font="outfit"
@@ -328,7 +328,7 @@ const SecuritySetting = () => {
             onClick={() => {
               setPtfa(false);
             }}
-            fontSize="1rem"
+            fontSize="1.2rem"
             fontWeight="600"
             // lineHeight="36px"
             font="outfit"
@@ -363,7 +363,7 @@ const SecuritySetting = () => {
               w="full"
             >
               <Text
-                fontSize="1rem"
+                fontSize="1.2rem"
                 fontWeight="600"
                 // lineHeight="36px"
                 font="outfit"
@@ -373,7 +373,7 @@ const SecuritySetting = () => {
                 2FA Setup
               </Text>
               <Text
-                fontSize="0.875rem"
+                fontSize="1.1rem"
                 fontWeight="400"
                 // lineHeight="36px"
                 font="outfit"
@@ -386,7 +386,7 @@ const SecuritySetting = () => {
             <Stack w="15%" alignItems={"flex-end"} justifyContent={"flex-end"}>
               {PTfa ? (
                 <Text
-                  fontSize="1rem"
+                  fontSize="1.2rem"
                   fontWeight="600"
                   // lineHeight="36px"
                   font="outfit"
@@ -397,7 +397,7 @@ const SecuritySetting = () => {
                 </Text>
               ) : (
                 <Text
-                  fontSize="1rem"
+                  fontSize="1.2rem"
                   fontWeight="600"
                   // lineHeight="36px"
                   font="outfit"
@@ -422,7 +422,7 @@ const SecuritySetting = () => {
             >
               <Switch.Label
                 font="outfit"
-                fontSize="1rem"
+                fontSize="1.2rem"
                 fontWeight="400"
                 color="text_primary"
                 lineHeight={{ base: "20px", sm: "24px", md: "28px", lg: "32px", xl: "36px",}}
@@ -439,7 +439,7 @@ const SecuritySetting = () => {
             >
               <Switch.Label
                 font="outfit"
-                fontSize="1rem"
+                fontSize="1.2rem"
                 fontWeight="400"
                 color="text_primary"
                 lineHeight={{ base: "20px", sm: "24px", md: "28px", lg: "32px", xl: "36px",}}
@@ -456,7 +456,7 @@ const SecuritySetting = () => {
             >
               <Switch.Label
                 font="outfit"
-                fontSize="1rem"
+                fontSize="1.2rem"
                 fontWeight="400"
                 color="text_primary"
                 lineHeight={{ base: "20px", sm: "24px", md: "28px", lg: "32px", xl: "36px",}}
@@ -473,7 +473,7 @@ const SecuritySetting = () => {
             >
               <Switch.Label
                 font="outfit"
-                fontSize="1rem"
+                fontSize="1.2rem"
                 fontWeight="400"
                 color="text_primary"
                lineHeight={{ base: "20px", sm: "24px", md: "28px", lg: "32px", xl: "36px",}}
@@ -494,7 +494,7 @@ const SecuritySetting = () => {
       >
         <VStack alignItems={"flex-start"} justifyContent={"flex-start"}>
           <Text
-            fontSize="1rem"
+            fontSize="1.2rem"
             fontWeight="600"
             // lineHeight="36px"
             font="outfit"
@@ -504,7 +504,7 @@ const SecuritySetting = () => {
             Authentication App
           </Text>
           <Text
-            fontSize="0.875rem"
+            fontSize="1.1rem"
             fontWeight="400"
             // lineHeight="36px"
             font="outfit"
@@ -521,7 +521,7 @@ const SecuritySetting = () => {
             onClick={() => {
               setAtfa(true);
             }}
-            fontSize="1rem"
+            fontSize="1.2rem"
             fontWeight="600"
             // lineHeight="36px"
             font="outfit"
@@ -536,7 +536,7 @@ const SecuritySetting = () => {
             onClick={() => {
               setAtfa(false);
             }}
-            fontSize="1rem"
+            fontSize="1.2rem"
             fontWeight="600"
             // lineHeight="36px"
             font="outfit"
@@ -561,7 +561,7 @@ const SecuritySetting = () => {
           mb="6"
         >
           <Text
-            fontSize="0.875rem"
+            fontSize="1.1rem"
             fontWeight="500"
             lineHeight={{ base: "20px", sm: "24px", md: "28px", lg: "32px", xl: "36px",}}
             font="outfit"
@@ -580,7 +580,7 @@ const SecuritySetting = () => {
               w="45"
             >
               <Text
-                fontSize="0.875rem"
+                fontSize="1.1rem"
                 fontWeight="400"
                 // lineHeight="36px"
                 font="outfit"
@@ -592,7 +592,7 @@ const SecuritySetting = () => {
               <HStack>
                 <Checkbox />
                 <Text
-                  fontSize="1rem"
+                  fontSize="1.2rem"
                   fontWeight="600"
                   // lineHeight="36px"
                   font="outfit"

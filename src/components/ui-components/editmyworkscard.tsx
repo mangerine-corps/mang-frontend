@@ -191,13 +191,10 @@ const EditMyWorksCard = ({
   // const { open, onOpen, onClose } = useDisclosure();
   return (
     <VStack
-      borderWidth={0.5}
-      borderColor={"grey.300"}
       rounded={"15px"}
       bg="bg_box"
-      //   bg={"green.400"}
       py="6"
-      shadow={"sm"}
+      boxShadow="0px 0px 4px 0px #0000001A"
       wordSpacing={"3"}
       w={width}
       position="relative"

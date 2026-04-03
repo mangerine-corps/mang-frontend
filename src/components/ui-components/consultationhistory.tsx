@@ -1,293 +1,298 @@
-import { Box, Button, HStack, Image, Menu, Portal, Stack, Table, Text, } from "@chakra-ui/react";
+import {
+  Box,
+  Button,
+  HStack,
+  Image,
+  Menu,
+  Portal,
+  Spinner,
+  Stack,
+  Table,
+  Text,
+  ButtonGroup,
+  Pagination,
+  IconButton,
+} from "@chakra-ui/react";
 import { outfit } from "mangarine/pages/_app";
-import { FC, useCallback, useEffect, useState } from "react";
+import { FC, useState } from "react";
+import { useGetMyAppointmentsQuery } from "mangarine/state/services/apointment.service";
+import { format } from "date-fns";
+import { LuChevronLeft, LuChevronRight } from "react-icons/lu";
 
-const consultations = [
-    {
-        id: 1,
-        name: "Ralph Edwards",
-        role: "President of Sales",
-        date: "23 Jan, 2024 | 2:22pm",
-        topic: "Resume Building",
-        status: "Completed",
-        statusColor: "green.500",
-        avatar: "/images/dp.png",
-    },
-    {
-        id: 2,
-        name: "Albert Flores",
-        role: "Nursing Assistant",
-        date: "23 Jan, 2024 | 2:22pm",
-        topic: "Business Planning",
-        status: "Completed",
-        statusColor: "green.500",
-        avatar: "/images/dp.png",
-    },
-    {
-        id: 3,
-        name: "Savannah Nguyen",
-        role: "Medical Assistant",
-        date: "23 Jan, 2024 | 2:22pm",
-        topic: "Interview Preparation",
-        status: "Cancelled",
-        statusColor: "red.500",
-        avatar: "/images/dp.png",
-    },
-    {
-        id: 4,
-        name: "Cody Fisher",
-        role: "Marketing Coordinator",
-        date: "23 Jan, 2024 | 2:22pm",
-        topic: "Digital Marketing",
-        status: "Rescheduled",
-        statusColor: "blue.500",
-        avatar: "/images/dp.png",
-    },
-    {
-        id: 5,
-        name: "Leslie Alexander",
-        role: "Web Designer",
-        date: "23 Jan, 2024 | 2:22pm",
-        topic: "System Integration",
-        status: "Completed",
-        statusColor: "green.500",
-        avatar: "/images/dp.png",
-    },
-    {
-        id: 6,
-        name: "Leslie Alexander",
-        role: "Web Designer",
-        date: "23 Jan, 2024 | 2:22pm",
-        topic: "System Integration",
-        status: "Completed",
-        statusColor: "green.500",
-        avatar: "/images/dp.png",
-    },
-    {
-        id: 7,
-        name: "Leslie Alexander",
-        role: "Web Designer",
-        date: "23 Jan, 2024 | 2:22pm",
-        topic: "System Integration",
-        status: "Completed",
-        statusColor: "green.500",
-        avatar: "/images/dp.png",
-    },
-    {
-        id: 8,
-        name: "Leslie Alexander",
-        role: "Web Designer",
-        date: "23 Jan, 2024 | 2:22pm",
-        topic: "System Integration",
-        status: "Completed",
-        statusColor: "green.500",
-        avatar: "/images/dp.png",
-    },
-];
+const statusColorMap: Record<string, string> = {
+  COMPLETED: "green.500",
+  CANCELLED: "red.500",
+  RESCHEDULED: "blue.500",
+  NO_SHOW: "gray.500",
+  UPCOMING: "orange.400",
+  EXPIRED: "gray.400",
+};
 
 type Props = {
-    status?: string
-}
+  searchTerm?: string;
+};
 
-const ConsultationHistory: FC<Props> = ({ status = 'UPCOMING' }) => {
-    // const [getConsultation, { isLoading }] = useGetMyAppointmentsMutation()
-    // const [page, setPage] = useState(1);
+const ConsultationHistory: FC<Props> = ({ searchTerm = "" }) => {
+  const [page, setPage] = useState(1);
+  const limit = 10;
 
-    // const fetchConsultation = useCallback(
-    //     () => {
-    //         const formData = {
-    //             page,
-    //             limit: 10,
-    //             status: status
-    //         }
-    //         getConsultation(formData).unwrap().then((payload) => {
-    //             console.log(payload)
-    //         }).catch((error) => {
-    //             console.log(error)
-    //         })
-    //     },
-    //     [page, status,getConsultation],
-    // )
+  const { data, isLoading } = useGetMyAppointmentsQuery({ page, limit });
 
+  const raw = data?.data ?? data ?? {};
+  const appointments: any[] = Array.isArray(raw?.data)
+    ? raw.data
+    : Array.isArray(raw?.appointments)
+    ? raw.appointments
+    : Array.isArray(raw)
+    ? raw
+    : [];
 
-    // useEffect(() => {
-    //     fetchConsultation()
-    // }, [fetchConsultation]);
-    return (
-        <Stack w="full" h="full" gap={6} overflowX="auto">
-            <Box w="full" overflowX="auto">
-                <Table.Root
-                    variant="outline"
-                    size="md"
-                    striped
-                    minW="720px" // ensures table scrolls on smaller screens
-                >
-                    <Table.Header>
-                        <Table.Row>
-                            <Table.ColumnHeader
-                                font="outfit"
-                                fontWeight="600"
-                                fontSize={{ base: "sm", md: "md" }}
-                                px={{ base: 2, md: 3 }}
-                                py={{ base: 3, md: 4 }}
-                            >
-                                Consultant
-                            </Table.ColumnHeader>
-                            <Table.ColumnHeader
-                                font="outfit"
-                                fontWeight="600"
-                                fontSize={{ base: "sm", md: "md" }}
-                                px={{ base: 2, md: 3 }}
-                                py={{ base: 3, md: 4 }}
-                            >
-                                Date & Time
-                            </Table.ColumnHeader>
-                            <Table.ColumnHeader
-                                font="outfit"
-                                fontWeight="600"
-                                fontSize={{ base: "sm", md: "md" }}
-                                px={{ base: 2, md: 3 }}
-                                py={{ base: 3, md: 4 }}
-                            >
-                                Topic
-                            </Table.ColumnHeader>
-                            <Table.ColumnHeader
-                                font="outfit"
-                                fontWeight="600"
-                                fontSize={{ base: "sm", md: "md" }}
-                                px={{ base: 2, md: 3 }}
-                                py={{ base: 3, md: 4 }}
-                            >
-                                Status
-                            </Table.ColumnHeader>
-                            <Table.ColumnHeader
-                                textAlign="end"
-                                px={{ base: 2, md: 3 }}
-                            />
-                        </Table.Row>
-                    </Table.Header>
+  const totalPages: number = raw?.totalPages ?? raw?.pagination?.totalPages ?? 1;
+  const totalItems: number = raw?.total ?? raw?.pagination?.total ?? 0;
 
-                    <Table.Body className={outfit.className}>
-                        {consultations.map((item) => (
-                            <Table.Row key={item.id} minH="72px" color="text_primary">
-                                {/* Consultant */}
-                                <Table.Cell py={{ base: 3, md: 4 }} px={{ base: 2, md: 3 }}>
-                                    <HStack gap={3}>
-                                        <Image
-                                            src={item.avatar}
-                                            alt={item.name}
-                                            boxSize={{ base: "32px", md: "40px" }}
-                                            borderRadius="full"
-                                        />
-                                        <Box>
-                                            <Text textWrap={'nowrap'} fontSize={{ base: "sm", md: "md" }}
-                                                fontWeight="semibold">
-                                                {item.name}
-                                            </Text>
-                                            <Text fontSize="sm" color="gray.500">
-                                                {item.role}
-                                            </Text>
-                                        </Box>
-                                    </HStack>
-                                </Table.Cell>
+  const term = searchTerm.toLowerCase().trim();
+  const rows = appointments.filter((a: any) => {
+    if (!term) return true;
+    return (a.consultant?.fullName || "").toLowerCase().includes(term);
+  });
 
-                                {/* Date & Time */}
-                                <Table.Cell py={{ base: 3, md: 4 }} px={{ base: 2, md: 3 }}>
-                                    <Text textWrap={'nowrap'} fontSize={{ base: "sm", md: "md" }}>{item.date}</Text>
-                                </Table.Cell>
+  const formatDate = (val: string) => {
+    if (!val) return "-";
+    try {
+      return format(new Date(val), "dd MMM, yyyy | h:mmaaa");
+    } catch {
+      return val;
+    }
+  };
 
-                                {/* Topic */}
-                                <Table.Cell py={{ base: 3, md: 4 }} px={{ base: 2, md: 3 }}>
-                                    <Text textWrap={'nowrap'} fontSize={{ base: "sm", md: "md" }}>{item.topic}</Text>
-                                </Table.Cell>
+  return (
+    <Stack w="full" h="full" gap={6} overflowX="auto">
+      <Box w="full" overflowX="auto">
+        <Table.Root
+          variant="outline"
+          size="md"
+          striped
+          minW="620px"
+        >
+          <Table.Header>
+            <Table.Row>
+              <Table.ColumnHeader
+                fontFamily="Outfit"
+                fontWeight="600"
+                fontSize={{ base: "sm", md: "0.875rem" }}
+                px={{ base: 2, md: 3 }}
+                py={{ base: 3, md: 4 }}
+                color="text_primary"
+              >
+                Consultant Name
+              </Table.ColumnHeader>
+              <Table.ColumnHeader
+                fontFamily="Outfit"
+                fontWeight="600"
+                fontSize={{ base: "sm", md: "0.875rem" }}
+                px={{ base: 2, md: 3 }}
+                py={{ base: 3, md: 4 }}
+                color="text_primary"
+              >
+                Date &amp; Time
+              </Table.ColumnHeader>
+              <Table.ColumnHeader
+                fontFamily="Outfit"
+                fontWeight="600"
+                fontSize={{ base: "sm", md: "0.875rem" }}
+                px={{ base: 2, md: 3 }}
+                py={{ base: 3, md: 4 }}
+                color="text_primary"
+              >
+                Topic
+              </Table.ColumnHeader>
+              <Table.ColumnHeader
+                fontFamily="Outfit"
+                fontWeight="600"
+                fontSize={{ base: "sm", md: "0.875rem" }}
+                px={{ base: 2, md: 3 }}
+                py={{ base: 3, md: 4 }}
+                color="text_primary"
+              >
+                Status
+              </Table.ColumnHeader>
+              <Table.ColumnHeader textAlign="end" px={{ base: 2, md: 3 }} />
+            </Table.Row>
+          </Table.Header>
 
-                                {/* Status */}
-                                <Table.Cell py={{ base: 3, md: 4 }} px={{ base: 2, md: 3 }}>
-                                    <Text
-                                        fontSize={{ base: "sm", md: "md" }}
-                                        color={item.statusColor}
-                                        fontWeight="medium"
-                                    >
-                                        {item.status}
-                                    </Text>
-                                </Table.Cell>
+          <Table.Body className={outfit.className}>
+            {isLoading ? (
+              <Table.Row>
+                <Table.Cell colSpan={5} py={10} textAlign="center">
+                  <HStack justify="center" gap={2}>
+                    <Spinner size="sm" />
+                    <Text fontSize="sm" color="gray.500" fontFamily="Outfit">Loading...</Text>
+                  </HStack>
+                </Table.Cell>
+              </Table.Row>
+            ) : rows.length === 0 ? (
+              <Table.Row>
+                <Table.Cell colSpan={5} py={10} textAlign="center">
+                  <Text fontSize="sm" color="gray.400" fontFamily="Outfit">No consultations found.</Text>
+                </Table.Cell>
+              </Table.Row>
+            ) : (
+              rows.map((item: any) => {
+                const status: string = (item.status || "").toUpperCase();
+                const statusColor = statusColorMap[status] || "gray.500";
+                const statusLabel =
+                  status === "NO_SHOW"
+                    ? "No Show"
+                    : status.charAt(0) + status.slice(1).toLowerCase();
 
-                                {/* Menu */}
-                                <Table.Cell py={{ base: 3, md: 4 }} px={{ base: 2, md: 3 }}>
-                                    <Menu.Root positioning={{ placement: "bottom-end" }}>
-                                        <Menu.Trigger asChild>
-                                            <Button variant="ghost" p={0} minW="auto">
-                                                <Image src="/icons/dot.svg" alt="menu" />
-                                            </Button>
-                                        </Menu.Trigger>
-                                        <Portal>
-                                            <Menu.Positioner>
-                                                <Menu.Content borderRadius="md" boxShadow="lg">
-                                                    <Menu.Item
-                                                        _hover={{ bg: "consult_hover" }}
-                                                        py={2}
-                                                        px={2}
-                                                        value="watch"
-                                                    >
-                                                        <HStack gap={3}>
-                                                            <Image src="/icons/watch.svg" alt="icon" boxSize="16px" />
-                                                            <Text fontSize="sm">Watch video</Text>
-                                                        </HStack>
-                                                    </Menu.Item>
-                                                    <Menu.Item
-                                                        _hover={{ bg: "consult_hover" }}
-                                                        py={2}
-                                                        px={2}
-                                                        value="rate"
-                                                    >
-                                                        <HStack gap={3}>
-                                                            <Image src="/icons/star.svg" alt="icon" boxSize="16px" />
-                                                            <Text fontSize="sm">Rate Consultant</Text>
-                                                        </HStack>
-                                                    </Menu.Item>
-                                                    <Menu.Item
-                                                        _hover={{ bg: "consult_hover" }}
-                                                        py={2}
-                                                        px={2}
-                                                        value="receipt"
-                                                    >
-                                                        <HStack gap={3}>
-                                                            <Image src="/icons/view.svg" alt="icon" boxSize="16px" />
-                                                            <Text fontSize="sm">View Payment Receipt</Text>
-                                                        </HStack>
-                                                    </Menu.Item>
-                                                </Menu.Content>
-                                            </Menu.Positioner>
-                                        </Portal>
-                                    </Menu.Root>
-                                </Table.Cell>
-                            </Table.Row>
-                        ))}
-                    </Table.Body>
-                </Table.Root>
-            </Box>
+                return (
+                  <Table.Row key={item.id} minH="72px" color="text_primary">
+                    {/* Consultant */}
+                    <Table.Cell py={{ base: 3, md: 4 }} px={{ base: 2, md: 3 }}>
+                      <HStack gap={3}>
+                        <Image
+                          src={item.consultant?.avatar || "/images/dp.png"}
+                          alt={item.consultant?.fullName || "Consultant"}
+                          boxSize={{ base: "32px", md: "40px" }}
+                          borderRadius="full"
+                          objectFit="cover"
+                        />
+                        <Box>
+                          <Text
+                            textWrap="nowrap"
+                            fontSize={{ base: "sm", md: "0.875rem" }}
+                            fontWeight="600"
+                            fontFamily="Outfit"
+                          >
+                            {item.consultant?.fullName || "—"}
+                          </Text>
+                          <Text fontSize="xs" color="gray.500" fontFamily="Outfit">
+                            {item.consultant?.occupation ||
+                              item.consultant?.role ||
+                              item.consultant?.jobTitle ||
+                              ""}
+                          </Text>
+                        </Box>
+                      </HStack>
+                    </Table.Cell>
 
-            {/* <Pagination.Root count={20} pageSize={5} defaultPage={1}>
-        <ButtonGroup variant="ghost" size="sm" wrap="wrap" justifyContent="center">
-          <Pagination.PrevTrigger asChild>
-            <IconButton icon={<LuChevronLeft />} aria-label="Previous Page" />
-          </Pagination.PrevTrigger>
+                    {/* Date & Time */}
+                    <Table.Cell py={{ base: 3, md: 4 }} px={{ base: 2, md: 3 }}>
+                      <Text textWrap="nowrap" fontSize={{ base: "sm", md: "0.875rem" }} fontFamily="Outfit">
+                        {formatDate(item.scheduledAt || item.createdAt)}
+                      </Text>
+                    </Table.Cell>
 
-          <Pagination.Items
-            render={(page) => (
-              <IconButton key={page.value} variant={page.selected ? "solid" : "ghost"}>
-                {page.value}
-              </IconButton>
+                    {/* Topic */}
+                    <Table.Cell py={{ base: 3, md: 4 }} px={{ base: 2, md: 3 }}>
+                      <Text textWrap="nowrap" fontSize={{ base: "sm", md: "0.875rem" }} fontFamily="Outfit">
+                        {item.topic || item.subject || item.title || "—"}
+                      </Text>
+                    </Table.Cell>
+
+                    {/* Status */}
+                    <Table.Cell py={{ base: 3, md: 4 }} px={{ base: 2, md: 3 }}>
+                      <Text
+                        fontSize={{ base: "sm", md: "0.875rem" }}
+                        color={statusColor}
+                        fontWeight="500"
+                        fontFamily="Outfit"
+                      >
+                        {statusLabel}
+                      </Text>
+                    </Table.Cell>
+
+                    {/* Menu */}
+                    <Table.Cell py={{ base: 3, md: 4 }} px={{ base: 2, md: 3 }}>
+                      <Menu.Root positioning={{ placement: "bottom-end" }}>
+                        <Menu.Trigger asChild>
+                          <Button variant="ghost" p={0} minW="auto">
+                            <Image src="/icons/dot.svg" alt="menu" />
+                          </Button>
+                        </Menu.Trigger>
+                        <Portal>
+                          <Menu.Positioner>
+                            <Menu.Content borderRadius="md" boxShadow="lg">
+                              <Menu.Item
+                                _hover={{ bg: "consult_hover" }}
+                                py={2}
+                                px={3}
+                                value="watch"
+                              >
+                                <HStack gap={3}>
+                                  <Image src="/icons/watch.svg" alt="icon" boxSize="16px" />
+                                  <Text fontSize="sm" fontFamily="Outfit">Watch Recording</Text>
+                                </HStack>
+                              </Menu.Item>
+                              <Menu.Item
+                                _hover={{ bg: "consult_hover" }}
+                                py={2}
+                                px={3}
+                                value="rate"
+                              >
+                                <HStack gap={3}>
+                                  <Image src="/icons/star.svg" alt="icon" boxSize="16px" />
+                                  <Text fontSize="sm" fontFamily="Outfit">Rate Consultant</Text>
+                                </HStack>
+                              </Menu.Item>
+                              <Menu.Item
+                                _hover={{ bg: "consult_hover" }}
+                                py={2}
+                                px={3}
+                                value="receipt"
+                              >
+                                <HStack gap={3}>
+                                  <Image src="/icons/view.svg" alt="icon" boxSize="16px" />
+                                  <Text fontSize="sm" fontFamily="Outfit">View Payment Receipt</Text>
+                                </HStack>
+                              </Menu.Item>
+                            </Menu.Content>
+                          </Menu.Positioner>
+                        </Portal>
+                      </Menu.Root>
+                    </Table.Cell>
+                  </Table.Row>
+                );
+              })
             )}
-          />
+          </Table.Body>
+        </Table.Root>
+      </Box>
 
-          <Pagination.NextTrigger asChild>
-            <IconButton icon={<LuChevronRight />} aria-label="Next Page" />
-          </Pagination.NextTrigger>
-        </ButtonGroup>
-      </Pagination.Root> */}
-        </Stack>
-    );
+      {totalPages > 1 && (
+        <HStack justify="center" py={4}>
+          <Pagination.Root count={totalItems} pageSize={limit} defaultPage={1} key="consultation-history">
+            <ButtonGroup variant="ghost" size="md">
+              <Pagination.PrevTrigger asChild>
+                <IconButton
+                  disabled={page <= 1}
+                  onClick={() => setPage((p) => Math.max(1, p - 1))}
+                >
+                  <LuChevronLeft />
+                </IconButton>
+              </Pagination.PrevTrigger>
+              <Pagination.Items
+                render={(pg) => (
+                  <IconButton
+                    key={pg.value}
+                    onClick={() => setPage(pg.value)}
+                    variant={{ base: "ghost", _selected: "outline" }}
+                  >
+                    {pg.value}
+                  </IconButton>
+                )}
+              />
+              <Pagination.NextTrigger asChild>
+                <IconButton onClick={() => setPage((p) => Math.min(totalPages, p + 1))}>
+                  <LuChevronRight />
+                </IconButton>
+              </Pagination.NextTrigger>
+            </ButtonGroup>
+          </Pagination.Root>
+        </HStack>
+      )}
+    </Stack>
+  );
 };
 
 export default ConsultationHistory;

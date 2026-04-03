@@ -5,76 +5,65 @@ interface DynamicTabsProps {
   activity?: React.ReactNode;
   consulting: React.ReactNode;
   reviews: React.ReactNode;
-  data?:any;
+  data?: any;
 }
 
-const DynamicTabs: React.FC<DynamicTabsProps> = ({ activity, consulting, reviews ,data}) => {
-  const [activeTab, setActiveTab] = useState<'activity' | 'consulting' | 'reviews'>('consulting');
+const DynamicTabs: React.FC<DynamicTabsProps> = ({ activity, consulting, reviews, data }) => {
+  const [activeTab, setActiveTab] = useState<'activity' | 'consulting' | 'reviews'>('activity');
 
-  // helper function to render the corresponding component
   const renderContent = () => {
     switch (activeTab) {
+      case 'activity':
+        return <Box>{activity}</Box>;
       case 'consulting':
         return <Box>{consulting}</Box>;
       case 'reviews':
         return <Box>{reviews}</Box>;
-      case 'activity':
       default:
         return <Box>{activity}</Box>;
     }
   };
 
+  const tabs: { key: 'activity' | 'consulting' | 'reviews'; label: string }[] = [
+    { key: 'activity', label: 'Activity Feed' },
+    { key: 'consulting', label: 'Consulting Services' },
+    { key: 'reviews', label: 'Rating and Reviews' },
+  ];
+
   return (
     <Box
       width="100%"
-      // maxWidth="800px"
       mx="auto"
       mt="2"
       borderRadius="16px"
       bg="bg_box"
       boxShadow="0px 0px 4px 0px rgba(0, 0, 0, 0.10)"
       p={4}
-
       boxSizing="border-box"
     >
-      <Flex justifyContent="flex-start" alignItems="center" spaceX={6} mb="4">
-
-
-        <Box
-          display="inline-block"
-          textAlign="center"
-          borderBottom={activeTab === 'consulting' ? '2px solid black' : '2px solid transparent'}
-          cursor="pointer"
-          onClick={() => setActiveTab('consulting')}
-          transition="border-color 0.2s ease"
-          pb={2}
-        >
-          <Text
-            color={activeTab === 'consulting' ? 'black' : '#999999'}
-            fontSize="lg"
-            fontWeight={activeTab === 'consulting' ? 'bold' : 'normal'}
+      <Flex justifyContent="flex-start" alignItems="center" gap={6} mb="4" borderBottom="1px solid" borderColor="gray.100" pb={0}>
+        {tabs.map((tab) => (
+          <Box
+            key={tab.key}
+            display="inline-block"
+            textAlign="center"
+            borderBottom={activeTab === tab.key ? '2px solid #111D4A' : '2px solid transparent'}
+            cursor="pointer"
+            onClick={() => setActiveTab(tab.key)}
+            transition="border-color 0.2s ease"
+            pb={3}
           >
-            Consulting Services
-          </Text>
-        </Box>
-
-        <Box
-          display="inline-block"
-          textAlign="center"
-          borderBottom={activeTab === 'reviews' ? '2px solid black' : '2px solid transparent'}
-          cursor="pointer"
-          onClick={() => setActiveTab('reviews')}
-          transition="border-color 0.2s ease"
-          pb={2}
-        >
-          <Text
-            color={activeTab === 'reviews' ? 'black' : '#999999'}
-            fontSize="lg"
-            fontWeight={activeTab === 'reviews' ? 'bold' : 'normal'}
-          >
-            Ratings and Reviews
-          </Text>
-        </Box>
+            <Text
+              color={activeTab === tab.key ? '#111D4A' : '#999999'}
+              fontSize="0.9rem"
+              fontWeight={activeTab === tab.key ? '600' : '400'}
+              fontFamily="Outfit"
+              whiteSpace="nowrap"
+            >
+              {tab.label}
+            </Text>
+          </Box>
+        ))}
       </Flex>
 
       <Box mt="4">

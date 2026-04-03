@@ -72,7 +72,7 @@ const CustomInput = ({
       spaceY={label ? 0.5 : 0}
       alignItems={"flex-start"}
     >
-      <Text color={"text_primary"} fontWeight={"400"} fontSize={"0.75rem"}>
+      <Text color={"text_primary"} fontWeight={"400"} fontSize={"1rem"}>
         {label}
         {required && (
           <Text as={"span"} color={"red.400"} ml={1}>
@@ -130,7 +130,7 @@ const CustomInput = ({
           placeholder={placeholder}
           _placeholder={{
             color: "gray.150",
-            fontSize: "14px",
+            fontSize: "1rem",
           }}
           onChange={(event) => {
             if (validator) {
@@ -142,7 +142,7 @@ const CustomInput = ({
           }}
           onBlur={onBlur}
           onFocus={onFocus}
-          fontSize={"14px"}
+          fontSize={"1rem"}
           color={"text_primary"}
           {...inputStyle}
         />

@@ -9,8 +9,6 @@ import {
   Icon,
   HStack,
   Stack,
-  createToaster,
-
 } from "@chakra-ui/react";
 import { useEffect, useMemo, useState } from "react";
 import CustomInput from "../customcomponents/Input";
@@ -24,7 +22,6 @@ import {
   useUpdatePasswordMutation,
 } from "mangarine/state/services/settings.service";
 import { isEmpty } from "es-toolkit/compat";
-import { toaster, Toaster } from "../ui/toaster";
 import { useDispatch } from "react-redux";
 import {
   setDisabled,
@@ -32,9 +29,9 @@ import {
 } from "mangarine/state/reducers/profile.reducer";
 import { useProfile } from "mangarine/state/hooks/profile.hook";
 import { useAuth } from "mangarine/state/hooks/user.hook";
-import { allCountries } from "country-telephone-data";
-import { parsePhoneNumberFromString } from "libphonenumber-js";
-import { Select } from "chakra-react-select";
+import Toast from "./Error";
+import { BiSolidError } from "react-icons/bi";
+import { FaCheckCircle } from "react-icons/fa";
 
 const Schema = Yup.object({
   currentPassword: Yup.string()
@@ -42,32 +39,15 @@ const Schema = Yup.object({
     .min(8, "Password must be at least 8 characters"),
   password: Yup.string()
     .required("Password is required")
-    .min(
-      8,
-      "Password must be at least 8 characters long and include at least one uppercase letter (A - Z)"
-    ),
+    .min(8, "Password must be at least 8 characters")
+    .matches(/[A-Z]/, "Password must contain at least one uppercase letter (A-Z)"),
   confirmPassword: Yup.string()
     .oneOf([Yup.ref("password"), null], "Passwords must match")
     .required("Confirm Password is required"),
 });
 const SecondarySchema = Yup.object({
-  secNumCountryCode: Yup.string().required("Country code is required"),
-
-  secNum: Yup
-    .string()
-    .required("Phone number is required"),
-    // .test("valid-phone", "Invalid phone number", function (value) {
-    //   const { secNumCountryCode } = this.parent; // 👈 get the selected code from the same form
-    //   if (!value || !secNumCountryCode) return false;
-
-    //   const fullNumber = `${secNumCountryCode}${value}`;
-    //   const phoneNumber = parsePhoneNumberFromString(fullNumber);
-
-    //   return phoneNumber ? phoneNumber.isValid() : false;
-    // }),
-
-  confirmSecNum: Yup
-    .string()
+  secNum: Yup.string().required("Phone number is required"),
+  confirmSecNum: Yup.string()
     .required("Confirm phone number is required")
     .oneOf([Yup.ref("secNum")], "Phone numbers must match"),
 });
@@ -75,7 +55,8 @@ const SecondarySchema = Yup.object({
 function AccountSetting() {
   const [showPassword, setShowPassword] = useState(false);
   const [showToast, setShowToast] = useState(false);
-  const [errorMessage, setErrorMessage] = useState<string>("");
+  const [toastType, setToastType] = useState<"success" | "error">("success");
+  const [toastMessage, setToastMessage] = useState<string>("");
   const { user } = useAuth();
   const [updatePassword, { data, error, isLoading }] =
     useUpdatePasswordMutation();
@@ -85,6 +66,7 @@ function AccountSetting() {
     handleSubmit,
     getValues,
     setValue,
+    watch,
     formState: { errors },
   } = useForm({
     resolver: yupResolver(Schema),
@@ -94,6 +76,17 @@ function AccountSetting() {
       confirmPassword: "",
     },
   });
+
+  // Live validation values
+  const newPw = watch("password") ?? "";
+  const confirmPw = watch("confirmPassword") ?? "";
+  const pwHasMinLength = newPw.length >= 8;
+  const pwHasUppercase = /[A-Z]/.test(newPw);
+  const pwValid = pwHasMinLength && pwHasUppercase;
+  const pwTouched = newPw.length > 0;
+  const confirmTouched = confirmPw.length > 0;
+  const confirmPasses = confirmTouched && confirmPw === newPw;
+  const confirmFails = confirmTouched && confirmPw !== newPw;
 
   const onSubmit = () => {
     const acctdata = getValues();
@@ -106,35 +99,21 @@ function AccountSetting() {
     updatePassword(formdata)
       .unwrap()
       .then((payload) => {
-        console.log(payload, "payload");
         setShowPassword(false);
-        toaster.create({
-          title: "Success",
-          type:"success",
-          description: payload.message,
-          closable:true,
-          // placement: `${top-end}`,
-        });
-        // router.push("/auth/login");
+        setToastType("success");
+        setToastMessage(payload.message ?? "Password updated successfully");
+        setShowToast(true);
       })
       .catch((error) => {
         console.log(error);
         const { data, message } = error;
-         toaster.create({
-           type: "error",
-           title: "Failed",
-           description:  message,
-           closable: true,
-         });
-        if (!isEmpty(data) && data.hasOwnProperty("message")) {
-          setErrorMessage(data.message);
-        } else {
-          setErrorMessage(" failed");
-        }
+        setToastType("error");
+        setToastMessage(
+          (!isEmpty(data) && data?.message) ? data.message : (message ?? "Update failed")
+        );
         setShowToast(true);
       });
   };
-  console.log(allCountries, "user");
   return (
     <Flex
       direction="column"
@@ -160,7 +139,14 @@ function AccountSetting() {
       >
         {/* Phone Section */}
         <Box>
-          <Toaster />
+          {showToast && (
+            <Toast
+              icon={toastType === "success" ? FaCheckCircle : BiSolidError}
+              type={toastType}
+              message={toastMessage}
+              close={() => setShowToast(false)}
+            />
+          )}
           <Text
             font="outfit"
             fontSize={{ base: "1rem", md: "1.25rem", lg: "1.5rem" }}
@@ -179,7 +165,7 @@ function AccountSetting() {
           </Text>
           <Text
             font="outfit"
-            fontSize={{ base: "1rem", md: "1.2rem", lg: "1.25rem" }}
+            fontSize={{ base: "1.1rem", md: "1.3rem", lg: "1.4rem" }}
             fontWeight="400"
             color="text_primary"
             lineHeight={{
@@ -205,7 +191,7 @@ function AccountSetting() {
         <Box mt={{ base: 4, md: 8, lg: "flex", xl: "flex" }}>
           <Text
             font="outfit"
-            fontSize={{ base: "1rem", md: "1.2rem", lg: "1.25rem" }}
+            fontSize={{ base: "1.1rem", md: "1.3rem", lg: "1.4rem" }}
             fontWeight="600"
             color="text_primary"
             lineHeight={{
@@ -220,7 +206,7 @@ function AccountSetting() {
           </Text>
           <Text
             font="outfit"
-            fontSize={{ base: "1rem", md: "1.2rem", lg: "1.25rem" }}
+            fontSize={{ base: "1.1rem", md: "1.3rem", lg: "1.4rem" }}
             fontWeight="200"
             color="text_primary"
             lineHeight={{
@@ -283,84 +269,112 @@ function AccountSetting() {
               name="password"
               control={control}
               render={({ field: { onChange, value } }) => (
-                <CustomInput
-                  label="New Password"
-                  placeholder="***"
-                  id="password"
-                  required={true}
-                  name="password"
-                  value={value}
-                  size="md"
-                  onChange={onChange}
-                  error={errors.password}
-                  hasRightIcon={false}
-                  type={showPassword ? "text" : "password"}
-                  rightIcon={
-                    <Button
-                      variant={"ghost"}
-                      color={"#697586"}
-                      bg="none"
-                      p={0}
-                      borderWidth={0}
-                      _hover={{ bg: "transparent" }}
-                      onClick={() =>
-                        setShowPassword((showPassword) => !showPassword)
-                      }
+                <Box w="full">
+                  <CustomInput
+                    label="New Password"
+                    placeholder="***"
+                    id="password"
+                    required={true}
+                    name="password"
+                    value={value}
+                    size="md"
+                    onChange={onChange}
+                    hasRightIcon={false}
+                    type={showPassword ? "text" : "password"}
+                    inputStyle={{
+                      borderColor: pwTouched
+                        ? pwValid
+                          ? "#30BC0D"
+                          : "red.500"
+                        : undefined,
+                    }}
+                    rightIcon={
+                      <Button
+                        variant={"ghost"}
+                        color={"#697586"}
+                        bg="none"
+                        p={0}
+                        borderWidth={0}
+                        _hover={{ bg: "transparent" }}
+                        onClick={() =>
+                          setShowPassword((showPassword) => !showPassword)
+                        }
+                      >
+                        <Icon>
+                          <Image src="/Icons/eye.svg" alt="toggle password" />
+                        </Icon>
+                      </Button>
+                    }
+                  />
+                  {pwTouched && (
+                    <Text
+                      fontSize="xs"
+                      fontFamily="Outfit"
+                      mt={1}
+                      color={pwValid ? "#30BC0D" : "red.500"}
                     >
-                      {showPassword ? (
-                        <Icon>
-                          <Image src="/Icons/eye.svg" alt="password-open" />
-                        </Icon>
-                      ) : (
-                        <Icon>
-                          <Image src="/Icons/eye.svg" alt="password-close" />
-                        </Icon>
-                      )}
-                    </Button>
-                  }
-                />
+                      {pwValid
+                        ? "Password meets requirements"
+                        : !pwHasMinLength
+                        ? "Password must be at least 8 characters"
+                        : "Password must contain at least one uppercase letter (A-Z)"}
+                    </Text>
+                  )}
+                </Box>
               )}
             />
             <Controller
               name="confirmPassword"
               control={control}
               render={({ field: { onChange, value } }) => (
-                <CustomInput
-                  label="Confirm Password"
-                  placeholder="***"
-                  id="password"
-                  required={true}
-                  name="password"
-                  value={value}
-                  size="md"
-                  onChange={onChange}
-                  error={errors.confirmPassword}
-                  hasRightIcon={false}
-                  type={showPassword ? "text" : "password"}
-                  rightIcon={
-                    <Button
-                      variant={"ghost"}
-                      color={"#697586"}
-                      bg="none"
-                      p={0}
-                      borderWidth={0}
-                      _hover={{ bg: "transparent" }}
-                      onClick={() =>
-                        setShowPassword((showPassword) => !showPassword)
-                      }
+                <Box w="full">
+                  <CustomInput
+                    label="Confirm Password"
+                    placeholder="***"
+                    id="confirmPassword"
+                    required={true}
+                    name="confirmPassword"
+                    value={value}
+                    size="md"
+                    onChange={onChange}
+                    hasRightIcon={false}
+                    type={showPassword ? "text" : "password"}
+                    inputStyle={{
+                      borderColor: confirmTouched
+                        ? confirmPasses
+                          ? "#30BC0D"
+                          : "red.500"
+                        : undefined,
+                    }}
+                    rightIcon={
+                      <Button
+                        variant={"ghost"}
+                        color={"#697586"}
+                        bg="none"
+                        p={0}
+                        borderWidth={0}
+                        _hover={{ bg: "transparent" }}
+                        onClick={() =>
+                          setShowPassword((showPassword) => !showPassword)
+                        }
+                      >
+                        <Icon>
+                          <Image src="/Icons/eye.svg" alt="toggle password" />
+                        </Icon>
+                      </Button>
+                    }
+                  />
+                  {confirmTouched && (
+                    <Text
+                      fontSize="xs"
+                      fontFamily="Outfit"
+                      mt={1}
+                      color={confirmPasses ? "#30BC0D" : "red.500"}
                     >
-                      {showPassword ? (
-                        <Icon>
-                          <Image src="/Icons/eye.svg" alt="password-open" />
-                        </Icon>
-                      ) : (
-                        <Icon>
-                          <Image src="/Icons/eye.svg" alt="password-close" />
-                        </Icon>
-                      )}
-                    </Button>
-                  }
-                />
+                      {confirmPasses ? "Passwords match" : "Passwords do not match"}
+                    </Text>
+                  )}
+                </Box>
               )}
             />
 
@@ -376,7 +390,7 @@ function AccountSetting() {
               <Text
                 color={"button_text"}
                 fontWeight={"600"}
-                fontSize={{ base: "0.8rem", md: "0.875rem", lg: "1rem" }}
+                fontSize={{ base: "1rem", md: "1.1rem", lg: "1.15rem" }}
                 textAlign={"center"}
                 // lineHeight={"100%"}
               >
@@ -397,7 +411,8 @@ const SecNum = () => {
     useState<boolean>(false);
   const [Delete, setDelete] = useState(false);
   const [showToast, setShowToast] = useState(false);
-  const [errorMessage, setErrorMessage] = useState<string>("");
+  const [toastType, setToastType] = useState<"success" | "error">("success");
+  const [toastMessage, setToastMessage] = useState<string>("");
   const [addSecondaryNumber, { data, error, isLoading }] =
     useAddSecondaryNumberMutation();
   const [editSecondaryNumber] = useEditSecondaryNumberMutation();
@@ -415,7 +430,6 @@ const SecNum = () => {
   } = useForm({
     resolver: yupResolver(SecondarySchema),
     defaultValues: {
-      secNumCountryCode: "",
       secNum: "",
       confirmSecNum: "",
     },
@@ -426,62 +440,29 @@ const SecNum = () => {
 
   const onSubmit = (data) => {
     const acctdata = getValues();
-      console.log(acctdata, "data");
-//  const fullNumber = `${data.secNumCountryCode}${data.secNum}`;
-//  const confirmNumber = `${data.secNumCountryCode}${data.confirmSecNum}`;
-
-//  const formdata = {
-//    secondaryNumber: fullNumber,
-//    confirmSecondaryNumber: confirmNumber,
-//  };
-
-    // addSecondaryNumber(formdata)
-    //   .unwrap()
-    //   .then((payload) => {
-    //     const { data } = payload;
-    //       toaster.create({
-    //         type: "success",
-    //         title: "Success",
-    //         description: "Added secondary number successfully",
-    //         closable: true,
-    //       });
-    //     console.log(data.secondaryNumber, "payload");
-
-    //     dispatch(setSecNum({ secNum: data.secondaryNumber }));
-    //     // router.push("/auth/login");
-    //   })
-    //   .catch((error) => {
-    //     console.log(error);
-    //     const { data } = error;
-    //       toaster.create({
-    //         type: "error",
-    //         title: "Failed",
-    //         description: "Failed to add secondary number",
-    //         closable: true,
-    //       });
-    //     if (!isEmpty(data) && data.hasOwnProperty("message")) {
-    //       setErrorMessage(data.message);
-    //     } else {
-    //       setErrorMessage(" failed");
-    //     }
-    //     setShowToast(true);
-    //   });
+    const formdata = {
+      secondaryNumber: `+${acctdata.secNum}`,
+      confirmSecondaryNumber: `+${acctdata.confirmSecNum}`,
+    };
+    addSecondaryNumber(formdata)
+      .unwrap()
+      .then((payload) => {
+        const { data } = payload;
+        setToastType("success");
+        setToastMessage("Added secondary number successfully");
+        setShowToast(true);
+        dispatch(setSecNum({ secNum: data.secondaryNumber }));
+        setSecondaryPhoneNumber(false);
+        reset();
+      })
+      .catch((error) => {
+        console.log(error);
+        const { data } = error;
+        setToastType("error");
+        setToastMessage((!isEmpty(data) && data?.message) ? data.message : "Failed to add secondary number");
+        setShowToast(true);
+      });
   };
-  const getFlagEmoji = (countryCode) =>
-    countryCode
-      .toUpperCase()
-      .replace(/./g, (char) =>
-        String.fromCodePoint(127397 + char.charCodeAt())
-      );
-// const countries = allCountries.map((c) => ({
-//   name: c.name,
-//   iso2: c.iso2,
-//   dialCode: `+${c.dialCode}`,
-// }));
-const countryOptions = allCountries.map((c) => ({
-  label: `+${c.dialCode}`, // 🇳🇬 +234
-  value: `+${c.dialCode}`, // ✅ store with + prefix
-}));
   // const editClicked = () => {
   //   setSecondaryPhoneNumber(true);
   //   setValue("secNum", sNumber); // prefill with existing number
@@ -489,60 +470,48 @@ const countryOptions = allCountries.map((c) => ({
   // };
   const editClicked = () => {
     if (sNumber) {
-      // split into country code + local part
-      const match = sNumber.match(/^(\+\d+)(\d+)$/);
-      if (match) {
-        setValue("secNumCountryCode", match[1]);
-        setValue("secNum", match[2]);
-        setValue("confirmSecNum", match[2]);
-      }
+      const withoutPlus = sNumber.startsWith("+") ? sNumber.slice(1) : sNumber;
+      setValue("secNum", withoutPlus);
+      setValue("confirmSecNum", withoutPlus);
     }
     setSecondaryPhoneNumber(true);
   };
   const editNumber = () => {
-    const fullNumber = `${data.secNumCountryCode}${data.secNum}`;
-    const confirmNumber = `${data.secNumCountryCode}${data.confirmSecNum}`;
-const formdata = {
-  secondaryNumber: fullNumber,
-  confirmSecondaryNumber: confirmNumber,
-};
+    const acctdata = getValues();
+    const formdata = {
+      secondaryNumber: `+${acctdata.secNum}`,
+      confirmSecondaryNumber: `+${acctdata.confirmSecNum}`,
+    };
     editSecondaryNumber(formdata)
       .unwrap()
       .then((payload) => {
-        console.log(payload, "payload");
         const { data } = payload;
-        toaster.create({
-          type: "success",
-          title: "Success",
-          description: "Updated secondary number successfully",
-          closable: true,
-        });
+        setToastType("success");
+        setToastMessage("Updated secondary number successfully");
+        setShowToast(true);
         dispatch(setSecNum({ secNum: data.secondaryNumber }));
-        console.log(sNumber, "num");
         setSecondaryPhoneNumber(false);
         reset();
-        // router.push("/auth/login");
       })
       .catch((error) => {
         console.log(error);
         const { data } = error;
-        toaster.create({
-          type: "error",
-          title: "Failed",
-          description: "Failed to add secondary number",
-          closable: true,
-        });
-        if (!isEmpty(data) && data.hasOwnProperty("message")) {
-          setErrorMessage(data.message);
-        } else {
-          setErrorMessage(" failed");
-        }
+        setToastType("error");
+        setToastMessage((!isEmpty(data) && data?.message) ? data.message : "Failed to update secondary number");
         setShowToast(true);
       });
   };
 
   return (
     <>
+      {showToast && (
+        <Toast
+          icon={toastType === "success" ? FaCheckCircle : BiSolidError}
+          type={toastType}
+          message={toastMessage}
+          close={() => setShowToast(false)}
+        />
+      )}
       <HStack w="full" justifyContent={"space-between"}>
         <VStack
           w="full"
@@ -551,7 +520,7 @@ const formdata = {
         >
           <Text
             font="outfit"
-            fontSize={{ base: "1rem", md: "1.2rem", lg: "1.25rem" }}
+            fontSize={{ base: "1.1rem", md: "1.3rem", lg: "1.4rem" }}
             fontWeight="400"
             color="text_primary"
             lineHeight={{
@@ -573,7 +542,7 @@ const formdata = {
               >
                 <Text
                   font="outfit"
-                  fontSize={{ base: "0.8rem", md: "0.875rem", lg: "1rem" }}
+                  fontSize={{ base: "1rem", md: "1.1rem", lg: "1.15rem" }}
                   fontWeight="400"
                   color="grey.500"
                   lineHeight="30px"
@@ -702,7 +671,7 @@ const formdata = {
         //       <Text
         //         color={"button_text"}
         //         fontWeight={"600"}
-        //         fontSize={{ base: "0.8rem", md: "0.875rem", lg: "1rem" }}
+        //         fontSize={{ base: "1rem", md: "1.1rem", lg: "1.15rem" }}
         //         lineHeight={"100%"}
         //       >
         //         Save Changes
@@ -720,7 +689,7 @@ const formdata = {
         //       <Text
         //         color={"button_text"}
         //         fontWeight={"600"}
-        //         fontSize={{ base: "0.8rem", md: "0.875rem", lg: "1rem" }}
+        //         fontSize={{ base: "1rem", md: "1.1rem", lg: "1.15rem" }}
         //         lineHeight={"100%"}
         //       >
         //         Save Changes
@@ -729,69 +698,51 @@ const formdata = {
         //   )}
         // </VStack>
         <VStack w="full" pt="4">
-          {/* Country + Number */}
-          <HStack w="full">
-            <Controller
-              name="secNumCountryCode"
-              control={control}
-              render={({ field }) => (
-                <Select
-                  {...field}
-                  options={countryOptions}
-                  placeholder="Code"
-                  chakraStyles={{
-                    container: (base) => ({ ...base, w: "20%" }),
-                  }}
-                />
-              )}
-            />
+          <Controller
+            name="secNum"
+            control={control}
+            render={({ field: { onChange, value } }) => (
+              <CustomInput
+                label="Secondary Phone Number"
+                placeholder="1234567890"
+                  type="tel"
+                  validator="[^0-9]"
+                id="secNum"
+                required={true}
+                name="secNum"
+                value={value}
+                size="md"
+                onChange={onChange}
+                error={errors.secNum}
+                hasLeftIcon={true}
+                leftIcon={<Text fontWeight="600" color="text_primary" px={2}>+</Text>}
+              />
+            )}
+          />
+          <Controller
+            name="confirmSecNum"
+            control={control}
+            render={({ field: { onChange, value } }) => (
+              <CustomInput
+                label="Confirm Phone Number"
+                placeholder="1234567890"
+                  type="tel"
+                  validator="[^0-9]"
+                id="confirmSecNum"
+                required={true}
+                name="confirmSecNum"
+                value={value}
+                size="md"
+                onChange={onChange}
+                error={errors.confirmSecNum}
+                hasLeftIcon={true}
+                leftIcon={<Text fontWeight="600" color="text_primary" px={2}>+</Text>}
+              />
+            )}
+          />
 
-            <Controller
-              name="secNum"
-              control={control}
-              render={({ field }) => (
-                <CustomInput
-                  {...field}
-                  placeholder="Enter phone number"
-                  error={errors.secNum}
-                />
-              )}
-            />
-          </HStack>
-          <HStack w="full">
-            <Controller
-              name="secNumCountryCode"
-              control={control}
-              render={({ field }) => (
-                <Select
-                  {...field}
-                  options={countryOptions}
-                  placeholder="Code"
-                  chakraStyles={{
-                    container: (base) => ({ ...base, w: "20%" }),
-                  }}
-                />
-              )}
-            />
-
-            <Controller
-              name="confirmSecNum"
-              control={control}
-              render={({ field }) => (
-                <CustomInput
-                  {...field}
-                  placeholder="Confirm phone number"
-                  error={errors.confirmSecNum}
-                />
-              )}
-            />
-          </HStack>
-
-          {/* Confirm */}
-
-          {/* Save button switches depending on mode */}
           {sNumber ? (
-            <CustomButton disabled={disable} onClick={handleSubmit(editNumber)}>
+            <CustomButton disabled={disable} onClick={handleSubmit(editNumber)} customStyle={{ w: "full" }}>
               Save Changes
             </CustomButton>
           ) : (
@@ -799,6 +750,7 @@ const formdata = {
               disabled={disable}
               loading={isLoading}
               onClick={handleSubmit(onSubmit)}
+              customStyle={{ w: "full" }}
             >
               Save
             </CustomButton>

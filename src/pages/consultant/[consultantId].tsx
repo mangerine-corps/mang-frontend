@@ -1,5 +1,8 @@
-import { Box, Flex, Image, Stack, Text, VStack } from "@chakra-ui/react";
+import { Box, Flex, HStack, Image, Stack, Text, VStack } from "@chakra-ui/react";
+import { RiVerifiedBadgeFill } from "react-icons/ri";
+import { IoChevronForward } from "react-icons/io5";
 import DynamicTabs from "mangarine/components/ui-components/consultantfeedwrapper";
+import ProfileActivitySection from "mangarine/components/ui-components/profileactivitysection";
 import ConsultingServices from "mangarine/components/ui-components/consultingservicestab";
 import EditConsultantProfileCard from "mangarine/components/ui-components/editconsultantprofile";
 import EditEducationCard from "mangarine/components/ui-components/editeducationcard";
@@ -31,7 +34,8 @@ import CustomDatePicker from "mangarine/components/ui-components/bookingcalendar
 import PaymentSuccessfulModal from "mangarine/components/ui-components/modals/paymentsuccessful";
 import { useAuth } from "mangarine/state/hooks/user.hook";
 import { useFollow } from "mangarine/hooks/useFollow";
-import { useGetblockedUserQuery } from "mangarine/state/services/profile.service";
+import { useGetblockedUserQuery, useUnblockUserMutation } from "mangarine/state/services/profile.service";
+import { toaster } from "mangarine/components/ui/toaster";
 import { useGetNotificationsQuery } from "mangarine/state/services/notifications.service";
 import { BlockedComp } from "mangarine/components/ui-components/blockedcomp";
 import { useGetFollowingQuery } from "mangarine/state/services/posts.service";
@@ -132,6 +136,7 @@ const ConsultantProfile = () => {
   const isFollow = isFollowingdata?.data.isFollowing;
 
   const [follow, setFollow] = useState(false);
+  const [unblockUser, { isLoading: unblocking }] = useUnblockUserMutation();
   console.log(info, "consultant");
   // Centralized follow state/label across app
   const {
@@ -275,29 +280,96 @@ const ConsultantProfile = () => {
             rounded={"xl"}
             // overflowX="hidden"
           >
-            {/* Header card is always visible, but content below depends on block status */}
+            {/* Profile card — always visible */}
             <Box w="full">
-              {isBlocked ? (
-                <VStack
-                  alignItems="center"
-                  justifyContent="center"
-                  flex="4"
-                  h="auto"
-                  // w="full"
-                  bg="main_background"
-                >
-                  <BlockedConsultant info={info} />
-                </VStack>
-              ) : (
-                <EditConsultantProfileCard
-                  checkmarkSrc={verified}
-                  locationSrc={locale}
-                  dobSrc={dob}
-                  consultantId={id}
-                  info={info}
-                />
-              )}
+              <EditConsultantProfileCard
+                checkmarkSrc={verified}
+                locationSrc={locale}
+                dobSrc={dob}
+                consultantId={id}
+                info={info || consultantInfo}
+              />
             </Box>
+
+            {/* Blocked banner */}
+            {isBlocked && (
+              <Flex
+                mt={3}
+                w="full"
+                bg="#FFF8EC"
+                borderWidth="1px"
+                borderColor="#F0D9B5"
+                borderRadius="xl"
+                px={4}
+                py={3}
+                align="center"
+                justify="space-between"
+              >
+                <Text fontSize="0.875rem" fontFamily="Outfit" color="text_primary" fontWeight="500">
+                  You have blocked {(info || consultantInfo)?.fullName}
+                </Text>
+                <Box
+                  as="button"
+                  fontSize="0.875rem"
+                  fontFamily="Outfit"
+                  color="#111D4A"
+                  fontWeight="600"
+                  textDecoration="underline"
+                  cursor="pointer"
+                  onClick={async () => {
+                    try {
+                      const target = info || consultantInfo;
+                      if (!target?.id) return;
+                      await unblockUser({ userId: target.id, reason: "unBlocked from profile menu" }).unwrap();
+                      toaster.create({ description: `${target?.fullName ?? "User"} has been unblocked.` });
+                    } catch (err: any) {
+                      toaster.create({ description: err?.data?.message || "Unable to unblock user." });
+                    }
+                  }}
+                >
+                  {unblocking ? "..." : "Undo"}
+                </Box>
+              </Flex>
+            )}
+
+            {/* Consultant Tier Banner */}
+            {!isBlocked && (consultantInfo?.pricingPlan || info?.pricingPlan) && (
+              <Box
+                mt={3}
+                w="full"
+                bg="#FFFBF0"
+                borderWidth="1px"
+                borderColor="#F0D9B5"
+                borderRadius="xl"
+                px={4}
+                py={3}
+                cursor="pointer"
+              >
+                <Flex justify="space-between" align="center">
+                  <Box>
+                    <HStack gap={1} align="center">
+                      <Text
+                        fontWeight="700"
+                        fontSize="0.95rem"
+                        color="text_primary"
+                        fontFamily="Outfit"
+                      >
+                        Principal Consultant
+                      </Text>
+                      <Box color="#F5A623">
+                        <RiVerifiedBadgeFill size={16} />
+                      </Box>
+                    </HStack>
+                    <Text fontSize="0.78rem" color="grey.500" fontFamily="Outfit">
+                      Lead/Expert Consultant
+                    </Text>
+                  </Box>
+                  <Box color="grey.400">
+                    <IoChevronForward size={18} />
+                  </Box>
+                </Flex>
+              </Box>
+            )}
 
             {/* StatsCard and Buttons */}
 
@@ -312,21 +384,7 @@ const ConsultantProfile = () => {
                 <Text color="text_primary">Loading...</Text>
               </VStack>
             ) : isBlocked ? (
-              <VStack
-                alignItems="center"
-                justifyContent="center"
-                flex="4"
-                h="auto"
-                bg="main_background"
-              >
-                <BlockedComp
-                  info={info}
-                  buttonText=""
-                  title={"You have blocked this User"}
-                  details="This user has been blocked by you. Unblock to view their content"
-                  onClick={() => {}}
-                />
-              </VStack>
+              <BlockedComp info={info || consultantInfo} />
             ) : (
               <>
                 <Flex
@@ -370,14 +428,12 @@ const ConsultantProfile = () => {
                 </Flex>
                 <EditMyWorksCard
                   title={"My Works"}
-                  edit={edit}
                   works={works}
                   isLoading={isLoading}
-                  // consultantId={id}
                 />
                 <Box w="full" my="4">
                   <DynamicTabs
-                    // activity={<NewsItem post={[]} />}
+                    activity={<ProfileActivitySection isOwnProfile={false} />}
                     consulting={
                       <ConsultingServices
                         isLoading={isLoading}
@@ -457,7 +513,6 @@ const ConsultantProfile = () => {
                   imageSrc={contactme}
                   playIconSrc={play}
                   videoLink={consultantInfo?.videoIntro}
-                  edit={<BiSolidEditAlt />}
                   consultantId={id}
                 />
                 {/* <Box mt={4} w="full">
@@ -473,7 +528,6 @@ const ConsultantProfile = () => {
                 <Box mt={4}>
                   <EditSkillCard
                     title={"Skills & Expertise"}
-                    edit={edit}
                     isLoading={isLoading}
                     skills={consultantInfo?.skills}
                   />

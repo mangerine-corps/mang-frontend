@@ -1,4 +1,4 @@
-import { Box, Flex, VStack } from '@chakra-ui/react';
+import { Box, Flex, Spinner, Center, VStack } from '@chakra-ui/react';
 import React, { FC, useEffect } from 'react'
 import Header from './Header';
 import { usePersistReady } from 'mangarine/components/ui/provider';
@@ -28,6 +28,17 @@ const AppLayout: FC<Props> = ({ children, subHeader }) => {
       router.replace('/auth/login')
     }
   }, [persistReady, token,router])
+
+  // Don't render anything until the persisted Redux store has rehydrated.
+  // This prevents children from rendering with null auth state on refresh,
+  // which was causing intermittent blank screens.
+  if (!persistReady) {
+    return (
+      <Center h="100vh" bg="main_background">
+        <Spinner size="lg" color="text_primary" />
+      </Center>
+    );
+  }
 
   return (
     <SSENotificationProvider

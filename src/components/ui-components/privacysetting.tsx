@@ -10,12 +10,16 @@ const PrivacySetting = () => {
   const server = useMemo(() => (data as any)?.data || {}, [data]);
 
   const [messagingPreference, setMessagingPreference] = useState<MessagingPreference | null>(null);
+  const [showOnlineStatus, setShowOnlineStatus] = useState<boolean>(false);
   const [appearInSearchResults, setAppearInSearchResults] = useState<boolean>(false);
+  const [allowSearchEngines, setAllowSearchEngines] = useState<boolean>(false);
 
   useEffect(() => {
     if (server) {
       if (server.messagingPreference) setMessagingPreference(server.messagingPreference);
+      if (typeof server.showOnlineStatus === 'boolean') setShowOnlineStatus(server.showOnlineStatus);
       if (typeof server.appearInSearchResults === 'boolean') setAppearInSearchResults(server.appearInSearchResults);
+      if (typeof server.allowSearchEngines === 'boolean') setAllowSearchEngines(server.allowSearchEngines);
     }
   }, [server]);
 
@@ -23,7 +27,9 @@ const PrivacySetting = () => {
    try {
      const res = await updateUserSettings({
        messagingPreference,
+       showOnlineStatus,
        appearInSearchResults,
+       allowSearchEngines,
      }).unwrap();
 
      toaster.create({
@@ -89,7 +95,7 @@ const PrivacySetting = () => {
           </Text>
           <Text
             font="outfit"
-            fontSize={{ base: "0.875rem", sm: "1rem", md: "1.15rem",}}
+            fontSize={{ base: "1rem", sm: "1.1rem", md: "1.25rem" }}
             w="400"
             color="text_primary"
             lineHeight={{ base: "20px", sm: "24px", md: "28px", lg: "32px", xl: "36px", }}
@@ -125,7 +131,7 @@ const PrivacySetting = () => {
                   >
                     <RadioGroup.ItemText
                       color={"text_primary"}
-                      fontSize={{ base: "0.875rem", sm: "1rem", md: "1rem", }}
+                      fontSize={{ base: "1rem", sm: "1.1rem", md: "1.1rem" }}
                       fontWeight={"400"}
                       gap={2}
                     >
@@ -162,12 +168,50 @@ const PrivacySetting = () => {
               w="full"
               alignItems={"flex-start"}
               justifyContent={"space-between"}
+              checked={showOnlineStatus}
+              onCheckedChange={(e) => setShowOnlineStatus(!!(e as any).checked)}
+            >
+              <Switch.Label
+                color={"text_primary"}
+                fontSize={{ base: "1rem", sm: "1.1rem", md: "1.1rem" }}
+                fontWeight={"400"}
+              >
+                Show online status
+              </Switch.Label>
+              <Switch.HiddenInput />
+              <Switch.Control />
+            </Switch.Root>
+          </VStack>
+        </Box>
+        <Box my={12}>
+          <Text
+            font="outfit"
+            fontSize={{ base: "1rem", md: "1.3rem" }}
+            fontWeight="600"
+            color="text_primary"
+            lineHeight={{ base: "20px", sm: "24px", md: "28px", lg: "32px", xl: "36px" }}
+            mb={4}
+          >
+            Search Visibility
+          </Text>
+
+          <VStack
+            w="full"
+            alignItems={"flex-start"}
+            justifyContent={"flex-start"}
+            my="4"
+            gapY={6}
+          >
+            <Switch.Root
+              w="full"
+              alignItems={"flex-start"}
+              justifyContent={"space-between"}
               checked={appearInSearchResults}
               onCheckedChange={(e) => setAppearInSearchResults(!!(e as any).checked)}
             >
               <Switch.Label
                 color={"text_primary"}
-                fontSize={{ base: "0.875rem", sm: "1rem", md: "1rem",}}
+                fontSize={{ base: "1rem", sm: "1.1rem", md: "1.1rem" }}
                 fontWeight={"400"}
               >
                 Appear in search results
@@ -175,9 +219,27 @@ const PrivacySetting = () => {
               <Switch.HiddenInput />
               <Switch.Control />
             </Switch.Root>
+
+            <Switch.Root
+              w="full"
+              alignItems={"flex-start"}
+              justifyContent={"space-between"}
+              checked={allowSearchEngines}
+              onCheckedChange={(e) => setAllowSearchEngines(!!(e as any).checked)}
+            >
+              <Switch.Label
+                color={"text_primary"}
+                fontSize={{ base: "1rem", sm: "1.1rem", md: "1.1rem" }}
+                fontWeight={"400"}
+              >
+                Allow search engines to link to my profile
+              </Switch.Label>
+              <Switch.HiddenInput />
+              <Switch.Control />
+            </Switch.Root>
           </VStack>
         </Box>
-        {/* You can add more privacy toggles here later */}
+
         <Button size="sm" px={4} colorScheme="blue" onClick={onSave} loading={saving}>Save Changes</Button>
       </Box>
 
