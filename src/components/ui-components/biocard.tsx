@@ -19,6 +19,9 @@ function Biocard() {
     refreshedUser?.profileCompletionPercent ??
     user?.profileCompletionPercent ??
     0;
+  const businessMeetingsPath = user?.isConsultant
+    ? "/my-business/dashboard?tab=meetings"
+    : "/my-business?startOnboarding=1";
 
   const goToProfile = () => {
     router.push("/profile");
@@ -34,8 +37,8 @@ function Biocard() {
       'profile page banner': "/profile/",
       'timezone': "/settings?tab=general",
       'resume': "/profile",
-      'pricing': "/my-business?tab=meetings",
-      'availability': "/my-business?tab=meetings",
+      'pricing': businessMeetingsPath,
+      'availability': businessMeetingsPath,
     };
 
     const path = map[field.toLowerCase()]

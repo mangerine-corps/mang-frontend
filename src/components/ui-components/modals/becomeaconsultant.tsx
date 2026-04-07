@@ -1,24 +1,14 @@
 import {
-  Button,
-  Center,
   CloseButton,
   Dialog,
   HStack,
-  Image,
   Portal,
   Text,
   VStack,
 } from "@chakra-ui/react";
 import { useState } from "react";
-import ScheduleCard from "../schedulecard";
 import CustomButton from "mangarine/components/customcomponents/button";
-import CancelConsultation from "./cancelconsultationmodal";
 import FilterDrawer from "./filterdrawer";
-import { RiPokerDiamondsLine } from "react-icons/ri";
-import { useBecomeConsultantMutation } from "mangarine/state/services/user.service";
-import { useLazyGetUserInfoQuery } from "mangarine/state/services/profile.service";
-import { useDispatch } from "react-redux";
-import { setUpdatedInfo } from "mangarine/state/reducers/auth.reducer";
 import { useRouter } from "next/router";
 
 type props = {
@@ -28,36 +18,12 @@ type props = {
 
 const BecomeAConsultantModal = ({ onOpenChange, isOpen }: props) => {
   const [open, setOpen] = useState<boolean>(false);
-  const [becomeConsultant, { isLoading: becomeConsultantLoading, isError: becomeConsultantError }] = useBecomeConsultantMutation();
-  const [triggerGetUserInfo] = useLazyGetUserInfoQuery();
-  const dispatch = useDispatch();
-  const close = () => {
-    onOpenChange();
-    setOpen(true);
-  };
   const router = useRouter();
   const becomeAConsultant = () => {
-    becomeConsultant({})
-      .unwrap()
-      .then(async (res) => {
-        try {
-          const userInfoResp = await triggerGetUserInfo(undefined).unwrap();
-          const latestUser = userInfoResp?.data ?? userInfoResp; // handle {data: ...} shape
-          if (latestUser) {
-            dispatch(setUpdatedInfo({ updatedInfo: latestUser }));
-          }
-        } catch (e) {
-          console.warn("Failed to refresh user info after becoming consultant", e);
-        }
-        onOpenChange();
-      // if(!isEmpty(res.data)){
-      //   setOpenConsultant(false)
-      // }
-      })
-      .catch((err) => {
-        console.log(err, "error becoming consultant");
-      });
-  }
+    onOpenChange();
+    router.push("/my-business?startOnboarding=1");
+  };
+
   return (
     <Dialog.Root
       lazyMount

@@ -1,11 +1,23 @@
-"use client";;
-import { Box, Drawer, HStack, Icon, Image, Stack, Text, VStack } from "@chakra-ui/react";
-import { useState } from "react";
+"use client";
 
-import { useRouter } from "next/router";
-import SearchInput from "mangarine/components/ui/search-input";
+import {
+  Box,
+  Drawer,
+  Input,
+  Text,
+  VStack,
+} from "@chakra-ui/react";
+import { useMemo, useState } from "react";
+import { LuSearch } from "react-icons/lu";
 import { useAppointment } from "mangarine/state/hooks/appointment.hook";
+import { useAuth } from "mangarine/state/hooks/user.hook";
 import { ConversationItem } from "mangarine/pages/message";
+import {
+  getConversationPreview,
+  getConversationSubtitle,
+  hasConversationActivity,
+  resolveConversationProfile,
+} from "./helpers";
 
 const ChatList = ({
   open,
@@ -14,113 +26,90 @@ const ChatList = ({
   open: boolean;
   onOpenChange: () => void;
 }) => {
-  const router = useRouter();
-  const [search] = useState("");
+  const [search, setSearch] = useState("");
+  const { conversations } = useAppointment();
+  const { user } = useAuth();
+  const userId = user?.id ?? "";
 
-  const { conversations } = useAppointment()
+  const filteredConversations = useMemo(() => {
+    return conversations.filter((conversation: any) => {
+      if (!hasConversationActivity(conversation)) {
+        return false;
+      }
+
+      const profile = resolveConversationProfile(conversation, userId);
+      const haystack = `${profile?.fullName || ""} ${getConversationSubtitle(
+        profile
+      )} ${getConversationPreview(conversation)}`.toLowerCase();
+
+      return !search.trim() || haystack.includes(search.trim().toLowerCase());
+    });
+  }, [conversations, search, userId]);
 
   return (
     <Drawer.Root
-      size={"md"}
+      size="md"
       open={open}
-      onOpenChange={onOpenChange}
-      placement={"start"}
+      onOpenChange={(details: any) => {
+        if (!details?.open) {
+          onOpenChange();
+        }
+      }}
+      placement="start"
     >
       <Drawer.Backdrop />
-      <Drawer.Trigger></Drawer.Trigger>
       <Drawer.Positioner>
         <Drawer.Content
-          bg="bg_box"
-          p="3"
-          zIndex={"max"}
-          // display={{ base: "flex", md: "flex", lg: "flex", xl: "none" }}
-          css={{
-            "&::-webkit-scrollbar": {
-              width: "0px",
-              height: "0px",
-            },
-            "&::-webkit-scrollbar-track": {
-              width: "0px",
-              background: "transparent",
-              height: "0px",
-            },
-            "&::-webkit-scrollbar-thumb": {
-              background: "transparent",
-              borderRadius: "0px",
-              maxHeight: "0px",
-              height: "0px",
-              width: 0,
-            },
-          }}
+          bg="white"
+          p={4}
+          borderTopRightRadius="24px"
+          borderBottomRightRadius="24px"
         >
-          <Drawer.Header>
-            <Drawer.Title>
-              <HStack pt={6} gap={3}>
-                {/* <Box
-                  cursor="pointer"
-                  // onClick={() => {
-                  //   setShowDrawer(true);
-                  // }}
-                  bg="bg_box"
-                  py="4"
-                  px="4"
-                  rounded="md"
-                >
-                  <Image
-                    src="/icons/plus.svg"
-                    alt="New Message"
-                    // boxSize="4"
-                  />
-                </Box> */}
-                <Box bg="main_background" rounded="md" flex="1">
-                  <SearchInput
-                    // label="Email Address"
-                    placeholder="search messages"
-                    id="search"
-                    // required={true}
-                    name="search"
-                    value={search}
-                    size="lg"
-                    onChange={() => { }}
-                    // error={errors.email}
-                    hasLeftIcon={true}
-                    type={"text"}
-                    leftIcon={
-                      <Icon pl={"4"} pr="8">
-                        <Image src="/Icons/searchSvg.svg" alt="search" />
-                      </Icon>
-                    }
-                  />
-                </Box>
-              </HStack>
-            </Drawer.Title>
+          <Drawer.Header px={0} pt={0}>
+            <Box position="relative" w="full">
+              <Box
+                position="absolute"
+                top="50%"
+                left="16px"
+                transform="translateY(-50%)"
+                color="#9CA3AF"
+                zIndex={1}
+              >
+                <LuSearch size={16} />
+              </Box>
+              <Input
+                value={search}
+                onChange={(event) => setSearch(event.target.value)}
+                placeholder="Search messages"
+                h="44px"
+                borderRadius="10px"
+                borderColor="#EEF0F4"
+                bg="#FCFCFD"
+                ps="42px"
+                _placeholder={{ color: "#B0B5C2", fontSize: "0.875rem" }}
+                _focusVisible={{ borderColor: "#1C275D", boxShadow: "none" }}
+              />
+            </Box>
           </Drawer.Header>
-          <Drawer.Body w="100%" css={{
-            "&::-webkit-scrollbar": {
-              width: "0px",
-              height: "0px",
-            },
-            "&::-webkit-scrollbar-track": {
-              width: "0px",
-              background: "transparent",
-              height: "0px",
-            },
-            "&::-webkit-scrollbar-thumb": {
-              background: "transparent",
-              borderRadius: "0px",
-              maxHeight: "0px",
-              height: "0px",
-              width: 0,
-            },
-          }}>
-            <VStack gap={3} align="stretch"
-            >
-              {conversations.map((chat, index) => (
-                <ConversationItem key={chat.id} conversation={chat} />
-              ))}
+
+          <Drawer.Body px={0} pb={0}>
+            <VStack align="stretch" gap={2} pt={3}>
+              {filteredConversations.length ? (
+                filteredConversations.map((conversation: any) => (
+                  <ConversationItem
+                    key={conversation.id}
+                    conversation={conversation}
+                  />
+                ))
+              ) : (
+                <Box py={10} textAlign="center">
+                  <Text fontSize="0.92rem" color="#7E8495">
+                    No conversations found.
+                  </Text>
+                </Box>
+              )}
             </VStack>
           </Drawer.Body>
-          <Drawer.Footer></Drawer.Footer>
         </Drawer.Content>
       </Drawer.Positioner>
     </Drawer.Root>

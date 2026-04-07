@@ -14,7 +14,6 @@ import { useState } from "react";
 import { useRouter } from "next/router";
 
 import { meetingItems, meetingType } from "mangarine/utils/business";
-import { menuData } from "mangarine/pages/my-business";
 
 import ActivityEmptyState from "../../emptystate";
 import BookingCalendar from "../../bookingcalender";

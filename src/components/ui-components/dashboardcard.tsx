@@ -2,6 +2,7 @@ import { Box, HStack, Icon, Text, VStack } from "@chakra-ui/react";
 import { useRouter } from "next/router";
 import { type ElementType, type SVGProps } from "react";
 import { FiHeart } from "react-icons/fi";
+import { useAuth } from "mangarine/state/hooks/user.hook";
 
 type MenuItem = {
   action?: () => void;
@@ -92,6 +93,11 @@ const BusinessIcon = (props: SVGProps<SVGSVGElement>) => (
 
 const DashboardCard = () => {
   const router = useRouter();
+  const { user } = useAuth();
+  const businessHomePath = user?.isConsultant ? "/my-business/dashboard" : "/my-business";
+  const businessWalletPath = user?.isConsultant
+    ? "/my-business/dashboard?tab=wallet"
+    : "/my-business?startOnboarding=1";
 
   // Saved items and jobs don't have active destinations in the current app shell yet.
   const menuSections: MenuSection[] = [
@@ -101,12 +107,12 @@ const DashboardCard = () => {
         {
           icon: PaymentsIcon,
           label: "Payment History",
-          action: () => router.push("/my-business?tab=wallet"),
+          action: () => router.push(businessWalletPath),
         },
         {
           icon: TransactionHistoryIcon,
           label: "Transaction History",
-          action: () => router.push("/my-business?tab=wallet"),
+          action: () => router.push(businessWalletPath),
         },
       ],
     },
@@ -137,7 +143,7 @@ const DashboardCard = () => {
         {
           icon: BusinessIcon,
           label: "My Business",
-          action: () => router.push("/my-business"),
+          action: () => router.push(businessHomePath),
         },
       ],
     },

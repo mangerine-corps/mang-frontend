@@ -5,7 +5,7 @@ import { useState } from "react";
 import { useRouter } from "next/router";
 
 import { meetingItems, meetingType } from "mangarine/utils/business";
-import { menuData } from 'mangarine/pages/my-business';
+import { menuData } from "mangarine/components/ui-components/mybusiness/menu-data";
 
 const MenuList = ({
   open,

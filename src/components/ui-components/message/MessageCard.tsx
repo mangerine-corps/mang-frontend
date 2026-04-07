@@ -11,7 +11,7 @@ import {
   chakra,
 } from "@chakra-ui/react";
 import { useAuth } from "mangarine/state/hooks/user.hook";
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { ChatMessage } from "./ChatProvider";
 import { format } from "date-fns";
 import { isEmpty } from "es-toolkit/compat";
@@ -20,17 +20,12 @@ import { MdOutlineFileDownload } from "react-icons/md";
 
 const MessageCard = ({ message }: { message: ChatMessage }) => {
   const { user } = useAuth();
-  const [isUser, setIsUser] = useState(false);
+  const userId = user?.id ?? "";
   const [previewOpen, setPreviewOpen] = useState(false);
   const [previewAttachment, setPreviewAttachment] = useState<any | null>(null);
   const [downloadProgress, setDownloadProgress] = useState<Record<string, number>>({});
   const [downloading, setDownloading] = useState<Record<string, boolean>>({});
-
-  useEffect(() => {
-    if (message.senderId === user.id) {
-      setIsUser(true);
-    }
-  }, [message]);
+  const isUser = message.senderId === userId;
 
   const formatFileSize = (bytes: number) => {
     if (bytes === 0) return "0 Bytes";
@@ -122,8 +117,7 @@ const MessageCard = ({ message }: { message: ChatMessage }) => {
     <VStack
       gap="3"
       alignSelf={isUser ? "flex-end" : "flex-start"}
-      m={2}
-      w="50%"
+      w={{ base: "82%", md: "68%", xl: "58%" }}
       alignItems={isUser ? "flex-end" : "flex-start"}
       position={"relative"}
       zIndex={"base"}
@@ -146,21 +140,23 @@ const MessageCard = ({ message }: { message: ChatMessage }) => {
       )}
       <VStack
         gap="0"
-        shadow={"md"}
-        p={3}
-        bg="bg_box"
-        roundedTop={"lg"}
-        roundedBottomLeft={isUser ? "lg" : "none"}
-        roundedBottomRight={isUser ? "none" : "lg"}
+        shadow="0 12px 28px rgba(17, 29, 74, 0.08)"
+        p={4}
+        bg="white"
+        borderWidth="1px"
+        borderColor="#EEF0F4"
+        rounded="20px"
         maxW="100%"
+        alignItems="stretch"
       >
         {/* Message Content */}
         {message?.content && (
           <Text
-            fontSize={"1rem"}
+            fontSize={"0.96rem"}
             fontFamily={"Outfit"}
             color={"text_primary"}
-            textAlign={"justify"}
+            lineHeight="1.65"
+            textAlign="left"
             mb={message.attachments && message.attachments.length > 0 ? 3 : 0}
           >
             {message.content}
@@ -178,16 +174,11 @@ const MessageCard = ({ message }: { message: ChatMessage }) => {
               <Stack
                 key={key}
                 borderWidth={1}
-                borderColor={"border_bg"}
-                borderRadius="md"
+                borderColor="#E6EAF2"
+                borderRadius="16px"
                 p={2}
-                bg="bg_box"
-                // bg={isUser ? "blue.50" : "white"}
+                bg="#F9FAFC"
                 maxW="300px"
-                // cursor={isPreviewable(attachment) ? 'pointer' : 'default'}
-                // onClick={() => {
-                //   if (isPreviewable(attachment)) openPreview(attachment);
-                // }}
               >
                 {/* Image Preview */}
                 {attachment.type === "image" && (
@@ -208,7 +199,7 @@ const MessageCard = ({ message }: { message: ChatMessage }) => {
                   <HStack
                     justify="space-between"
                     align="center"
-                    bg="bg_box"
+                    bg="transparent"
                     p={2}
                     borderRadius="md"
                   >
@@ -270,7 +261,7 @@ const MessageCard = ({ message }: { message: ChatMessage }) => {
         <Text
           fontSize={"0.65rem"}
           fontFamily={"Outfit"}
-          color={"grey.500"}
+          color={"#8D93A5"}
           w="full"
           textAlign={"right"}
           mt={2}

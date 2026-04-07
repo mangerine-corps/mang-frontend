@@ -90,7 +90,7 @@ export const NavLinks: NavLink[] = [
   },
   {
     label: "My Business",
-    href: "/my-business",
+    href: "/my-business/dashboard",
     icon: {
       light: "/icons/navicons/business.svg",
       dark: "/icons/navicons/darkbus.svg",
@@ -185,6 +185,18 @@ export const UserLinks: NavLink[] = [
     iconActive: {
       light: "/icons/navicons/jobsactive.svg",
       dark: "/icons/navicons/jobsactive.svg",
+    },
+  },
+  {
+    label: "My Business",
+    href: "/my-business",
+    icon: {
+      light: "/icons/navicons/business.svg",
+      dark: "/icons/navicons/darkbus.svg",
+    },
+    iconActive: {
+      light: "/icons/navicons/activebus.svg",
+      dark: "/icons/navicons/darkactbus.svg",
     },
   },
   {

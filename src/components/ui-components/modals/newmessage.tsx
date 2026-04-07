@@ -1,273 +1,279 @@
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
+  Avatar,
   Box,
   Button,
   CloseButton,
+  Dialog,
+  Flex,
+  HStack,
+  Image,
+  Input,
+  Portal,
   Text,
   VStack,
-  Flex,
-  Image,
-  Drawer,
-  HStack,
-  Icon,
 } from "@chakra-ui/react";
+import { useRouter } from "next/router";
+import { useDispatch } from "react-redux";
+import { LuSearch } from "react-icons/lu";
+import { useAppointment } from "mangarine/state/hooks/appointment.hook";
+import { useAuth } from "mangarine/state/hooks/user.hook";
+import { setCurrentConversation } from "mangarine/state/reducers/appointment.reducer";
+import {
+  getConversationSubtitle,
+  isProfileVerified,
+  resolveConversationProfile,
+} from "mangarine/components/ui-components/message/helpers";
 
-import NewMessageItem from "../newmessageitem";
-import SearchInput from "mangarine/components/ui/search-input";
+type Props = {
+  open: boolean;
+  onOpenChange: () => void;
+};
 
-const friends = [
-  {
-    id: "1",
-    name: "Jacob Jones",
-    role: "Web Designer",
-    avatar: "/images/invite1.png",
-  },
-  {
-    id: "2",
-    name: "Cameron Williamson",
-    role: "Marketing Coordinator",
-    avatar: "/images/invite2.png",
-  },
-  {
-    id: "3",
-    name: "Kathryn Murphy",
-    role: "Nursing Assistant",
-    avatar: "/images/invite3.png",
-  },
-  {
-    id: "4",
-    name: "Robert Fox",
-    role: "Medical Assistant",
-    avatar: "/images/invite4.png",
-  },
-  {
-    id: "5",
-    name: "Robert Fox",
-    role: "Medical Assistant",
-    avatar: "/images/invite4.png",
-  },
-];
+const NewMessageDrawer = ({ open, onOpenChange }: Props) => {
+  const [search, setSearch] = useState("");
+  const [selectedConversationId, setSelectedConversationId] = useState("");
+  const router = useRouter();
+  const dispatch = useDispatch();
+  const { conversations, currentConversation } = useAppointment();
+  const { user } = useAuth();
+  const userId = user?.id ?? "";
 
-const FriendBox = ({
-  friend,
-  selected,
-  onSelect,
-}: {
-  friend: (typeof friends)[number];
-  selected: boolean;
-  onSelect: () => void;
-}) => (
-  <Flex
-    w="full"
-    cursor="pointer"
-    position="relative"
-    py={3}
-    px={2}
-    onClick={onSelect}
-    _hover={{ bg: "gray.50" }}
-    alignItems="center"
-  >
-    <Image alt='friend-avatar' src={friend.avatar} sizes="md" mr={3} />
-    <Box flex="1">
-      <Text
-        color="text_primary"
-        font="outfit"
-        fontSize="1.25rem"
-        lineHeight="30px"
-        fontWeight="600"
-      >
-        {friend.name}
-      </Text>
-      <Text
-        fontSize="sm"
-        font="outfit"
-        lineHeight="30px"
-        fontWeight="400"
-        color="gray.600"
-      >
-        {friend.role}
-      </Text>
-    </Box>
+  const contacts = useMemo(() => {
+    return conversations.map((conversation: any) => {
+      const profile = resolveConversationProfile(conversation, userId);
 
-    <Box
-      boxSize={5}
-      borderRadius="full"
-      borderWidth="2px"
-      borderColor={selected ? "blue.600" : "gray.300"}
-      display="flex"
-      alignItems="center"
-      justifyContent="center"
-      bg={selected ? "blue.600" : "transparent"}
-    >
-      {selected && <Box boxSize={2} bg="white" borderRadius="full" />}
-    </Box>
-  </Flex>
-);
+      return {
+        conversation,
+        id: String(conversation?.id),
+        name: profile?.fullName || "Unknown user",
+        avatar: profile?.profilePics || "",
+        subtitle: profile?.isConsultant
+          ? `${getConversationSubtitle(profile)} • Book to Message`
+          : getConversationSubtitle(profile),
+        verified: isProfileVerified(profile),
+      };
+    });
+  }, [conversations, userId]);
 
-const NewMessageDrawer = ({ open, onOpenChange }) => {
-  const [selectedFriend, setSelectedFriend] = useState<string>("");
+  const filteredContacts = useMemo(() => {
+    if (!search.trim()) {
+      return contacts;
+    }
+
+    const query = search.trim().toLowerCase();
+
+    return contacts.filter((contact) =>
+      `${contact.name} ${contact.subtitle}`.toLowerCase().includes(query)
+    );
+  }, [contacts, search]);
+
+  useEffect(() => {
+    if (!open) {
+      return;
+    }
+
+    setSearch("");
+    setSelectedConversationId(currentConversation?.id ? String(currentConversation.id) : "");
+  }, [currentConversation?.id, open]);
+
+  const handleStartConversation = () => {
+    const selectedContact = contacts.find(
+      (contact) => contact.id === selectedConversationId
+    );
+
+    if (!selectedContact) {
+      return;
+    }
+
+    dispatch(setCurrentConversation({ conversation: selectedContact.conversation }));
+
+    try {
+      router.replace(
+        {
+          pathname: "/message",
+          query: { conversationId: selectedContact.id },
+        },
+        undefined,
+        { shallow: true }
+      );
+    } catch (_) {}
+
+    onOpenChange();
+  };
 
   return (
-    <Drawer.Root size={"sm"} open={open} onOpenChange={onOpenChange}>
-      <Drawer.Backdrop />
-      <Drawer.Trigger></Drawer.Trigger>
-      <Drawer.Positioner>
-        <Drawer.Content>
-          <Drawer.Header>
-            <Drawer.Title>
-              <VStack
-                // spaceY={6}
-                w="full"
-                // bg="red.900"
-                justifyContent={"flex-start"}
-                alignItems={""}
-                // px="4"
-              >
-                {/* <HStack w="full" py={4} px="3" justifyContent={"space-between"}>
-                  <Text
-                    fontWeight={700}
-                    fontSize={"2rem"}
-                    fontFamily={"Outfit"}
-                    color={"text_primary"}
-                    // textAlign={"start"}
+    <Dialog.Root
+      open={open}
+      onOpenChange={(details: any) => {
+        if (!details?.open) {
+          onOpenChange();
+        }
+      }}
+      placement="center"
+      size="xl"
+    >
+      <Portal>
+        <Dialog.Backdrop bg="rgba(17, 29, 74, 0.18)" backdropFilter="blur(2px)" />
+        <Dialog.Positioner px={4}>
+          <Dialog.Content
+            maxW="510px"
+            w="full"
+            maxH="80vh"
+            p={{ base: 5, md: 7 }}
+            borderRadius="18px"
+            bg="white"
+            boxShadow="0 24px 80px rgba(17, 29, 74, 0.16)"
+          >
+            <Dialog.CloseTrigger asChild>
+              <CloseButton
+                onClick={onOpenChange}
+                position="absolute"
+                top="20px"
+                right="20px"
+                size="sm"
+                bg="white"
+                borderWidth="1px"
+                borderColor="#EEF0F4"
+                borderRadius="12px"
+                boxShadow="0 6px 18px rgba(17, 29, 74, 0.08)"
+              />
+            </Dialog.CloseTrigger>
+
+            <Dialog.Body p={0}>
+              <VStack align="stretch" gap={5}>
+                <Text
+                  fontFamily="Outfit"
+                  fontSize={{ base: "2rem", md: "2.25rem" }}
+                  fontWeight="700"
+                  color="text_primary"
+                  lineHeight="1"
+                >
+                  New Message
+                </Text>
+
+                <Box position="relative">
+                  <Box
+                    position="absolute"
+                    top="50%"
+                    left="16px"
+                    transform="translateY(-50%)"
+                    color="#9CA3AF"
+                    zIndex={1}
                   >
-                    Add Work
-                  </Text>
-                  <HStack spaceX={4}>
-                    <Box
-                      border={0.5}
-                      rounded={4}
-                      py={2}
-                      px="2"
-                      onClick={onOpenChange}
-                      borderColor={"gray.150"}
-                      shadow={"md"}
-                    >
-                      <Text
-                        color="text_primary"
-                        fontSize={"0.8rem"}
-                        fontWeight={"400"}
-                      >
-                        <FaTimes />
-                      </Text>
-                    </Box>
-                  </HStack>
-                </HStack> */}
-              </VStack>
-            </Drawer.Title>
-          </Drawer.Header>
-          <Drawer.Body px="3" py="8">
-            <Text
-              font="outfit"
-              fontSize="1.5rem"
-              fontWeight="700"
-              // lineHeight="60px"
-              color="text_primary"
-              pb={4}
-            >
-          New Message
-            </Text>
-
-            <VStack
-              spaceY={6}
-              w="full"
-              h="full"
-              justifyContent={"flex-start"}
-              alignItems={"flex-start"}
-              overflowY={"scroll"}
-            >
-              <Box w="full">
-                {/* Close Button */}
-                {/* <CloseButton
-                  position="absolute"
-                  w="48px"
-                  h="48px"
-                  p="10px"
-                  gap="10px"
-                  display="flex"
-                  justifyContent={"center"}
-                  alignItems={"center"}
-                  top={4}
-                  right={4}
-                  ml={40}
-                /> */}
-
-                {/* Header */}
-                {/* <Box mb={6}>
-                  <Text
-                    font="outfit"
-                    fontSize="2.5rem"
-                    fontWeight="700"
-                    lineHeight="60px"
-                    color="text_primary"
-                    mb={1}
-                  >
-                    Invite Friend
-                  </Text>
-                </Box> */}
-
-                <Box w="full" py="6">
-                  <SearchInput
-                    // label="Email Address"
-                    placeholder="search"
-                    id="search"
-                    // required={true}
-                    name="search"
-                    value={""}
-                    size="md"
-                    onChange={() => {}}
-                    // error={errors.email}
-                    hasLeftIcon={true}
-                    type={"text"}
-                    leftIcon={
-                      <Icon pl={"4"} pr="8">
-                        <Image src="/Icons/searchSvg.svg" alt="search" />
-                      </Icon>
-                    }
+                    <LuSearch size={16} />
+                  </Box>
+                  <Input
+                    value={search}
+                    onChange={(event) => setSearch(event.target.value)}
+                    placeholder="Search messages"
+                    h="46px"
+                    borderRadius="10px"
+                    borderColor="#EEF0F4"
+                    bg="#FCFCFD"
+                    ps="42px"
+                    _placeholder={{ color: "#B0B5C2", fontSize: "0.875rem" }}
+                    _focusVisible={{ borderColor: "#1C275D", boxShadow: "none" }}
                   />
                 </Box>
 
-                {/* Friends List */}
-                <VStack>
-                  {friends.map((friend) => (
-                    <FriendBox
-                      key={friend.id}
-                      friend={friend}
-                      selected={selectedFriend === friend.id}
-                      onSelect={() => setSelectedFriend(friend.id)}
-                    />
-                  ))}
+                <VStack
+                  align="stretch"
+                  gap={1}
+                  maxH="420px"
+                  overflowY="auto"
+                  pr={1}
+                >
+                  {filteredContacts.length ? (
+                    filteredContacts.map((contact) => {
+                      const isSelected = selectedConversationId === contact.id;
+
+                      return (
+                        <Flex
+                          key={contact.id}
+                          align="center"
+                          gap={3}
+                          py={3}
+                          px={1}
+                          borderRadius="14px"
+                          cursor="pointer"
+                          onClick={() => setSelectedConversationId(contact.id)}
+                          _hover={{ bg: "#F8F9FC" }}
+                        >
+                          <Avatar.Root size="md">
+                            <Avatar.Fallback name={contact.name} />
+                            <Avatar.Image src={contact.avatar} />
+                          </Avatar.Root>
+
+                          <VStack align="stretch" gap={0} flex={1} minW={0}>
+                            <HStack gap={1.5}>
+                              <Text
+                                fontFamily="Outfit"
+                                fontSize="1.05rem"
+                                fontWeight="600"
+                                color="text_primary"
+                                lineClamp={1}
+                              >
+                                {contact.name}
+                              </Text>
+                              {contact.verified ? (
+                                <Image
+                                  src="/icons/verified.svg"
+                                  alt="Verified"
+                                  boxSize="14px"
+                                  flexShrink={0}
+                                />
+                              ) : null}
+                            </HStack>
+                            <Text
+                              fontSize="0.84rem"
+                              color="#7B8190"
+                              lineClamp={1}
+                            >
+                              {contact.subtitle}
+                            </Text>
+                          </VStack>
+
+                          <Box
+                            boxSize="12px"
+                            borderRadius="full"
+                            borderWidth="1px"
+                            borderColor={isSelected ? "#1C275D" : "#C7CEDD"}
+                            bg={isSelected ? "#1C275D" : "white"}
+                            flexShrink={0}
+                          />
+                        </Flex>
+                      );
+                    })
+                  ) : (
+                    <Box py={10} textAlign="center">
+                      <Text fontSize="0.92rem" color="#7B8190">
+                        No conversations match your search.
+                      </Text>
+                    </Box>
+                  )}
                 </VStack>
 
-                {/* Invite Button */}
-              </Box>
-
-              <HStack
-                w="full"
-                alignItems={"center"}
-                justifyContent={"space-between"}
-              >
-                <HStack w="100%" display={"flex"} flexDir={"row"} spaceX={6}>
-                  <Button
-                    w="full"
-                    py="6"
-                    // h="py="4"48px"
-                    borderRadius="8px"
-                    bg="gray.500"
-                    color="white"
-                    _hover={{ bg: "gray.600" }}
-                    // isDisabled={!selectedFriend}
-                  >
-                Message
-                  </Button>
-                </HStack>
-              </HStack>
-            </VStack>
-          </Drawer.Body>
-          <Drawer.Footer />
-        </Drawer.Content>
-      </Drawer.Positioner>
-    </Drawer.Root>
+                <Button
+                  h="46px"
+                  borderRadius="8px"
+                  bg={selectedConversationId ? "#8F96B0" : "#C9CEDD"}
+                  color="white"
+                  fontWeight="600"
+                  onClick={handleStartConversation}
+                  disabled={!selectedConversationId}
+                  _hover={{
+                    bg: selectedConversationId ? "#7F879F" : "#C9CEDD",
+                  }}
+                >
+                  Message
+                </Button>
+              </VStack>
+            </Dialog.Body>
+          </Dialog.Content>
+        </Dialog.Positioner>
+      </Portal>
+    </Dialog.Root>
   );
 };
 

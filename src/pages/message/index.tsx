@@ -2,285 +2,330 @@ import {
   Avatar,
   Box,
   Button,
+  Flex,
   HStack,
-  Icon,
-  Image,
+  IconButton,
+  Input,
   Menu,
   Portal,
-  Stack,
+  Spinner,
   Text,
   VStack,
+  Image,
 } from "@chakra-ui/react";
-//import NewMessageItem from "mangarine/components/ui-components/newmessageitem";
 import AppLayout from "mangarine/layouts/AppLayout";
 import { useRouter } from "next/router";
-import React, { useEffect, useState, useMemo } from "react";
-import { IoEllipsisVertical } from "react-icons/io5";
-import SearchInput from "mangarine/components/ui/search-input";
+import React, { useEffect, useMemo, useState } from "react";
+import { useDispatch } from "react-redux";
+import { isEmpty, uniqBy } from "es-toolkit/compat";
+import dynamic from "next/dynamic";
+import {
+  LuBan,
+  LuBell,
+  LuEllipsisVertical,
+  LuFlag,
+  LuPlus,
+  LuSearch,
+  LuVideo,
+} from "react-icons/lu";
 import NewMessageDrawer from "mangarine/components/ui-components/modals/newmessage";
 import { useGetConversationMutation } from "mangarine/state/services/apointment.service";
-import { useDispatch } from "react-redux";
-import { setConversations, setCurrentConversation } from "mangarine/state/reducers/appointment.reducer";
+import {
+  setConversations,
+  setCurrentConversation,
+} from "mangarine/state/reducers/appointment.reducer";
 import { useAppointment } from "mangarine/state/hooks/appointment.hook";
-import { isEmpty, uniqBy } from "es-toolkit/compat";
 import { useAuth } from "mangarine/state/hooks/user.hook";
 import ChatPage from "mangarine/components/ui-components/message/chatpage";
 import { MuteUserModal } from "mangarine/components/ui-components/message/MuteUserModal";
 import { useChatManagement } from "mangarine/hooks/useChatManagement";
-import { useGetUnreadByConversationQuery, useMarkConversationReadMutation } from "mangarine/state/services/chat-management.service";
-// import { ChatProvider } from "mangarine/components/ui-components/message/ChatProvider";
-import dynamic from "next/dynamic";
-import { TbVideoFilled } from "react-icons/tb";
+import {
+  useGetUnreadByConversationQuery,
+  useMarkConversationReadMutation,
+} from "mangarine/state/services/chat-management.service";
 import ReportUser from "mangarine/components/ui-components/modals/reportuser";
 import BlockConsultant from "mangarine/components/ui-components/modals/blockconsultant";
-import BlockedConsultant from "mangarine/components/blockuser";
+import { setMessages } from "mangarine/state/reducers/chat.reducer";
+import {
+  formatConversationTime,
+  getConversationPreview,
+  getConversationSubtitle,
+  getConversationTimestamp,
+  hasConversationActivity,
+  isProfileVerified,
+  resolveConversationProfile,
+} from "mangarine/components/ui-components/message/helpers";
+
 const DynamicAgoraChatProvider = dynamic(
-  () => import('mangarine/components/ui-components/message/ChatProvider').then(mod => mod.ChatProvider),
+  () =>
+    import("mangarine/components/ui-components/message/ChatProvider").then(
+      (mod) => mod.ChatProvider
+    ),
   { ssr: false }
 );
 
-export const ChatHeader = () => {
-  const { currentConversation } = useAppointment()
-  const [profile, setProfile] = useState<any>({})
-  const router = useRouter()
-  const dispatch = useDispatch()
-  const [Delete, setDelete] = useState<boolean>(false)
-  const [Mute, setMute] = useState<boolean>(false)
-  const [Report, setReport] = useState<boolean>(false)
-  const [Block, setBlock] = useState<boolean>(false)
-  const { handleMuteUser } = useChatManagement()
-  const { user } = useAuth()
+const SidebarSearchField = ({
+  placeholder,
+  value,
+  onChange,
+}: {
+  placeholder: string;
+  value: string;
+  onChange: (value: string) => void;
+}) => {
+  return (
+    <Box position="relative" w="full">
+      <Box
+        position="absolute"
+        top="50%"
+        left="16px"
+        transform="translateY(-50%)"
+        color="#9CA3AF"
+        zIndex={1}
+      >
+        <LuSearch size={16} />
+      </Box>
+      <Input
+        value={value}
+        onChange={(event) => onChange(event.target.value)}
+        placeholder={placeholder}
+        h="44px"
+        borderRadius="10px"
+        borderColor="#EEF0F4"
+        bg="white"
+        ps="42px"
+        _placeholder={{ color: "#B0B5C2", fontSize: "0.875rem" }}
+        _focusVisible={{ borderColor: "#1C275D", boxShadow: "none" }}
+      />
+    </Box>
+  );
+};
 
+export const ChatHeader = ({
+  onOpenList,
+}: {
+  onOpenList?: () => void;
+}) => {
+  const { currentConversation, messages } = useAppointment();
+  const { handleMuteUser } = useChatManagement();
+  const { user } = useAuth();
+  const router = useRouter();
+  const [muteOpen, setMuteOpen] = useState(false);
+  const [reportOpen, setReportOpen] = useState(false);
+  const [blockOpen, setBlockOpen] = useState(false);
+  const userId = user?.id ?? "";
 
-  useEffect(() => {
-    if (user.id === currentConversation.user.id) {
-      setProfile(currentConversation.consultant)
+  const profile = useMemo(() => {
+    return resolveConversationProfile(currentConversation, userId);
+  }, [currentConversation, userId]);
 
-    } else {
-      setProfile(currentConversation.user)
-    }
-  }, [currentConversation, user])
+  const lastActivity = useMemo(() => {
+    const latestMessage = messages?.[messages.length - 1];
+
+    return (
+      latestMessage?.createdAt ||
+      getConversationTimestamp(currentConversation) ||
+      ""
+    );
+  }, [currentConversation, messages]);
+
+  if (!currentConversation?.id) {
+    return null;
+  }
+
+  const mutedUserId =
+    userId === currentConversation?.user?.id
+      ? currentConversation?.consultant?.id
+      : currentConversation?.user?.id;
+
   return (
     <HStack
-      w="full"
-      p="4"
-      alignItems={"center"}
-      justifyContent={"space-between"}
-      pos="absolute"
-      top={"0"}
-      shadow={"md"}
-      bg="main_background"
-      zIndex={'dropdown'}
+      justify="space-between"
+      align="center"
+      px={{ base: 4, md: 6 }}
+      py={4}
+      borderBottomWidth="1px"
+      borderColor="#EEF0F4"
+      bg="white"
+      minH="78px"
     >
-      <HStack>
-        <Stack h="14" w="14">
-          <Avatar.Root
-            width={'full'}
-            height={'full'}
-            borderRadius="8px"
-            objectFit="cover"
+      <HStack gap={3} minW={0}>
+        {onOpenList ? (
+          <IconButton
+            aria-label="Open conversations"
+            display={{ base: "inline-flex", lg: "none" }}
+            variant="ghost"
+            borderRadius="12px"
+            onClick={onOpenList}
           >
-            <Avatar.Fallback name={`${profile?.fullName}`} />
+            <LuPlus />
+          </IconButton>
+        ) : null}
+
+        <Box position="relative">
+          <Avatar.Root size="lg">
+            <Avatar.Fallback name={profile?.fullName} />
             <Avatar.Image src={profile?.profilePics} />
           </Avatar.Root>
-        </Stack>
-        <Text
-          fontWeight="700"
-          font="outfit"
-          color="text_primary"
-          fontSize="1.2rem"
-        >
-          {profile.fullName}
-        </Text>
+          <Box
+            position="absolute"
+            right="2px"
+            bottom="2px"
+            boxSize="10px"
+            borderRadius="full"
+            bg="#48BB34"
+            borderWidth="2px"
+            borderColor="white"
+          />
+        </Box>
+
+        <VStack align="stretch" gap={0} minW={0}>
+          <HStack gap={1.5}>
+            <Text
+              fontFamily="Outfit"
+              fontSize={{ base: "1.15rem", md: "1.35rem" }}
+              fontWeight="700"
+              color="text_primary"
+              lineClamp={1}
+            >
+              {profile?.fullName}
+            </Text>
+            {isProfileVerified(profile) ? (
+              <Image src="/icons/verified.svg" alt="Verified" boxSize="14px" />
+            ) : null}
+          </HStack>
+          <Text fontSize="0.8rem" color="#8D93A5">
+            {lastActivity
+              ? `Last seen ${formatConversationTime(lastActivity)}`
+              : "Conversation details"}
+          </Text>
+        </VStack>
       </HStack>
 
-      <HStack spaceX="2" ml="2">
-        <Button
-          variant="outline"
-          size="md"
-          border="none"
-          rounded={"full"}
-          // borderColor={"grey.300"}
-          shadow={"md"}
-          onClick={() => {
-            router.push(`./message/videoconsultation?consultationId=${currentConversation.id}`);
-          }}
-        >
-          {/* <Image
-            src="/icons/camera.svg"
-            alt="camera"
-          // h="3"
-          // w="3"
-          // boxSize="30px"
-          /> */}
-          <Text cursor="pointer" color="text_primary" fontSize="24px"><TbVideoFilled /></Text>
-        </Button>
-        <Menu.Root>
-          <Menu.Trigger asChild>
-            <Button
-              variant="outline"
-              size="md"
-              border="none"
-              rounded={"full"}
-              // borderColor={"grey.300"}
-              shadow={"md"}
+      <Menu.Root positioning={{ placement: "bottom-end" }}>
+        <Menu.Trigger asChild>
+          <IconButton
+            aria-label="Conversation actions"
+            variant="ghost"
+            borderRadius="12px"
+            borderWidth="1px"
+            borderColor="#EEF0F4"
+            bg="white"
+          >
+            <LuEllipsisVertical />
+          </IconButton>
+        </Menu.Trigger>
+        <Portal>
+          <Menu.Positioner>
+            <Menu.Content
+              minW="220px"
+              p="8px"
+              borderRadius="14px"
+              borderColor="#EEF0F4"
+              boxShadow="0 20px 48px rgba(17, 29, 74, 0.14)"
             >
-              <IoEllipsisVertical />
-              {/* <Image
-                            src="/icons/plus.svg"
-                            alt="New Message"
-                            h="3"
-                            w="3"
-                            // boxSize="30px"
-                          /> */}
-            </Button>
-          </Menu.Trigger>
-          <Portal>
-            <Menu.Positioner>
-              <Menu.Content zIndex={'max'} px="3" py="3" spaceY={"2"}>
-                <Menu.Item
-                  value="report"
-                  _hover={{ bg: "primary." }}
-                  roundedTop={"6px"}
-                  color="text_primary"
-                  fontSize="1rem"
-                  onClick={() => {
-                    setReport(true);
-                  }}
-                  py="2"
-                >
-                  <Menu.ItemCommand>
-                    {" "}
-                    <Image
-                      // onClick={open}
-                      alt="link Icon"
-                      src="/icons/invite.svg"
-                    />
-                  </Menu.ItemCommand>{" "}
-                  Report
-                </Menu.Item>
-                <Menu.Item
-                  value="block"
-                  _hover={{ bg: "primary." }}
-                  roundedTop={"6px"}
-                  color="text_primary"
-                  fontSize="1rem"
-                  py="2"
-                  onClick={() => {
-                    setBlock(true);
-                  }}
-                >
-                  <Menu.ItemCommand>
-                    {" "}
-                    <Image
-                      // onClick={open}
-                      alt="link Icon"
-                      src="/icons/manage.svg"
-                    />
-                  </Menu.ItemCommand>{" "}
-                  Block
-                </Menu.Item>
-                <Menu.Item
-                  value="mute"
-                  _hover={{ bg: "primary." }}
-                  roundedTop={"6px"}
-                  color="text_primary"
-                  fontSize="1rem"
-                  py="2"
-                  onClick={() => {
-                    setMute(true);
-                  }}
-                >
-                  <Menu.ItemCommand>
-                    {" "}
-                    <Image
-                      // onClick={open}
-                      alt="link Icon"
-                      src="/icons/pin.svg"
-                    />
-                  </Menu.ItemCommand>{" "}
-                  Mute
-                </Menu.Item>
-                <Menu.Item
-                  value="delete"
-                  _hover={{ bg: "primary." }}
-                  roundedTop={"6px"}
-                  color="text_primary"
-                  fontSize="1rem"
-                  py="2"
-                  onClick={() => {
-                    setDelete(true)
-                    //  s setShowB                                                               lockPage(true);
-                  }}
-                >
-                  <Menu.ItemCommand>
-                    {" "}
-                    <Image
-                      // onClick={open}
-                      alt="link Icon"
-                      src="/icons/pin.svg"
-                    />
-                  </Menu.ItemCommand>{" "}
-                  Delete Chat
-                </Menu.Item>
-              </Menu.Content>
-            </Menu.Positioner>
-          </Portal>
-        </Menu.Root>
-      </HStack>
-      <ReportUser isOpen={Report} onOpenChange={() => { setReport(false) }} />
-      {/* Mute confirmation modal */}
+              <Menu.Item
+                value="video"
+                borderRadius="10px"
+                px="12px"
+                py="10px"
+                color="text_primary"
+                onClick={() =>
+                  router.push(
+                    `./message/videoconsultation?consultationId=${currentConversation.id}`
+                  )
+                }
+              >
+                <LuVideo />
+                Start Video Call
+              </Menu.Item>
+              <Menu.Item
+                value="report"
+                borderRadius="10px"
+                px="12px"
+                py="10px"
+                color="text_primary"
+                onClick={() => setReportOpen(true)}
+              >
+                <LuFlag />
+                Report
+              </Menu.Item>
+              <Menu.Item
+                value="block"
+                borderRadius="10px"
+                px="12px"
+                py="10px"
+                color="text_primary"
+                onClick={() => setBlockOpen(true)}
+              >
+                <LuBan />
+                Block
+              </Menu.Item>
+              <Menu.Item
+                value="mute"
+                borderRadius="10px"
+                px="12px"
+                py="10px"
+                color="text_primary"
+                onClick={() => setMuteOpen(true)}
+              >
+                <LuBell />
+                Mute
+              </Menu.Item>
+            </Menu.Content>
+          </Menu.Positioner>
+        </Portal>
+      </Menu.Root>
+
+      <ReportUser
+        isOpen={reportOpen}
+        onOpenChange={() => setReportOpen(false)}
+      />
+
       <MuteUserModal
-        isOpen={Mute}
-        onClose={() => setMute(false)}
+        isOpen={muteOpen}
+        onClose={() => setMuteOpen(false)}
         onConfirm={(payload) => handleMuteUser(payload)}
-        mutedUserId={user.id === currentConversation?.user?.id ? currentConversation?.consultant?.id : currentConversation?.user?.id}
-        conversationId={String(currentConversation?.id || '')}
-        displayName={profile?.fullName || 'this user'}
+        mutedUserId={mutedUserId}
+        conversationId={String(currentConversation?.id || "")}
+        displayName={profile?.fullName || "this user"}
       />
 
       <BlockConsultant
-        isOpen={Block}
-        onOpenChange={() => setBlock(false)}
+        isOpen={blockOpen}
+        onOpenChange={() => setBlockOpen(false)}
         data={profile}
         checkmarkSrc="/icons/verified.svg"
       />
-
-
     </HStack>
-  )
-}
+  );
+};
 
-export const ConversationItem = ({ conversation }: { conversation: any }) => {
-  const { user } = useAuth()
-  const { currentConversation } = useAppointment()
-  const dispatch = useDispatch()
-  const router = useRouter()
-  const [profile, setProfile] = useState<any>({})
-  const [isActive, setIsActive] = useState(false)
-  const [markConversationRead] = useMarkConversationReadMutation()
+export const ConversationItem = ({
+  conversation,
+  unreadCount = 0,
+}: {
+  conversation: any;
+  unreadCount?: number;
+}) => {
+  const { user } = useAuth();
+  const { currentConversation } = useAppointment();
+  const dispatch = useDispatch();
+  const router = useRouter();
+  const [markConversationRead] = useMarkConversationReadMutation();
+  const userId = user?.id ?? "";
 
-  useEffect(() => {
-    if (!isEmpty(conversation)) {
-      if (user.id === conversation?.user?.id) {
-        setProfile(conversation.consultant)
-      } else {
-        setProfile(conversation.user)
-      }
-    }
-  }, [conversation])
-  useEffect(() => {
-    if (conversation?.id === currentConversation?.id) {
-      setIsActive(true)
-    } else {
-      setIsActive(false)
-    }
-  }, [currentConversation])
+  const profile = useMemo(() => {
+    return resolveConversationProfile(conversation, userId);
+  }, [conversation, userId]);
 
+  const isActive = conversation?.id === currentConversation?.id;
+  const preview = getConversationPreview(conversation);
+  const time = formatConversationTime(getConversationTimestamp(conversation));
 
   const handleSelectedConversation = async () => {
-    dispatch(setCurrentConversation({ conversation }))
-    // Keep the page deep-linkable by reflecting the selected conversation in the URL
+    dispatch(setCurrentConversation({ conversation }));
+
     try {
       router.replace(
         {
@@ -289,273 +334,294 @@ export const ConversationItem = ({ conversation }: { conversation: any }) => {
         },
         undefined,
         { shallow: true }
-      )
-    } catch (_) { }
-    // Mark unread as read for this conversation (best-effort)
+      );
+    } catch (_) {}
+
     try {
-      await markConversationRead({ conversationId: String(conversation?.id) }).unwrap()
-    } catch {}
-  }
+      await markConversationRead({
+        conversationId: String(conversation?.id),
+      }).unwrap();
+    } catch (_) {}
+  };
+
   return (
-    <HStack
-      p={4}
-      roundedTopLeft={isActive ? "lg" : "none"}
-      roundedBottomLeft={isActive ? "lg" : "none"}
-      // borderLeftWidth={isActive ? "4px" : "0px"}
-      borderLeftColor={
-        isActive ? "blue.700" : "transparent"
-      }
-      width={"full"}
-      backgroundColor={
-        isActive ? "bg_box" : "transparent"
-      }
-      mt={isActive ? "2" : "0"}
-      color={isActive ? "text_primary" : "text_primary"}
-      _hover={{ backgroundColor: "bg_box" }}
-      alignItems={'center'}
-      cursor={'pointer'}
-      // borderRadius="md"
-      shadow={isActive ? 'md' : 'xs'}
-      borderColor={'gray.100'}
+    <Flex
       align="center"
-      justifyContent="space-between"
+      gap={3}
+      px="14px"
+      py="12px"
+      borderRadius="16px"
+      bg={isActive ? "#F7F8FC" : "transparent"}
+      borderWidth={isActive ? "1px" : "1px"}
+      borderColor={isActive ? "#E4E8F2" : "transparent"}
+      boxShadow={isActive ? "0 10px 24px rgba(17, 29, 74, 0.06)" : "none"}
+      cursor="pointer"
+      transition="0.2s ease"
+      _hover={{
+        bg: "#F7F8FC",
+        borderColor: "#E4E8F2",
+      }}
       onClick={handleSelectedConversation}
     >
-      <Stack alignItems={'center'} justifyContent={'center'} rounded={'full'} shadow={'md'} h="55px"
-        w="55px">
-        <Image
-          src={profile?.profilePics}
-          alt={profile?.fullName}
-          h='full'
-          w='full'
-          mx='auto'
-          // boxSize="40px"
+      <Box position="relative" flexShrink={0}>
+        <Avatar.Root size="lg">
+          <Avatar.Fallback name={profile?.fullName} />
+          <Avatar.Image src={profile?.profilePics} />
+        </Avatar.Root>
+        <Box
+          position="absolute"
+          right="2px"
+          bottom="2px"
+          boxSize="10px"
           borderRadius="full"
-          mr={3}
+          bg="#48BB34"
+          borderWidth="2px"
+          borderColor="white"
         />
-      </Stack>
-
-      <Box flex="1">
-        <Text
-          fontWeight="700"
-          font="outfit"
-          color="text_primary"
-          fontSize="1.2rem"
-        >
-          {profile?.fullName}
-        </Text>
-        {/* <Text fontSize="1rem" color="grey.500" textWrap={"wrap"}>
-          {chat.message}
-        </Text> */}
-      </Box>
-      <Box textAlign="right">
       </Box>
 
-    </HStack>
-  )
-}
+      <VStack align="stretch" gap={1} flex={1} minW={0}>
+        <HStack justify="space-between" align="flex-start" gap={3}>
+          <HStack gap={1.5} minW={0}>
+            <Text
+              fontFamily="Outfit"
+              fontSize="1.05rem"
+              fontWeight="700"
+              color="text_primary"
+              lineClamp={1}
+            >
+              {profile?.fullName}
+            </Text>
+            {isProfileVerified(profile) ? (
+              <Image src="/icons/verified.svg" alt="Verified" boxSize="13px" />
+            ) : null}
+          </HStack>
+          <Text fontSize="0.74rem" color="#9AA1B3" flexShrink={0}>
+            {time}
+          </Text>
+        </HStack>
+
+        <HStack justify="space-between" align="center" gap={3}>
+          <Text
+            fontSize="0.82rem"
+            color="#6F7687"
+            lineClamp={1}
+            flex={1}
+          >
+            {preview || getConversationSubtitle(profile)}
+          </Text>
+
+          {unreadCount > 0 ? (
+            <Flex
+              minW="22px"
+              h="22px"
+              px="6px"
+              align="center"
+              justify="center"
+              borderRadius="999px"
+              bg="#1C275D"
+              color="white"
+              fontSize="0.72rem"
+              fontWeight="600"
+              flexShrink={0}
+            >
+              {unreadCount}
+            </Flex>
+          ) : null}
+        </HStack>
+      </VStack>
+    </Flex>
+  );
+};
 
 const Index = () => {
-  const [startChat, setStartChat] = useState<boolean>(false);
-  const [chatText, setchatText] = useState<string>("");
-  const [showChatList, setshowChatList] = useState<boolean>(false);
   const [search, setSearch] = useState("");
-  const [showDrawer, setShowDrawer] = useState<boolean>(false);
+  const [showDrawer, setShowDrawer] = useState(false);
   const router = useRouter();
-  const [getConversations, { isLoading }] = useGetConversationMutation()
-  const dispatch = useDispatch()
-  const { conversations, currentConversation } = useAppointment()
-  const { user } = useAuth()
-  const { data: unreadData } = useGetUnreadByConversationQuery()
+  const [getConversations, { isLoading }] = useGetConversationMutation();
+  const dispatch = useDispatch();
+  const { conversations, currentConversation, messages } = useAppointment();
+  const { user } = useAuth();
+  const { data: unreadData } = useGetUnreadByConversationQuery();
+  const userId = user?.id ?? "";
+  const queryConversationId = (router.query?.conversationId as string) || "";
+  const hasSelectedConversation = Boolean(currentConversation?.id || queryConversationId);
 
-  // Filter conversations based on search query
-  const filteredConversations = conversations.filter((conversation: any) => {
-    if (!search.trim()) return true;
-
-    const profile = user.id === conversation.user.id ? conversation.consultant : conversation.user;
-    const fullName = profile?.fullName || '';
-
-    return fullName.toLowerCase().includes(search.toLowerCase());
-  });
   useEffect(() => {
-    getConversations({}).unwrap().then(payload => {
-      const { data } = payload;
-      console.log(payload, 'received conversation')
-      // Prefer freshly fetched API conversations over any older persisted ones
-      const merged = isEmpty(conversations) ? data : [...data, ...conversations]
-      const deduped = uniqBy(merged, (conversation: any) => conversation.id)
-      dispatch(setConversations({ conversations: deduped }))
-    }).catch(error => {
-      console.log(error)
-    })
-  }, [])
+    getConversations({})
+      .unwrap()
+      .then((payload) => {
+        const { data } = payload;
+        const deduped = uniqBy(data, (conversation: any) => conversation.id);
+        dispatch(setConversations({ conversations: deduped }));
+      })
+      .catch((error) => {
+        console.log(error);
+      });
+  }, [dispatch, getConversations]);
 
-  // Build a map for quick unread lookup
   const unreadMap = useMemo(() => {
-    const m = new Map<string, number>()
-    unreadData?.items?.forEach((i: any) => m.set(String(i.conversationId), Number(i.unread) || 0))
-    return m
-  }, [unreadData])
+    const nextMap = new Map<string, number>();
+    unreadData?.items?.forEach((item: any) =>
+      nextMap.set(String(item.conversationId), Number(item.unread) || 0)
+    );
+    return nextMap;
+  }, [unreadData]);
 
-  // If a conversationId is present in the query, auto-select that conversation after conversations are available
+  const filteredConversations = useMemo(() => {
+    return conversations.filter((conversation: any) => {
+      if (!hasConversationActivity(conversation)) {
+        return false;
+      }
+
+      const profile = resolveConversationProfile(conversation, userId);
+      const fullName = profile?.fullName || "";
+      const subtitle = getConversationSubtitle(profile);
+      const preview = getConversationPreview(conversation);
+      const matchesSearch = !search.trim()
+        ? true
+        : `${fullName} ${subtitle} ${preview}`
+            .toLowerCase()
+            .includes(search.trim().toLowerCase());
+
+      if (!matchesSearch) {
+        return false;
+      }
+
+      return true;
+    });
+  }, [conversations, search, userId]);
+
   useEffect(() => {
-    const queryId = (router.query?.conversationId as string) || '';
-    if (!queryId) return;
-    if (isEmpty(conversations)) return;
+    if (!router.isReady) {
+      return;
+    }
 
-    const match = conversations.find((c: any) => String(c?.id) === String(queryId));
+    if (!queryConversationId) {
+      if (!isEmpty(currentConversation)) {
+        dispatch(setCurrentConversation({ conversation: {} }));
+      }
+      if (!isEmpty(messages)) {
+        dispatch(setMessages({ messages: [] }));
+      }
+      return;
+    }
+
+    if (isEmpty(conversations)) {
+      return;
+    }
+
+    const match = conversations.find(
+      (conversation: any) =>
+        String(conversation?.id) === String(queryConversationId)
+    );
+
     if (match && (!currentConversation || currentConversation.id !== match.id)) {
       dispatch(setCurrentConversation({ conversation: match }));
     }
-  }, [router.query?.conversationId, conversations, dispatch, currentConversation])
+  }, [
+    router.isReady,
+    queryConversationId,
+    conversations,
+    dispatch,
+    currentConversation,
+    messages,
+  ]);
+
+  const subHeader = (
+    <Text py={1} fontSize="0.92rem" color="#717784" fontWeight="500">
+      Message
+    </Text>
+  );
 
   return (
-    <AppLayout>
+    <AppLayout subHeader={subHeader}>
       <DynamicAgoraChatProvider>
         <Box
-          display={"flex"}
-          h="85vh"
-          bg="chat_inputbg"
-          flexDir={{ base: "column", md: "row", lg: "row", xl: "row" }}
-          justifyContent={"space-between"}
-          alignItems={"flex-start"}
-          w={{ base: "98%", md: "96%", lg: "96%", xl: "full" }}
-          // mx="auto"
-          // pt={12}
-
-          overflowY={"hidden"}
-          css={{
-            "&::-webkit-scrollbar": {
-              width: "0px",
-              height: "0px",
-            },
-            "&::-webkit-scrollbar-track": {
-              width: "0px",
-              background: "transparent",
-              height: "0px",
-            },
-            "&::-webkit-scrollbar-thumb": {
-              background: "transparent",
-              borderRadius: "0px",
-              maxHeight: "0px",
-              height: "0px",
-              width: 0,
-            },
-          }}
+          w="full"
+          h="full"
+          bg="#F6F6F8"
+          borderRadius="24px"
+          p={{ base: 3, md: 4 }}
+          overflow="hidden"
         >
-          <HStack alignItems={"stretch"} w="full" h="full">
-            {/* Left section: MessageCard and Feedback */}
+          <HStack align="stretch" gap={4} h="full">
             <VStack
-              display={{ base: "none", md: "none", lg: "flex", xl: "flex" }}
-              flex={1}
-              width={'full'}
+              display={{ base: "none", lg: "flex" }}
+              w="320px"
+              align="stretch"
+              gap={4}
+              h="full"
             >
-              <Box
-                rounded={"sm"}
-                bg='main_background'
-                w='full'
-                css={{
-                  "&::-webkit-scrollbar": {
-                    width: "0px",
-                    height: "0px",
-                  },
-                  "&::-webkit-scrollbar-track": {
-                    width: "0px",
-                    background: "transparent",
-                    height: "0px",
-                  },
-                  "&::-webkit-scrollbar-thumb": {
-                    background: "transparent",
-                    borderRadius: "0px",
-                    maxHeight: "0px",
-                    height: "0px",
-                    width: 0,
-                  },
-                }}
-                h="100vh"
-                overflowY={"scroll"}
-              >
-                {/* Top Controls */}
-                <HStack pb={2} shadow={'xs'} borderBottomWidth={0.5} py={4} px={1.5} gap={3}>
-                  {/* <Box
-                    cursor="pointer"
-                    onClick={() => {
-                      setShowDrawer(true);
-                    }}
-                    bg="bg_box"
-                    py="4"
-                    px="4"
-                    rounded="md"
-                  >
-                    <Image
-                      src="/icons/plus.svg"
-                      alt="New Message"
-                    // boxSize="4"
-                    />
-                  </Box> */}
-                  <Box bg="main_background" rounded="md" flex="1">
-                    <SearchInput
-                      // label="Email Address"
-                      placeholder="search messages"
-                      id="search"
-                      // required={true}
-                      name="search"
-                      value={search}
-                      size="lg"
-                      onChange={(value) => setSearch(value)}
-                      // error={errors.email}
-                      hasLeftIcon={true}
-                      type={"text"}
-                      leftIcon={
-                        <Icon pl={"4"} pr="8">
-                          <Image src="/icons/searchSvg.svg" alt="search" />
-                        </Icon>
-                      }
-                    />
-                  </Box>
-                </HStack>
+              <HStack gap={3}>
+                <IconButton
+                  aria-label="New message"
+                  onClick={() => setShowDrawer(true)}
+                  bg="white"
+                  borderWidth="1px"
+                  borderColor="#EEF0F4"
+                  borderRadius="10px"
+                  boxShadow="0 8px 24px rgba(17, 29, 74, 0.04)"
+                >
+                  <Image src="/icons/plus.svg" alt="New message" boxSize="16px" />
+                </IconButton>
 
-                <VStack gap={0} align="stretch">
-                  {!isEmpty(filteredConversations) ? (
-                    filteredConversations.map((chat) => (
-                      <HStack key={chat.id}>
-                        <ConversationItem conversation={chat} />
-                        {unreadMap.get(String(chat.id))! > 0 && (
-                          <Box
-                            w="24px"
-                            h="24px"
-                            bg="active_chat"
-                            color="white"
-                            borderRadius="100px"
-                            px={2}
-                            textAlign="center"
-                            lineHeight="24px"
-                          >
-                            {unreadMap.get(String(chat.id))}
-                          </Box>
-                        )}
-                      </HStack>
-                    ))
-                  ) : (
-                    <Box p={4} textAlign="center">
-                      <Text color="gray.500" fontSize="sm">
-                        {search.trim() ? `No conversations found for "${search}"` : "No conversations yet"}
-                      </Text>
-                    </Box>
-                  )}
-                </VStack>
-                <NewMessageDrawer
-                  open={showDrawer}
-                  onOpenChange={() => {
-                    setShowDrawer(false);
-                  }}
+                <SidebarSearchField
+                  placeholder="Search messages"
+                  value={search}
+                  onChange={setSearch}
                 />
-              </Box>
-            </VStack>
-            <ChatPage />
-            {/* Right section: MessageEmpty */}
+              </HStack>
 
+              <VStack
+                align="stretch"
+                gap={2}
+                flex={1}
+                minH={0}
+                overflowY="auto"
+                pr={1}
+              >
+                {!hasSelectedConversation ? (
+                  <Box flex={1} />
+                ) : isLoading ? (
+                  <Flex justify="center" align="center" py={12}>
+                    <Spinner color="#1C275D" />
+                  </Flex>
+                ) : filteredConversations.length ? (
+                  filteredConversations.map((conversation: any) => (
+                    <ConversationItem
+                      key={conversation.id}
+                      conversation={conversation}
+                      unreadCount={unreadMap.get(String(conversation.id)) || 0}
+                    />
+                  ))
+                ) : (
+                  <Box
+                    py={10}
+                    px={6}
+                    textAlign="center"
+                    bg="white"
+                    borderRadius="18px"
+                    borderWidth="1px"
+                    borderColor="#EEF0F4"
+                  >
+                    <Text fontSize="0.92rem" color="#7E8495">
+                      {search.trim()
+                        ? `No conversations found for "${search}".`
+                        : "No conversations yet."}
+                    </Text>
+                  </Box>
+                )}
+              </VStack>
+            </VStack>
+
+            <ChatPage onNewMessage={() => setShowDrawer(true)} />
           </HStack>
+
+          <NewMessageDrawer
+            open={showDrawer}
+            onOpenChange={() => setShowDrawer(false)}
+          />
         </Box>
       </DynamicAgoraChatProvider>
     </AppLayout>

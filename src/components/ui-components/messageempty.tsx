@@ -1,80 +1,75 @@
-import { Box, Button, HStack, Text, Image, VStack } from "@chakra-ui/react";
+import { Box, Button, Image, Text, VStack } from "@chakra-ui/react";
 
+type Props = {
+  onClick: () => void;
+};
 
-type prop ={
-  onClick:any
-}
-
-const MessageEmpty = ({onClick}:prop) => {
+const MessageEmpty = ({ onClick }: Props) => {
   return (
     <VStack
       h="full"
-      borderRadius="16"
-      bg="bg_box"
       w="full"
-      boxShadow="md"
-      display="flex"
-      justifyContent="center"
-      alignItems="center"
+      justify="center"
+      align="center"
+      bg="white"
+      borderRadius="24px"
+      px={{ base: 6, md: 12 }}
+      py={{ base: 10, md: 16 }}
+      textAlign="center"
+      gap={6}
     >
-      {/* Image */}
       <Box
-        w="full"
-        h="120px"
+        boxSize={{ base: "88px", md: "108px" }}
         display="flex"
-        justifyContent="center"
         alignItems="center"
-        mb={4}
+        justifyContent="center"
       >
-        <Image src="/icons/messageicon.svg" alt="chat Icon"  />
+        <Image
+          src="/icons/messageicon.svg"
+          alt="Messages"
+          w={{ base: "68px", md: "84px" }}
+          h={{ base: "68px", md: "84px" }}
+        />
       </Box>
 
-      {/* Title */}
-      <Text
-        font="outfit"
-        fontSize={{base:"1.2rem",md:"1.5rem",lg:"2.5rem"}}
-        fontWeight="600"
-        lineHeight="1.5"
-        color="text_primary"
-        textAlign="center"
-        mb={2}
-      >
-        Welcome to your Messages!
-      </Text>
-
-      {/* Subtitle */}
-      <Text
-        font="outfit"
-        fontSize={{base:"0.875rem",md:"1rem",lg:"1.2rem"}}
-        fontWeight="400"
-        color="gray.600"
-        textAlign="center"
-        w="50%"
-        mx="auto"
-        mb={6}
-      >
-        {`Here you can start new conversations, manage your messages, and stay
-        connected. Tap the 'New Message' button to begin.`}
-      </Text>
-
-      {/* Action Buttons */}
-      <HStack gap={4} justify="center" w="50%" mx="auto">
-        <Button
-   w="full"
-          borderRadius="6px"
-          p="10px"
-          gap="8px"
-          bg="blue.900"
-          color="white"
-          onClick={onClick}
-          _hover={{ bg: "blue.800" }}
+      <VStack gap={2} maxW="560px">
+        <Text
+          fontFamily="Outfit"
+          fontSize={{ base: "1.75rem", md: "2.5rem" }}
+          fontWeight="700"
+          lineHeight="1.1"
+          color="text_primary"
         >
-          New message
-        </Button>
-      </HStack>
+          Welcome to your Messages!
+        </Text>
+
+        <Text
+          fontFamily="Outfit"
+          fontSize={{ base: "0.95rem", md: "1.05rem" }}
+          fontWeight="400"
+          lineHeight="1.65"
+          color="#5F6473"
+        >
+          Here you can start new conversations, manage your messages, and stay
+          connected. Tap the &apos;New Message&apos; button to begin.
+        </Text>
+      </VStack>
+
+      <Button
+        w="full"
+        maxW="520px"
+        h="52px"
+        borderRadius="8px"
+        bg="#1C275D"
+        color="white"
+        fontWeight="600"
+        onClick={onClick}
+        _hover={{ bg: "#16214F" }}
+      >
+        New Message
+      </Button>
     </VStack>
   );
 };
 
 export default MessageEmpty;
-
