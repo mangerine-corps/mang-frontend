@@ -51,7 +51,12 @@ const FavouriteConsultantsComp = ({ title }: FavouriteConsultantsCompProps) => {
       Favourite Consultant
       </Text>
 
-      <Flex align="center" flexDir={"column"} justify="space-between" w="full" py="2" px={"6"}>
+      {!isLoading && isEmpty(data?.data?.favoriteConsultants) && (
+        <Text px="6" fontSize="0.875rem" color="gray.400" fontFamily="Outfit" textAlign="left">
+          You haven't added any consultants to your favourites yet. Tap the ♥ icon to save one!
+        </Text>
+      )}
+      <Flex flexDir={"column"} gap={4} w="full" py="2" px={"6"}>
         {!isEmpty(data?.data?.favoriteConsultants) &&
           data?.data?.favoriteConsultants.slice(0, 3).map((item, index) => (
             <HStack
@@ -62,10 +67,13 @@ const FavouriteConsultantsComp = ({ title }: FavouriteConsultantsCompProps) => {
             >
               <Flex align="center" gap="8px">
                 {/* Circular Profile Image */}
-                <Box boxSize="40px" borderRadius="full" overflow="hidden">
+                <Box boxSize="40px" borderRadius="full" overflow="hidden" flexShrink={0}>
                   <Image
                     src={item?.consultant?.profilePics}
                     alt="Consultant picture"
+                    w="full"
+                    h="full"
+                    objectFit="cover"
                   />
                 </Box>
                 <Box>
@@ -78,7 +86,7 @@ const FavouriteConsultantsComp = ({ title }: FavouriteConsultantsCompProps) => {
                 </Box>
               </Flex>
               <Image
-                src="/icons/heart.svg"
+                src="/icons/aheart.svg"
                 alt="Heart"
                 boxSize="34px"
                 cursor="pointer"
@@ -87,7 +95,7 @@ const FavouriteConsultantsComp = ({ title }: FavouriteConsultantsCompProps) => {
           ))}
       </Flex>
 {
-  data?.data?.favoriteConsultants.length > 3 && (
+  (data?.data?.favoriteConsultants?.length ?? 0) > 3 && (
     <Text
     fontSize={"sm"}
     fontWeight={500}

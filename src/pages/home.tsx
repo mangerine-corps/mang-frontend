@@ -171,6 +171,7 @@ function Home() {
         <VStack
           display={{ base: "none", md: "flex" }}
           alignItems="stretch"
+          w="full"
           spaceY={2}
           h="full"
           overflowY="auto"

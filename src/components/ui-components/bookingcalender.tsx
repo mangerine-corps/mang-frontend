@@ -223,6 +223,7 @@ const BookingCalendar = () => {
       borderWidth="1px"
       borderColor="#E8E8E9"
       p={4}
+      w="full"
       display={{ base: "none", md: "block", lg: "block" }}
     >
       <Stack gap={4}>

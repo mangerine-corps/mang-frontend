@@ -63,6 +63,16 @@ export const consultantsApi = createApi({
       invalidatesTags: ["FavoriteConsultant", "Consultant"],
     }),
 
+    // rate a consultant
+    rateConsultant: builder.mutation({
+      query: ({ consultantId, userId, appointmentId, score, comment }) => ({
+        url: `${process.env.API_BASE_URL}/ratings/consultant/${consultantId}/user/${userId}`,
+        method: "POST",
+        body: { appointmentId, score, comment },
+      }),
+      invalidatesTags: (result, error, { consultantId }) => [{ type: "Consultant", id: consultantId }],
+    }),
+
     // report a consultant
     reportConsultant: builder.mutation({
       query: ({ consultantId, reportDetails }) => ({
@@ -110,6 +120,7 @@ export const consultantsApi = createApi({
 
 // Export hooks for use in components
 export const {
+  useRateConsultantMutation,
   useGetConsultantsQuery,
   useGetConsultantByIdQuery,
   useGetConsultantByIdOnDemandMutation,

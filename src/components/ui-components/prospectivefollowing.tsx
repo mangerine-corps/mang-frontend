@@ -8,11 +8,9 @@ const ProspectiveFollowing = () => {
   const [followUser] = useFollowUserMutation();
   const [followed, setFollowed] = useState<Record<string, boolean>>({});
 
-  const raw: any = data?.data ?? data ?? {};
-  const users: any[] = [
-    ...(Array.isArray(raw?.users) ? raw.users : []),
-    ...(Array.isArray(raw?.consultants) ? raw.consultants : []),
-  ].slice(0, 6);
+  const users: any[] = Array.isArray((data as any)?.data)
+    ? (data as any).data.slice(0, 6)
+    : [];
 
   const handleFollow = async (userId: string) => {
     setFollowed((prev) => ({ ...prev, [userId]: true }));
@@ -71,8 +69,8 @@ const ProspectiveFollowing = () => {
               <Flex key={person.id} justify="space-between" align="center">
                 <HStack gap={3}>
                   <Image
-                    src={person.avatar || person.profilePic || "/images/dp.png"}
-                    alt={person.fullName || "User"}
+                    src={person.profilePics || "/person.png"}
+                    alt={person.name || "User"}
                     boxSize="40px"
                     borderRadius="full"
                     objectFit="cover"
@@ -84,14 +82,10 @@ const ProspectiveFollowing = () => {
                       color="text_primary"
                       fontFamily="Outfit"
                     >
-                      {person.fullName || person.name || "—"}
+                      {person.name || "—"}
                     </Text>
                     <Text fontSize="xs" color="grey.500" fontFamily="Outfit">
-                      {person.occupation ||
-                        person.jobTitle ||
-                        person.role ||
-                        person.headline ||
-                        ""}
+                      {person.title || person.type || ""}
                     </Text>
                   </Box>
                 </HStack>

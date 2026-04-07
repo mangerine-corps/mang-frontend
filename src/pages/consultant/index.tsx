@@ -12,8 +12,6 @@ import {
 } from "@chakra-ui/react";
 import Biocard from "mangarine/components/ui-components/biocard";
 import DashboardCard from "mangarine/components/ui-components/dashboardcard";
-import FavouriteConsultants from "mangarine/components/ui-components/favouriteconsultants";
-import ScheduleCard from "mangarine/components/ui-components/schedulecard";
 import AppLayout from "mangarine/layouts/AppLayout";
 import GeneralFeed from "mangarine/components/ui-components/generalfeed";
 import ConsultantTabs from "mangarine/components/ui-components/consultanttab";
@@ -30,7 +28,6 @@ import {
 } from "mangarine/state/reducers/consultant.reducer";
 import UpcomingConsultations from "mangarine/components/ui-components/upcomingconsultation";
 import { isEmpty } from "es-toolkit/compat";
-import ActivityEmptyState from "mangarine/components/ui-components/emptystate";
 import { useConsultants } from "mangarine/state/hooks/consultant.hook";
 
 const Index = () => {
@@ -238,9 +235,10 @@ const Index = () => {
                         about={consultant.bio}
                         location={consultant.location}
                         id={consultant?.id}
-                        isFavorited={normalizeIsFavorited(
-                          consultant?.isFavorited
-                        )}
+                        isFavorited={
+                          normalizeIsFavorited(consultant?.isFavorited) ||
+                          favorite.some((fav: any) => fav?.consultant?.id === consultant.id)
+                        }
                         onClick={() => handleConsultantClick(consultant.id)}
                       />
                     </Box>
@@ -263,26 +261,9 @@ const Index = () => {
           top={{ base: "unset", md: 0 }}
           alignSelf="flex-start"
         >
-          {!isEmpty(upcomingConsultation) ? (
-            <ScheduleCard />
-          ) : (
-            <ActivityEmptyState />
-          )}
+          <ScheduledConsultation />
 
-          {!isEmpty(favorite) ? (
-            <FavouriteConsultantsComp />
-          ) : (
-            <Box>
-              <FavouriteConsultants
-                title={"Favourite Consultants"}
-                content={"No Favourite Consultants!"}
-                details={
-                  "You haven't added any consultants to your favorites yet. Tap the ♥ icon to start saving your favorite consultants!"
-                }
-                imageSrc={"/icons/emptyct.svg"}
-              />
-            </Box>
-          )}
+          <FavouriteConsultantsComp />
         </VStack>
       </Box>
     </AppLayout>

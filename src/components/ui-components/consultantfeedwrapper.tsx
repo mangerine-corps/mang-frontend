@@ -3,8 +3,8 @@ import { useState } from 'react';
 
 interface DynamicTabsProps {
   activity?: React.ReactNode;
-  consulting: React.ReactNode;
-  reviews: React.ReactNode;
+  consulting?: React.ReactNode;
+  reviews?: React.ReactNode;
   data?: any;
 }
 
@@ -24,11 +24,13 @@ const DynamicTabs: React.FC<DynamicTabsProps> = ({ activity, consulting, reviews
     }
   };
 
-  const tabs: { key: 'activity' | 'consulting' | 'reviews'; label: string }[] = [
-    { key: 'activity', label: 'Activity Feed' },
-    { key: 'consulting', label: 'Consulting Services' },
-    { key: 'reviews', label: 'Rating and Reviews' },
+  const allTabs: { key: 'activity' | 'consulting' | 'reviews'; label: string; content: React.ReactNode }[] = [
+    { key: 'activity', label: 'Activity Feed', content: activity },
+    { key: 'consulting', label: 'Consulting Services', content: consulting },
+    { key: 'reviews', label: 'Rating and Reviews', content: reviews },
   ];
+
+  const tabs = allTabs.filter((tab) => tab.key === 'activity' || tab.content !== undefined);
 
   return (
     <Box

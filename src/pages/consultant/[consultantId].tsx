@@ -1,9 +1,8 @@
 import { Box, Flex, HStack, Image, Stack, Text, VStack } from "@chakra-ui/react";
 import { RiVerifiedBadgeFill } from "react-icons/ri";
 import { IoChevronForward } from "react-icons/io5";
-import DynamicTabs from "mangarine/components/ui-components/consultantfeedwrapper";
 import ProfileActivitySection from "mangarine/components/ui-components/profileactivitysection";
-import ConsultingServices from "mangarine/components/ui-components/consultingservicestab";
+
 import EditConsultantProfileCard from "mangarine/components/ui-components/editconsultantprofile";
 import EditEducationCard from "mangarine/components/ui-components/editeducationcard";
 // import EditEducationCard from "mangarine/components/ui-components/editeducationcard";
@@ -12,7 +11,6 @@ import EditIntroductionVideoCard from "mangarine/components/ui-components/editin
 import EditLanguageCard from "mangarine/components/ui-components/editlanguage";
 import EditMyWorksCard from "mangarine/components/ui-components/editmyworkscard";
 import EditSkillCard from "mangarine/components/ui-components/editskillscard";
-import RatingAndReviewComponent from "mangarine/components/ui-components/ratingscard";
 import StatusCard from "mangarine/components/ui-components/statscard";
 import AppLayout from "mangarine/layouts/AppLayout";
 import BlockedConsultant from "mangarine/components/blockuser";
@@ -432,18 +430,7 @@ const ConsultantProfile = () => {
                   isLoading={isLoading}
                 />
                 <Box w="full" my="4">
-                  <DynamicTabs
-                    activity={<ProfileActivitySection isOwnProfile={false} />}
-                    consulting={
-                      <ConsultingServices
-                        isLoading={isLoading}
-                        consultings={services}
-                        availabilityInfo={availabilityInfo}
-                        consultantId={id as string}
-                      />
-                    }
-                    reviews={<RatingAndReviewComponent reviews={reviews} />}
-                  />
+                  <ProfileActivitySection isOwnProfile={false} />
                 </Box>
               </>
             )}
@@ -471,6 +458,7 @@ const ConsultantProfile = () => {
                     >
                       <PaymentCard
                         paymentDetails={showPayment.paymentDetails}
+                        clientSecret={showPayment.secret}
                         onBack={() => setShowPayment(undefined)}
                       />
                     </Elements>

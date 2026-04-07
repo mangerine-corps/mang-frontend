@@ -64,7 +64,7 @@ const EditLanguageCard = ({ title, languages, edit, isLoading }: EditLanguageCar
               fontSize="0.875rem"
               fontFamily="Outfit"
             >
-              Tell us which language you speak
+              {isEditable ? "Tell us which language you speak" : "No languages have been added yet."}
             </Text>
 
             {size(languages) > 0 ? (

@@ -15,9 +15,11 @@ import {
 } from "@chakra-ui/react";
 import { outfit } from "mangarine/pages/_app";
 import { FC, useState } from "react";
-import { useGetMyAppointmentsQuery } from "mangarine/state/services/apointment.service";
+import { useGetUpcomingConsultationQuery } from "mangarine/state/services/apointment.service";
 import { format } from "date-fns";
 import { LuChevronLeft, LuChevronRight } from "react-icons/lu";
+import ReviewModal from "./modals/reviewmodal";
+import PaymentModal from "./paymentreceipt";
 
 const statusColorMap: Record<string, string> = {
   COMPLETED: "green.500",
@@ -35,20 +37,14 @@ type Props = {
 const ConsultationHistory: FC<Props> = ({ searchTerm = "" }) => {
   const [page, setPage] = useState(1);
   const limit = 10;
+  const [reviewItem, setReviewItem] = useState<any>(null);
+  const [receiptItem, setReceiptItem] = useState<any>(null);
 
-  const { data, isLoading } = useGetMyAppointmentsQuery({ page, limit });
+  const { data, isLoading } = useGetUpcomingConsultationQuery({ page, limit });
 
-  const raw = data?.data ?? data ?? {};
-  const appointments: any[] = Array.isArray(raw?.data)
-    ? raw.data
-    : Array.isArray(raw?.appointments)
-    ? raw.appointments
-    : Array.isArray(raw)
-    ? raw
-    : [];
-
-  const totalPages: number = raw?.totalPages ?? raw?.pagination?.totalPages ?? 1;
-  const totalItems: number = raw?.total ?? raw?.pagination?.total ?? 0;
+  const appointments: any[] = (data as any)?.data?.consultations ?? [];
+  const totalPages: number = (data as any)?.data?.pagination?.totalPages ?? 1;
+  const totalItems: number = (data as any)?.data?.pagination?.total ?? 0;
 
   const term = searchTerm.toLowerCase().trim();
   const rows = appointments.filter((a: any) => {
@@ -151,7 +147,7 @@ const ConsultationHistory: FC<Props> = ({ searchTerm = "" }) => {
                     <Table.Cell py={{ base: 3, md: 4 }} px={{ base: 2, md: 3 }}>
                       <HStack gap={3}>
                         <Image
-                          src={item.consultant?.avatar || "/images/dp.png"}
+                          src={item.consultant?.profilePics || item.consultant?.avatar || "/images/dp.png"}
                           alt={item.consultant?.fullName || "Consultant"}
                           boxSize={{ base: "32px", md: "40px" }}
                           borderRadius="full"
@@ -179,7 +175,7 @@ const ConsultationHistory: FC<Props> = ({ searchTerm = "" }) => {
                     {/* Date & Time */}
                     <Table.Cell py={{ base: 3, md: 4 }} px={{ base: 2, md: 3 }}>
                       <Text textWrap="nowrap" fontSize={{ base: "sm", md: "0.875rem" }} fontFamily="Outfit">
-                        {formatDate(item.scheduledAt || item.createdAt)}
+                        {formatDate(item.scheduledDateTimeStart || item.scheduledAt || item.createdAt)}
                       </Text>
                     </Table.Cell>
 
@@ -229,6 +225,7 @@ const ConsultationHistory: FC<Props> = ({ searchTerm = "" }) => {
                                 py={2}
                                 px={3}
                                 value="rate"
+                                onClick={() => setReviewItem(item)}
                               >
                                 <HStack gap={3}>
                                   <Image src="/icons/star.svg" alt="icon" boxSize="16px" />
@@ -240,6 +237,7 @@ const ConsultationHistory: FC<Props> = ({ searchTerm = "" }) => {
                                 py={2}
                                 px={3}
                                 value="receipt"
+                                onClick={() => setReceiptItem(item)}
                               >
                                 <HStack gap={3}>
                                   <Image src="/icons/view.svg" alt="icon" boxSize="16px" />
@@ -291,6 +289,22 @@ const ConsultationHistory: FC<Props> = ({ searchTerm = "" }) => {
           </Pagination.Root>
         </HStack>
       )}
+
+      <PaymentModal
+        isOpen={!!receiptItem}
+        onOpenChange={() => setReceiptItem(null)}
+        data={receiptItem}
+      />
+
+      <ReviewModal
+        isOpen={!!reviewItem}
+        onOpenChange={() => setReviewItem(null)}
+        consultantName={reviewItem?.consultant?.fullName}
+        consultantPic={reviewItem?.consultant?.profilePics}
+        consultantId={reviewItem?.consultant?.id}
+        appointmentId={reviewItem?.id}
+      />
+
     </Stack>
   );
 };

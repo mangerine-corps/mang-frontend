@@ -62,7 +62,7 @@ const ConsultantTabs: React.FC<ConsultantTabsProps> = ({
             fontSize={{base:"1rem",lg:"1.25rem"}}
             fontWeight={activeTab === "consultant" ? "bold" : "normal"}
           >
-            All Consultant
+            All Consultants
           </Text>
         </Box>
 

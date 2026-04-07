@@ -344,7 +344,7 @@ const Header = () => {
               <NotificationDropdown
                 key={link.href}
                 trigger={(onClick, unreadCount) => (
-                  <Box position="relative" cursor="pointer" onClick={onClick}>
+                  <Box cursor="pointer" onClick={onClick}>
                     <VStack
                       spaceY="0"
                       borderBottom="2px solid transparent"
@@ -354,36 +354,36 @@ const Header = () => {
                       alignItems="center"
                       justifyContent="center"
                     >
-                      <Box boxSize={5}>
+                      <Box boxSize={5} position="relative">
                         <Image
                           alt="notification"
                           maxH={5}
                           maxW={5}
                           src={colorMode === "dark" ? link.icon.dark : link.icon.light}
                         />
+                        {unreadCount > 0 && (
+                          <Box
+                            position="absolute"
+                            top={-1}
+                            right={-1}
+                            bg="text_primary"
+                            color="main_background"
+                            fontWeight="bold"
+                            rounded="full"
+                            minW="12px"
+                            h="12px"
+                            px={0.5}
+                            fontSize="6px"
+                            lineHeight="12px"
+                            textAlign="center"
+                            pointerEvents="none"
+                          >
+                            {unreadCount}
+                          </Box>
+                        )}
                       </Box>
                       <Text className={outfit.className} fontSize="0.688rem" fontWeight="normal">Notification</Text>
                     </VStack>
-                    {unreadCount > 0 && (
-                      <Box
-                        position="absolute"
-                        top={-1}
-                        right={-1}
-                        bg="text_primary"
-                        color="main_background"
-                        fontWeight="bold"
-                        rounded="full"
-                        minW="12px"
-                        h="12px"
-                        px={0.5}
-                        fontSize="6px"
-                        lineHeight="12px"
-                        textAlign="center"
-                        pointerEvents="none"
-                      >
-                        {unreadCount}
-                      </Box>
-                    )}
                   </Box>
                 )}
               />

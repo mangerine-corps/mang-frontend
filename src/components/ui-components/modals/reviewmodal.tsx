@@ -1,10 +1,8 @@
 import {
   Box,
-  Button,
   Dialog,
   Field,
   HStack,
-  IconButton,
   Image,
   Portal,
   RatingGroup,
@@ -12,190 +10,132 @@ import {
   Textarea,
   VStack,
 } from "@chakra-ui/react";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import CustomButton from "mangarine/components/customcomponents/button";
-import ReportConsultant from "./report";
 import ThankYouModal from "./thankyoumadl";
+import { useRateConsultantMutation } from "mangarine/state/services/consultant.service";
+import { useAuth } from "mangarine/state/hooks/user.hook";
 
 type props = {
   onOpenChange: any;
   isOpen: any;
+  consultantName?: string;
+  consultantPic?: string;
+  consultantId?: string;
+  appointmentId?: string;
 };
 
-const ReviewModal = ({ onOpenChange, isOpen }: props) => {
-  const [date, setDate] = useState(new Date());
-  const [selectedTime, setSelectedTime] = useState("08:00 am");
-  const [open, setopen] = useState(false);
+const ReviewModal = ({ onOpenChange, isOpen, consultantName, consultantPic, consultantId, appointmentId }: props) => {
+  const [thankYouOpen, setThankYouOpen] = useState(false);
+  const [rating, setRating] = useState(0);
+  const [review, setReview] = useState("");
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [rateConsultant, { isLoading }] = useRateConsultantMutation();
+  const { user } = useAuth();
 
-
-// const myStyles = {
-//   itemShapes: RoundedStar,
-//   activeFillColor: "#ffb700",
-//   inactiveFillColor: "#d9d9d9",
-// };
-  const dp1 = "/images/user1.png";
-//   const [rating, setRating] = useState(0);
-
-
-
-
-  const openModal = () => {
-    // onOpenChange()
-    setopen(true);
+  const handleSubmit = async () => {
+    setErrorMsg(null);
+    try {
+      await rateConsultant({
+        consultantId,
+        userId: user?.id,
+        appointmentId,
+        score: rating,
+        comment: review,
+      }).unwrap();
+      onOpenChange();
+      setThankYouOpen(true);
+    } catch (err: any) {
+      const msg = err?.data?.message || "Failed to submit rating. Please try again.";
+      setErrorMsg(msg);
+    }
   };
+
   return (
-    <Dialog.Root
-      lazyMount
-      open={isOpen}
-      onOpenChange={onOpenChange}
-      placement={"center"}
-      size={"lg"}
-
-      // motionPreset="slide-in-bottom"
-    >
-      {/* <Dialog.Trigger asChild>
-        <Button variant="outline">Open</Button>
-      </Dialog.Trigger> */}
-      <Portal>
-        <Dialog.Backdrop />
-        <Dialog.Positioner>
-          <Dialog.Content p="8" rounded={"xl"} bg="bg_box">
-            <Dialog.Header>
-              <Dialog.Title>
-                {/* <HStack justifyContent={"center"}>
-                  <IconButton
+    <>
+      <Dialog.Root lazyMount open={isOpen} onOpenChange={onOpenChange} placement={"center"} size={"lg"}>
+        <Portal>
+          <Dialog.Backdrop />
+          <Dialog.Positioner>
+            <Dialog.Content p="8" rounded={"xl"} bg="bg_box">
+              <Dialog.Header>
+                <Dialog.Title />
+              </Dialog.Header>
+              <Dialog.Body w="85%" mx="auto">
+                <VStack spaceY={6}>
+                  <Box rounded="full" border={"1px"} borderColor={"primary.300"} my={4} overflow="hidden" w={28} h={28}>
+                    <Image w="full" h="full" objectFit="cover" src={consultantPic || "/person.png"} alt={consultantName || "Consultant"} />
+                  </Box>
+                  <Text fontSize={"1.5rem"} fontFamily={"Outfit"} color={"text_primary"} textAlign="center">
+                    How was your experience with {consultantName || "the consultant"}?
+                  </Text>
+                  <RatingGroup.Root
+                    count={5}
+                    value={rating}
+                    onValueChange={(e) => setRating(e.value)}
                     size="lg"
-                    // bg={useColorModeValue("white", "background.300")}
-                    borderWidth={0}
-                    borderColor={"gray.50"}
-                    rounded={"md"}
-                    aria-label="open menu"
-                    color="text_primary"
+                    colorPalette="yellow"
                   >
-                    {<Image alt="time" src={timecircle} />}
-                  </IconButton>
-                  <Text
-                    fontSize={"1.5rem"}
-                    fontFamily={"Outfit"}
-                    color={"text_primary"}
-                  >
-                    Your consultation Session has ended.
-                  </Text>
-                </HStack> */}
-              </Dialog.Title>
-            </Dialog.Header>
-            <Dialog.Body w="85%" mx="auto">
-              <VStack spaceY={6}>
-                <Box
-                  rounded="full"
-                  border={"1px"}
-                  borderColor={"primary.300"}
-                  my={4}
-                  display={"flex"}
-                  flexDir={"column"}
-                  justifyContent={"center"}
-                  alignItems={"center"}
-                >
-                  <Image w={28} src={dp1} alt={"display-image"} />
-                </Box>
-                <Text
-                  fontSize={"1.5rem"}
-                  fontFamily={"Outfit"}
-                  color={"text_primary"}
-                >
-                  How was your experience with Joseph Brenda?
+                    <RatingGroup.HiddenInput />
+                    <RatingGroup.Control>
+                      {Array.from({ length: 5 }).map((_, index) => (
+                        <RatingGroup.Item key={index} index={index + 1}>
+                          <RatingGroup.ItemIndicator />
+                        </RatingGroup.Item>
+                      ))}
+                    </RatingGroup.Control>
+                  </RatingGroup.Root>
+                  <Field.Root id="review" pb="8" w="full">
+                    <Field.Label color="#999" fontFamily="Outfit" fontSize="1rem" fontWeight="400">
+                      Write Your Review
+                    </Field.Label>
+                    <Textarea
+                      borderWidth={1}
+                      borderColor={"gray.100"}
+                      rows={5}
+                      resize={"none"}
+                      placeholder="Leave a comment"
+                      value={review}
+                      onChange={(e) => setReview(e.target.value)}
+                    />
+                  </Field.Root>
+                </VStack>
+              </Dialog.Body>
+              {errorMsg && (
+                <Text color="red.500" fontSize="sm" fontFamily="Outfit" textAlign="center" px={8} pb={2}>
+                  {errorMsg}
                 </Text>
-                {/* <RatingGroup
-                  emptySymbol="fa fa-star-o fa-2x"
-                  fullSymbol="fa fa-star fa-2x"
-                  fractions={2}
-                /> */}
-                <Field.Root id="email" pb="8">
-                  <Field.Label
-                    color="#999"
-                    fontFamily="Outfit"
-                    fontSize="1rem"
-                    fontStyle="normal"
-                    fontWeight="400"
+              )}
+              <Dialog.Footer mx="auto" w="85%" pb={6}>
+                <HStack w="full" alignItems={"center"} justifyContent={"space-between"}>
+                  <CustomButton
+                    customStyle={{ w: "45%", bg: "main_background", borderWidth: "2px" }}
+                    onClick={onOpenChange}
                   >
-                    Write Your Review
-                  </Field.Label>
+                    <Text color={"text_primary"} fontWeight={"600"} fontSize={"1rem"} lineHeight={"100%"}>
+                      Cancel
+                    </Text>
+                  </CustomButton>
+                  <CustomButton
+                    customStyle={{ w: "45%" }}
+                    onClick={handleSubmit}
+                    loading={isLoading}
+                    disabled={rating === 0 || isLoading}
+                  >
+                    <Text color={"button_text"} fontWeight={"600"} fontSize={"1rem"} lineHeight={"100%"}>
+                      Submit Review
+                    </Text>
+                  </CustomButton>
+                </HStack>
+              </Dialog.Footer>
+            </Dialog.Content>
+          </Dialog.Positioner>
+        </Portal>
+      </Dialog.Root>
 
-                  <Textarea
-                    borderWidth={1}
-                    borderColor={"gray.100"}
-                    rows={5}
-                    resize={"none"}
-                    placeholder="Leave a comment"
-                  />
-                  {/* {errors.email && (
-              <Text color="red.500" fontSize="sm">
-                {errors.email}
-              </Text>
-            )} */}
-                </Field.Root>
-              </VStack>
-            </Dialog.Body>
-            <Dialog.Footer mx="auto" w="85%" pb={6}>
-              <HStack
-                w="full"
-                display={"flex"}
-                alignItems={"center"}
-                justifyContent={"space-between"}
-                flexDir={"row"}
-                // mx="auto"
-              >
-                <CustomButton
-                  customStyle={{
-                    w: "45%",
-                    bg: "main_background",
-                    borderWidth: "2px",
-                  }}
-                  onClick={() => {}}
-                  // loading={isLoading}
-                  // onClick={handleSubmit(onSubmit, (error) => console.log(error))}
-                >
-                  <Text
-                    color={"text_primary"}
-                    fontWeight={"600"}
-                    fontSize={"1rem"}
-                    lineHeight={"100%"}
-                  >
-                    Cancel
-                  </Text>
-                </CustomButton>
-                <CustomButton
-                  customStyle={{
-                    w: "45%",
-                  }}
-                  onClick={openModal}
-                  // loading={isLoading}
-                  // onClick={handleSubmit(onSubmit, (error) => console.log(error))}
-                >
-                  <Text
-                    color={"button_text"}
-                    fontWeight={"600"}
-                    fontSize={"1rem"}
-                    lineHeight={"100%"}
-                  >
-                    Submit Review
-                  </Text>
-                </CustomButton>
-              </HStack>
-            </Dialog.Footer>
-            {/* <Dialog.CloseTrigger asChild>
-              <CloseButton size="sm" />
-            </Dialog.CloseTrigger> */}
-            <ThankYouModal
-              isOpen={open}
-              onOpenChange={() => {
-                setopen(false);
-              }}
-            />
-          </Dialog.Content>
-        </Dialog.Positioner>
-      </Portal>
-    </Dialog.Root>
+      <ThankYouModal isOpen={thankYouOpen} onOpenChange={() => setThankYouOpen(false)} />
+    </>
   );
 };
+
 export default ReviewModal;

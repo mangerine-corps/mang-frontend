@@ -241,7 +241,7 @@ const NotificationItem: React.FC<{
     );
 };
 
-const NotificationsPage: React.FC = () => {
+const NotificationsContent: React.FC = () => {
     const { user } = useAuth();
     const [filters, setFilters] = useState<NotificationFilters>({
         type: 'all',
@@ -307,18 +307,14 @@ const NotificationsPage: React.FC = () => {
 
     if (!user) {
         return (
-            <AppLayout>
-                <Box p={8} textAlign="center">
-                    <Text>Please log in to view notifications</Text>
-                </Box>
-            </AppLayout>
+            <Box p={8} textAlign="center">
+                <Text>Please log in to view notifications</Text>
+            </Box>
         );
     }
 
     return (
-        <AppLayout>
-
-            <Box
+        <Box
                 display={"flex"}
                 // bg="red.900"
                 flexDir={{ base: "column", md: "row", lg: "row", xl: "row" }}
@@ -447,9 +443,14 @@ const NotificationsPage: React.FC = () => {
                 <VStack>
                     <ActivityEmptyState />
                 </VStack>
-            </Box>
-        </AppLayout>
+        </Box>
     );
 };
 
-export default NotificationsPage; 
+const NotificationsPage: React.FC = () => (
+    <AppLayout>
+        <NotificationsContent />
+    </AppLayout>
+);
+
+export default NotificationsPage;

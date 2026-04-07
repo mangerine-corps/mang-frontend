@@ -6,8 +6,9 @@ import {
   VStack,
   Spinner,
   HStack,
+  Image,
 } from '@chakra-ui/react';
-import { Bell, X, MessageCircle, Calendar, CreditCard, AlertCircle } from 'lucide-react';
+import { Bell, X, CheckCheck } from 'lucide-react';
 import { useRouter } from 'next/router';
 import {
   useGetNotificationsQuery,
@@ -21,33 +22,55 @@ interface NotificationDropdownProps {
   trigger?: (onClick: () => void, unreadCount: number) => React.ReactNode;
 }
 
-const getNotificationIcon = (type: string) => {
-  switch (type) {
-    case 'message': return <MessageCircle size={15} />;
-    case 'appointment': return <Calendar size={15} />;
-    case 'payment': return <CreditCard size={15} />;
-    default: return <AlertCircle size={15} />;
-  }
-};
-
 const formatTimestamp = (ts?: string) => {
   if (!ts) return '';
   const now = new Date();
   const diff = now.getTime() - new Date(ts).getTime();
   const minutes = Math.floor(diff / 60000);
   const hours = Math.floor(diff / 3600000);
-  const days = Math.floor(diff / 86400000);
   if (minutes < 1) return 'Just now';
   if (minutes < 60) return `${minutes}m ago`;
   if (hours < 24) return `${hours}h ago`;
-  if (days < 7) return `${days}d ago`;
-  return new Date(ts).toLocaleDateString();
+  return new Date(ts).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+};
+
+const getDateLabel = (ts?: string): string => {
+  if (!ts) return 'Older';
+  const d = new Date(ts);
+  const now = new Date();
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const yesterday = new Date(today.getTime() - 86400000);
+  const itemDay = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+  if (itemDay.getTime() === today.getTime()) return 'Today';
+  if (itemDay.getTime() === yesterday.getTime()) return 'Yesterday';
+  return d.toLocaleDateString([], { month: 'long', day: 'numeric' });
+};
+
+const getAvatarSrc = (n: NotificationItem): string | undefined => {
+  const meta: any = n.metadata ?? {};
+  const data: any = n.data ?? {};
+  return meta?.senderAvatar ?? meta?.avatar ?? data?.senderAvatar ?? data?.avatar ?? undefined;
+};
+
+const getAvatarInitial = (n: NotificationItem): string => {
+  const meta: any = n.metadata ?? {};
+  const data: any = n.data ?? {};
+  const name: string = meta?.senderName ?? data?.senderName ?? n.title ?? '';
+  return name.charAt(0).toUpperCase() || '?';
+};
+
+const avatarBgColors = [
+  '#111D4A', '#0DBC9D', '#FC731A', '#1976D2', '#F71AFC', '#30BC0D',
+];
+const getAvatarBg = (id: string) => {
+  let hash = 0;
+  for (let i = 0; i < id.length; i++) hash = id.charCodeAt(i) + ((hash << 5) - hash);
+  return avatarBgColors[Math.abs(hash) % avatarBgColors.length];
 };
 
 const NotificationDropdown: React.FC<NotificationDropdownProps> = ({ trigger }) => {
   const [isOpen, setIsOpen] = useState(false);
   const router = useRouter();
-
   const { isConnected } = useNotifications();
 
   const { data: notifData, isLoading } = useGetNotificationsQuery(
@@ -71,6 +94,18 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({ trigger }) 
     }
     setIsOpen(false);
   };
+
+  // Group notifications by date label, preserving order
+  const grouped: { label: string; items: NotificationItem[] }[] = [];
+  for (const n of notifications) {
+    const label = getDateLabel(n.createdAt);
+    const existing = grouped.find((g) => g.label === label);
+    if (existing) {
+      existing.items.push(n);
+    } else {
+      grouped.push({ label, items: [n] });
+    }
+  }
 
   return (
     <Box position="relative">
@@ -125,24 +160,9 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({ trigger }) 
             borderColor="input_border"
           >
             <HStack gap={2}>
-              <Text fontWeight="600" fontSize="0.95rem" color="text_primary" fontFamily="Outfit">
-                Notifications
+              <Text fontWeight="700" fontSize="1rem" color="text_primary" fontFamily="Outfit">
+                Notification
               </Text>
-              {unreadCount > 0 && (
-                <Box
-                  bg="red.500"
-                  color="white"
-                  rounded="full"
-                  minW="18px"
-                  h="18px"
-                  fontSize="10px"
-                  lineHeight="18px"
-                  textAlign="center"
-                  px={1}
-                >
-                  {unreadCount}
-                </Box>
-              )}
               <Box
                 w={2}
                 h={2}
@@ -163,7 +183,7 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({ trigger }) 
           </Flex>
 
           {/* List */}
-          <Box maxH="400px" overflowY="auto" css={{ '&::-webkit-scrollbar': { width: 0 } }}>
+          <Box maxH="420px" overflowY="auto" css={{ '&::-webkit-scrollbar': { width: 0 } }}>
             {isLoading ? (
               <Flex justify="center" align="center" py={10}>
                 <Spinner size="sm" />
@@ -177,54 +197,121 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({ trigger }) 
               </Flex>
             ) : (
               <VStack gap={0} align="stretch">
-                {notifications.map((n, idx) => (
-                  <Box key={n.id}>
-                    <Flex
+                {grouped.map((group) => (
+                  <Box key={group.label}>
+                    {/* Section label */}
+                    <Text
                       px={4}
-                      py={3}
-                      gap={3}
-                      cursor="pointer"
-                      _hover={{ bg: 'main_background' }}
-                      onClick={() => handleItemClick(n)}
-                      align="flex-start"
-                      position="relative"
+                      pt={3}
+                      pb={1}
+                      fontSize="0.8rem"
+                      fontWeight="700"
+                      color="text_primary"
+                      fontFamily="Outfit"
                     >
-                      {n.status === 'unread' && (
-                        <Box
-                          position="absolute"
-                          left={2}
-                          top="50%"
-                          transform="translateY(-50%)"
-                          w={1.5}
-                          h={1.5}
-                          rounded="full"
-                          bg="blue.500"
-                        />
-                      )}
-                      <Box color="grey.400" mt={0.5} flexShrink={0}>
-                        {getNotificationIcon(n.type)}
-                      </Box>
-                      <Box flex={1} minW={0}>
-                        <Text
-                          fontSize="0.85rem"
-                          fontWeight={n.status === 'unread' ? '600' : '400'}
-                          color="text_primary"
-                          fontFamily="Outfit"
-                          lineClamp={1}
-                        >
-                          {n.title}
-                        </Text>
-                        <Text fontSize="0.78rem" color="grey.500" fontFamily="Outfit" lineClamp={2} mt={0.5}>
-                          {n.message}
-                        </Text>
-                        <Text fontSize="0.72rem" color="grey.400" fontFamily="Outfit" mt={1}>
-                          {formatTimestamp(n.createdAt)}
-                        </Text>
-                      </Box>
-                    </Flex>
-                    {idx < notifications.length - 1 && (
-                      <Box borderBottomWidth="1px" borderColor="input_border" />
-                    )}
+                      {group.label}
+                    </Text>
+
+                    {group.items.map((n, idx) => {
+                      const avatarSrc = getAvatarSrc(n);
+                      const initial = getAvatarInitial(n);
+                      const isUnread = n.status === 'unread';
+
+                      return (
+                        <Box key={n.id}>
+                          <Flex
+                            px={4}
+                            py={3}
+                            gap={3}
+                            cursor="pointer"
+                            _hover={{ bg: 'main_background' }}
+                            onClick={() => handleItemClick(n)}
+                            align="flex-start"
+                          >
+                            {/* Avatar with unread dot */}
+                            <Box position="relative" flexShrink={0}>
+                              {avatarSrc ? (
+                                <Image
+                                  src={avatarSrc}
+                                  alt={initial}
+                                  boxSize="40px"
+                                  borderRadius="full"
+                                  objectFit="cover"
+                                />
+                              ) : (
+                                <Flex
+                                  boxSize="40px"
+                                  borderRadius="full"
+                                  bg="#111D4A"
+                                  align="center"
+                                  justify="center"
+                                >
+                                  <Text
+                                    color="white"
+                                    fontSize="0.9rem"
+                                    fontWeight="600"
+                                    fontFamily="Outfit"
+                                  >
+                                    {initial}
+                                  </Text>
+                                </Flex>
+                              )}
+                              {isUnread && (
+                                <Box
+                                  position="absolute"
+                                  top="0"
+                                  right="0"
+                                  w="10px"
+                                  h="10px"
+                                  bg="red.500"
+                                  borderRadius="full"
+                                  borderWidth="1.5px"
+                                  borderColor="bg_box"
+                                />
+                              )}
+                            </Box>
+
+                            {/* Content */}
+                            <Box flex={1} minW={0}>
+                              <Flex justify="space-between" align="center" gap={2}>
+                                <Text
+                                  fontSize="0.85rem"
+                                  fontWeight={isUnread ? '700' : '500'}
+                                  color="text_primary"
+                                  fontFamily="Outfit"
+                                  flex={1}
+                                  lineClamp={1}
+                                >
+                                  {n.title}
+                                </Text>
+                                <Text
+                                  fontSize="0.72rem"
+                                  color="grey.400"
+                                  fontFamily="Outfit"
+                                  flexShrink={0}
+                                >
+                                  {formatTimestamp(n.createdAt)}
+                                </Text>
+                              </Flex>
+                              <Text
+                                fontSize="0.78rem"
+                                color="grey.500"
+                                fontFamily="Outfit"
+                                lineClamp={2}
+                                mt={0.5}
+                              >
+                                {n.message}
+                              </Text>
+                            </Box>
+                          </Flex>
+
+                          {/* Divider between items (not after last in group) */}
+                          {idx < group.items.length - 1 && (
+                            <Box mx={4} borderBottomWidth="1px" borderColor="input_border" />
+                          )}
+                        </Box>
+                      );
+                    })}
                   </Box>
                 ))}
               </VStack>
@@ -234,32 +321,43 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({ trigger }) 
           {/* Footer */}
           {notifications.length > 0 && (
             <Flex
-              justify="space-between"
+              justify="flex-end"
               align="center"
+              gap={4}
               px={4}
-              py={2.5}
+              py={3}
               borderTopWidth="1px"
               borderColor="input_border"
             >
-              <Box
+              <HStack
+                gap={1.5}
                 as="button"
-                fontSize="0.78rem"
-                color="grey.500"
-                fontFamily="Outfit"
-                _hover={{ color: 'text_primary' }}
                 onClick={handleMarkAll}
+                _hover={{ opacity: 0.75 }}
               >
-                Mark all as read
-              </Box>
+                <CheckCheck size={14} color="#111D4A" />
+                <Text
+                  fontSize="0.8rem"
+                  color="#111D4A"
+                  fontFamily="Outfit"
+                  textDecoration="underline"
+                >
+                  Mark All as Read
+                </Text>
+              </HStack>
               <Box
                 as="button"
-                fontSize="0.78rem"
-                color="blue.500"
-                fontFamily="Outfit"
-                _hover={{ textDecoration: 'underline' }}
                 onClick={() => { setIsOpen(false); router.push('/notifications'); }}
+                _hover={{ opacity: 0.75 }}
               >
-                See all
+                <Text
+                  fontSize="0.8rem"
+                  color="#111D4A"
+                  fontFamily="Outfit"
+                  textDecoration="underline"
+                >
+                  See More &gt;
+                </Text>
               </Box>
             </Flex>
           )}

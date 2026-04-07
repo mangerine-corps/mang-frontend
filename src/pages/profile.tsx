@@ -1,19 +1,13 @@
 import { Box, Flex, HStack, Stack, Text } from "@chakra-ui/react";
-import { RiVerifiedBadgeFill } from "react-icons/ri";
-import { IoChevronForward } from "react-icons/io5";
-import DynamicTabs from "mangarine/components/ui-components/consultantfeedwrapper";
-import ConsultingServices from "mangarine/components/ui-components/consultingservicestab";
 import EditConsultantProfileCard from "mangarine/components/ui-components/editconsultantprofile";
 import EditContactMeCard from "mangarine/components/ui-components/editcontactme";
 import EditEducationCard from "mangarine/components/ui-components/editeducationcard";
-// import EditEducationCard from "mangarine/components/ui-components/editeducationcard";
 import EditExperienceCard from "mangarine/components/ui-components/editexperiennce";
 import EditIntroductionVideoCard from "mangarine/components/ui-components/editintroductoryvideo";
 import EditLanguageCard from "mangarine/components/ui-components/editlanguage";
 import EditMyWorksCard from "mangarine/components/ui-components/editmyworkscard";
 import ProfileActivitySection from "mangarine/components/ui-components/profileactivitysection";
 import EditSkillCard from "mangarine/components/ui-components/editskillscard";
-import RatingAndReviewComponent from "mangarine/components/ui-components/ratingscard";
 import StatusCard from "mangarine/components/ui-components/statscard";
 import AppLayout from "mangarine/layouts/AppLayout";
 import { useEffect } from "react";
@@ -238,44 +232,6 @@ const Profile = () => {
             />
           </Box>
 
-          {/* Consultant Tier Banner */}
-          {displayUser?.pricingPlan && (
-            <Box
-              mt={3}
-              w="full"
-              bg="#FFFBF0"
-              borderWidth="1px"
-              borderColor="#F0D9B5"
-              borderRadius="xl"
-              px={4}
-              py={3}
-              cursor="pointer"
-            >
-              <Flex justify="space-between" align="center">
-                <Box>
-                  <HStack gap={1} align="center">
-                    <Text
-                      fontWeight="700"
-                      fontSize="0.95rem"
-                      color="text_primary"
-                      fontFamily="Outfit"
-                    >
-                      Principal Consultant
-                    </Text>
-                    <Box color="#F5A623">
-                      <RiVerifiedBadgeFill size={16} />
-                    </Box>
-                  </HStack>
-                  <Text fontSize="0.78rem" color="grey.500" fontFamily="Outfit">
-                    Lead/Expert Consultant
-                  </Text>
-                </Box>
-                <Box color="grey.400">
-                  <IoChevronForward size={18} />
-                </Box>
-              </Flex>
-            </Box>
-          )}
 
           {/* StatsCard and Buttons */}
           <Flex
@@ -312,23 +268,7 @@ const Profile = () => {
           />
 
           <Box w="full" my="4">
-            <DynamicTabs
-              data={user}
-              activity={<ProfileActivitySection isOwnProfile={isOwnProfile} />}
-              consulting={
-                user?.isConsultant === true ? (
-                  <ConsultingServices
-                    isLoading={consultingLoading}
-                    consultings={consultings}
-                  />
-                ) : (
-                  <Box py={8} textAlign="center" color="grey.400" fontFamily="Outfit" fontSize="0.875rem">
-                    No consulting services available.
-                  </Box>
-                )
-              }
-              reviews={<RatingAndReviewComponent reviews={reviews} />}
-            />
+            <ProfileActivitySection isOwnProfile={isOwnProfile} />
           </Box>
         </Flex>
 
@@ -339,13 +279,11 @@ const Profile = () => {
           css={{
             "&::-webkit-scrollbar": {
               width: "0px",
-
               height: "0px",
             },
             "&::-webkit-scrollbar-track": {
               width: "0px",
               background: "transparent",
-
               height: "0px",
             },
             "&::-webkit-scrollbar-thumb": {
@@ -363,13 +301,11 @@ const Profile = () => {
             css={{
               "&::-webkit-scrollbar": {
                 width: "0px",
-
                 height: "0px",
               },
               "&::-webkit-scrollbar-track": {
                 width: "0px",
                 background: "transparent",
-
                 height: "0px",
               },
               "&::-webkit-scrollbar-thumb": {
@@ -419,7 +355,6 @@ const Profile = () => {
                 isLoading={expLoading}
               />
             </Box>
-
             <Box mt={4}>
               <EditLanguageCard
                 title={"Languages"}

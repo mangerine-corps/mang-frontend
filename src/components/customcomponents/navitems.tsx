@@ -41,7 +41,7 @@ export const NavLinks: NavLink[] = [
   },
 
   {
-    label: "Consultant",
+    label: "Consultants",
     href: "/consultant",
     icon: {
       light: "/icons/navicons/lightconsult.svg",
@@ -74,6 +74,18 @@ export const NavLinks: NavLink[] = [
     iconActive: {
       light: "/icons/navicons/activemessage.svg",
       dark: "/icons/navicons/messagelight.svg",
+    },
+  },
+  {
+    label: "Jobs",
+    href: "/jobs",
+    icon: {
+      light: "/icons/navicons/jobs.svg",
+      dark: "/icons/navicons/jobs.svg",
+    },
+    iconActive: {
+      light: "/icons/navicons/jobsactive.svg",
+      dark: "/icons/navicons/jobsactive.svg",
     },
   },
   {
@@ -127,7 +139,7 @@ export const UserLinks: NavLink[] = [
     },
   },
   {
-    label: "Consultant",
+    label: "Consultants",
     href: "/consultant",
     icon: {
       light: "/icons/navicons/lightconsult.svg",
@@ -163,6 +175,18 @@ export const UserLinks: NavLink[] = [
     },
   },
 
+  {
+    label: "Jobs",
+    href: "/jobs",
+    icon: {
+      light: "/icons/navicons/jobs.svg",
+      dark: "/icons/navicons/jobs.svg",
+    },
+    iconActive: {
+      light: "/icons/navicons/jobsactive.svg",
+      dark: "/icons/navicons/jobsactive.svg",
+    },
+  },
   {
     label: "Notification",
     href: "/notification",

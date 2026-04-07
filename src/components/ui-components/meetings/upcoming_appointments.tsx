@@ -131,31 +131,14 @@ const UpcomingAppointments = () => {
     const currentPage = (root?.page ?? nested?.page ?? root?.pagination?.page ?? nested?.pagination?.page) as number | undefined;
     const totalPages = (root?.totalPages ?? nested?.totalPages ?? root?.pagination?.totalPages ?? nested?.pagination?.totalPages) as number | undefined;
 
-    // Guard: if pagination hasn't changed, skip dispatch to avoid loop
-    const prevPage = (appointments as any)?.pagination?.page;
-    const prevTotal = (appointments as any)?.pagination?.total;
-    const hasNumbers = typeof currentPage === 'number' && typeof total === 'number';
-    if (hasNumbers && prevPage === currentPage && prevTotal === total) {
-      return;
-    }
+    const pagination = { total, page: currentPage, totalPages };
 
-    const pagination = {
-      total,
-      page: currentPage,
-      totalPages,
-    };
-
-    // Replace list on first page or when filter changed (page reset to 1)
     const merged = page === 1
       ? dataArray
       : ([...(appointments.appointments || []), ...dataArray] as any[]);
 
     const uniqueAppts = uniqBy(merged, (appointment: any) => appointment.id);
-    const upcomingData = {
-      appointments: uniqueAppts,
-      pagination,
-    };
-    dispatch(setAppointments({ ...upcomingData }));
+    dispatch(setAppointments({ appointments: uniqueAppts, pagination }));
   }, [upcomingResp, page, dispatch]);
 
   // Handle mutation response with same normalization logic
@@ -183,29 +166,14 @@ const UpcomingAppointments = () => {
     const currentPage = (root?.page ?? nested?.page ?? root?.pagination?.page ?? nested?.pagination?.page) as number | undefined;
     const totalPages = (root?.totalPages ?? nested?.totalPages ?? root?.pagination?.totalPages ?? nested?.pagination?.totalPages) as number | undefined;
 
-    const prevPage = (appointments as any)?.pagination?.page;
-    const prevTotal = (appointments as any)?.pagination?.total;
-    const hasNumbers = typeof currentPage === 'number' && typeof total === 'number';
-    if (hasNumbers && prevPage === currentPage && prevTotal === total) {
-      return;
-    }
-
-    const pagination = {
-      total,
-      page: currentPage,
-      totalPages,
-    };
+    const pagination = { total, page: currentPage, totalPages };
 
     const merged = page === 1
       ? dataArray
       : ([...(appointments.appointments || []), ...dataArray] as any[]);
 
     const uniqueAppts = uniqBy(merged, (appointment: any) => appointment.id);
-    const upcomingData = {
-      appointments: uniqueAppts,
-      pagination,
-    };
-    dispatch(setAppointments({ ...upcomingData }));
+    dispatch(setAppointments({ appointments: uniqueAppts, pagination }));
   }, [upcomingRespMut, page, dispatch]);
   // When either date changes, reset to first page. Fetch will be skipped until both are set.
   useEffect(() => {

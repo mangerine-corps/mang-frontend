@@ -308,7 +308,7 @@ const EditMyWorksCard = ({
                     fontSize={{ base: "0.95rem", lg: "1rem" }}
                     maxW="360px"
                   >
-                    Showcase your best work by adding projects or a portfolio.
+                    {isEditable ? "Showcase your best work by adding projects or a portfolio." : "No works or portfolio has been added yet."}
                   </Text>
                   {isEditable && (
                     <Button

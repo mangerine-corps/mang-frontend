@@ -9,27 +9,9 @@ const ScheduledConsultation = () => {
   const [cancelId, setCancelId] = useState<string | null>(null);
   const [rescheduleId, setRescheduleId] = useState<string | null>(null);
 
-  const { data, isLoading } = useGetUpcomingConsultationQuery({
-    page: 1,
-    limit: 5,
-    status: "UPCOMING",
-  });
+  const { data, isLoading } = useGetUpcomingConsultationQuery({});
 
-  const raw: any = data;
-  const nested: any = raw?.data && !Array.isArray(raw.data) ? raw.data : undefined;
-  let appointments: any[] = Array.isArray(raw?.data)
-    ? raw.data
-    : Array.isArray(nested?.data)
-    ? nested.data
-    : Array.isArray(raw?.consultations)
-    ? raw.consultations
-    : Array.isArray(nested?.consultations)
-    ? nested.consultations
-    : [];
-
-  if (appointments.length && appointments.every((x: any) => x && "consultation" in x)) {
-    appointments = appointments.map((x: any) => x.consultation);
-  }
+  const appointments: any[] = (data as any)?.data?.consultations ?? [];
 
   const formatTime = (val: string) => {
     if (!val) return "";
@@ -77,18 +59,19 @@ const ScheduledConsultation = () => {
       ) : (
         appointments.map((item: any) => {
           const consultant = item.consultant ?? {};
-          const scheduledAt: string = item.scheduledAt ?? item.startTime ?? "";
-          const endAt: string = item.endTime ?? "";
-          const timeLabel = scheduledAt
-            ? `${formatTime(scheduledAt)}${endAt ? ` - ${formatTime(endAt)}` : ""}`
-            : "";
+          const dateLabel: string = item.dateDisplay ?? formatDateLabel(item.scheduledDateTimeStart ?? item.scheduledDate ?? "");
+          const timeLabel: string = item.timeRangeDisplay ?? (
+            item.scheduledDateTimeStart
+              ? `${formatTime(item.scheduledDateTimeStart)}${item.scheduledDateTimeEnd ? ` - ${formatTime(item.scheduledDateTimeEnd)}` : ""}`
+              : ""
+          );
 
           return (
             <Box key={item.id} bg="bg_box" borderRadius="lg" mb={4}>
               <Flex justify="space-between" align="center">
                 <HStack gap={3}>
                   <Image
-                    src={consultant.avatar || "/images/dp.png"}
+                    src={consultant.profilePics || "/images/dp.png"}
                     alt={consultant.fullName || "Consultant"}
                     boxSize="40px"
                     borderRadius="full"
@@ -99,7 +82,7 @@ const ScheduledConsultation = () => {
                       {consultant.fullName || "Consultant"}
                     </Text>
                     <Text fontSize="xs" color="grey.500" fontFamily="Outfit">
-                      {consultant.occupation || consultant.jobTitle || consultant.role || ""}
+                      {consultant.title || consultant.location || ""}
                     </Text>
                   </Box>
                 </HStack>
@@ -136,7 +119,7 @@ const ScheduledConsultation = () => {
                 <HStack gap={1} color="text_primary">
                   <Image src="/icons/cal.svg" alt="calendar" boxSize="14px" />
                   <Text color="text_primary" fontSize="0.8rem" fontFamily="Outfit">
-                    {formatDateLabel(scheduledAt)}
+                    {dateLabel}
                   </Text>
                 </HStack>
                 {timeLabel && (

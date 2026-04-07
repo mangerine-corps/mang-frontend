@@ -131,8 +131,9 @@ const EditIntroductionVideoCard = ({
                 pt={1}
                 // pl={2}
               >
-                Add an introductory video to showcase your expertise and connect
-                better with clients.
+                {isEditable
+                  ? "Add an introductory video to showcase your expertise and connect better with clients."
+                  : "This consultant hasn't added an introductory video yet."}
               </Text>
             </Box>
             // <IntroductionEmpt onClick={()=>{}} />yState

@@ -13275,6 +13275,622 @@ window.onload = function() {
             "search"
           ]
         }
+      },
+      "/jobs/meta": {
+        "get": {
+          "description": "Returns all dropdown options (jobTypes, workplaceTypes, experienceLevels, educationLevels, currencies, countries, states) sourced from the database.",
+          "operationId": "JobListingsController_getMeta",
+          "parameters": [],
+          "responses": {
+            "200": {
+              "description": "Meta options retrieved successfully",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "example": {
+                      "data": {
+                        "jobTypes": [
+                          "full-time",
+                          "part-time",
+                          "contract",
+                          "temporary",
+                          "internship",
+                          "freelance"
+                        ],
+                        "workplaceTypes": [
+                          "on-site",
+                          "hybrid",
+                          "remote"
+                        ],
+                        "experienceLevels": [
+                          "entry-level",
+                          "mid-level",
+                          "senior-level",
+                          "lead",
+                          "executive"
+                        ],
+                        "educationLevels": [
+                          "high-school",
+                          "diploma",
+                          "bachelors",
+                          "masters",
+                          "doctorate",
+                          "not-required"
+                        ],
+                        "currencies": [
+                          "USD",
+                          "EUR",
+                          "GBP",
+                          "JPY",
+                          "CNY"
+                        ],
+                        "countries": [
+                          "Australia",
+                          "Canada",
+                          "Nigeria",
+                          "United Kingdom",
+                          "United States"
+                        ],
+                        "states": [
+                          "New South Wales",
+                          "Lagos",
+                          "California",
+                          "Texas",
+                          "Ontario",
+                          "London"
+                        ]
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "summary": "Get job meta options",
+          "tags": [
+            "jobs"
+          ]
+        }
+      },
+      "/jobs/search": {
+        "get": {
+          "description": "Full-text search across job title and description. All filters are optional. Only published jobs are returned. Enriches results with isSaved and hasApplied if a bearer token is provided.",
+          "operationId": "JobListingsController_search",
+          "parameters": [
+            {
+              "name": "keyword",
+              "required": false,
+              "in": "query",
+              "description": "Searches job title and description",
+              "schema": {
+                "example": "ui/ux",
+                "type": "string"
+              }
+            },
+            {
+              "name": "country",
+              "required": false,
+              "in": "query",
+              "schema": {
+                "example": "Australia",
+                "type": "string"
+              }
+            },
+            {
+              "name": "state",
+              "required": false,
+              "in": "query",
+              "schema": {
+                "example": "New South Wales",
+                "type": "string"
+              }
+            },
+            {
+              "name": "jobType",
+              "required": false,
+              "in": "query",
+              "schema": {
+                "example": "full-time",
+                "type": "string",
+                "enum": [
+                  "full-time",
+                  "part-time",
+                  "contract",
+                  "temporary",
+                  "internship",
+                  "freelance"
+                ]
+              }
+            },
+            {
+              "name": "workplaceType",
+              "required": false,
+              "in": "query",
+              "schema": {
+                "example": "hybrid",
+                "type": "string",
+                "enum": [
+                  "on-site",
+                  "hybrid",
+                  "remote"
+                ]
+              }
+            },
+            {
+              "name": "page",
+              "required": false,
+              "in": "query",
+              "schema": {
+                "default": 1,
+                "example": 1,
+                "type": "number"
+              }
+            },
+            {
+              "name": "limit",
+              "required": false,
+              "in": "query",
+              "schema": {
+                "maximum": 100,
+                "default": 20,
+                "example": 20,
+                "type": "number"
+              }
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "Jobs retrieved successfully",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "example": {
+                      "data": {
+                        "jobs": [
+                          {
+                            "id": "job_123",
+                            "title": "UI/UX Designer",
+                            "companyName": "Acme Corp",
+                            "companyLogo": null,
+                            "workplaceType": "hybrid",
+                            "jobType": "full-time",
+                            "experienceLevel": "entry-level",
+                            "educationLevel": "bachelors",
+                            "keywords": [
+                              "Research",
+                              "DesignOps"
+                            ],
+                            "location": {
+                              "country": "Australia",
+                              "state": "New South Wales",
+                              "city": "Sydney",
+                              "officeLocation": "Sydney, Australia"
+                            },
+                            "salaryRange": {
+                              "from": 2000,
+                              "to": 5000,
+                              "currency": "USD"
+                            },
+                            "application": {
+                              "type": "website",
+                              "value": "https://company.com/jobs/uiux-designer"
+                            },
+                            "responsibilities": [],
+                            "requirements": [],
+                            "benefits": [],
+                            "status": "published",
+                            "createdAt": "2026-03-30T10:00:00.000Z",
+                            "updatedAt": "2026-03-30T10:00:00.000Z",
+                            "createdById": "user_123",
+                            "isSaved": false,
+                            "hasApplied": false
+                          }
+                        ],
+                        "pagination": {
+                          "page": 1,
+                          "limit": 20,
+                          "total": 120,
+                          "totalPages": 6
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "summary": "Search published jobs",
+          "tags": [
+            "jobs"
+          ]
+        }
+      },
+      "/jobs/my": {
+        "get": {
+          "description": "Returns all jobs created by the authenticated user. Optionally filter by status.",
+          "operationId": "JobListingsController_myJobs",
+          "parameters": [
+            {
+              "name": "status",
+              "required": false,
+              "in": "query",
+              "description": "Filter by job status",
+              "schema": {
+                "example": "published",
+                "type": "string",
+                "enum": [
+                  "draft",
+                  "published",
+                  "closed"
+                ]
+              }
+            },
+            {
+              "name": "page",
+              "required": false,
+              "in": "query",
+              "schema": {
+                "default": 1,
+                "example": 1,
+                "type": "number"
+              }
+            },
+            {
+              "name": "limit",
+              "required": false,
+              "in": "query",
+              "schema": {
+                "maximum": 100,
+                "default": 20,
+                "example": 20,
+                "type": "number"
+              }
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "Jobs retrieved successfully",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "example": {
+                      "data": {
+                        "jobs": [],
+                        "pagination": {
+                          "page": 1,
+                          "limit": 20,
+                          "total": 0,
+                          "totalPages": 0
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "401": {
+              "description": "Unauthorized"
+            }
+          },
+          "security": [
+            {
+              "bearer": []
+            }
+          ],
+          "summary": "Get my posted jobs",
+          "tags": [
+            "jobs"
+          ]
+        }
+      },
+      "/jobs": {
+        "post": {
+          "description": "Creates a new job listing under the authenticated user. Salary values are accepted as strings and normalized to numbers.",
+          "operationId": "JobListingsController_create",
+          "parameters": [],
+          "requestBody": {
+            "required": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreateJobListingDto"
+                }
+              }
+            }
+          },
+          "responses": {
+            "201": {
+              "description": "Job created successfully",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "example": {
+                      "message": "Job created successfully",
+                      "data": {
+                        "job": {
+                          "id": "job_123"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "400": {
+              "description": "Validation error"
+            },
+            "401": {
+              "description": "Unauthorized"
+            }
+          },
+          "security": [
+            {
+              "bearer": []
+            }
+          ],
+          "summary": "Create a job listing",
+          "tags": [
+            "jobs"
+          ]
+        }
+      },
+      "/jobs/{id}": {
+        "get": {
+          "description": "Returns full details of a single job. Enriches with isSaved and hasApplied if a bearer token is provided.",
+          "operationId": "JobListingsController_findOne",
+          "parameters": [
+            {
+              "name": "id",
+              "required": true,
+              "in": "path",
+              "description": "Job listing UUID",
+              "schema": {
+                "example": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+                "type": "string"
+              }
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "Job retrieved successfully",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "example": {
+                      "data": {
+                        "job": {
+                          "id": "job_123",
+                          "title": "UI/UX Designer",
+                          "description": "We are looking for a creative and detail-oriented UX Designer...",
+                          "companyName": "Acme Corp",
+                          "companyLogo": null,
+                          "workplaceType": "hybrid",
+                          "jobType": "full-time",
+                          "experienceLevel": "entry-level",
+                          "educationLevel": "bachelors",
+                          "keywords": [
+                            "Research",
+                            "DesignOps",
+                            "Remote"
+                          ],
+                          "location": {
+                            "country": "Australia",
+                            "state": "New South Wales",
+                            "city": "Sydney",
+                            "officeLocation": "Sydney, Australia"
+                          },
+                          "salaryRange": {
+                            "from": 2000,
+                            "to": 5000,
+                            "currency": "USD"
+                          },
+                          "application": {
+                            "type": "website",
+                            "value": "https://company.com/jobs/uiux-designer"
+                          },
+                          "responsibilities": [
+                            "Conduct user research",
+                            "Translate user needs into wireframes"
+                          ],
+                          "requirements": [
+                            "2+ years of UX experience",
+                            "Portfolio demonstrating UX projects"
+                          ],
+                          "benefits": [
+                            "Competitive salary",
+                            "Flexible working arrangement"
+                          ],
+                          "status": "published",
+                          "createdAt": "2026-03-30T10:00:00.000Z",
+                          "updatedAt": "2026-03-30T10:00:00.000Z",
+                          "createdById": "user_123",
+                          "isSaved": false,
+                          "hasApplied": false
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "404": {
+              "description": "Job not found"
+            }
+          },
+          "summary": "Get job details",
+          "tags": [
+            "jobs"
+          ]
+        },
+        "patch": {
+          "description": "Partial update of a job listing. Only the owner can update. All fields are optional.",
+          "operationId": "JobListingsController_update",
+          "parameters": [
+            {
+              "name": "id",
+              "required": true,
+              "in": "path",
+              "description": "Job listing UUID",
+              "schema": {
+                "example": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+                "type": "string"
+              }
+            }
+          ],
+          "requestBody": {
+            "required": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UpdateJobListingDto"
+                }
+              }
+            }
+          },
+          "responses": {
+            "200": {
+              "description": "Job updated successfully",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "example": {
+                      "message": "Job updated successfully"
+                    }
+                  }
+                }
+              }
+            },
+            "401": {
+              "description": "Unauthorized"
+            },
+            "403": {
+              "description": "Forbidden — not the job owner"
+            },
+            "404": {
+              "description": "Job not found"
+            }
+          },
+          "security": [
+            {
+              "bearer": []
+            }
+          ],
+          "summary": "Update a job listing",
+          "tags": [
+            "jobs"
+          ]
+        },
+        "delete": {
+          "description": "Permanently deletes a job listing. Only the owner can delete.",
+          "operationId": "JobListingsController_remove",
+          "parameters": [
+            {
+              "name": "id",
+              "required": true,
+              "in": "path",
+              "description": "Job listing UUID",
+              "schema": {
+                "example": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+                "type": "string"
+              }
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "Job deleted successfully",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "example": {
+                      "message": "Job deleted successfully"
+                    }
+                  }
+                }
+              }
+            },
+            "401": {
+              "description": "Unauthorized"
+            },
+            "403": {
+              "description": "Forbidden — not the job owner"
+            },
+            "404": {
+              "description": "Job not found"
+            }
+          },
+          "security": [
+            {
+              "bearer": []
+            }
+          ],
+          "summary": "Delete a job listing",
+          "tags": [
+            "jobs"
+          ]
+        }
+      },
+      "/jobs/{id}/apply": {
+        "post": {
+          "description": "Submits an application for the authenticated user. Duplicate applications are rejected at both the service and database level.",
+          "operationId": "JobListingsController_apply",
+          "parameters": [
+            {
+              "name": "id",
+              "required": true,
+              "in": "path",
+              "description": "Job listing UUID",
+              "schema": {
+                "example": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+                "type": "string"
+              }
+            }
+          ],
+          "requestBody": {
+            "required": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApplyJobDto"
+                }
+              }
+            }
+          },
+          "responses": {
+            "201": {
+              "description": "Application submitted successfully",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "example": {
+                      "message": "Application submitted successfully"
+                    }
+                  }
+                }
+              }
+            },
+            "401": {
+              "description": "Unauthorized"
+            },
+            "403": {
+              "description": "Job is not accepting applications"
+            },
+            "404": {
+              "description": "Job not found"
+            },
+            "409": {
+              "description": "Already applied to this job"
+            }
+          },
+          "security": [
+            {
+              "bearer": []
+            }
+          ],
+          "summary": "Apply to a job",
+          "tags": [
+            "jobs"
+          ]
+        }
       }
     },
     "info": {
@@ -16302,6 +16918,325 @@ window.onload = function() {
             "type",
             "targetId"
           ]
+        },
+        "CreateJobListingDto": {
+          "type": "object",
+          "properties": {
+            "title": {
+              "type": "string",
+              "example": "UI/UX Designer",
+              "minLength": 3,
+              "maxLength": 200
+            },
+            "description": {
+              "type": "string",
+              "example": "We are looking for a creative and detail-oriented UX Designer..."
+            },
+            "country": {
+              "type": "string",
+              "example": "Australia",
+              "maxLength": 100
+            },
+            "state": {
+              "type": "string",
+              "example": "New South Wales",
+              "maxLength": 100
+            },
+            "city": {
+              "type": "string",
+              "example": "Sydney",
+              "maxLength": 100
+            },
+            "officeLocation": {
+              "type": "string",
+              "example": "Sydney, Australia",
+              "maxLength": 200
+            },
+            "workplaceType": {
+              "type": "string",
+              "enum": [
+                "on-site",
+                "hybrid",
+                "remote"
+              ],
+              "example": "hybrid"
+            },
+            "jobType": {
+              "type": "string",
+              "enum": [
+                "full-time",
+                "part-time",
+                "contract",
+                "temporary",
+                "internship",
+                "freelance"
+              ],
+              "example": "full-time"
+            },
+            "experienceLevel": {
+              "type": "string",
+              "enum": [
+                "entry-level",
+                "mid-level",
+                "senior-level",
+                "lead",
+                "executive"
+              ],
+              "example": "entry-level"
+            },
+            "educationLevel": {
+              "type": "string",
+              "enum": [
+                "high-school",
+                "diploma",
+                "bachelors",
+                "masters",
+                "doctorate",
+                "not-required"
+              ],
+              "example": "bachelors"
+            },
+            "keywords": {
+              "example": [
+                "Research",
+                "DesignOps",
+                "Remote"
+              ],
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "responsibilities": {
+              "example": [
+                "Conduct user research",
+                "Translate user needs into wireframes"
+              ],
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "requirements": {
+              "example": [
+                "2+ years of UX experience",
+                "Portfolio demonstrating UX projects"
+              ],
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "benefits": {
+              "example": [
+                "Competitive salary",
+                "Flexible working arrangement"
+              ],
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "applicationType": {
+              "type": "string",
+              "enum": [
+                "website",
+                "email"
+              ],
+              "example": "website"
+            },
+            "applicationValue": {
+              "type": "string",
+              "example": "https://company.com/hiring",
+              "description": "URL if applicationType is website, email address if email"
+            },
+            "salaryFrom": {
+              "type": "string",
+              "example": "2000",
+              "description": "Minimum salary (sent as string, stored as number)"
+            },
+            "salaryTo": {
+              "type": "string",
+              "example": "5000",
+              "description": "Maximum salary (sent as string, stored as number)"
+            },
+            "currency": {
+              "type": "string",
+              "example": "USD",
+              "maxLength": 10
+            }
+          },
+          "required": [
+            "title",
+            "description",
+            "country",
+            "workplaceType",
+            "jobType",
+            "applicationType",
+            "applicationValue"
+          ]
+        },
+        "UpdateJobListingDto": {
+          "type": "object",
+          "properties": {
+            "title": {
+              "type": "string",
+              "example": "UI/UX Designer",
+              "minLength": 3,
+              "maxLength": 200
+            },
+            "description": {
+              "type": "string",
+              "example": "We are looking for a creative and detail-oriented UX Designer..."
+            },
+            "country": {
+              "type": "string",
+              "example": "Australia",
+              "maxLength": 100
+            },
+            "state": {
+              "type": "string",
+              "example": "New South Wales",
+              "maxLength": 100
+            },
+            "city": {
+              "type": "string",
+              "example": "Sydney",
+              "maxLength": 100
+            },
+            "officeLocation": {
+              "type": "string",
+              "example": "Sydney, Australia",
+              "maxLength": 200
+            },
+            "workplaceType": {
+              "type": "string",
+              "enum": [
+                "on-site",
+                "hybrid",
+                "remote"
+              ],
+              "example": "hybrid"
+            },
+            "jobType": {
+              "type": "string",
+              "enum": [
+                "full-time",
+                "part-time",
+                "contract",
+                "temporary",
+                "internship",
+                "freelance"
+              ],
+              "example": "full-time"
+            },
+            "experienceLevel": {
+              "type": "string",
+              "enum": [
+                "entry-level",
+                "mid-level",
+                "senior-level",
+                "lead",
+                "executive"
+              ],
+              "example": "entry-level"
+            },
+            "educationLevel": {
+              "type": "string",
+              "enum": [
+                "high-school",
+                "diploma",
+                "bachelors",
+                "masters",
+                "doctorate",
+                "not-required"
+              ],
+              "example": "bachelors"
+            },
+            "keywords": {
+              "example": [
+                "Research",
+                "DesignOps",
+                "Remote"
+              ],
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "responsibilities": {
+              "example": [
+                "Conduct user research",
+                "Translate user needs into wireframes"
+              ],
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "requirements": {
+              "example": [
+                "2+ years of UX experience",
+                "Portfolio demonstrating UX projects"
+              ],
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "benefits": {
+              "example": [
+                "Competitive salary",
+                "Flexible working arrangement"
+              ],
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "applicationType": {
+              "type": "string",
+              "enum": [
+                "website",
+                "email"
+              ],
+              "example": "website"
+            },
+            "applicationValue": {
+              "type": "string",
+              "example": "https://company.com/hiring",
+              "description": "URL if applicationType is website, email address if email"
+            },
+            "salaryFrom": {
+              "type": "string",
+              "example": "2000",
+              "description": "Minimum salary (sent as string, stored as number)"
+            },
+            "salaryTo": {
+              "type": "string",
+              "example": "5000",
+              "description": "Maximum salary (sent as string, stored as number)"
+            },
+            "currency": {
+              "type": "string",
+              "example": "USD",
+              "maxLength": 10
+            }
+          }
+        },
+        "ApplyJobDto": {
+          "type": "object",
+          "properties": {
+            "coverLetter": {
+              "type": "string",
+              "example": "Short introduction from applicant",
+              "maxLength": 2000
+            },
+            "resumeUrl": {
+              "type": "string",
+              "example": "https://cdn.example.com/resume.pdf"
+            }
+          }
         }
       }
     }

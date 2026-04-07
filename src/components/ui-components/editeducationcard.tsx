@@ -69,7 +69,7 @@ const EditEducationCard = ({
               fontSize="0.875rem"
               fontFamily="Outfit"
             >
-              Add your academic background
+              {isEditable ? "Add your academic background" : "No education history has been added yet."}
             </Text>
 
             {size(educations) > 0 ? (

@@ -12,368 +12,148 @@ import {
   VStack,
   HStack,
 } from "@chakra-ui/react";
-
-const paymentsuccess = "/icons/payment.svg";
+import { format } from "date-fns";
 
 interface PaymentModalProps {
   isOpen: boolean;
   onOpenChange: () => void;
-  data:any
+  data: any;
 }
 
-const PaymentSuccessIcon = () => (
-  <Box position="absolute" top="-40px" left="50%" transform="translateX(-50%)">
-    <Image
-      src={paymentsuccess}
-      // boxSize="90px"
-      alt="Payment Successful"
-    />
-  </Box>
+const formatDate = (val: string) => {
+  if (!val) return "—";
+  try { return format(new Date(val), "MMMM d, yyyy"); } catch { return val; }
+};
+
+const formatAmount = (data: any) => {
+  const cents = data?.raw?.paymentData?.amount ?? data?.raw?.amount;
+  if (typeof cents === "number") return `$${(cents / 100).toFixed(2)}`;
+  if (data?.amount && data.amount !== "—") return data.amount.startsWith("$") ? data.amount : `$${data.amount}`;
+  return "—";
+};
+
+const Row = ({ label, value }: { label: string; value: string }) => (
+  <Flex justify="space-between" w="full">
+    <Text fontFamily="Outfit" color="gray.500" fontWeight="400" fontSize="0.875rem">{label}</Text>
+    <Text fontFamily="Outfit" color="text_primary" fontWeight="600" fontSize="0.875rem" textAlign="right" maxW="60%">{value}</Text>
+  </Flex>
 );
 
+const PaymentModal = ({ isOpen, onOpenChange, data }: PaymentModalProps) => {
+  const raw = data?.raw ?? data ?? {};
 
-const PaymentModal = ({ isOpen, onOpenChange , data}: PaymentModalProps) => {
-  console.log(data, "data")
+  const receiptNumber = raw?.id ?? data?.id ?? "—";
+  const dateOfIssue = formatDate(raw?.createdAt ?? raw?.created_at ?? data?.date ?? "");
+  const dateOfService = formatDate(
+    raw?.appointmentData?.availabilityDate ??
+    raw?.appointmentData?.date ??
+    raw?.scheduledDateTimeStart ??
+    raw?.scheduledAt ??
+    ""
+  );
+  const consultantName = raw?.consultant?.fullName ?? data?.topic ?? "—";
+  const amountPaid = formatAmount(data);
+  const discount = raw?.paymentData?.discount
+    ? `$${(raw.paymentData.discount / 100).toFixed(2)}`
+    : "—";
+  const paymentMethod =
+    raw?.paymentData?.methodSummary?.type ??
+    raw?.paymentData?.method ??
+    data?.method ??
+    "—";
+  const transactionId =
+    raw?.paymentData?.id ??
+    raw?.paymentData?.transactionId ??
+    raw?.transactionId ??
+    raw?.stripePaymentIntentId ??
+    "—";
+
   return (
-    <Dialog.Root
-      open={isOpen}
-      onOpenChange={(open) => !open && onOpenChange()}
-      placement={"center"}
-      size={"xs"}
-    >
+    <Dialog.Root open={isOpen} onOpenChange={(o) => !o && onOpenChange()} placement={"center"} size={"sm"}>
       <Portal>
         <Dialog.Backdrop />
         <Dialog.Positioner>
-          <Dialog.Content
-            // display="flex"
-            // flexDirection="column"
-            alignItems="center"
-            p="26px"
-            borderRadius="16px"
-            // bg="white"
-            // position="relative"
-            // overflow="visible"
-            // maxW="400px"
-            w="full"
-          >
+          <Dialog.Content alignItems="center" p="26px" borderRadius="16px" w="full">
             <Dialog.CloseTrigger asChild>
-              <CloseButton
-              onClick={onOpenChange}
-                position="absolute"
-                top="16px"
-                right="16px"
-                size="sm"
-              />
+              <CloseButton onClick={onOpenChange} position="absolute" top="16px" right="16px" size="sm" />
             </Dialog.CloseTrigger>
 
-            {/* <PaymentSuccessIcon /> */}
-
             <Dialog.Body mt="10px" textAlign="center" w="full">
-
-              <Box bg="bg_box" borderRadius="16px" border={2}>
-                <Flex justify="center" mb={8}>
-                  <Image
-                    src="/icons/successful.svg"
-                    alt="Success"
-                    boxSize="48px"
-                  />
+              <Box bg="bg_box" borderRadius="16px">
+                <Flex justify="center" mb={4}>
+                  <Image src="/icons/successful.svg" alt="Success" boxSize="56px" />
                 </Flex>
 
-                <Text
-                  textAlign="center"
-                  font="outfit"
-                  color="text_primary"
-                  fontWeight="600"
-                  fontSize="1.5rem"
-                  mb={2}
-                >
+                <Text fontFamily="Outfit" color="text_primary" fontWeight="700" fontSize="1.5rem" mb={1}>
                   Payment Successful!
                 </Text>
-                <Text
-                  textAlign="center"
-                  font="outfit"
-                  color="gray.500"
-                  fontWeight="600"
-                  fontSize="1rem"
-                  mb={6}
-                >
+                <Text fontFamily="Outfit" color="gray.500" fontSize="0.875rem" mb={6}>
                   Your payment has been successfully made
                 </Text>
 
-                <VStack align="start" gap={2} mb={6}>
-                  <Text
-                    font="outfit"
-                    color="text_primary"
-                    fontWeight="600"
-                    fontSize="1rem"
-                  >
+                {/* Payment Receipt */}
+                <VStack align="start" gap={3} mb={4}>
+                  <Text fontFamily="Outfit" color="text_primary" fontWeight="700" fontSize="0.9375rem">
                     Payment Receipt
                   </Text>
-                  <Flex justify="space-between" w="full">
-                    <Text
-                      font="outfit"
-                      color="gray.500"
-                      fontWeight="400"
-                      fontSize="0.875rem"
-                    >
-                      Receipt Number:
-                    </Text>
-                    <Text
-                      font="outfit"
-                      color="text_primary"
-                      fontWeight="600"
-                      fontSize="1rem"
-                    >
-                      987654321
-                    </Text>
-                  </Flex>
-                  <Flex justify="space-between" w="full">
-                    <Text
-                      font="outfit"
-                      color="gray.500"
-                      fontWeight="400"
-                      fontSize="0.875rem"
-                    >
-                      Date of issue:
-                    </Text>
-                    <Text
-                      font="outfit"
-                      color="text_primary"
-                      fontWeight="600"
-                      fontSize="1rem"
-                    >
-                      {new Date(data?.date).toLocaleDateString("en-US", {
-                        weekday: "short",
-                        month: "short",
-                        day: "numeric",
-                        year: "numeric",
-                      })}
-                    </Text>
-                  </Flex>
+                  <Row label="Receipt Number:" value={receiptNumber.length > 20 ? `#${receiptNumber.slice(-8).toUpperCase()}` : `#${receiptNumber}`} />
+                  <Row label="Date of issue:" value={dateOfIssue} />
                 </VStack>
 
-                <VStack align="start" gap={2} mb={6}>
-                  <Text
-                    font="outfit"
-                    color="text_primary"
-                    fontWeight="600"
-                    fontSize="1rem"
-                  >
-                    Consultation Details
-                  </Text>
-                  <Flex justify="space-between" w="full">
-                    <Text
-                      font="outfit"
-                      color="gray.500"
-                      fontWeight="400"
-                      fontSize="0.875rem"
-                    >
-                      Consultant’s Name:
-                    </Text>
-                    <Text
-                      font="outfit"
-                      color="text_primary"
-                      fontWeight="600"
-                      fontSize="1rem"
-                    >
-                      Leslie Alexander
-                    </Text>
-                  </Flex>
-                  <Flex justify="space-between" w="full">
-                    <Text
-                      font="outfit"
-                      color="gray.500"
-                      fontWeight="400"
-                      fontSize="0.875rem"
-                    >
-                      Client’s Name:
-                    </Text>
-                    <Text
-                      font="outfit"
-                      color="text_primary"
-                      fontWeight="600"
-                      fontSize="1rem"
-                    >
-                      {data?.topic}
-                    </Text>
-                  </Flex>
-                  <Flex justify="space-between" w="full">
-                    <Text
-                      font="outfit"
-                      color="gray.500"
-                      fontWeight="400"
-                      fontSize="0.875rem"
-                    >
-                      Duration:
-                    </Text>
-                    <Text
-                      font="outfit"
-                      color="text_primary"
-                      fontWeight="600"
-                      fontSize="1rem"
-                    >
-                      2hrs
-                    </Text>
-                  </Flex>
-                </VStack>
+                <Box w="full" h="1px" bg="gray.100" my={3} />
 
-                <VStack align="start" gap={2} mb={6}>
-                  <Text
-                    font="outfit"
-                    color="text_primary"
-                    fontWeight="600"
-                    fontSize="1rem"
-                  >
+                {/* Payment Details */}
+                <VStack align="start" gap={3} mb={4}>
+                  <Text fontFamily="Outfit" color="text_primary" fontWeight="700" fontSize="0.9375rem">
                     Payment Details
                   </Text>
-                  <Flex justify="space-between" w="full">
-                    <Text
-                      font="outfit"
-                      color="gray.500"
-                      fontWeight="400"
-                      fontSize="0.875rem"
-                    >
-                      Service Description:
-                    </Text>
-                    <Text
-                      font="outfit"
-                      color="text_primary"
-                      fontWeight="600"
-                      fontSize="1rem"
-                    >
-                      987654321
-                    </Text>
-                  </Flex>
-                  <Flex justify="space-between" w="full">
-                    <Text
-                      font="outfit"
-                      color="gray.500"
-                      fontWeight="400"
-                      fontSize="0.875rem"
-                    >
-                      Date of Service:
-                    </Text>
-                    <Text
-                      font="outfit"
-                      color="text_primary"
-                      fontWeight="600"
-                      fontSize="1rem"
-                    >
-                      {new Date(data?.date).toLocaleDateString("en-US", {
-                        month: "2-digit",
-                        day: "2-digit",
-                        year: "numeric",
-                      })}
-                    </Text>
-                  </Flex>
-                  <Flex justify="space-between" w="full">
-                    <Text
-                      font="outfit"
-                      color="gray.500"
-                      fontWeight="400"
-                      fontSize="0.875rem"
-                    >
-                      Amount Paid:
-                    </Text>
-                    <Text
-                      font="outfit"
-                      color="text_primary"
-                      fontWeight="600"
-                      fontSize="1rem"
-                    >
-                      $150.00
-                    </Text>
-                  </Flex>
-                  <Flex justify="space-between" w="full">
-                    <Text
-                      font="outfit"
-                      color="gray.500"
-                      fontWeight="400"
-                      fontSize="0.875rem"
-                    >
-                      Payment Method:
-                    </Text>
-                    <Text
-                      font="outfit"
-                      color="text_primary"
-                      fontWeight="600"
-                      fontSize="1rem"
-                    >
-                      Credit Card (***1234)
-                    </Text>
-                  </Flex>
-                  <Flex justify="space-between" w="full">
-                    <Text
-                      font="outfit"
-                      color="gray.500"
-                      fontWeight="400"
-                      fontSize="0.875rem"
-                    >
-                      Transaction ID:
-                    </Text>
-                    <Text
-                      font="outfit"
-                      color="text_primary"
-                      fontWeight="600"
-                      fontSize="1rem"
-                    >
-                      TXN123456789
-                    </Text>
-                  </Flex>
+                  <Row label="Consultant:" value={consultantName} />
+                  <Row label="Amount Paid:" value={amountPaid} />
+                  <Row label="Date of Service:" value={dateOfService} />
+                  <Row label="Discount Applied:" value={discount} />
+                  <Row label="Payment Method:" value={paymentMethod} />
+                  <Row label="Transaction ID:" value={transactionId} />
                 </VStack>
 
-                <Flex justify="space-between" mb={6}>
-                  <Text
-                    font="outfit"
-                    color="text_primary"
-                    fontWeight="600"
-                    fontSize="1rem"
-                  >
-                    Total Paid
-                  </Text>
-                  <Text
-                    font="outfit"
-                    color="text_primary"
-                    fontWeight="600"
-                    fontSize="1rem"
-                  >
-                    ${data.amount}
-                  </Text>
+                <Box w="full" h="1px" bg="gray.100" my={3} />
+
+                {/* Total */}
+                <Flex justify="space-between" w="full" mb={6}>
+                  <Text fontFamily="Outfit" color="text_primary" fontWeight="700" fontSize="1rem">Total Paid</Text>
+                  <Text fontFamily="Outfit" color="text_primary" fontWeight="700" fontSize="1rem">{amountPaid}</Text>
                 </Flex>
 
-                <HStack justify="center" gap={4} mt={10}>
+                <HStack justify="center" gap={4} mt={4}>
                   <Button
                     variant="outline"
-                    colorScheme="gray"
-                    px={4}
+                    borderColor="gray.300"
+                    color="text_primary"
+                    px={5}
                     py={2}
+                    borderRadius="8px"
+                    fontFamily="Outfit"
                     onClick={onOpenChange}
                     display="flex"
                     alignItems="center"
                     gap={2}
                   >
-                    <Image
-                      src="/icons/cancel.svg"
-                      alt="Cancel"
-                      boxSize="16px"
-                    />
+                    <Image src="/icons/cancel.svg" alt="Cancel" boxSize="16px" />
                     Cancel
                   </Button>
 
                   <Button
                     bg="bg_button"
-                    // colorScheme="blue"
-                    px={4}
+                    color="white"
+                    px={5}
                     py={2}
+                    borderRadius="8px"
+                    fontFamily="Outfit"
                     display="flex"
                     alignItems="center"
                     gap={2}
+                    _hover={{ bg: "bg_button" }}
                   >
-                    <Image
-                      src="/icons/download.svg"
-                      alt="Download"
-                      boxSize="16px"
-                    />
+                    <Image src="/icons/download.svg" alt="Download" boxSize="16px" />
                     Download
                   </Button>
                 </HStack>

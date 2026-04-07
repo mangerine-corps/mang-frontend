@@ -68,7 +68,7 @@ const EditExperienceCard = ({
             fontSize="0.875rem"
             fontFamily="Outfit"
           >
-            Showcase your professional journey
+            {isEditable ? "Showcase your professional journey" : "No work experience has been added yet."}
           </Text>
 
           {size(experiences) > 0 ? (

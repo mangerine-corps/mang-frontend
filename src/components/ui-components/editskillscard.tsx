@@ -68,7 +68,7 @@ const EditSkillCard = ({
               fontSize="0.875rem"
               fontFamily="Outfit"
             >
-              Tell people what you're great at
+              {isEditable ? "Tell people what you're great at" : "No skills have been added yet."}
             </Text>
 
             {map(skills, (skill) => (

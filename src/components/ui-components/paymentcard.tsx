@@ -1,10 +1,9 @@
 import { useState, useEffect } from "react";
 import {
-  PaymentElement,
+  CardElement,
   useStripe,
   useElements,
 } from "@stripe/react-stripe-js";
-import { StripePaymentElementOptions } from "@stripe/stripe-js";
 import {
   Box,
   Flex,
@@ -40,9 +39,11 @@ interface PaymentDetails {
 
 export default function PaymentForm({
   paymentDetails,
+  clientSecret,
   onBack,
 }: {
   paymentDetails: PaymentDetails;
+  clientSecret: string;
   onBack?: () => void;
 }) {
   const stripe = useStripe();
@@ -51,7 +52,7 @@ export default function PaymentForm({
 
   const [message, setMessage] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [elementLoading, setElementLoading] = useState(false);
+  const [paymentMethod, setPaymentMethod] = useState<"card" | "paypal">("card");
   // Deprecated: success modal is replaced by /payment-success page
   const [isClient, setIsClient] = useState(false);
   const recordingFee = paymentDetails.hasRecording ? 5 : 0;
@@ -70,21 +71,14 @@ export default function PaymentForm({
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
-    if (!stripe || !elements) {
-      // Stripe.js hasn't yet loaded.
-      // Make sure to disable form submission until Stripe.js has loaded.
-      return;
-    }
+    if (!stripe || !elements) return;
 
     setIsLoading(true);
-    // Persist amount before redirect so it's available after return_url navigation
+
     if (isClient) {
       try {
         localStorage.setItem("paymentAmount", paymentDetails.price.toString());
-      } catch (err) {
-        // ignore storage errors
-      }
+      } catch {}
     }
 
     const consultantId = router?.query?.consultantId as string | undefined;
@@ -93,52 +87,21 @@ export default function PaymentForm({
       ? `${baseOrigin}/payment-success?consultantId=${consultantId}`
       : `${baseOrigin}/payment-success`;
 
-    stripe
-      .confirmPayment({
-        elements,
-        confirmParams: {
-          // Redirect to payment success page where we show status and toast
-          return_url: isClient
-            ? successUrl
-            : consultantId
-              ? `/payment-success?consultantId=${consultantId}`
-              : "/payment-success",
-        },
-      })
-      .then((result) => {
-        if (result.error) {
-          const { error } = result;
-          // redirected to the `return_url`.
-          if (
-            error.type === "card_error" ||
-            error.type === "validation_error"
-          ) {
-            setMessage(error.message);
-          } else {
-            setMessage("An unexpected error occurred.");
-          }
+    const cardElement = elements.getElement(CardElement);
+    const { error } = await stripe.confirmCardPayment(clientSecret, {
+      payment_method: { card: cardElement },
+    });
 
-          setIsLoading(false);
-        } else {
-          // In cases where Stripe does NOT redirect (e.g. some cards), navigate to success page
-          if (isClient) {
-            router.push(successUrl);
-          }
-          setIsLoading(false);
-        }
-      });
-
-    // This point will only be reached if there is an immediate error when
-    // confirming the payment. Otherwise, your customer will be redirected to
-    // your `return_url`. For some payment methods like iDEAL, your customer will
-    // be redirected to an intermediate site first to authorize the payment, then
-  };
-
-  const paymentElementOptions: StripePaymentElementOptions = {
-    layout: {
-      type: "tabs",
-      defaultCollapsed: false,
-    },
+    if (error) {
+      if (error.type === "card_error" || error.type === "validation_error") {
+        setMessage(error.message);
+      } else {
+        setMessage("An unexpected error occurred.");
+      }
+      setIsLoading(false);
+    } else {
+      router.push(successUrl);
+    }
   };
 
   return (
@@ -281,22 +244,78 @@ export default function PaymentForm({
               >
                 Pay with
               </Text>
-              <Box
-                w="full"
-                borderRadius="16px"
-                borderWidth="1px"
-                borderColor="rgba(17, 29, 74, 0.08)"
-                bg="white"
-                p={{ base: 4, lg: 5 }}
-              >
-                <PaymentElement
-                  onReady={() => setElementLoading(false)}
-                  onLoaderStart={() => setElementLoading(true)}
-                  id="payment-element"
-                  options={paymentElementOptions}
-                />
-                {elementLoading && <ElementLoader />}
-              </Box>
+
+              {/* Payment method radio selectors */}
+              <HStack gap={6}>
+                <Box as="label" display="flex" alignItems="center" gap={2} cursor="pointer">
+                  <input
+                    type="radio"
+                    name="paymentMethod"
+                    value="card"
+                    checked={paymentMethod === "card"}
+                    onChange={() => setPaymentMethod("card")}
+                    style={{ accentColor: "#111D4A", width: 16, height: 16 }}
+                  />
+                  <Text fontSize="0.875rem" color="text_primary" fontFamily="Outfit">
+                    Card (Powered by Stripe)
+                  </Text>
+                </Box>
+
+                <Box as="label" display="flex" alignItems="center" gap={2} cursor="pointer">
+                  <input
+                    type="radio"
+                    name="paymentMethod"
+                    value="paypal"
+                    checked={paymentMethod === "paypal"}
+                    onChange={() => setPaymentMethod("paypal")}
+                    style={{ accentColor: "#111D4A", width: 16, height: 16 }}
+                  />
+                  <Text fontSize="0.875rem" color="text_primary" fontFamily="Outfit">
+                    PayPal
+                  </Text>
+                </Box>
+              </HStack>
+
+              {/* Card — Stripe CardElement (card only) */}
+              {paymentMethod === "card" && (
+                <Box
+                  w="full"
+                  borderRadius="16px"
+                  borderWidth="1px"
+                  borderColor="rgba(17, 29, 74, 0.08)"
+                  bg="white"
+                  p={{ base: 4, lg: 5 }}
+                >
+                  <CardElement
+                    options={{
+                      style: {
+                        base: {
+                          fontSize: "16px",
+                          color: "#111D4A",
+                          "::placeholder": { color: "#aab7c4" },
+                        },
+                      },
+                    }}
+                  />
+                </Box>
+              )}
+
+              {/* PayPal */}
+              {paymentMethod === "paypal" && (
+                <Box
+                  w="full"
+                  borderRadius="16px"
+                  borderWidth="1px"
+                  borderColor="rgba(17, 29, 74, 0.08)"
+                  bg="white"
+                  p={{ base: 4, lg: 5 }}
+                  textAlign="center"
+                >
+                  <Text fontSize="0.875rem" color="gray.400" fontFamily="Outfit">
+                    PayPal integration coming soon.
+                  </Text>
+                </Box>
+              )}
             </VStack>
 
             <Button
@@ -304,7 +323,7 @@ export default function PaymentForm({
               color="white"
               type="submit"
               borderRadius="8px"
-              disabled={isLoading || !stripe || !elements}
+              disabled={isLoading || paymentMethod === "paypal" || !stripe || !elements}
               id="submit"
               py="12px"
               _hover={{ bg: "#111D4A" }}

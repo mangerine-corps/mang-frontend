@@ -160,7 +160,7 @@ const handleHeartClick = () => {
           </Text>
         </Flex>
         <Image
-          src={isLiked ? aheart : heart}
+          src={isLiked ? heart : aheart}
           alt="Heart"
           boxSize="40px"
           cursor="pointer"

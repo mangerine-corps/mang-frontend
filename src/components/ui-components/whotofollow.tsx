@@ -21,8 +21,8 @@ import { Box, Text, HStack, VStack, Button, Image } from "@chakra-ui/react";
         shadow="sm"
         p={6}
 
+        w="full"
         display={{ base: "none", md: "block", lg: "block" }}
-        // w={{ base: "95%", md: "280px", lg: "340px", xl: "340px" }}
       >
         <Text fontWeight="bold" color="text_primary" fontSize="1rem" mb={8}>
           Who to follow

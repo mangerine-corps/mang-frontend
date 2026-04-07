@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Box, Text, Button, Flex, Spinner, Input } from '@chakra-ui/react';
+import { Box, Text, Button, Flex, Spinner, Textarea } from '@chakra-ui/react';
 import 'react-date-range/dist/styles.css'; // main style file
 import 'react-date-range/dist/theme/default.css';
 import BookingCalendarCard from "mangarine/components/custom/consultants/CalendarUi";
@@ -138,16 +138,17 @@ const CustomDatePicker = ({onClick}) => {
                     mb="2"
                     color="text_primary"
                 >
-                    Consultation Title
+                    Message to Consultant
                 </Text>
-                <Input
-                    placeholder="Enter consultation title/description"
-                    // minH="100px"
+                <Textarea
+                    placeholder="Enter your message to the consultant"
                     value={message}
                     onChange={(e: any) => setMessage(e.target.value)}
                     mb="4"
                     color="text_primary"
                     p={3}
+                    minH="120px"
+                    resize="vertical"
                 />
 
                 <Flex align="center" mb={6}>
