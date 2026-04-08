@@ -28,6 +28,16 @@ import {
   LuSearch,
   LuVideo,
 } from "react-icons/lu";
+import { useChat } from "mangarine/components/ui-components/message/ChatProvider";
+
+const IncomingCallModal = dynamic(
+  () => import("mangarine/components/ui-components/modals/incomingcallmodal"),
+  { ssr: false }
+);
+const OutgoingCallModal = dynamic(
+  () => import("mangarine/components/ui-components/modals/outgoingcallmodal"),
+  { ssr: false }
+);
 import NewMessageDrawer from "mangarine/components/ui-components/modals/newmessage";
 import { useGetConversationMutation } from "mangarine/state/services/apointment.service";
 import {
@@ -110,6 +120,7 @@ export const ChatHeader = ({
   const { handleMuteUser } = useChatManagement();
   const { user } = useAuth();
   const router = useRouter();
+  const { initiateCall, outgoingCall } = useChat();
   const [muteOpen, setMuteOpen] = useState(false);
   const [reportOpen, setReportOpen] = useState(false);
   const [blockOpen, setBlockOpen] = useState(false);
@@ -117,6 +128,13 @@ export const ChatHeader = ({
 
   const profile = useMemo(() => {
     return resolveConversationProfile(currentConversation, userId);
+  }, [currentConversation, userId]);
+
+  const peer = useMemo(() => {
+    if (!currentConversation?.id) return null;
+    return userId === currentConversation?.user?.id
+      ? currentConversation?.consultant
+      : currentConversation?.user;
   }, [currentConversation, userId]);
 
   const lastActivity = useMemo(() => {
@@ -137,6 +155,16 @@ export const ChatHeader = ({
     userId === currentConversation?.user?.id
       ? currentConversation?.consultant?.id
       : currentConversation?.user?.id;
+
+  const handleStartCall = () => {
+    if (!peer?.id || outgoingCall) return;
+    initiateCall(
+      currentConversation.id,
+      peer.id,
+      peer.fullName || "User",
+      peer.profilePics,
+    );
+  };
 
   return (
     <HStack
@@ -202,80 +230,82 @@ export const ChatHeader = ({
         </VStack>
       </HStack>
 
-      <Menu.Root positioning={{ placement: "bottom-end" }}>
-        <Menu.Trigger asChild>
-          <IconButton
-            aria-label="Conversation actions"
-            variant="ghost"
-            borderRadius="12px"
-            borderWidth="1px"
-            borderColor="#EEF0F4"
-            bg="white"
-          >
-            <LuEllipsisVertical />
-          </IconButton>
-        </Menu.Trigger>
-        <Portal>
-          <Menu.Positioner>
-            <Menu.Content
-              minW="220px"
-              p="8px"
-              borderRadius="14px"
+      <HStack gap={2}>
+        <IconButton
+          aria-label="Start video call"
+          variant="ghost"
+          borderRadius="12px"
+          borderWidth="1px"
+          borderColor="#EEF0F4"
+          bg="white"
+          color="#1C275D"
+          disabled={!!outgoingCall}
+          onClick={handleStartCall}
+          _hover={{ bg: "#EEF5FF", borderColor: "#C7D7F5" }}
+        >
+          <LuVideo />
+        </IconButton>
+
+        <Menu.Root positioning={{ placement: "bottom-end" }}>
+          <Menu.Trigger asChild>
+            <IconButton
+              aria-label="Conversation actions"
+              variant="ghost"
+              borderRadius="12px"
+              borderWidth="1px"
               borderColor="#EEF0F4"
-              boxShadow="0 20px 48px rgba(17, 29, 74, 0.14)"
+              bg="white"
             >
-              <Menu.Item
-                value="video"
-                borderRadius="10px"
-                px="12px"
-                py="10px"
-                color="text_primary"
-                onClick={() =>
-                  router.push(
-                    `./message/videoconsultation?consultationId=${currentConversation.id}`
-                  )
-                }
+              <LuEllipsisVertical />
+            </IconButton>
+          </Menu.Trigger>
+          <Portal>
+            <Menu.Positioner>
+              <Menu.Content
+                minW="200px"
+                p="8px"
+                borderRadius="14px"
+                borderColor="#EEF0F4"
+                boxShadow="0 20px 48px rgba(17, 29, 74, 0.14)"
               >
-                <LuVideo />
-                Start Video Call
-              </Menu.Item>
-              <Menu.Item
-                value="report"
-                borderRadius="10px"
-                px="12px"
-                py="10px"
-                color="text_primary"
-                onClick={() => setReportOpen(true)}
-              >
-                <LuFlag />
-                Report
-              </Menu.Item>
-              <Menu.Item
-                value="block"
-                borderRadius="10px"
-                px="12px"
-                py="10px"
-                color="text_primary"
-                onClick={() => setBlockOpen(true)}
-              >
-                <LuBan />
-                Block
-              </Menu.Item>
-              <Menu.Item
-                value="mute"
-                borderRadius="10px"
-                px="12px"
-                py="10px"
-                color="text_primary"
-                onClick={() => setMuteOpen(true)}
-              >
-                <LuBell />
-                Mute
-              </Menu.Item>
-            </Menu.Content>
-          </Menu.Positioner>
-        </Portal>
-      </Menu.Root>
+                <Menu.Item
+                  value="report"
+                  borderRadius="10px"
+                  px="12px"
+                  py="10px"
+                  color="text_primary"
+                  onClick={() => setReportOpen(true)}
+                >
+                  <LuFlag />
+                  Report
+                </Menu.Item>
+                <Menu.Item
+                  value="block"
+                  borderRadius="10px"
+                  px="12px"
+                  py="10px"
+                  color="text_primary"
+                  onClick={() => setBlockOpen(true)}
+                >
+                  <LuBan />
+                  Block
+                </Menu.Item>
+                <Menu.Item
+                  value="mute"
+                  borderRadius="10px"
+                  px="12px"
+                  py="10px"
+                  color="text_primary"
+                  onClick={() => setMuteOpen(true)}
+                >
+                  <LuBell />
+                  Mute
+                </Menu.Item>
+              </Menu.Content>
+            </Menu.Positioner>
+          </Portal>
+        </Menu.Root>
+      </HStack>
 
       <ReportUser
         isOpen={reportOpen}
@@ -431,6 +461,38 @@ export const ConversationItem = ({
         </HStack>
       </VStack>
     </Flex>
+  );
+};
+
+/** Renders incoming/outgoing call modals — must be inside ChatProvider */
+const CallModalManager = () => {
+  const router = useRouter();
+  const { incomingCall, outgoingCall, acceptCall, rejectCall, cancelCall } =
+    useChat();
+
+  const handleAccept = () => {
+    const conversationId = incomingCall?.conversationId;
+    acceptCall();
+    if (conversationId) {
+      router.push(
+        `/message/videoconsultation?consultationId=${conversationId}`
+      );
+    }
+  };
+
+  return (
+    <>
+      {incomingCall && (
+        <IncomingCallModal
+          call={incomingCall}
+          onAccept={handleAccept}
+          onReject={rejectCall}
+        />
+      )}
+      {outgoingCall && (
+        <OutgoingCallModal call={outgoingCall} onCancel={cancelCall} />
+      )}
+    </>
   );
 };
 
@@ -623,6 +685,8 @@ const Index = () => {
             onOpenChange={() => setShowDrawer(false)}
           />
         </Box>
+
+        <CallModalManager />
       </DynamicAgoraChatProvider>
     </AppLayout>
   );

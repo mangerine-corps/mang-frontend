@@ -53,7 +53,7 @@ const FavouriteConsultantsComp = ({ title }: FavouriteConsultantsCompProps) => {
 
       {!isLoading && isEmpty(data?.data?.favoriteConsultants) && (
         <Text px="6" fontSize="0.875rem" color="gray.400" fontFamily="Outfit" textAlign="left">
-          You haven't added any consultants to your favourites yet. Tap the ♥ icon to save one!
+          You haven&apos;t added any consultants to your favourites yet. Tap the ♥ icon to save one!
         </Text>
       )}
       <Flex flexDir={"column"} gap={4} w="full" py="2" px={"6"}>

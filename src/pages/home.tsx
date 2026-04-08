@@ -150,7 +150,7 @@ function Home() {
                   {combinedPosts.map((post: Post) => post && <NewsItem key={post?.id} post={post} />)}
                   {!hasMore && (
                     <VStack py={6} opacity={0.7}>
-                      <Box fontSize="sm" color="gray.400">You're all caught up</Box>
+                      <Box fontSize="sm" color="gray.400">You&apos;re all caught up</Box>
                     </VStack>
                   )}
                 </>

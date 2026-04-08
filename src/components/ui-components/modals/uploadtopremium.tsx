@@ -32,7 +32,7 @@ const UploadToPremiumModal = ({ isOpen, onOpenChange }: Props) => (
                 color="text_primary"
                 fontWeight="400"
               >
-You've reached the 4 image limit! Upgrade to premium to upload more images and unlock additional features.              </Text>
+You&apos;ve reached the 4 image limit! Upgrade to premium to upload more images and unlock additional features.              </Text>
            
             </VStack>
           </Dialog.Body>

@@ -38,19 +38,38 @@ export interface ChatMessage {
     }>;
 }
 
+export interface IncomingCall {
+    conversationId: string;
+    callerId: string;
+    callerName: string;
+    callerImage?: string;
+}
+
+export interface OutgoingCall {
+    conversationId: string;
+    receiverName: string;
+    receiverImage?: string;
+    status: 'ringing' | 'accepted' | 'rejected';
+}
+
 interface ChatContextType {
     socket: Socket | null;
     chatClient: any | null;
     joinChatRoom: (roomId: string) => Promise<void>;
-    pagination: {},
-    // Add other chat functionalities you need
+    pagination: {};
+    incomingCall: IncomingCall | null;
+    outgoingCall: OutgoingCall | null;
+    initiateCall: (conversationId: string, receiverId: string, receiverName: string, receiverImage?: string) => void;
+    cancelCall: () => void;
+    acceptCall: () => void;
+    rejectCall: () => void;
 }
 
 const ChatContext = createContext<ChatContextType | undefined>(undefined);
 
 export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
     const chatClient = useRef(null);
-    const { user, token } = useAuth()
+    const { user, token: authToken } = useAuth()
     const { currentConversation, messages, lastMessage } = useAppointment()
     const [socket, setSocket] = useState<any>(null); // For Socket.IO
     const [getToken] = useGetChatTokenMutation()
@@ -58,6 +77,9 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const dispatch = useDispatch();
     const currentRoomRef = useRef<string | null>(null);
     const [pagination, setPagination] = useState({})
+    const [incomingCall, setIncomingCall] = useState<IncomingCall | null>(null);
+    const [outgoingCall, setOutgoingCall] = useState<OutgoingCall | null>(null);
+    const callTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
 
     useEffect(() => {
@@ -127,12 +149,11 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     useEffect(() => {
         if (typeof window === 'undefined') return;
 
-        if (!token || !token) {
+        if (!authToken) {
             if (socketRef.current?.connected) {
                 socketRef.current.disconnect();
             }
             socketRef.current = null;
-            //   setIsConnected(false);
             return;
         }
 
@@ -141,7 +162,7 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         currentRoomRef.current = currentConversation?.id
 
 
-        currentSocket.auth = { token, roomId: currentConversation?.id }; // Send token for backend authentication
+        currentSocket.auth = { token: authToken, roomId: currentConversation?.id }; // Send token for backend authentication
         currentSocket.connect();
 
         const onConnect = () => {
@@ -206,7 +227,7 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             currentSocket.off('messageHistory', onMessageHistory);
             // Do not disconnect globalSocketInstance unless it's app shutdown
         };
-    }, [token, user, currentConversation]);
+    }, [authToken, user, currentConversation]);
 
 
     useEffect(() => {
@@ -216,6 +237,98 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         }
     }, [currentConversation])
 
+
+    // Call signaling — separate from chat message lifecycle
+    useEffect(() => {
+        if (!user?.id || !socketRef.current) return;
+
+        const currentSocket = socketRef.current;
+
+        const onIncomingCall = (data: IncomingCall) => {
+            setIncomingCall(data);
+        };
+
+        const onCallAccepted = (data: { conversationId: string }) => {
+            if (callTimeoutRef.current) clearTimeout(callTimeoutRef.current);
+            setOutgoingCall((prev) =>
+                prev ? { ...prev, status: 'accepted' } : null
+            );
+        };
+
+        const onCallRejected = () => {
+            if (callTimeoutRef.current) clearTimeout(callTimeoutRef.current);
+            setOutgoingCall((prev) =>
+                prev ? { ...prev, status: 'rejected' } : null
+            );
+            setTimeout(() => setOutgoingCall(null), 2500);
+        };
+
+        const onCallCancelled = () => {
+            setIncomingCall(null);
+        };
+
+        currentSocket.on('incoming-video-call', onIncomingCall);
+        currentSocket.on('video-call-accepted', onCallAccepted);
+        currentSocket.on('video-call-rejected', onCallRejected);
+        currentSocket.on('video-call-cancelled', onCallCancelled);
+
+        return () => {
+            currentSocket.off('incoming-video-call', onIncomingCall);
+            currentSocket.off('video-call-accepted', onCallAccepted);
+            currentSocket.off('video-call-rejected', onCallRejected);
+            currentSocket.off('video-call-cancelled', onCallCancelled);
+        };
+    }, [user?.id]);
+
+    const initiateCall = (
+        conversationId: string,
+        receiverId: string,
+        receiverName: string,
+        receiverImage?: string,
+    ) => {
+        if (!user?.id || !socketRef.current) return;
+        setOutgoingCall({ conversationId, receiverName, receiverImage, status: 'ringing' });
+        socketRef.current.emit('initiate-video-call', {
+            conversationId,
+            receiverId,
+            callerId: user.id,
+            callerName: user.fullName,
+            callerImage: user.profilePics,
+        });
+        // Auto-cancel after 40 seconds with no answer
+        callTimeoutRef.current = setTimeout(() => {
+            socketRef.current?.emit('cancel-video-call', { conversationId });
+            setOutgoingCall(null);
+        }, 40_000);
+    };
+
+    const cancelCall = () => {
+        if (callTimeoutRef.current) clearTimeout(callTimeoutRef.current);
+        if (outgoingCall) {
+            socketRef.current?.emit('cancel-video-call', {
+                conversationId: outgoingCall.conversationId,
+            });
+        }
+        setOutgoingCall(null);
+    };
+
+    const acceptCall = () => {
+        if (incomingCall) {
+            socketRef.current?.emit('accept-video-call', {
+                conversationId: incomingCall.conversationId,
+            });
+        }
+        setIncomingCall(null);
+    };
+
+    const rejectCall = () => {
+        if (incomingCall) {
+            socketRef.current?.emit('reject-video-call', {
+                conversationId: incomingCall.conversationId,
+            });
+        }
+        setIncomingCall(null);
+    };
 
     const joinChatRoom = async (roomId: string) => {
         if (!chatClient) return;
@@ -231,7 +344,20 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
 
     return (
-        <ChatContext.Provider value={{ pagination, socket: socketRef.current, chatClient, joinChatRoom }}>
+        <ChatContext.Provider
+            value={{
+                pagination,
+                socket: socketRef.current,
+                chatClient,
+                joinChatRoom,
+                incomingCall,
+                outgoingCall,
+                initiateCall,
+                cancelCall,
+                acceptCall,
+                rejectCall,
+            }}
+        >
             {children}
         </ChatContext.Provider>
     );

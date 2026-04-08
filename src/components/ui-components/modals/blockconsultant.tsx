@@ -62,7 +62,7 @@ const BlockConsultant = ({ onOpenChange, isOpen, data, onBlocked }: props) => {
                 fontFamily="Outfit"
                 pb={2}
               >
-                You won't be able to see their profile or messages, and they won't be able to contact you.
+                You won&apos;t be able to see their profile or messages, and they won&apos;t be able to contact you.
               </Text>
 
               <Flex gap={3}>

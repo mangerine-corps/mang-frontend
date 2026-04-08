@@ -1111,7 +1111,7 @@ const VideoContainer = ({ consultationId }: { consultationId?: string }) => {
             getConversations({})
                 .unwrap()
                 .then((payload) => {
-                    const conversation = payload.conversations?.find((conv: any) => conv.id === consultationId);
+                    const conversation = payload.data?.find((conv: any) => conv.id === consultationId);
                     if (conversation) {
                         dispatch(setCurrentConversation({ conversation }));
                     } else {
