@@ -134,12 +134,12 @@ const OnboardingOne = () => {
         router.push("./account-verification");
       })
       .catch((error) => {
-        const { data } = error;
-        if (!isEmpty(data) && data.hasOwnProperty("message")) {
-          setErrorMessage(data.message);
-        } else {
-          setErrorMessage("Registration failed");
-        }
+        console.error("Registration error:", error);
+        const msg =
+          error?.data?.message ||
+          error?.message ||
+          "Registration failed. Please try again.";
+        setErrorMessage(msg);
         setShowToast(true);
       });
   };
