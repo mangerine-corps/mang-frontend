@@ -172,7 +172,7 @@ const DashboardCard = () => {
               <Box
                 key={item.label}
                 as={item.action ? "button" : "div"}
-                type={item.action ? "button" : undefined}
+
                 w="full"
                 onClick={item.action}
                 cursor={item.action ? "pointer" : "default"}
