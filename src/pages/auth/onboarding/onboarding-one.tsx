@@ -40,10 +40,10 @@ import { useGoogleLogin } from "@react-oauth/google";
 
 type onboardingData = {
   email: string,
-  fullname: string,
+  fullName: string,
   password: string,
   confirmPassword: string,
-  isRemember:boolean,
+  isRemember: boolean,
 }
 
 
@@ -56,7 +56,8 @@ const signinSchema = Yup.object().shape({
   email: Yup.string().required("Email is required").email('Eneter a valid email address'),
   password: Yup.string()
     .required("Password is required")
-    .min(6, "Password must be at least 6 characters"),
+    .min(8, "Password must be at least 8 characters")
+    .matches(/[A-Z]/, "Password must include at least one uppercase letter"),
 
   confirmPassword: Yup.string()
     .oneOf([Yup.ref("password"), null], "Passwords must match")
@@ -236,11 +237,11 @@ const OnboardingOne = () => {
             control={control}
             render={({ field: { onChange, value } }) => (
               <CustomInput
-                label="Full Name "
+                label="Full Name"
                 placeholder="John Doe"
-                id="FullName"
+                id="fullName"
                 required={true}
-                name="fullname"
+                name="fullName"
                 value={value}
                 size="md"
                 onChange={onChange}
@@ -356,9 +357,9 @@ const OnboardingOne = () => {
               <CustomInput
                 label="Confirm Password"
                 placeholder="******"
-                id="confirmPasswod"
+                id="confirmPassword"
                 required={true}
-                name="confirmPasswod"
+                name="confirmPassword"
                 value={value}
                 size="md"
                 onChange={onChange}
@@ -555,7 +556,7 @@ const OnboardingOne = () => {
               fontSize={"1rem"}
               lineHeight={"100%"}
             >
-              Already have and Account?{" "}
+              Already have an account?{" "}
             </Text>
 
             <Link
