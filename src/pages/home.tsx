@@ -111,6 +111,7 @@ function Home() {
 
   return (
     <AppLayout>
+      <>
       <Box
         display="grid"
         gridTemplateColumns={{ base: "1fr", md: "1fr 2fr", lg: "1fr 2fr 1fr" }}
@@ -221,6 +222,7 @@ function Home() {
         isOpen={openConsultant}
         onOpenChange={() => setOpenConsultant(false)}
       />
+      </>
     </AppLayout>
   );
 }

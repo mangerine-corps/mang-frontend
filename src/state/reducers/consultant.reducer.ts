@@ -19,6 +19,7 @@ export interface Consultant {
   followingCount?: number;
   timeRangeDisplay?: string;
   dateDisplay?: string;
+  pricingPlan?: string;
 }
 
 // state interface

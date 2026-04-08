@@ -118,7 +118,6 @@ const ConsultantNotificationModal = ({
                     <Flex
                       as="button"
                       key={option.value}
-                      type="button"
                       align="center"
                       gap={3}
                       cursor="pointer"
