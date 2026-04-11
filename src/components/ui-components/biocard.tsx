@@ -76,14 +76,12 @@ function Biocard() {
         <Box>
           <Avatar.Root
             position="absolute"
-            top={{ base: "20", md: "70px", lg: "65px" }}
+            bottom="-28px"
             left={{ base: "4", md: "4", lg: "4" }}
-            // transform="translateX(-150%)"
-            boxSize={{ base: "16", md: "80px", lg: "90px" }}
+            boxSize={{ base: "16", md: "80px", lg: "80px" }}
             borderRadius="full"
-            // bg="red.500"
             overflow="hidden"
-            border={{ base: "2px solid white", md: "4px solid white" }}
+            border={{ base: "3px solid white", md: "4px solid white" }}
           >
             <Avatar.Fallback name={`${user?.fullName}`} />
             <Avatar.Image src={user?.profilePics} />
@@ -94,7 +92,7 @@ function Biocard() {
       <Box
         px="6"
         w="full"
-        pt={{ base: "6", md: "40px" }}
+        pt={{ base: "10", md: "12" }}
         pb={{ base: "6", md: "6" }}
         justifyContent="flex-start"
       >

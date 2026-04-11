@@ -206,7 +206,37 @@ const ChatPage = ({ onNewMessage }: Props) => {
 
   if (!currentConversation?.id || isEmpty(currentConversation)) {
     return (
-      <Flex flex={1} minW={0} h="full">
+      <Flex flex={1} minW={0} h="full" direction="column">
+        {/* Mobile-only header bar with conversation list button */}
+        <HStack
+          display={{ base: "flex", lg: "none" }}
+          px={4}
+          py={3}
+          borderBottomWidth="1px"
+          borderColor="border_background"
+          bg="bg_box"
+          gap={3}
+          borderTopRadius="24px"
+        >
+          <IconButton
+            aria-label="View conversations"
+            variant="ghost"
+            borderRadius="12px"
+            borderWidth="1px"
+            borderColor="border_background"
+            onClick={() => setshowChatList(true)}
+          >
+            <Plus size={18} />
+          </IconButton>
+          <Box flex={1} />
+        </HStack>
+
+        <ChatList
+          open={showChatList}
+          onOpenChange={() => {
+            setshowChatList(false);
+          }}
+        />
         <MessageEmpty onClick={onNewMessage} />
       </Flex>
     );

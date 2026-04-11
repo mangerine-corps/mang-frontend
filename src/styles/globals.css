@@ -86,7 +86,8 @@ a {
 }
 
 .scroll-on-hover-container:hover {
-  /* When mouse is over, allow scrolling */
+  overflow-y: auto;
+}
 
 @keyframes spin {
   from {
@@ -95,7 +96,4 @@ a {
   to {
     transform: rotate(360deg);
   }
-}
-  overflow-y: auto; /* Or 'scroll' to always show scrollbar when content overflows */
-  /* overflow-x: auto; /* If you also need horizontal scrolling */
 }

@@ -192,7 +192,8 @@ const Header = () => {
       minH="64px" // <-- fixes nav from shr
     >
       <HStack
-        w={{ base: "full", md: "full", lg: "35%" }}
+        flex={1}
+        minW={0}
         justifyContent="flex-start"
       >
         <Stack
@@ -220,7 +221,7 @@ const Header = () => {
             h="full"
           />
         </Stack>
-        <Box position="relative" flex={1} w="full">
+        <Box position="relative" flex={1} minW={0} w="full">
           <CustomInput
             label=""
             placeholder="Search"
@@ -335,7 +336,7 @@ const Header = () => {
           )}
         </Box>
       </HStack>
-      <HStack w="60%" justifyContent={"flex-end"}>
+      <HStack w={{ base: "auto", lg: "60%" }} flexShrink={0} justifyContent={"flex-end"}>
         <MobileDrawer />
 
         <HStack spaceX={3} display={{ base: "none", md: "none", lg: "flex" }}>

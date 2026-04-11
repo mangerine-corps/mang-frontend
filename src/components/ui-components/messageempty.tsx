@@ -11,7 +11,7 @@ const MessageEmpty = ({ onClick }: Props) => {
       w="full"
       justify="center"
       align="center"
-      bg="white"
+      bg="bg_box"
       borderRadius="24px"
       px={{ base: 6, md: 12 }}
       py={{ base: 10, md: 16 }}

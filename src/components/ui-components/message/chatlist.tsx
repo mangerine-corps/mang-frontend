@@ -60,7 +60,7 @@ const ChatList = ({
       <Drawer.Backdrop />
       <Drawer.Positioner>
         <Drawer.Content
-          bg="white"
+          bg="bg_box"
           p={4}
           borderTopRightRadius="24px"
           borderBottomRightRadius="24px"
@@ -83,11 +83,11 @@ const ChatList = ({
                 placeholder="Search messages"
                 h="44px"
                 borderRadius="10px"
-                borderColor="#EEF0F4"
-                bg="#FCFCFD"
+                borderColor="border_background"
+                bg="main_background"
                 ps="42px"
-                _placeholder={{ color: "#B0B5C2", fontSize: "0.875rem" }}
-                _focusVisible={{ borderColor: "#1C275D", boxShadow: "none" }}
+                _placeholder={{ color: "text_subtle", fontSize: "0.875rem" }}
+                _focusVisible={{ borderColor: "button_bg", boxShadow: "none" }}
               />
             </Box>
           </Drawer.Header>

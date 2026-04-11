@@ -635,9 +635,7 @@ const Index = () => {
                 overflowY="auto"
                 pr={1}
               >
-                {!hasSelectedConversation ? (
-                  <Box flex={1} />
-                ) : isLoading ? (
+                {isLoading ? (
                   <Flex justify="center" align="center" py={12}>
                     <Spinner color="button_bg" />
                   </Flex>
