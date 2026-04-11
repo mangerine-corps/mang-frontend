@@ -29,18 +29,21 @@ const ripple = keyframes`
 type Props = {
   call: OutgoingCall;
   onCancel: () => void;
+  onNavigated?: () => void;
 };
 
-const OutgoingCallModal = ({ call, onCancel }: Props) => {
+const OutgoingCallModal = ({ call, onCancel, onNavigated }: Props) => {
   const router = useRouter();
 
   useEffect(() => {
     if (call.status === "accepted") {
       router.push(
         `/message/videoconsultation?consultationId=${call.conversationId}`
-      );
+      ).then(() => {
+        onNavigated?.();
+      });
     }
-  }, [call.status, call.conversationId, router]);
+  }, [call.status, call.conversationId, router, onNavigated]);
 
   const isRinging = call.status === "ringing";
   const isRejected = call.status === "rejected";

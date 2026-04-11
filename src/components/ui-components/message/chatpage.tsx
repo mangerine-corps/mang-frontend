@@ -217,10 +217,10 @@ const ChatPage = ({ onNewMessage }: Props) => {
       flex={1}
       minW={0}
       h="full"
-      bg="white"
+      bg="bg_box"
       borderRadius="24px"
       borderWidth="1px"
-      borderColor="#EEF0F4"
+      borderColor="border_background"
       overflow="hidden"
       position="relative"
     >
@@ -272,7 +272,7 @@ const ChatPage = ({ onNewMessage }: Props) => {
                 >
                   Start the conversation
                 </Text>
-                <Text fontSize="0.92rem" color="#7E8495">
+                <Text fontSize="0.92rem" color="text_muted">
                   Send a message to begin chatting here.
                 </Text>
               </VStack>
@@ -288,8 +288,8 @@ const ChatPage = ({ onNewMessage }: Props) => {
           px={{ base: 4, md: 5, xl: 6 }}
           py={4}
           borderTopWidth="1px"
-          borderColor="#EEF0F4"
-          bg="rgba(255, 255, 255, 0.96)"
+          borderColor="border_background"
+          bg="bg_box"
           backdropFilter="blur(8px)"
         >
           {isBlocked ? (
@@ -323,14 +323,14 @@ const ChatPage = ({ onNewMessage }: Props) => {
           {uploadedFiles.length > 0 ? (
             <Box
               p={3}
-              bg="#F7F8FC"
+              bg="bd_background"
               borderRadius="16px"
               borderWidth="1px"
-              borderColor="#E5E9F2"
+              borderColor="border_background"
             >
               <Text
                 fontSize="0.82rem"
-                color="#6F7687"
+                color="text_muted"
                 fontWeight="600"
                 mb={2}
               >
@@ -343,10 +343,10 @@ const ChatPage = ({ onNewMessage }: Props) => {
                     justify="space-between"
                     align="center"
                     p={2}
-                    bg="white"
+                    bg="bg_box"
                     borderRadius="12px"
                     borderWidth="1px"
-                    borderColor="#EEF0F4"
+                    borderColor="border_background"
                   >
                     <HStack gap={2} minW={0}>
                       <Icon
@@ -387,9 +387,9 @@ const ChatPage = ({ onNewMessage }: Props) => {
               <Menu.Trigger asChild>
                 <IconButton
                   aria-label="Attachments"
-                  bg="white"
+                  bg="bg_box"
                   borderWidth="1px"
-                  borderColor="#EEF0F4"
+                  borderColor="border_background"
                   borderRadius="12px"
                   boxShadow="0 8px 24px rgba(17, 29, 74, 0.04)"
                   disabled={isBlocked}
@@ -403,7 +403,8 @@ const ChatPage = ({ onNewMessage }: Props) => {
                     minW="220px"
                     p="8px"
                     borderRadius="14px"
-                    borderColor="#EEF0F4"
+                    bg="bg_box"
+                    borderColor="border_background"
                     boxShadow="0 20px 48px rgba(17, 29, 74, 0.14)"
                   >
                     <Menu.Item
@@ -472,9 +473,9 @@ const ChatPage = ({ onNewMessage }: Props) => {
               px={2}
               py={1.5}
               borderRadius="14px"
-              bg="#F5F3F4"
+              bg="chat_inputbg"
               borderWidth="1px"
-              borderColor="#ECEFF4"
+              borderColor="border_background"
             >
               <Popover.Root positioning={{ placement: "top-start" }}>
                 <Popover.Trigger asChild>
@@ -528,7 +529,7 @@ const ChatPage = ({ onNewMessage }: Props) => {
                 color="text_primary"
                 px={1}
                 _focusVisible={{ boxShadow: "none", borderColor: "transparent" }}
-                _placeholder={{ color: "#A4AABA" }}
+                _placeholder={{ color: "text_subtle" }}
                 disabled={isBlocked}
               />
 
@@ -548,11 +549,11 @@ const ChatPage = ({ onNewMessage }: Props) => {
               minW="44px"
               px={0}
               borderRadius="12px"
-              bg="#1C275D"
-              color="white"
+              bg="button_bg"
+              color="button_text"
               onClick={handleSendMessage}
               disabled={isBlocked || (!chatText.trim() && uploadedFiles.length === 0)}
-              _hover={{ bg: "#16214F" }}
+              _hover={{ bg: "primary.700" }}
             >
               <SendHorizonal size={18} />
             </Button>

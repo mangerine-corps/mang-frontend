@@ -33,7 +33,6 @@ import { BsCameraVideoFill, BsCameraVideoOff } from "react-icons/bs";
 import { TbMicrophoneFilled, TbMicrophoneOff } from "react-icons/tb";
 
 const partdp1 = "/images/dp.png";
-const partdp3 = "/images/dp2.png";
 import { FC, useEffect, useRef, useState, useMemo } from "react";
 import AgoraRTC, { AgoraRTCProvider } from "agora-rtc-react";
 import { useAppointment } from "mangarine/state/hooks/appointment.hook";
@@ -42,18 +41,19 @@ import { setCurrentConversation } from "mangarine/state/reducers/appointment.red
 import { useDispatch } from "react-redux";
 import { useConsultationJoin } from "../../../hooks/useConsultationJoin";
 import AppLayout from "mangarine/layouts/AppLayout";
-import { Avatar, AvatarGroup, Box, Button, Flex, HStack, Icon, IconButton, Image, Input, Stack, Text, VStack, Menu, Portal, Dialog, CloseButton } from '@chakra-ui/react';
+import { Avatar, AvatarGroup, Box, Button, Flex, HStack, Icon, IconButton, Image, Input, Stack, Text, VStack, Menu, Portal, Dialog, CloseButton, Tooltip } from '@chakra-ui/react';
 import { useAuth } from "mangarine/state/hooks/user.hook";
-import { BiChevronDown, BiChevronLeft } from "react-icons/bi";
+import { BiChevronLeft, BiChevronDown } from "react-icons/bi";
 import { useRouter } from "next/router";
-import { FaEllipsisV, FaMicrophone, FaMicrophoneSlash } from "react-icons/fa";
-import CustomButton from "mangarine/components/customcomponents/button";
+import { FaMicrophone, FaMicrophoneSlash } from "react-icons/fa";
 import { IoCall } from "react-icons/io5";
-import { FiMaximize } from "react-icons/fi";
 import { socket as globalSocketInstance } from 'mangarine/state/services/socket.service';
 import { RiRecordCircleFill, RiStopCircleFill } from "react-icons/ri";
 import { toaster } from "mangarine/components/ui/toaster";
-import { SmileIcon } from "lucide-react";
+import {
+    SmileIcon, Users, Grid2x2, MonitorUp, FileText, X, Download,
+    ChevronRight, MoreVertical, FlipHorizontal2, Camera, MessageSquare,
+} from "lucide-react";
 import { VirtualBackgroundProcessor, VirtualBackgroundOptions, PREDEFINED_BACKGROUNDS } from "mangarine/utils/virtualBackground";
 
 
@@ -224,7 +224,7 @@ const Participant: FC<Props> = ({ item, audioTrack, videoTrack, children, onRemo
     );
 };
 
-// Advanced Google Meet–style pre-join panel
+// Google Meet–style pre-join panel
 export const PreJoinPanel: React.FC<{
     appId?: string;
     channel?: string;
@@ -236,32 +236,24 @@ export const PreJoinPanel: React.FC<{
     setMic: (updater: (v: boolean) => boolean) => void;
     localCameraTrack: ICameraVideoTrack | null;
     localMicrophoneTrack: IMicrophoneAudioTrack | null;
-}> = ({ appId, channel, calling, setCalling, cameraOn, setCamera, micOn, setMic, localCameraTrack, localMicrophoneTrack }) => {
+    consultationName?: string;
+    tokenReady?: boolean;
+    joinError?: string | null;
+}> = ({ appId, channel, calling, setCalling, cameraOn, setCamera, micOn, setMic, localCameraTrack, localMicrophoneTrack, consultationName, tokenReady = true, joinError }) => {
     const [cameras, setCameras] = useState<MediaDeviceInfo[]>([]);
     const [microphones, setMicrophones] = useState<MediaDeviceInfo[]>([]);
-    const [speakers, setSpeakers] = useState<MediaDeviceInfo[]>([]);
     const [selectedCamera, setSelectedCamera] = useState<string | undefined>();
     const [selectedMic, setSelectedMic] = useState<string | undefined>();
-    const [selectedSpeaker, setSelectedSpeaker] = useState<string | undefined>();
     const preJoinVideoRef = useRef<any>(null);
-    // Local re-render nudger and readiness flag for pre-join preview
-    const [, setForceUpdate] = useState(0);
-    const [localVideoReady, setLocalVideoReady] = useState(false);
 
     useEffect(() => {
         if (typeof navigator !== 'undefined' && navigator.mediaDevices?.enumerateDevices) {
             navigator.mediaDevices.enumerateDevices().then((devices) => {
                 setCameras(devices.filter((d) => d.kind === 'videoinput'));
                 setMicrophones(devices.filter((d) => d.kind === 'audioinput'));
-                setSpeakers(devices.filter((d) => d.kind === 'audiooutput'));
             });
         }
     }, []);
-
-    // Ensure local tracks are enabled and nudge re-render when they change
-    // The useEffect hooks for enabling tracks and detecting the first frame have been removed.
-    // The useLocalCameraTrack(cameraOn) and useLocalMicrophoneTrack(micOn) hooks already manage the enabled state.
-    // The logic for video readiness is now handled more effectively in the main VideoContainer.
 
     useEffect(() => {
         if (selectedCamera && localCameraTrack?.setDevice) {
@@ -276,88 +268,164 @@ export const PreJoinPanel: React.FC<{
     }, [selectedMic, localMicrophoneTrack]);
 
     useEffect(() => {
-        // Live self preview when not joined
         if (!calling && cameraOn && preJoinVideoRef.current && localCameraTrack) {
             localCameraTrack.play(preJoinVideoRef.current);
-            return () => {
-                localCameraTrack.stop();
-            };
+            return () => { localCameraTrack.stop(); };
         }
     }, [calling, cameraOn, localCameraTrack]);
 
-    return (
-        <Flex w='full' h='full' align='center' justify='center' px={4}>
-            <Flex w={{ base: '100%', md: '90%' }} gap={6} align='stretch' direction={{ base: 'column', md: 'row' }}>
-                {/* Self preview */}
-                <Box flex={3} bg='black' rounded='lg' overflow='hidden' position='relative' minH={{ base: '260px', md: '360px' }}>
-                    <Box ref={preJoinVideoRef} w='100%' h='100%' />
-                    <HStack position='absolute' bottom={3} left={3} gap={3}>
-                        <VideoActions
-                            icon={<TbMicrophoneFilled />}
-                            activeIcon={<TbMicrophoneOff />}
-                            canToggle
-                            toggleStatus={micOn}
-                            onClick={() => setMic((v) => !v)}
-                        />
-                        <VideoActions
-                            icon={<BsCameraVideoFill />}
-                            activeIcon={<BsCameraVideoOff />}
-                            canToggle
-                            toggleStatus={cameraOn}
-                            onClick={() => setCamera((v) => !v)}
-                        />
-                    </HStack>
-                </Box>
+    const toggleBtn = (active: boolean, activeColor = "white") => ({
+        borderRadius: "full" as const,
+        w: "44px",
+        h: "44px",
+        p: 0,
+        bg: active ? "rgba(255,255,255,0.15)" : "rgba(220,38,38,0.85)",
+        backdropFilter: "blur(4px)",
+        borderWidth: "1px",
+        borderColor: active ? "rgba(255,255,255,0.3)" : "transparent",
+        color: activeColor,
+        _hover: { transform: "scale(1.06)" },
+        transition: "all 0.15s",
+    });
 
-                {/* Controls */}
-                <VStack flex={2} bg='main_background' rounded='lg' borderWidth='1px' borderColor='gray.100' p={4} gap={4} align='stretch' shadow='md'>
-                    <Text color='text_primary' fontWeight='600' fontSize='lg'>Ready to join?</Text>
-                    <VStack gap={3} align='stretch'>
-                        <Text color='text_primary' fontSize='sm' fontWeight='500'>Camera</Text>
-                        <select value={selectedCamera} onChange={(e) => setSelectedCamera(e.target.value)} disabled={!cameras.length} style={{ width: '100%', padding: '8px 10px', border: '1px solid #e2e8f0', borderRadius: 8 }}>
-                            <option value="">{cameras.length ? 'Select camera' : 'No cameras found'}</option>
-                            {cameras.map((d) => (<option key={d.deviceId} value={d.deviceId}>{d.label || 'Camera'}</option>))}
-                        </select>
-                    </VStack>
-                    <VStack gap={3} align='stretch'>
-                        <Text color='text_primary' fontSize='sm' fontWeight='500'>Microphone</Text>
-                        <select value={selectedMic} onChange={(e) => setSelectedMic(e.target.value)} disabled={!microphones.length} style={{ width: '100%', padding: '8px 10px', border: '1px solid #e2e8f0', borderRadius: 8 }}>
-                            <option value="">{microphones.length ? 'Select microphone' : 'No microphones found'}</option>
-                            {microphones.map((d) => (<option key={d.deviceId} value={d.deviceId}>{d.label || 'Microphone'}</option>))}
-                        </select>
-                    </VStack>
-                    <VStack gap={3} align='stretch'>
-                        <Text color='text_primary' fontSize='sm' fontWeight='500'>Speakers</Text>
-                        <select value={selectedSpeaker} onChange={(e) => setSelectedSpeaker(e.target.value)} disabled={!speakers.length} style={{ width: '100%', padding: '8px 10px', border: '1px solid #e2e8f0', borderRadius: 8 }}>
-                            <option value="">{speakers.length ? 'Select speakers' : 'No speakers found'}</option>
-                            {speakers.map((d) => (<option key={d.deviceId} value={d.deviceId}>{d.label || 'Speakers'}</option>))}
-                        </select>
-                    </VStack>
-                    <HStack gap={3} pt={2}>
-                        <Button
-                            disabled={!appId || !channel || calling}
-                            onClick={() => setCalling(!calling)}
-                            bgGradient='linear(to-r, #0F9D58, #34A853)'
-                            color='white'
-                            rounded='full'
-                            px={6}
-                            py={3}
-                            shadow='md'
-                            _hover={{ filter: 'brightness(1.05)' }}
-                            _active={{ transform: 'scale(0.98)' }}
-                            loading={calling}
-                            loadingText='Joining…'
+    return (
+        <Flex w="full" h="full" align="center" justify="center" bg="white" p={6} direction="column">
+            {/* Header */}
+            <VStack gap={0} mb={6} textAlign="center">
+                <Text fontSize="0.95rem" color="#5f6368">You are joining</Text>
+                <Text fontSize="1.35rem" fontWeight="700" color="#202124" fontFamily="Outfit">
+                    {consultationName || "Consultation"}
+                </Text>
+            </VStack>
+
+            {/* Video preview box */}
+            <Box
+                position="relative"
+                w="full"
+                maxW="680px"
+                borderRadius="16px"
+                overflow="hidden"
+                bg="#202124"
+                mb={4}
+                style={{ aspectRatio: "16/9" }}
+            >
+                {cameraOn ? (
+                    <Box ref={preJoinVideoRef} w="full" h="full" />
+                ) : (
+                    <Flex align="center" justify="center" w="full" h="full">
+                        <Box
+                            w="80px"
+                            h="80px"
+                            borderRadius="full"
+                            bg="#3c4043"
+                            display="flex"
+                            alignItems="center"
+                            justifyContent="center"
                         >
-                            {!calling && <Icon as={BsCameraVideoFill} boxSize={5} mr={2} />}
-                            <Text fontWeight='600'>{calling ? 'Joining…' : 'Join now'}</Text>
-                        </Button>
-                        <Button variant='outline' rounded='full' px={5} py={3} onClick={() => { }}>
-                            Present
-                        </Button>
-                    </HStack>
-                    <Text color='gray.500' fontSize='xs'>You will join with {micOn ? 'mic on' : 'mic off'} and {cameraOn ? 'camera on' : 'camera off'}.</Text>
-                </VStack>
-            </Flex>
+                            <BsCameraVideoOff size={32} color="white" />
+                        </Box>
+                    </Flex>
+                )}
+
+                {/* Camera flip — top right */}
+                <IconButton
+                    aria-label="Flip camera"
+                    position="absolute"
+                    top={3}
+                    right={3}
+                    {...toggleBtn(true)}
+                    onClick={() => { }}
+                >
+                    <FlipHorizontal2 size={18} color="white" />
+                </IconButton>
+
+                {/* Mic + Camera toggles — bottom center */}
+                <HStack
+                    position="absolute"
+                    bottom={4}
+                    left="50%"
+                    transform="translateX(-50%)"
+                    gap={4}
+                >
+                    <IconButton
+                        aria-label={micOn ? "Mute" : "Unmute"}
+                        {...toggleBtn(micOn)}
+                        onClick={() => setMic((v) => !v)}
+                    >
+                        {micOn
+                            ? <TbMicrophoneFilled size={20} color="white" />
+                            : <TbMicrophoneOff size={20} color="white" />}
+                    </IconButton>
+                    <IconButton
+                        aria-label={cameraOn ? "Turn off camera" : "Turn on camera"}
+                        {...toggleBtn(cameraOn)}
+                        onClick={() => setCamera((v) => !v)}
+                    >
+                        {cameraOn
+                            ? <BsCameraVideoFill size={18} color="white" />
+                            : <BsCameraVideoOff size={18} color="white" />}
+                    </IconButton>
+                </HStack>
+            </Box>
+
+            {/* Device pickers */}
+            <HStack gap={3} w="full" maxW="680px" mb={5}>
+                <Box flex={1}>
+                    <select
+                        value={selectedCamera}
+                        onChange={(e) => setSelectedCamera(e.target.value)}
+                        disabled={!cameras.length}
+                        style={{
+                            width: '100%', padding: '8px 12px', border: '1px solid #e2e8f0',
+                            borderRadius: 8, fontSize: 13, color: '#3c4043', background: 'white',
+                        }}
+                    >
+                        <option value="">{cameras.length ? 'Camera' : 'No camera'}</option>
+                        {cameras.map((d) => <option key={d.deviceId} value={d.deviceId}>{d.label || 'Camera'}</option>)}
+                    </select>
+                </Box>
+                <Box flex={1}>
+                    <select
+                        value={selectedMic}
+                        onChange={(e) => setSelectedMic(e.target.value)}
+                        disabled={!microphones.length}
+                        style={{
+                            width: '100%', padding: '8px 12px', border: '1px solid #e2e8f0',
+                            borderRadius: 8, fontSize: 13, color: '#3c4043', background: 'white',
+                        }}
+                    >
+                        <option value="">{microphones.length ? 'Microphone' : 'No microphone'}</option>
+                        {microphones.map((d) => <option key={d.deviceId} value={d.deviceId}>{d.label || 'Microphone'}</option>)}
+                    </select>
+                </Box>
+            </HStack>
+
+            {/* Error message */}
+            {joinError && (
+                <Text color="red.500" fontSize="0.875rem" mb={2} maxW="680px" w="full" textAlign="center">
+                    {joinError}
+                </Text>
+            )}
+
+            {/* Join Room button */}
+            <Button
+                disabled={!appId || !channel || calling || !tokenReady}
+                loading={calling || !tokenReady}
+                loadingText={!tokenReady ? "Preparing..." : "Joining..."}
+                onClick={() => setCalling(true)}
+                w="full"
+                maxW="680px"
+                h="52px"
+                bg="#1C275D"
+                color="white"
+                borderRadius="12px"
+                fontSize="1rem"
+                fontWeight="600"
+                _hover={{ bg: "#16214F" }}
+                _active={{ transform: "scale(0.99)" }}
+            >
+                Join Room
+            </Button>
         </Flex>
     );
 };
@@ -512,11 +580,14 @@ export const VideoCalling = ({ consultationId }: { consultationId?: string }) =>
 const VideoContainer = ({ consultationId }: { consultationId?: string }) => {
     const [calling, setCalling] = useState(false);
     const [isLoadingConversation, setIsLoadingConversation] = useState(false);
+    const [tokenReady, setTokenReady] = useState(false);
+    const [joinError, setJoinError] = useState<string | null>(null);
+    const joinTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
     const { currentConversation } = useAppointment();
     const [participants, setParticipants] = useState([])
     const isConnected = useIsConnected(); // Store the user's connection status
-    const [appId, setAppId] = useState(process.env.AGORA_APP_ID);
+    const [appId] = useState(process.env.NEXT_PUBLIC_AGORA_APP_ID);
     const [channel, setChannel] = useState(currentConversation.id);
     const [token, setToken] = useState("");
     const { user, token: authToken } = useAuth()
@@ -1045,9 +1116,12 @@ const VideoContainer = ({ consultationId }: { consultationId?: string }) => {
         recordingStartTimeRef.current = null;
     };
 
-    const [showAllParticipant, setShowAllParticipant] = useState(false)
-    const [search, setSearch] = useState('')
-    const [toggleBtn, setToggleBtn] = useState(false)
+    // Panel state: 'chat' | 'participants' | null
+    const [activePanel, setActivePanel] = useState<'chat' | 'participants' | null>(null);
+
+    const togglePanel = (panel: 'chat' | 'participants') => {
+        setActivePanel((prev) => (prev === panel ? null : panel));
+    };
 
     // Non-persistent chat state
     const [chatMessages, setChatMessages] = useState<VideoChatMessage[]>([]);
@@ -1076,10 +1150,18 @@ const VideoContainer = ({ consultationId }: { consultationId?: string }) => {
     };
 
 
-    useJoin(
-        { appid: appId, channel: currentConversation.id, token: token ? token : null, uid: user?.id },
+    const { error: joinErr } = useJoin(
+        { appid: appId, channel: currentConversation.id, token: token ? token : null, uid: 0 },
         calling
     );
+
+    useEffect(() => {
+        if (joinErr) {
+            console.error('Agora join error:', joinErr);
+            setCalling(false);
+            setJoinError(`Connection failed: ${(joinErr as any)?.message || JSON.stringify(joinErr)}`);
+        }
+    }, [joinErr]);
     const publishedTracks = useMemo(() => {
         if (screenShareOn && screenTrack) {
             return [localMicrophoneTrack, screenTrack];
@@ -1091,18 +1173,42 @@ const VideoContainer = ({ consultationId }: { consultationId?: string }) => {
 
     const remoteUsers = useRemoteUsers();
 
+    // Fetch token only once the correct conversation is loaded
     useEffect(() => {
+        const convId = currentConversation?.id;
+        if (!convId) return;
+        // If a consultationId was given, wait until the conversation matches it
+        if (consultationId && convId !== consultationId) return;
 
-        getVideoToken(currentConversation?.id)
+        setTokenReady(false);
+        getVideoToken(convId)
             .unwrap()
             .then((payload) => {
-                console.log(payload.token)
+                console.log(payload.token);
                 setToken(payload.token);
+                setTokenReady(true);
             })
             .catch((error) => {
                 console.log(error);
+                setTokenReady(true); // Allow joining without token (open channels)
             });
-    }, []);
+    }, [currentConversation?.id]);
+
+    // If calling but Agora hasn't connected after 12s, surface an error
+    useEffect(() => {
+        if (calling && !isConnected) {
+            joinTimeoutRef.current = setTimeout(() => {
+                setCalling(false);
+                setJoinError('Could not connect to the call. Please check your connection and try again.');
+            }, 12_000);
+        } else {
+            if (joinTimeoutRef.current) clearTimeout(joinTimeoutRef.current);
+            if (isConnected) setJoinError(null);
+        }
+        return () => {
+            if (joinTimeoutRef.current) clearTimeout(joinTimeoutRef.current);
+        };
+    }, [calling, isConnected]);
 
     // Fetch conversation by consultationId if provided
     useEffect(() => {
@@ -1153,9 +1259,8 @@ const VideoContainer = ({ consultationId }: { consultationId?: string }) => {
 
 
     useEffect(() => {
-        console.log(token, channel, appId, calling)
-        // 8a2e6207459942b4aa4f99269247362b
-    }, [token, calling])
+        console.log('[Agora] appId:', appId, '| channel:', currentConversation?.id, '| token:', token ? `${token.slice(0,12)}...` : 'EMPTY', '| calling:', calling);
+    }, [token, calling, appId, currentConversation?.id])
 
     // Initialize Socket.IO for non-persistent video chat
     useEffect(() => {
@@ -1471,573 +1576,383 @@ const VideoContainer = ({ consultationId }: { consultationId?: string }) => {
         );
     }
 
+    // Toolbar button helper
+    const ToolBtn = ({
+        label, icon, active = false, danger = false, onClick, loading: btnLoading = false,
+    }: {
+        label: string; icon: React.ReactNode; active?: boolean; danger?: boolean;
+        onClick?: () => void; loading?: boolean;
+    }) => (
+        <VStack gap={1} align="center">
+            <IconButton
+                aria-label={label}
+                onClick={onClick}
+                borderRadius="full"
+                w="48px"
+                h="48px"
+                p={0}
+                bg={danger ? "#ea4335" : active ? "white" : "rgba(255,255,255,0.12)"}
+                color={danger ? "white" : active ? "#1C275D" : "white"}
+                _hover={{
+                    bg: danger ? "#c5221f" : active ? "rgba(255,255,255,0.9)" : "rgba(255,255,255,0.2)",
+                    transform: "scale(1.06)",
+                }}
+                transition="all 0.15s"
+                loading={btnLoading}
+            >
+                {icon}
+            </IconButton>
+        </VStack>
+    );
+
     return (
         <>
             <AppLayout>
-                <Flex h="85vh" w='full'  >
-                    <Box display={"flex"}
-                        //   bg="#F4F4F4F2"
-                        flexDir={{ base: "column", md: "row", lg: "row", xl: "row" }}
-                        justifyContent={"space-between"}
-                        alignItems={'stretch'}
-                        w={{ base: "98%", md: "96%", lg: "96%", xl: "full" }}
-                        //         // mx="auto"
-                        //         // overflowY={"auto"}
-                        css={{
-                            "&::-webkit-scrollbar": {
-                                width: "0px",
-                                height: "0px",
-                            },
-                            "&::-webkit-scrollbar-track": {
-                                width: "0px",
-                                background: "transparent",
-                                height: "0px",
-                            },
-                            "&::-webkit-scrollbar-thumb": {
-                                background: "transparent",
-                                borderRadius: "0px",
-                                // maxHeight: "0px",
-                                height: "0px",
-                                width: 0,
-                            },
-                        }}
-                        spaceX="3">
-                        <VStack
-                            // minH={{ "2xl": "85vh" }}
-                            h='full'
-                            rounded={"10px"}
-                            borderWidth={0.5}
-                            borderColor={"gray.50"}
-                            shadow="md"
-                            w="full"
-                            // p={4}
-                            bg="main_background"
-                            overflow={"auto"}
-                            flex={4}
-                            // spaceY={8}
-                            // bg="green.900"
-                            overflowY={"auto"}
-                        >
+                <Flex h="full" w="full" direction="row" borderRadius="16px" overflow="hidden" position="relative">
+                    {/* ── Main call area ── */}
+                    <Flex direction="column" flex={1} bg="#202124" position="relative" minW={0}>
+                        {/* Video content */}
+                        <Box flex={1} position="relative" overflow="hidden">
                             {isConnected ? (
-                                <Box pos='relative' ref={containerRef} w='full' h='full' >
-                                    <HStack pos='absolute' top={0} p={3} zIndex={'overlay'} justifyContent={"space-between"} w="full">
-                                        <HStack>
-                                            <IconButton
-                                                aria-label="back button"
-                                                rounded="full"
-                                                size={"xs"}
-                                                borderWidth={1}
-                                                borderColor={"gray.300"}
-                                                color={"primary.200"}
-                                                bg={"main_background"}
-                                                shadow={"lg"}
-                                                boxShadow={"lg"}
-                                                onClick={() => {
-                                                    router.back();
-                                                }}
-                                            >
-                                                {" "}
-                                                {<BiChevronLeft size={16} />}
-                                            </IconButton>
-                                            <Text
-                                                fontFamily="Outfit"
-                                                fontSize={{ base: "1rem", sm: "1.125rem", md: "1.25rem" }}
-                                                fontWeight="600"
-                                                color="text_primary"
-                                                textAlign={{ base: "left", sm: "center" }}
-                                                px={{ base: 2, sm: 0 }}
-
-                                            >
-                                                Consultation with {otherParticipantName}
+                            <>
+                                {/* ── Header bar ── */}
+                                <HStack
+                                    position="absolute"
+                                    top={0}
+                                    left={0}
+                                    right={0}
+                                    px={5}
+                                    py={3}
+                                    bg="rgba(0,0,0,0.45)"
+                                    backdropFilter="blur(6px)"
+                                    zIndex={10}
+                                    justify="space-between"
+                                >
+                                    <HStack gap={3}>
+                                        <IconButton
+                                            aria-label="Back"
+                                            borderRadius="full"
+                                            size="sm"
+                                            bg="rgba(255,255,255,0.12)"
+                                            color="white"
+                                            _hover={{ bg: "rgba(255,255,255,0.22)" }}
+                                            onClick={() => router.back()}
+                                        >
+                                            <BiChevronLeft size={18} />
+                                        </IconButton>
+                                        <Text
+                                            fontFamily="Outfit"
+                                            fontWeight="600"
+                                            fontSize={{ base: "0.95rem", md: "1.1rem" }}
+                                            color="white"
+                                        >
+                                            {otherParticipantName}&apos;s Consultation
+                                        </Text>
+                                        <HStack
+                                            px={3}
+                                            py={1}
+                                            bg="rgba(255,255,255,0.14)"
+                                            borderRadius="full"
+                                            gap={1.5}
+                                        >
+                                            <Users size={13} color="white" />
+                                            <Text fontSize="0.8rem" color="white" fontWeight="500">
+                                                {conversationParticipants.length + remoteUsers.length}
                                             </Text>
                                         </HStack>
-                                        {isRecording && (
-                                            <HStack
-                                                borderWidth={1}
-                                                borderColor="gray.50"
-                                                py={{ base: 1.5, sm: 2 }}
-                                                px={{ base: 3, sm: 4 }}
-                                                rounded="full"
-                                                spaceX={{ base: 2, sm: 3 }}
-                                                bg="main_background"
-                                                shadow="lg"
-                                            >
-                                                <Box w={3} h={3} bg="red" rounded="full" />
-                                                <Text
-                                                    color="text_primary"
-                                                    fontSize={{ base: "sm", sm: "md" }}
-                                                    fontWeight="500"
-                                                >
-                                                    Recording • {recordingElapsed}
-                                                </Text>
-                                            </HStack>
-                                        )}
                                     </HStack>
-                                    <Box h='full' w='full'>
-                                        {(screenShareOn ? !!screenTrack : !!localCameraTrack) ? (
-                                            <LocalUser
-                                                audioTrack={localMicrophoneTrack}
-                                                cameraOn={screenShareOn ? true : (cameraOn && !!localCameraTrack)}
-                                                micOn={micOn}
-                                                playAudio={false}
-                                                videoTrack={screenShareOn && screenTrack ? screenTrack : localCameraTrack}
-                                                key={`${screenShareOn ? 'local-screen' : 'local-camera'}-${forceUpdate}`}
-                                                style={{ width: '100%', height: '100%' }}
-                                            />
-                                        ) : (
-                                            <Flex align="center" justify="center" w="100%" h="100%" bg="black">
-                                                <Text color="white" fontSize="sm">Starting video…</Text>
-                                            </Flex>
-                                        )}
-                                    </Box>
-                                    <VStack
-                                        pos={"absolute"}
-                                        px={4}
-                                        spaceY={1.5}
-                                        bottom={16}
-                                        alignSelf={"flex-end"}
-                                        right={0}
-                                        rounded={'lg'}
-                                    >
-                                        {remoteUsers.map((user) => (
-                                            // <Flex
-                                            //     h="155px"
-                                            //     px={"auto"}
-                                            //     justifyContent={"flex-end"}
-                                            //     pos={"relative"}
-                                            //     w="150px"
-                                            //     bgRepeat={"no-repeat"}
-                                            //     bgSize={"cover"}
-                                            //     rounded={"15px"}
-                                            // >
-                                            //     <HStack
-                                            //         p={5}
-                                            //         width={"100%"}
-                                            //         alignSelf={"flex-start"}
-                                            //         alignItems={"center"}
-                                            //         justifyContent={"space-between"}
-                                            //     >
-                                            //         <Text
-                                            //             py={3}
-                                            //             px={4}
-                                            //             rounded={"15px"}
-                                            //             bg="#00000033"
-                                            //             color={"main_background"}
-                                            //             fontFamily={"Outfit"}
-                                            //             fontSize={{ base: "1rem", sm: "1.125rem", md: "1.25rem" }}
-                                            //         >
-                                            //             Jerome Bell
-                                            //         </Text>
-                                            //         <IconButton
-                                            //             size="md"
-                                            //             bg="#00000033"
-                                            //             shadow={"sm"}
-                                            //             borderWidth={0.5}
-                                            //             rounded="full"
-                                            //             borderColor={"gray.50"}
-                                            //             aria-label="open menu"
-                                            //             color="text_primary"
-                                            //         >
-                                            //             {<FiMaximize color="main_background" size={24} />}
-                                            //         </IconButton>
-                                            //     </HStack>
-
-
-                                            <Participant
-                                                videoTrack={user.videoTrack}
-                                                audioTrack={user.audioTrack}
-                                                onRemoteAudio={() => unmuteRemoteAudio(user.audioTrack || null)}
-                                                offRemoteAudio={() => muteRemoteAudio(user.audioTrack || null)}
-                                                toggleVideo={() => setCamera(!cameraOn)}
-                                                item={user} key={user.uid}
-                                            >
-                                                <RemoteUser user={user} style={{ width: "160px", height: '170px', borderRadius: 15, }}>
-                                                    {/* <samp>{user.uid}</samp> */}
-                                                </RemoteUser>
-                                            </Participant>
-                                            // </Flex>
-
-                                        ))}
-                                    </VStack>
-                                    {isConnected && (
-
-
+                                    {isRecording && (
                                         <HStack
-                                            backgroundBlendMode={"darken"}
-                                            bottom="5rem"
-                                            //px={4}
-                                            rounded="full"
-                                            //spaceX={5}
-                                            //py={2}
-                                            px={{ base: 2, sm: 4, md: 6 }}
-                                            py={{ base: 1, sm: 2 }}
-                                            spaceX={{ base: 0, sm: 4, md: 5 }}
-                                            mx={"auto"}
-                                            zIndex={'max'}
-                                            left={{ lg: '17%' }}
-                                            bg="#00000066"
-                                            position={"fixed"}
+                                            px={3}
+                                            py={1.5}
+                                            bg="rgba(220,38,38,0.8)"
+                                            borderRadius="full"
+                                            gap={2}
                                         >
-                                            <VideoActions
-                                                icon={<TbMicrophoneFilled />}
-                                                canToggle={true}
-                                                activeIcon={<TbMicrophoneOff />}
-                                                toggleStatus={micOn}
-                                                onClick={() => setMic((a) => !a)}
-                                            />
-
-                                            <VideoActions
-                                                icon={<BsCameraVideoFill />}
-                                                canToggle={true}
-                                                activeIcon={<BsCameraVideoOff />}
-                                                toggleStatus={cameraOn}
-                                                onClick={() => setCamera((a) => !a)}
-                                            />
-                                            <VideoActions
-                                                icon={<Image src={monitor} alt="monitor icon" />}
-                                                activeIcon={<Image src={monitor} alt="monitor icon" />}
-                                                canToggle={true}
-                                                toggleStatus={screenShareOn}
-                                                onClick={toggleScreenShare}
-                                            />
-                                            <IconButton
-                                                aria-label="Virtual Background"
-                                                rounded="full"
-                                                size={"md"}
-                                                onClick={() => setShowVirtualBgPanel(!showVirtualBgPanel)}
-                                                borderWidth={1}
-                                                borderColor={"gray.300"}
-                                                color={"primary.200"}
-                                                bg={virtualBgOptions.type !== 'none' ? "primary.300" : "main_background"}
-                                                shadow={"lg"}
-                                                boxShadow={"lg"}
-                                                title="Virtual Background"
-                                                loading={isVirtualBgLoading}
-                                            >
-                                                <Icon color={virtualBgOptions.type !== 'none' ? 'white' : 'text_primary'}>
-                                                    <SmileIcon />
-                                                </Icon>
-                                            </IconButton>
-                                            <IconButton
-                                                aria-label={isRecording ? 'Stop recording' : 'Start recording'}
-                                                rounded="full"
-                                                size={"md"}
-                                                onClick={() => (isRecording ? stopRecording() : startRecording())}
-                                                borderWidth={1}
-                                                borderColor={"gray.300"}
-                                                color={"primary.200"}
-                                                bg={isRecording ? "red.600" : "main_background"}
-                                                shadow={"lg"}
-                                                boxShadow={"lg"}
-                                                title={isRecording ? 'Stop recording' : 'Start recording'}
-                                            >
-                                                <Icon color={isRecording ? 'white' : 'text_primary'}>
-                                                    {isRecording ? <RiStopCircleFill /> : <RiRecordCircleFill />}
-                                                </Icon>
-                                            </IconButton>
-                                            {/* <VideoActions
-                                            icon={<Image src={text} alt="text icon" />}
-                                            onClick={() => setRating(true)}
-                                        />
-                                        <VideoActions
-                                            icon={<Image src={smile} alt="smile icon" />}
-                                            onClick={() => setLeftMeeting(true)}
-                                        /> */}
-                                            {/* <VideoActions
-                                            icon={<Image src={up} alt="up arrow icon" />}
-                                            canToggle={false}
-                                            activeIcon={<></>}
-                                            onClick={() => setThankYou(true)}
-                                        /> */}
-                                            <Menu.Root>
-                                                <Menu.Trigger asChild>
-                                                    <IconButton
-                                                        aria-label="back button"
-                                                        rounded="full"
-                                                        size={"md"}
-                                                        onClick={() => { }}
-                                                        borderWidth={1}
-                                                        borderColor={"gray.300"}
-                                                        color={"primary.200"}
-                                                        bg={"main_background"}
-                                                        shadow={"lg"}
-                                                        boxShadow={"lg"}
-                                                    >
-                                                        <FaEllipsisV />
-                                                    </IconButton>
-                                                </Menu.Trigger>
-                                                <Portal>
-                                                    <Menu.Positioner>
-                                                        <Menu.Content px="3" py="3" spaceY={"2"}>
-                                                          
-                                                            <Menu.Item
-                                                                value="export-a"
-                                                                _hover={{ bg: "primary." }}
-                                                                roundedTop={"6px"}
-                                                                color="text_primary"
-                                                                fontSize="1rem"
-                                                                py="2"
-                                                                onClick={() => {
-                                                                    // setShowBlockPage(true);
-                                                                }}
-                                                            >
-                                                                <Menu.ItemCommand>
-                                                                    {" "}
-                                                                    <Image
-                                                                        onClick={() => { }}
-                                                                        alt="link Icon"
-                                                                        src="/icons/pin.svg"
-                                                                    />
-                                                                </Menu.ItemCommand>{" "}
-                                                                Turn on caption
-                                                            </Menu.Item>
-                                                            </Menu.Content>
-                                                    </Menu.Positioner>
-                                                </Portal>
-                                            </Menu.Root>
-
-                                            <Button
-                                                bg="red.600"
-                                                rounded="full"
-                                                size={"md"}
-                                                h={"2.5rem"}
-                                                w={"2.5rem"}
-                                                cursor={'pointer'}
-                                                onClick={confirmEndCall}
-                                                p={2}
-                                                title="End Call"
-                                                transition="all 0.2s"
-                                                loading={isEndingCall}
-                                                disabled={isEndingCall}
-                                            >
-                                                {isEndingCall ? (
-                                                    <Box
-                                                        w={4}
-                                                        h={4}
-                                                        borderRadius="full"
-                                                        border="2px"
-                                                        borderColor="white"
-                                                        borderTopColor="transparent"
-                                                        animation="spin 1s linear infinite"
-                                                    />
-                                                ) : (
-                                                    <Icon as={IoCall} color="main_background" boxSize={4} />
-                                                )}
-                                            </Button>
+                                            <Box w={2.5} h={2.5} bg="white" borderRadius="full" />
+                                            <Text color="white" fontSize="0.82rem" fontWeight="600">
+                                                {recordingElapsed}
+                                            </Text>
                                         </HStack>
+                                    )}
+                                </HStack>
 
+                                {/* ── Main video stage ── */}
+                                <Box ref={containerRef} w="full" h="full" position="relative" bg="#202124">
+                                    {remoteUsers.length > 0 ? (
+                                        // Remote user takes full stage
+                                        <RemoteUser
+                                            user={remoteUsers[0]}
+                                            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                                        />
+                                    ) : (
+                                        // Local user fills stage when alone
+                                        <>
+                                            {(screenShareOn ? !!screenTrack : !!localCameraTrack) ? (
+                                                <LocalUser
+                                                    audioTrack={localMicrophoneTrack}
+                                                    cameraOn={screenShareOn ? true : (cameraOn && !!localCameraTrack)}
+                                                    micOn={micOn}
+                                                    playAudio={false}
+                                                    videoTrack={screenShareOn && screenTrack ? screenTrack : localCameraTrack}
+                                                    key={`local-main-${forceUpdate}`}
+                                                    style={{ width: '100%', height: '100%' }}
+                                                />
+                                            ) : (
+                                                <Flex align="center" justify="center" w="full" h="full" bg="#202124" direction="column" gap={4}>
+                                                    <Text color="rgba(255,255,255,0.5)" fontSize="1.1rem" fontWeight="500">
+                                                        👋 Welcome {user?.fullName?.split(' ')[0]}
+                                                    </Text>
+                                                    <Text color="rgba(255,255,255,0.35)" fontSize="0.9rem">
+                                                        No one else has joined yet
+                                                    </Text>
+                                                    <Box
+                                                        w="72px"
+                                                        h="72px"
+                                                        borderRadius="full"
+                                                        bg="#3c4043"
+                                                        display="flex"
+                                                        alignItems="center"
+                                                        justifyContent="center"
+                                                        fontSize="1.8rem"
+                                                        color="white"
+                                                        fontWeight="700"
+                                                    >
+                                                        {user?.fullName?.[0]?.toUpperCase() || '?'}
+                                                    </Box>
+                                                </Flex>
+                                            )}
+                                        </>
+                                    )}
 
+                                    {/* Local PiP — bottom right when remote is present */}
+                                    {remoteUsers.length > 0 && (
+                                        <Box
+                                            position="absolute"
+                                            bottom={20}
+                                            right={4}
+                                            w="160px"
+                                            style={{ aspectRatio: "4/3" }}
+                                            borderRadius="12px"
+                                            overflow="hidden"
+                                            borderWidth="2px"
+                                            borderColor="rgba(255,255,255,0.2)"
+                                            shadow="lg"
+                                            bg="#3c4043"
+                                        >
+                                            {cameraOn && localCameraTrack ? (
+                                                <LocalUser
+                                                    audioTrack={localMicrophoneTrack}
+                                                    cameraOn={cameraOn}
+                                                    micOn={micOn}
+                                                    playAudio={false}
+                                                    videoTrack={localCameraTrack}
+                                                    key={`local-pip-${forceUpdate}`}
+                                                    style={{ width: '100%', height: '100%' }}
+                                                />
+                                            ) : (
+                                                <Flex align="center" justify="center" w="full" h="full">
+                                                    <Text color="white" fontWeight="700" fontSize="1.4rem">
+                                                        {user?.fullName?.[0]?.toUpperCase() || 'Y'}
+                                                    </Text>
+                                                </Flex>
+                                            )}
+                                            <Text
+                                                position="absolute"
+                                                bottom={1.5}
+                                                left={2}
+                                                fontSize="0.65rem"
+                                                color="white"
+                                                bg="rgba(0,0,0,0.5)"
+                                                px={1.5}
+                                                py={0.5}
+                                                borderRadius="4px"
+                                            >
+                                                You
+                                            </Text>
+                                        </Box>
                                     )}
                                 </Box>
-                            ) : (
-                                <PreJoinPanel
-                                    appId={appId as string}
-                                    channel={channel as string}
-                                    calling={calling}
-                                    setCalling={(v) => setCalling(v)}
-                                    cameraOn={cameraOn}
-                                    setCamera={(updater) => setCamera(updater)}
-                                    micOn={micOn}
-                                    setMic={(updater) => setMic(updater)}
-                                    localCameraTrack={localCameraTrack}
-                                    localMicrophoneTrack={localMicrophoneTrack}
-                                />
-                            )}
 
-                        </VStack>
-                        <VStack
-                            minH={{ "2xl": "85vh" }}
-                            w="full"
-                            spaceY={3}
-                            h="full"
-                            flex={2}
-
-                            display={{ base: "none", md: "none", lg: "flex", xl: "flex" }}
-                        >
-                            {!showAllParticipant && (
-                                <VStack
-                                    rounded={"10px"}
-                                    borderWidth={0.5}
-                                    borderColor={"gray.50"}
-                                    shadow="md"
-
-                                    boxShadow={toggleBtn ? "sm" : "xs"}
-                                    w="full"
-                                    p={toggleBtn ? 6 : 4}
-                                    pb={4}
-                                    bg="main_background"
-                                    h='fit-content'
-                                    alignSelf={toggleBtn ? undefined : "flex-start"}
-                                    gap={toggleBtn ? 4 : 2}
-                                    overflowY={"auto"}
+                                {/* ── Bottom toolbar ── */}
+                                <HStack
+                                    position="absolute"
+                                    bottom={0}
+                                    left={0}
+                                    right={0}
+                                    px={6}
+                                    py={3}
+                                    bg="#3c4043"
+                                    justify="space-between"
+                                    zIndex={10}
                                 >
+                                    {/* Left: empty spacer for balance */}
+                                    <Box flex={1} />
+
+                                    {/* Center: main controls */}
+                                    <HStack gap={{ base: 2, md: 3 }} justify="center" flex={2}>
+                                        <ToolBtn
+                                            label={micOn ? "Mute" : "Unmute"}
+                                            icon={micOn
+                                                ? <TbMicrophoneFilled size={20} />
+                                                : <TbMicrophoneOff size={20} />}
+                                            active={micOn}
+                                            danger={!micOn}
+                                            onClick={() => setMic((a) => !a)}
+                                        />
+                                        <ToolBtn
+                                            label={cameraOn ? "Turn off camera" : "Turn on camera"}
+                                            icon={cameraOn
+                                                ? <BsCameraVideoFill size={18} />
+                                                : <BsCameraVideoOff size={18} />}
+                                            active={cameraOn}
+                                            danger={!cameraOn}
+                                            onClick={() => setCamera((a) => !a)}
+                                        />
+                                        <ToolBtn
+                                            label="Emoji reactions"
+                                            icon={<SmileIcon size={20} />}
+                                            onClick={() => setShowVirtualBgPanel(!showVirtualBgPanel)}
+                                            active={virtualBgOptions.type !== 'none'}
+                                        />
+                                        <ToolBtn
+                                            label="Participants"
+                                            icon={<Users size={20} />}
+                                            active={activePanel === 'participants'}
+                                            onClick={() => togglePanel('participants')}
+                                        />
+                                        <ToolBtn
+                                            label={screenShareOn ? "Stop presenting" : "Present screen"}
+                                            icon={<MonitorUp size={20} />}
+                                            active={screenShareOn}
+                                            onClick={toggleScreenShare}
+                                        />
+                                        <ToolBtn
+                                            label={isRecording ? `Stop recording (${recordingElapsed})` : "Record"}
+                                            icon={isRecording ? <RiStopCircleFill size={20} /> : <RiRecordCircleFill size={20} />}
+                                            active={false}
+                                            danger={isRecording}
+                                            onClick={() => isRecording ? stopRecording() : startRecording()}
+                                        />
+                                        <ToolBtn
+                                            label="Meeting transcript"
+                                            icon={<FileText size={20} />}
+                                            active={activePanel === 'chat'}
+                                            onClick={() => togglePanel('chat')}
+                                        />
+                                    </HStack>
+
+                                    {/* Right: end call */}
+                                    <HStack flex={1} justify="flex-end">
+                                        <ToolBtn
+                                            label="End call"
+                                            icon={<IoCall size={20} style={{ transform: 'rotate(135deg)' }} />}
+                                            danger
+                                            onClick={confirmEndCall}
+                                            loading={isEndingCall}
+                                        />
+                                    </HStack>
+                                </HStack>
+                            </>
+                        ) : (
+                            <PreJoinPanel
+                                appId={appId as string}
+                                channel={currentConversation?.id}
+                                calling={calling}
+                                setCalling={(v) => setCalling(v)}
+                                cameraOn={cameraOn}
+                                setCamera={(updater) => setCamera(updater)}
+                                micOn={micOn}
+                                setMic={(updater) => setMic(updater)}
+                                localCameraTrack={localCameraTrack}
+                                localMicrophoneTrack={localMicrophoneTrack}
+                                consultationName={`${otherParticipantName}'s Consultation`}
+                                tokenReady={tokenReady}
+                                joinError={joinError}
+                            />
+                        )}
+
+                        </Box>
+                    </Flex>
+
+                    {/* ── Right panel: Participants or Transcript ── */}
+                    {activePanel && isConnected && (
+                        <Box
+                            w="360px"
+                            flexShrink={0}
+                            bg="white"
+                            borderLeftWidth="1px"
+                            borderColor="#e0e0e0"
+                            h="full"
+                            display="flex"
+                            flexDirection="column"
+                        >
+                            {activePanel === 'participants' ? (
+                                /* Participants panel */
+                                <VStack align="stretch" h="full">
                                     <HStack
-                                        bg="main_background"
-                                        w="full"
-                                        flex="1"
-                                        justifyContent={"space-between"}
+                                        px={5}
+                                        py={4}
+                                        borderBottomWidth="1px"
+                                        borderColor="#e0e0e0"
+                                        justify="space-between"
                                     >
-                                        <Text
-                                            color={"text_primary"}
-                                            fontWeight={toggleBtn ? "600" : "500"}
-                                            fontSize={toggleBtn ? "1.25rem" : "md"}
-                                        >
-                                            Participants({conversationParticipants.length})
+                                        <Text fontWeight="700" fontSize="1.1rem" color="#202124">
+                                            People ({conversationParticipants.length + remoteUsers.length})
                                         </Text>
                                         <IconButton
-                                            aria-label="down button"
-                                            rounded="lg"
-                                            size={"sm"}
-                                            borderWidth={1}
-                                            borderColor={"gray.50"}
-                                            color={"text_primary"}
-                                            bg={"main_background"}
-                                            shadow={"lg"}
-                                            boxShadow={"lg"}
-                                            onClick={() => {
-                                                setToggleBtn(!toggleBtn);
-                                            }}
+                                            aria-label="Close"
+                                            size="sm"
+                                            variant="ghost"
+                                            borderRadius="full"
+                                            onClick={() => setActivePanel(null)}
                                         >
-                                            {" "}
-                                            {<BiChevronDown size={16} />}
+                                            <X size={18} />
                                         </IconButton>
                                     </HStack>
-                                    {toggleBtn ? (
-                                        <HStack
-                                            alignItems={"flex-start"}
-                                            spaceX={4}
-                                            w="full"
-                                            h="full"
-                                            flex="1"
-                                        >
-                                            <VStack w="full">
-                                                <Stack w="full">
-                                                    {conversationParticipants.map(p => (
-                                                        <SideParticipant key={p.id} name={p.isSelf ? `${p.name} (You)` : p.name} image={p.image || partdp1} />
-                                                    ))}
-                                                </Stack>
-                                                {conversationParticipants.length > 2 && (
-                                                    <Button
-                                                        variant={"ghost"}
-                                                        border="none"
-                                                        onClick={() => {
-                                                            setShowAllParticipant(true);
-                                                        }}
-                                                    >
-                                                        <Text
-                                                            fontSize={16}
-                                                            color="text_primary"
-                                                            fontWeight={"600"}
-                                                            fontFamily={"outfit"}
-                                                            textAlign={"center"}
-                                                        >
-                                                            See all
-                                                        </Text>
-                                                    </Button>
+                                    <VStack align="stretch" flex={1} overflowY="auto" px={4} py={3} gap={2}>
+                                        {conversationParticipants.map((p) => (
+                                            <HStack key={p.id} px={3} py={2} borderRadius="10px" _hover={{ bg: "#f1f3f4" }}>
+                                                <Avatar.Root size="sm">
+                                                    <Avatar.Fallback name={p.name} />
+                                                    <Avatar.Image src={p.image || partdp1} />
+                                                </Avatar.Root>
+                                                <Text fontSize="0.9rem" color="#202124" fontWeight="500">
+                                                    {p.isSelf ? `${p.name} (You)` : p.name}
+                                                </Text>
+                                                {p.isSelf && (
+                                                    <Box ml="auto">
+                                                        {micOn
+                                                            ? <TbMicrophoneFilled size={14} color="#5f6368" />
+                                                            : <TbMicrophoneOff size={14} color="#ea4335" />}
+                                                    </Box>
                                                 )}
-                                            </VStack>
-                                            <Box h="100%">
-                                                <Box
-                                                    h="40%"
-                                                    w="10px"
-                                                    bg="text_primary"
-                                                    roundedTop="20px"
-                                                >
-                                                    <Image
-                                                        src="/icons/soundoff.svg"
-                                                        alt="mute"
-                                                        cursor="pointer"
-                                                    />
-                                                </Box>{" "}
-                                                <Box h="60%" w="10px" bg={"red.500"} roundedBottom="20px">
-                                                    <Image
-                                                        src="/icons/camera.svg"
-                                                        alt="camera"
-                                                        cursor="pointer"
-                                                    />
-                                                </Box>
-                                            </Box>
-                                        </HStack>
-                                    ) : (
-                                        <Stack pb={3} alignItems={"flex-start"} spaceX={4} w="full">
-                                            <AvatarGroup
-                                                gap="0" spaceX="-2" size="md">
-                                                {conversationParticipants.map(p => (
-                                                    <Avatar.Root key={p.id}>
-                                                        <Avatar.Fallback name={p.name} />
-                                                        <Avatar.Image bg="main_background" src={p.image || partdp1} />
-                                                    </Avatar.Root>
-                                                ))}
-                                            </AvatarGroup>
-                                        </Stack>
-                                    )}
-                                </VStack>
-                            )}
-                            <VStack
-                                alignItems={"flex-start"}
-                                rounded={"10px"}
-                                w="full"
-                                borderWidth={0.5}
-                                borderColor={"gray.50"}
-                                shadow="md"
-                                flex={2}
-                                pos="relative"
-                                bg="main_background"
-                            >
-                                {isConnected ? (
-                                    <VideoChat
-                                        messages={chatMessages}
-                                        onSendMessage={sendChatMessage}
-                                        currentUserId={user?.id || ''}
-                                        isConnected={chatConnected}
-                                    />
-                                ) : (
-                                    <VStack
-                                        alignItems={"center"}
-                                        justify={"center"}
-                                        w="full"
-                                        h="full"
-                                        gap={4}
-                                        p={8}
-                                    >
-                                        <Box
-                                            w={16}
-                                            h={16}
-                                            borderRadius="full"
-                                            bg="gray.100"
-                                            display="flex"
-                                            alignItems="center"
-                                            justifyContent="center"
-                                        >
-                                            <Icon as={IoCall} boxSize={8} color="gray.400" />
-                                        </Box>
-                                        <VStack gap={2} textAlign="center">
-                                            <Text
-                                                color={"text_primary"}
-                                                fontWeight={"600"}
-                                                fontSize={"1.25rem"}
-                                            >
-                                                Video Chat
-                                            </Text>
-                                            <Text
-                                                color={"gray.500"}
-                                                fontSize={"md"}
-                                            >
-                                                Join the video call to start chatting
-                                            </Text>
-                                            <Text
-                                                color={"gray.400"}
-                                                fontSize={"sm"}
-                                            >
-                                                Chat will be available once you&apos;re connected
-                                            </Text>
-                                        </VStack>
+                                            </HStack>
+                                        ))}
+                                        {remoteUsers.map((ru) => (
+                                            <HStack key={ru.uid} px={3} py={2} borderRadius="10px" _hover={{ bg: "#f1f3f4" }}>
+                                                <Avatar.Root size="sm">
+                                                    <Avatar.Fallback name={String(ru.uid)} />
+                                                </Avatar.Root>
+                                                <Text fontSize="0.9rem" color="#202124" fontWeight="500">
+                                                    {otherParticipantName}
+                                                </Text>
+                                            </HStack>
+                                        ))}
                                     </VStack>
-                                )}
-                            </VStack>
-                        </VStack>
-
-                    </Box>
+                                </VStack>
+                            ) : (
+                                /* Meeting transcript / chat panel */
+                                <VideoChat
+                                    messages={chatMessages}
+                                    onSendMessage={sendChatMessage}
+                                    currentUserId={user?.id || ''}
+                                    isConnected={chatConnected}
+                                    onClose={() => setActivePanel(null)}
+                                />
+                            )}
+                        </Box>
+                    )}
                 </Flex>
             </AppLayout>
 
@@ -2234,7 +2149,8 @@ const VideoChat: FC<{
     onSendMessage: (message: string) => void;
     currentUserId: string;
     isConnected: boolean;
-}> = ({ messages, onSendMessage, currentUserId, isConnected }) => {
+    onClose?: () => void;
+}> = ({ messages, onSendMessage, currentUserId, isConnected, onClose }) => {
     const [newMessage, setNewMessage] = useState('');
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const { user } = useAuth();
@@ -2261,6 +2177,20 @@ const VideoChat: FC<{
         }
     };
 
+    const handleDownloadTranscript = () => {
+        const lines = messages
+            .filter((m) => m.senderId !== 'system')
+            .map((m) => `[${m.timestamp.toLocaleTimeString()}] ${m.senderName}: ${m.message}`)
+            .join('\n');
+        const blob = new Blob([lines], { type: 'text/plain' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'transcript.txt';
+        a.click();
+        URL.revokeObjectURL(url);
+    };
+
     return (
         <VStack
             alignItems={"flex-start"}
@@ -2271,32 +2201,61 @@ const VideoChat: FC<{
             shadow="md"
             flex={2}
             pos="relative"
-            bg="main_background"
+            bg="white"
             h="full"
         >
-            <Text
+            {/* Transcript panel header */}
+            <HStack
                 w="full"
-                textAlign={"left"}
-                p={4}
-                pb={4}
-                color={"text_primary"}
-                fontWeight={"600"}
-                fontSize={"1.25rem"}
+                px={4}
+                py={3}
                 borderBottom="1px"
                 borderColor="gray.100"
+                justify="space-between"
+                align="center"
+                flexShrink={0}
             >
-                Video Chat {!isConnected && "(Disconnected)"}
-            </Text>
+                <Text
+                    color="gray.800"
+                    fontWeight="600"
+                    fontSize="1rem"
+                >
+                    Meeting Transcript {!isConnected && <Text as="span" color="red.400" fontSize="xs">(Disconnected)</Text>}
+                </Text>
+                <HStack gap={1}>
+                    <Menu.Root>
+                        <Menu.Trigger asChild>
+                            <IconButton aria-label="More options" variant="ghost" size="sm" color="gray.500" _hover={{ bg: "gray.100" }}>
+                                <MoreVertical size={18} />
+                            </IconButton>
+                        </Menu.Trigger>
+                        <Portal>
+                            <Menu.Positioner>
+                                <Menu.Content minW="200px" shadow="lg" borderRadius="md">
+                                    <Menu.Item value="translate" fontSize="sm">Translate to...</Menu.Item>
+                                    <Menu.Item value="show-original" fontSize="sm">Show original and translated</Menu.Item>
+                                    <Menu.Item value="download" fontSize="sm" onClick={handleDownloadTranscript}>Download Transcript</Menu.Item>
+                                </Menu.Content>
+                            </Menu.Positioner>
+                        </Portal>
+                    </Menu.Root>
+                    {onClose && (
+                        <IconButton aria-label="Close panel" variant="ghost" size="sm" color="gray.500" _hover={{ bg: "gray.100" }} onClick={onClose}>
+                            <X size={18} />
+                        </IconButton>
+                    )}
+                </HStack>
+            </HStack>
 
             <VStack
                 flex={1}
                 w="full"
-                h="full"
                 overflowY="auto"
                 px={4}
                 py={2}
                 gap={3}
                 align="stretch"
+                minH={0}
             >
                 {messages.length === 0 ? (
                     <VStack justify="center" h="full" color="gray.500" gap={2}>
@@ -2375,9 +2334,8 @@ const VideoChat: FC<{
                 mx="auto"
                 p="4"
                 alignItems={"center"}
-                pos="absolute"
-                bottom={"0"}
-                bg="main_background"
+                flexShrink={0}
+                bg="white"
                 borderTop="1px"
                 borderColor="gray.100"
             >
@@ -2425,6 +2383,25 @@ const VideoChat: FC<{
                     </Button>
                 </HStack>
             </HStack>
+
+            {/* Download Transcript button */}
+            <Box w="full" px={4} pb={4} flexShrink={0} mt="auto">
+                <Button
+                    w="full"
+                    variant="outline"
+                    size="sm"
+                    color="gray.600"
+                    borderColor="gray.200"
+                    _hover={{ bg: "gray.50" }}
+                    onClick={handleDownloadTranscript}
+                    disabled={messages.filter((m) => m.senderId !== 'system').length === 0}
+                >
+                    <HStack gap={2}>
+                        <Download size={15} />
+                        <Text fontSize="sm">Download Transcript</Text>
+                    </HStack>
+                </Button>
+            </Box>
         </VStack>
     );
 };

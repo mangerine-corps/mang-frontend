@@ -47,7 +47,7 @@ import { useAppointment } from "mangarine/state/hooks/appointment.hook";
 import { isEmpty } from "es-toolkit/compat";
 import dynamic from "next/dynamic";
 // import VideoCalling from "mangarine/components/ui-components/video/agoravideocontainer";
-const appId = process.env.AGORA_APP_ID
+const appId = process.env.NEXT_PUBLIC_AGORA_APP_ID
 
 const DynamicAgoraVideoCall = dynamic(
   () => import('mangarine/components/ui-components/video/agoravideocontainer'),

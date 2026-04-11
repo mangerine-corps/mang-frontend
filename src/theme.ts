@@ -291,6 +291,27 @@ const system = createSystem(defaultConfig, {
             base: "{colors.gray.100}",
           },
         },
+
+        text_muted: {
+          value: {
+            base: "{colors.grey.700}",
+            _dark: "{colors.grey.500}",
+          },
+        },
+
+        text_subtle: {
+          value: {
+            base: "{colors.grey.400}",
+            _dark: "{colors.grey.600}",
+          },
+        },
+
+        chat_surface: {
+          value: {
+            base: "{colors.grey.50}",
+            _dark: "{colors.mainBlack.600}",
+          },
+        },
       },
     },
   },

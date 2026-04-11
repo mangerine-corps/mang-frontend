@@ -53,7 +53,7 @@ function Biocard() {
       // pb="12px"
       borderRadius="lg"
       border="1px solid"
-      borderColor="#E8E8E9"
+      borderColor="border_background"
       bg="bg_box"
       onClick={() => {
         goToProfile();

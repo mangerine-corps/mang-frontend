@@ -63,6 +63,7 @@ interface ChatContextType {
     cancelCall: () => void;
     acceptCall: () => void;
     rejectCall: () => void;
+    clearOutgoingCall: () => void;
 }
 
 const ChatContext = createContext<ChatContextType | undefined>(undefined);
@@ -287,7 +288,7 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         receiverImage?: string,
     ) => {
         if (!user?.id || !socketRef.current) return;
-        setOutgoingCall({ conversationId, receiverName, receiverImage, status: 'ringing' });
+        // Notify the other user — caller goes straight to the room
         socketRef.current.emit('initiate-video-call', {
             conversationId,
             receiverId,
@@ -295,20 +296,10 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             callerName: user.fullName,
             callerImage: user.profilePics,
         });
-        // Auto-cancel after 40 seconds with no answer
-        callTimeoutRef.current = setTimeout(() => {
-            socketRef.current?.emit('cancel-video-call', { conversationId });
-            setOutgoingCall(null);
-        }, 40_000);
     };
 
     const cancelCall = () => {
         if (callTimeoutRef.current) clearTimeout(callTimeoutRef.current);
-        if (outgoingCall) {
-            socketRef.current?.emit('cancel-video-call', {
-                conversationId: outgoingCall.conversationId,
-            });
-        }
         setOutgoingCall(null);
     };
 
@@ -328,6 +319,10 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
             });
         }
         setIncomingCall(null);
+    };
+
+    const clearOutgoingCall = () => {
+        setOutgoingCall(null);
     };
 
     const joinChatRoom = async (roomId: string) => {
@@ -356,6 +351,7 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                 cancelCall,
                 acceptCall,
                 rejectCall,
+                clearOutgoingCall,
             }}
         >
             {children}

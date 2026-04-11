@@ -34,10 +34,6 @@ const IncomingCallModal = dynamic(
   () => import("mangarine/components/ui-components/modals/incomingcallmodal"),
   { ssr: false }
 );
-const OutgoingCallModal = dynamic(
-  () => import("mangarine/components/ui-components/modals/outgoingcallmodal"),
-  { ssr: false }
-);
 import NewMessageDrawer from "mangarine/components/ui-components/modals/newmessage";
 import { useGetConversationMutation } from "mangarine/state/services/apointment.service";
 import {
@@ -101,11 +97,11 @@ const SidebarSearchField = ({
         placeholder={placeholder}
         h="44px"
         borderRadius="10px"
-        borderColor="#EEF0F4"
-        bg="white"
+        borderColor="border_background"
+        bg="bg_box"
         ps="42px"
-        _placeholder={{ color: "#B0B5C2", fontSize: "0.875rem" }}
-        _focusVisible={{ borderColor: "#1C275D", boxShadow: "none" }}
+        _placeholder={{ color: "text_subtle", fontSize: "0.875rem" }}
+        _focusVisible={{ borderColor: "button_bg", boxShadow: "none" }}
       />
     </Box>
   );
@@ -120,7 +116,7 @@ export const ChatHeader = ({
   const { handleMuteUser } = useChatManagement();
   const { user } = useAuth();
   const router = useRouter();
-  const { initiateCall, outgoingCall } = useChat();
+  const { initiateCall } = useChat();
   const [muteOpen, setMuteOpen] = useState(false);
   const [reportOpen, setReportOpen] = useState(false);
   const [blockOpen, setBlockOpen] = useState(false);
@@ -157,13 +153,15 @@ export const ChatHeader = ({
       : currentConversation?.user?.id;
 
   const handleStartCall = () => {
-    if (!peer?.id || outgoingCall) return;
+    if (!peer?.id) return;
+    // Notify the other user via socket then go straight into the room
     initiateCall(
       currentConversation.id,
       peer.id,
       peer.fullName || "User",
       peer.profilePics,
     );
+    router.push(`/message/videoconsultation?consultationId=${currentConversation.id}`);
   };
 
   return (
@@ -173,8 +171,8 @@ export const ChatHeader = ({
       px={{ base: 4, md: 6 }}
       py={4}
       borderBottomWidth="1px"
-      borderColor="#EEF0F4"
-      bg="white"
+      borderColor="border_background"
+      bg="bg_box"
       minH="78px"
     >
       <HStack gap={3} minW={0}>
@@ -203,7 +201,7 @@ export const ChatHeader = ({
             borderRadius="full"
             bg="#48BB34"
             borderWidth="2px"
-            borderColor="white"
+            borderColor="bg_box"
           />
         </Box>
 
@@ -222,7 +220,7 @@ export const ChatHeader = ({
               <Image src="/icons/verified.svg" alt="Verified" boxSize="14px" />
             ) : null}
           </HStack>
-          <Text fontSize="0.8rem" color="#8D93A5">
+          <Text fontSize="0.8rem" color="text_muted">
             {lastActivity
               ? `Last seen ${formatConversationTime(lastActivity)}`
               : "Conversation details"}
@@ -236,12 +234,11 @@ export const ChatHeader = ({
           variant="ghost"
           borderRadius="12px"
           borderWidth="1px"
-          borderColor="#EEF0F4"
-          bg="white"
-          color="#1C275D"
-          disabled={!!outgoingCall}
+          borderColor="border_background"
+          bg="bg_box"
+          color="text_primary"
           onClick={handleStartCall}
-          _hover={{ bg: "#EEF5FF", borderColor: "#C7D7F5" }}
+          _hover={{ bg: "bd_background", borderColor: "border_background" }}
         >
           <LuVideo />
         </IconButton>
@@ -253,8 +250,8 @@ export const ChatHeader = ({
               variant="ghost"
               borderRadius="12px"
               borderWidth="1px"
-              borderColor="#EEF0F4"
-              bg="white"
+              borderColor="border_background"
+              bg="bg_box"
             >
               <LuEllipsisVertical />
             </IconButton>
@@ -265,7 +262,8 @@ export const ChatHeader = ({
                 minW="200px"
                 p="8px"
                 borderRadius="14px"
-                borderColor="#EEF0F4"
+                bg="bg_box"
+                borderColor="border_background"
                 boxShadow="0 20px 48px rgba(17, 29, 74, 0.14)"
               >
                 <Menu.Item
@@ -381,15 +379,15 @@ export const ConversationItem = ({
       px="14px"
       py="12px"
       borderRadius="16px"
-      bg={isActive ? "#F7F8FC" : "transparent"}
+      bg={isActive ? "bd_background" : "transparent"}
       borderWidth={isActive ? "1px" : "1px"}
-      borderColor={isActive ? "#E4E8F2" : "transparent"}
+      borderColor={isActive ? "border_background" : "transparent"}
       boxShadow={isActive ? "0 10px 24px rgba(17, 29, 74, 0.06)" : "none"}
       cursor="pointer"
       transition="0.2s ease"
       _hover={{
-        bg: "#F7F8FC",
-        borderColor: "#E4E8F2",
+        bg: "bd_background",
+        borderColor: "border_background",
       }}
       onClick={handleSelectedConversation}
     >
@@ -426,7 +424,7 @@ export const ConversationItem = ({
               <Image src="/icons/verified.svg" alt="Verified" boxSize="13px" />
             ) : null}
           </HStack>
-          <Text fontSize="0.74rem" color="#9AA1B3" flexShrink={0}>
+          <Text fontSize="0.74rem" color="text_subtle" flexShrink={0}>
             {time}
           </Text>
         </HStack>
@@ -434,7 +432,7 @@ export const ConversationItem = ({
         <HStack justify="space-between" align="center" gap={3}>
           <Text
             fontSize="0.82rem"
-            color="#6F7687"
+            color="text_muted"
             lineClamp={1}
             flex={1}
           >
@@ -449,8 +447,8 @@ export const ConversationItem = ({
               align="center"
               justify="center"
               borderRadius="999px"
-              bg="#1C275D"
-              color="white"
+              bg="button_bg"
+              color="button_text"
               fontSize="0.72rem"
               fontWeight="600"
               flexShrink={0}
@@ -467,16 +465,13 @@ export const ConversationItem = ({
 /** Renders incoming/outgoing call modals — must be inside ChatProvider */
 const CallModalManager = () => {
   const router = useRouter();
-  const { incomingCall, outgoingCall, acceptCall, rejectCall, cancelCall } =
-    useChat();
+  const { incomingCall, acceptCall, rejectCall } = useChat();
 
   const handleAccept = () => {
     const conversationId = incomingCall?.conversationId;
     acceptCall();
     if (conversationId) {
-      router.push(
-        `/message/videoconsultation?consultationId=${conversationId}`
-      );
+      router.push(`/message/videoconsultation?consultationId=${conversationId}`);
     }
   };
 
@@ -488,9 +483,6 @@ const CallModalManager = () => {
           onAccept={handleAccept}
           onReject={rejectCall}
         />
-      )}
-      {outgoingCall && (
-        <OutgoingCallModal call={outgoingCall} onCancel={cancelCall} />
       )}
     </>
   );
@@ -591,7 +583,7 @@ const Index = () => {
   ]);
 
   const subHeader = (
-    <Text py={1} fontSize="0.92rem" color="#717784" fontWeight="500">
+    <Text py={1} fontSize="0.92rem" color="text_muted" fontWeight="500">
       Message
     </Text>
   );
@@ -602,7 +594,7 @@ const Index = () => {
         <Box
           w="full"
           h="full"
-          bg="#F6F6F8"
+          bg="chat_surface"
           borderRadius="24px"
           p={{ base: 3, md: 4 }}
           overflow="hidden"
@@ -619,9 +611,9 @@ const Index = () => {
                 <IconButton
                   aria-label="New message"
                   onClick={() => setShowDrawer(true)}
-                  bg="white"
+                  bg="bg_box"
                   borderWidth="1px"
-                  borderColor="#EEF0F4"
+                  borderColor="border_background"
                   borderRadius="10px"
                   boxShadow="0 8px 24px rgba(17, 29, 74, 0.04)"
                 >
@@ -647,7 +639,7 @@ const Index = () => {
                   <Box flex={1} />
                 ) : isLoading ? (
                   <Flex justify="center" align="center" py={12}>
-                    <Spinner color="#1C275D" />
+                    <Spinner color="button_bg" />
                   </Flex>
                 ) : filteredConversations.length ? (
                   filteredConversations.map((conversation: any) => (
@@ -662,12 +654,12 @@ const Index = () => {
                     py={10}
                     px={6}
                     textAlign="center"
-                    bg="white"
+                    bg="bg_box"
                     borderRadius="18px"
                     borderWidth="1px"
-                    borderColor="#EEF0F4"
+                    borderColor="border_background"
                   >
-                    <Text fontSize="0.92rem" color="#7E8495">
+                    <Text fontSize="0.92rem" color="text_muted">
                       {search.trim()
                         ? `No conversations found for "${search}".`
                         : "No conversations yet."}

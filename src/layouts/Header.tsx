@@ -308,8 +308,8 @@ const Header = () => {
                         <CgSearch />
                       </Icon>
                       <VStack alignItems="flex-start" gap={0} flex={1}>
-                        <Text fontWeight="semibold" lineClamp={1} color="#000000">{item.name}</Text>
-                        {item.businessName && <Text fontSize="xs" color="#333333" lineClamp={1}>{item.businessName}</Text>}
+                        <Text fontWeight="semibold" lineClamp={1} color="text_primary">{item.name}</Text>
+                        {item.businessName && <Text fontSize="xs" color="text_muted" lineClamp={1}>{item.businessName}</Text>}
                       </VStack>
                       <Box>
                         {item.type === 'user' ? (
@@ -447,7 +447,7 @@ const Header = () => {
               <Menu.Content
                 bg="bg_box"
                 borderWidth="1px"
-                borderColor="#E8E8E9"
+                borderColor="border_background"
                 borderRadius="16px"
                 boxShadow="none"
                 minW="280px"
@@ -460,7 +460,7 @@ const Header = () => {
                   pb="3"
                   mb="2"
                   borderBottomWidth="1px"
-                  borderColor="#E8E8E9"
+                  borderColor="border_background"
                 >
                   <Avatar.Root boxSize="12">
                     <Avatar.Fallback name={`${user?.fullName}`} />
