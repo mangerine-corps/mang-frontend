@@ -14,6 +14,7 @@ import {
     ICameraVideoTrack,
     useRemoteVideoTracks,
     ILocalVideoTrack,
+    UID,
 } from "agora-rtc-react";
 
 const part1 = "/images/participant1.png";
@@ -55,6 +56,18 @@ import {
     ChevronRight, MoreVertical, FlipHorizontal2, Camera, MessageSquare,
 } from "lucide-react";
 import { VirtualBackgroundProcessor, VirtualBackgroundOptions, PREDEFINED_BACKGROUNDS } from "mangarine/utils/virtualBackground";
+
+const stringToAgoraUid = (userId: string): number => {
+    let hash = 0;
+
+    for (let i = 0; i < userId.length; i += 1) {
+        const char = userId.charCodeAt(i);
+        hash = (hash << 5) - hash + char;
+        hash &= hash;
+    }
+
+    return Math.abs(hash);
+};
 
 
 const VideoActions = ({
@@ -141,7 +154,7 @@ const Participant: FC<Props> = ({ item, audioTrack, videoTrack, children, onRemo
                 videoTrack.stop();
             }
         };
-    }, [videoStatus]); // Re-run effect when user or visibility state changes
+    }, [videoStatus, videoTrack]); // Re-run effect when user or visibility state changes
 
     const toggleVideoVisibility = () => {
         setVideoStatus(prev => !prev);
@@ -239,7 +252,8 @@ export const PreJoinPanel: React.FC<{
     consultationName?: string;
     tokenReady?: boolean;
     joinError?: string | null;
-}> = ({ appId, channel, calling, setCalling, cameraOn, setCamera, micOn, setMic, localCameraTrack, localMicrophoneTrack, consultationName, tokenReady = true, joinError }) => {
+    onRetry?: () => void;
+}> = ({ appId, channel, calling, setCalling, cameraOn, setCamera, micOn, setMic, localCameraTrack, localMicrophoneTrack, consultationName, tokenReady = true, joinError, onRetry }) => {
     const [cameras, setCameras] = useState<MediaDeviceInfo[]>([]);
     const [microphones, setMicrophones] = useState<MediaDeviceInfo[]>([]);
     const [selectedCamera, setSelectedCamera] = useState<string | undefined>();
@@ -402,14 +416,29 @@ export const PreJoinPanel: React.FC<{
 
             {/* Error message */}
             {joinError && (
-                <Text color="red.500" fontSize="0.875rem" mb={2} maxW="680px" w="full" textAlign="center">
-                    {joinError}
-                </Text>
+                <VStack gap={2} mb={2} maxW="680px" w="full" align="center">
+                    <Text color="red.500" fontSize="0.875rem" textAlign="center">
+                        {joinError}
+                    </Text>
+                    {onRetry && (
+                        <Button
+                            size="sm"
+                            variant="outline"
+                            borderColor="#1C275D"
+                            color="#1C275D"
+                            borderRadius="8px"
+                            onClick={onRetry}
+                            _hover={{ bg: "#f0f2f8" }}
+                        >
+                            Try Again
+                        </Button>
+                    )}
+                </VStack>
             )}
 
             {/* Join Room button */}
             <Button
-                disabled={!appId || !channel || calling || !tokenReady}
+                disabled={!appId || !channel || calling || !tokenReady || !!joinError}
                 loading={calling || !tokenReady}
                 loadingText={!tokenReady ? "Preparing..." : "Joining..."}
                 onClick={() => setCalling(true)}
@@ -568,10 +597,14 @@ interface VideoChatMessage {
     isOwn: boolean;
 }
 
+// Client must be created once and remain stable across renders.
+// Creating it inside the render function causes a new instance on every re-render,
+// which Agora cannot handle and throws CAN_NOT_GET_GATEWAY_SERVER internally.
+const agoraClient = AgoraRTC.createClient({ mode: "rtc", codec: "vp8" });
+
 export const VideoCalling = ({ consultationId }: { consultationId?: string }) => {
-    const client = AgoraRTC.createClient({ mode: "rtc", codec: "vp8" });
     return (
-        <AgoraRTCProvider client={client}>
+        <AgoraRTCProvider client={agoraClient}>
             <VideoContainer consultationId={consultationId} />
         </AgoraRTCProvider>
     );
@@ -585,10 +618,8 @@ const VideoContainer = ({ consultationId }: { consultationId?: string }) => {
     const joinTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
     const { currentConversation } = useAppointment();
-    const [participants, setParticipants] = useState([])
-    const isConnected = useIsConnected(); // Store the user's connection status
-    const [appId] = useState(process.env.NEXT_PUBLIC_AGORA_APP_ID);
-    const [channel, setChannel] = useState(currentConversation.id);
+    const isConnected = useIsConnected();
+    const appId = process.env.NEXT_PUBLIC_AGORA_APP_ID ?? "";
     const [token, setToken] = useState("");
     const { user, token: authToken } = useAuth()
     const router = useRouter()
@@ -599,6 +630,7 @@ const VideoContainer = ({ consultationId }: { consultationId?: string }) => {
     const [rating, setRating] = useState(false);
     const [micOn, setMic] = useState(true);
     const [cameraOn, setCamera] = useState(true);
+
     const { localMicrophoneTrack } = useLocalMicrophoneTrack(micOn);
     const { localCameraTrack } = useLocalCameraTrack(cameraOn);
     const { markUserJoined } = useConsultationJoin();
@@ -684,16 +716,17 @@ const VideoContainer = ({ consultationId }: { consultationId?: string }) => {
     const toggleScreenShare = async () => {
         if (!screenShareOn) {
             try {
-                const track = await AgoraRTC.createScreenVideoTrack({}, "auto");
-                setScreenTrack(track as unknown as ILocalVideoTrack);
+                const result = await AgoraRTC.createScreenVideoTrack({}, "auto");
+                // createScreenVideoTrack with "auto" may return [videoTrack, audioTrack] or just videoTrack
+                const videoTrack: ILocalVideoTrack = Array.isArray(result) ? result[0] : result as ILocalVideoTrack;
+                setScreenTrack(videoTrack);
                 setScreenShareOn(true);
                 setCamera(false); // turn off camera while sharing screen
                 // Nudge re-render to ensure LocalUser swaps tracks immediately
                 setForceUpdate((p) => p + 1);
                 // Auto stop when user ends share via browser UI
                 try {
-                    // @ts-ignore optional event listener in Agora tracks
-                    track.on && track.on('track-ended', () => {
+                    videoTrack.on && (videoTrack as any).on('track-ended', () => {
                         setScreenTrack(null);
                         setScreenShareOn(false);
                         setCamera(true);
@@ -757,10 +790,17 @@ const VideoContainer = ({ consultationId }: { consultationId?: string }) => {
 
     // Initialize virtual background processor
     useEffect(() => {
+        let isMounted = true;
+        let processor: VirtualBackgroundProcessor | null = null;
+
         const initVirtualBackground = async () => {
             try {
-                const processor = new VirtualBackgroundProcessor();
+                processor = new VirtualBackgroundProcessor();
                 await processor.initialize();
+                if (!isMounted) {
+                    processor.cleanup();
+                    return;
+                }
                 setVirtualBgProcessor(processor);
             } catch (error) {
                 console.error('Failed to initialize virtual background:', error);
@@ -770,8 +810,9 @@ const VideoContainer = ({ consultationId }: { consultationId?: string }) => {
         initVirtualBackground();
         
         return () => {
-            if (virtualBgProcessor) {
-                virtualBgProcessor.cleanup();
+            isMounted = false;
+            if (processor) {
+                processor.cleanup();
             }
             if (virtualBgAnimationRef.current) {
                 cancelAnimationFrame(virtualBgAnimationRef.current);
@@ -1116,6 +1157,9 @@ const VideoContainer = ({ consultationId }: { consultationId?: string }) => {
         recordingStartTimeRef.current = null;
     };
 
+    const stopRecordingRef = useRef(stopRecording);
+    stopRecordingRef.current = stopRecording;
+
     // Panel state: 'chat' | 'participants' | null
     const [activePanel, setActivePanel] = useState<'chat' | 'participants' | null>(null);
 
@@ -1134,6 +1178,8 @@ const VideoContainer = ({ consultationId }: { consultationId?: string }) => {
     // State for end call confirmation modal
     const [showEndCallModal, setShowEndCallModal] = useState(false);
 
+    const [tokenUid, setTokenUid] = useState<UID | null>(null);
+    const [tokenRetryCount, setTokenRetryCount] = useState(0);
     const [getVideoToken, { isLoading }] = useGetVideoTokenMutation();
     const [getConversations] = useGetConversationMutation();
     const dispatch = useDispatch();
@@ -1148,18 +1194,49 @@ const VideoContainer = ({ consultationId }: { consultationId?: string }) => {
         if (!audioTrack) return;
         audioTrack.setVolume(100);  // Set to a reasonable volume level
     };
+    const fallbackJoinUid = useMemo<UID | null>(() => {
+        if (typeof user?.id === "string" && user.id.trim()) {
+            return stringToAgoraUid(user.id.trim());
+        }
 
+        return null;
+    }, [user?.id]);
 
-    const { error: joinErr } = useJoin(
-        { appid: appId, channel: currentConversation.id, token: token ? token : null, uid: 0 },
-        calling
-    );
+    const joinUid = useMemo<UID | null>(() => {
+        if (tokenUid !== null && tokenUid !== undefined && tokenUid !== "") {
+            return tokenUid;
+        }
+
+        return fallbackJoinUid;
+    }, [tokenUid, fallbackJoinUid]);
+
+    const joinOptions = useMemo(() => {
+        return {
+            appid: appId ?? "",
+            channel: currentConversation?.id ?? "",
+            token: token || null,
+            ...(joinUid !== null ? { uid: joinUid } : {}),
+        };
+    }, [appId, currentConversation?.id, token, joinUid]);
+
+    // Only attempt to join when all required params are present and valid.
+    // Passing undefined channel or empty appId causes Agora to throw an unhandled exception.
+    const canJoin = Boolean(calling && appId && currentConversation?.id && token);
+    const { error: joinErr } = useJoin(joinOptions, canJoin);
 
     useEffect(() => {
         if (joinErr) {
             console.error('Agora join error:', joinErr);
             setCalling(false);
-            setJoinError(`Connection failed: ${(joinErr as any)?.message || JSON.stringify(joinErr)}`);
+            const errCode = (joinErr as any)?.code || '';
+            const errMsg = (joinErr as any)?.message || '';
+            let friendlyMsg = 'Failed to join the call. Please try again.';
+            if (errCode.includes('INVALID_TOKEN') || errCode.includes('CAN_NOT_GET_GATEWAY') || errMsg.includes('invalid token') || errMsg.includes('authorized failed')) {
+                friendlyMsg = 'Video token is invalid or expired. Please leave and re-enter the call.';
+            } else if (errCode.includes('NETWORK') || errMsg.includes('network')) {
+                friendlyMsg = 'Network error. Please check your connection and try again.';
+            }
+            setJoinError(friendlyMsg);
         }
     }, [joinErr]);
     const publishedTracks = useMemo(() => {
@@ -1181,18 +1258,36 @@ const VideoContainer = ({ consultationId }: { consultationId?: string }) => {
         if (consultationId && convId !== consultationId) return;
 
         setTokenReady(false);
+        setJoinError(null);
+        setTokenUid(null);
         getVideoToken(convId)
             .unwrap()
             .then((payload) => {
-                console.log(payload.token);
+                console.log('[Agora] rtc-token response:', payload);
+                if (!payload?.token) {
+                    setJoinError('Failed to get a video token from the server. Please try again.');
+                    setTokenReady(true); // Unblock UI so retry button is accessible
+                    return;
+                }
+                console.log('[Agora] rtc-token:', payload.token);
                 setToken(payload.token);
+                // Use the UID returned by the server so it matches the token
+                if (typeof payload.uid === "string" || typeof payload.uid === "number") {
+                    console.log('[Agora] rtc-uid from token response:', payload.uid);
+                    setTokenUid(payload.uid);
+                } else if (fallbackJoinUid !== null) {
+                    console.log('[Agora] rtc-uid fallback from stringToAgoraUid(user.id):', fallbackJoinUid, '| user.id:', user?.id);
+                } else {
+                    console.warn('[Agora] no rtc uid from backend response and no user.id fallback');
+                }
                 setTokenReady(true);
             })
             .catch((error) => {
-                console.log(error);
-                setTokenReady(true); // Allow joining without token (open channels)
+                console.error('Video token fetch failed:', error);
+                setJoinError('Could not retrieve a video token. Please check your connection and try again.');
+                setTokenReady(true); // Unblock the UI so the retry button is reachable
             });
-    }, [currentConversation?.id]);
+    }, [consultationId, currentConversation?.id, fallbackJoinUid, getVideoToken, tokenRetryCount, user?.id]);
 
     // If calling but Agora hasn't connected after 12s, surface an error
     useEffect(() => {
@@ -1259,8 +1354,8 @@ const VideoContainer = ({ consultationId }: { consultationId?: string }) => {
 
 
     useEffect(() => {
-        console.log('[Agora] appId:', appId, '| channel:', currentConversation?.id, '| token:', token ? `${token.slice(0,12)}...` : 'EMPTY', '| calling:', calling);
-    }, [token, calling, appId, currentConversation?.id])
+        console.log('[Agora] appId:', appId, '| channel:', currentConversation?.id, '| uid:', joinUid ?? 'AUTO', '| token:', token || 'EMPTY', '| calling:', calling);
+    }, [token, calling, appId, currentConversation?.id, joinUid])
 
     // Initialize Socket.IO for non-persistent video chat
     useEffect(() => {
@@ -1376,7 +1471,7 @@ const VideoContainer = ({ consultationId }: { consultationId?: string }) => {
         } else {
             console.error('Global socket instance not available');
         }
-    }, [user?.id, currentConversation?.id, user?.fullName, user?.profilePics, isConnected]);
+    }, [authToken, user?.id, currentConversation?.id, user?.fullName, user?.profilePics, isConnected]);
 
     // Chat functions
     const sendChatMessage = async (message: string) => {
@@ -1420,30 +1515,28 @@ const VideoContainer = ({ consultationId }: { consultationId?: string }) => {
             // Stop any ongoing recording first
             try { stopRecording(); } catch { }
 
-            // First, stop publishing tracks to the channel
-            if (localCameraTrack && typeof localCameraTrack.stop === 'function') {
-                console.log('Stopping camera track...');
+            // Stop and close (release hardware) local tracks
+            if (localCameraTrack) {
                 try {
                     localCameraTrack.stop();
-                    console.log('Camera track stopped successfully');
+                    (localCameraTrack as any).close?.();
                 } catch (error) {
                     console.error('Error stopping camera track:', error);
                 }
-            } else {
-                console.log('Camera track not available or invalid');
             }
 
-            if (localMicrophoneTrack && typeof localMicrophoneTrack.stop === 'function') {
-                console.log('Stopping microphone track...');
+            if (localMicrophoneTrack) {
                 try {
                     localMicrophoneTrack.stop();
-                    console.log('Microphone track stopped successfully');
+                    (localMicrophoneTrack as any).close?.();
                 } catch (error) {
                     console.error('Error stopping microphone track:', error);
                 }
-            } else {
-                console.log('Microphone track not available or invalid');
             }
+
+            // Disable camera and mic state so tracks are not re-acquired
+            setCamera(false);
+            setMic(false);
 
             // Clean up Socket.IO connections
             if (socketRef.current && chatConnected) {
@@ -1464,32 +1557,11 @@ const VideoContainer = ({ consultationId }: { consultationId?: string }) => {
             setCalling(false);
             setEndSession(true);
 
-            // Force cleanup of any remaining tracks with multiple attempts
-            const forceCleanup = () => {
-                if (localCameraTrack && typeof localCameraTrack.stop === 'function') {
-                    try {
-                        console.log('Force stopping camera track...');
-                        localCameraTrack.stop();
-                    } catch (error) {
-                        console.error('Error in force camera cleanup:', error);
-                    }
-                }
-
-                if (localMicrophoneTrack && typeof localMicrophoneTrack.stop === 'function') {
-                    try {
-                        console.log('Force stopping microphone track...');
-                        localMicrophoneTrack.stop();
-                    } catch (error) {
-                        console.error('Error in force microphone cleanup:', error);
-                    }
-                }
-            };
-
-            // Multiple cleanup attempts with delays
-            forceCleanup();
-            setTimeout(forceCleanup, 100);
-            setTimeout(forceCleanup, 500);
-            setTimeout(forceCleanup, 1000);
+            // Final forced hardware release after a short delay
+            setTimeout(() => {
+                try { localCameraTrack?.stop(); (localCameraTrack as any)?.close?.(); } catch { }
+                try { localMicrophoneTrack?.stop(); (localMicrophoneTrack as any)?.close?.(); } catch { }
+            }, 300);
 
             // Navigate back to the conversation or show end call UI
             setTimeout(() => {
@@ -1515,45 +1587,15 @@ const VideoContainer = ({ consultationId }: { consultationId?: string }) => {
         }
     }, [isConnected]);
 
-    // Cleanup effect to ensure tracks are stopped when component unmounts
+    // Cleanup effect — release camera/mic hardware when component unmounts
     useEffect(() => {
         return () => {
-            console.log('Component unmounting, cleaning up tracks...');
-
-            // Stop all tracks when component unmounts
-            if (localCameraTrack && typeof localCameraTrack.stop === 'function') {
-                try {
-                    localCameraTrack.stop();
-                    console.log('Camera track stopped on unmount');
-                } catch (error) {
-                    console.error('Error stopping camera track on unmount:', error);
-                }
-            } else {
-                console.log('Camera track not available for cleanup on unmount');
-            }
-
-            if (localMicrophoneTrack && typeof localMicrophoneTrack.stop === 'function') {
-                try {
-                    localMicrophoneTrack.stop();
-                    console.log('Microphone track stopped on unmount');
-                } catch (error) {
-                    console.error('Error stopping microphone track on unmount:', error);
-                }
-            } else {
-                console.log('Microphone track not available for cleanup on unmount');
-            }
-
-            // Clean up Socket.IO if still connected
+            try { localCameraTrack?.stop(); (localCameraTrack as any)?.close?.(); } catch { }
+            try { localMicrophoneTrack?.stop(); (localMicrophoneTrack as any)?.close?.(); } catch { }
             if (socketRef.current && chatConnected) {
-                try {
-                    socketRef.current.disconnect();
-                    console.log('Socket.IO disconnected on unmount');
-                } catch (error) {
-                    console.error('Error disconnecting Socket.IO on unmount:', error);
-                }
+                try { socketRef.current.disconnect(); } catch { }
             }
-            // Ensure any ongoing recording is stopped
-            try { stopRecording(); } catch { }
+            try { stopRecordingRef.current(); } catch { }
         };
     }, [localCameraTrack, localMicrophoneTrack, chatConnected]);
 
@@ -1591,10 +1633,13 @@ const VideoContainer = ({ consultationId }: { consultationId?: string }) => {
                 w="48px"
                 h="48px"
                 p={0}
-                bg={danger ? "#ea4335" : active ? "white" : "rgba(255,255,255,0.12)"}
-                color={danger ? "white" : active ? "#1C275D" : "white"}
+                bg={danger ? "#ea4335" : "white"}
+                color={danger ? "white" : active ? "#1C275D" : "#444"}
+                borderWidth="1px"
+                borderColor={danger ? "transparent" : active ? "#1C275D" : "#e0e0e0"}
+                shadow="sm"
                 _hover={{
-                    bg: danger ? "#c5221f" : active ? "rgba(255,255,255,0.9)" : "rgba(255,255,255,0.2)",
+                    bg: danger ? "#c5221f" : "#f5f5f5",
                     transform: "scale(1.06)",
                 }}
                 transition="all 0.15s"
@@ -1610,54 +1655,41 @@ const VideoContainer = ({ consultationId }: { consultationId?: string }) => {
             <AppLayout>
                 <Flex h="full" w="full" direction="row" borderRadius="16px" overflow="hidden" position="relative">
                     {/* ── Main call area ── */}
-                    <Flex direction="column" flex={1} bg="#202124" position="relative" minW={0}>
+                    <Flex direction="column" flex={1} bg="white" position="relative" minW={0}>
                         {/* Video content */}
-                        <Box flex={1} position="relative" overflow="hidden">
+                        <Box flex={1} position="relative" overflow="hidden" display="flex" flexDirection="column">
                             {isConnected ? (
                             <>
                                 {/* ── Header bar ── */}
                                 <HStack
-                                    position="absolute"
-                                    top={0}
-                                    left={0}
-                                    right={0}
                                     px={5}
                                     py={3}
-                                    bg="rgba(0,0,0,0.45)"
-                                    backdropFilter="blur(6px)"
+                                    bg="white"
+                                    borderBottomWidth="1px"
+                                    borderColor="#e8e8e8"
                                     zIndex={10}
                                     justify="space-between"
+                                    flexShrink={0}
                                 >
                                     <HStack gap={3}>
-                                        <IconButton
-                                            aria-label="Back"
-                                            borderRadius="full"
-                                            size="sm"
-                                            bg="rgba(255,255,255,0.12)"
-                                            color="white"
-                                            _hover={{ bg: "rgba(255,255,255,0.22)" }}
-                                            onClick={() => router.back()}
-                                        >
-                                            <BiChevronLeft size={18} />
-                                        </IconButton>
                                         <Text
                                             fontFamily="Outfit"
                                             fontWeight="600"
-                                            fontSize={{ base: "0.95rem", md: "1.1rem" }}
-                                            color="white"
+                                            fontSize={{ base: "0.95rem", md: "1.05rem" }}
+                                            color="#202124"
                                         >
                                             {otherParticipantName}&apos;s Consultation
                                         </Text>
                                         <HStack
-                                            px={3}
-                                            py={1}
-                                            bg="rgba(255,255,255,0.14)"
+                                            px={2.5}
+                                            py={0.5}
+                                            bg="#f1f3f4"
                                             borderRadius="full"
                                             gap={1.5}
                                         >
-                                            <Users size={13} color="white" />
-                                            <Text fontSize="0.8rem" color="white" fontWeight="500">
-                                                {conversationParticipants.length + remoteUsers.length}
+                                            <Users size={13} color="#5f6368" />
+                                            <Text fontSize="0.8rem" color="#5f6368" fontWeight="500">
+                                                {1 + remoteUsers.length}
                                             </Text>
                                         </HStack>
                                     </HStack>
@@ -1665,12 +1697,12 @@ const VideoContainer = ({ consultationId }: { consultationId?: string }) => {
                                         <HStack
                                             px={3}
                                             py={1.5}
-                                            bg="rgba(220,38,38,0.8)"
+                                            bg="rgba(220,38,38,0.1)"
                                             borderRadius="full"
                                             gap={2}
                                         >
-                                            <Box w={2.5} h={2.5} bg="white" borderRadius="full" />
-                                            <Text color="white" fontSize="0.82rem" fontWeight="600">
+                                            <Box w={2.5} h={2.5} bg="red.500" borderRadius="full" />
+                                            <Text color="red.500" fontSize="0.82rem" fontWeight="600">
                                                 {recordingElapsed}
                                             </Text>
                                         </HStack>
@@ -1678,113 +1710,117 @@ const VideoContainer = ({ consultationId }: { consultationId?: string }) => {
                                 </HStack>
 
                                 {/* ── Main video stage ── */}
-                                <Box ref={containerRef} w="full" h="full" position="relative" bg="#202124">
+                                <Box ref={containerRef} flex={1} position="relative" overflow="hidden"
+                                    bg={remoteUsers.length > 0 || screenShareOn ? "#202124" : "#FDF6EE"}
+                                >
                                     {remoteUsers.length > 0 ? (
                                         // Remote user takes full stage
                                         <RemoteUser
                                             user={remoteUsers[0]}
                                             style={{ width: '100%', height: '100%', objectFit: 'cover' }}
                                         />
+                                    ) : screenShareOn && screenTrack ? (
+                                        // Screen share preview fills the main stage when alone
+                                        <LocalUser
+                                            audioTrack={localMicrophoneTrack}
+                                            cameraOn={true}
+                                            micOn={micOn}
+                                            playAudio={false}
+                                            videoTrack={screenTrack}
+                                            key={`screen-main-${forceUpdate}`}
+                                            style={{ width: '100%', height: '100%' }}
+                                        />
                                     ) : (
-                                        // Local user fills stage when alone
-                                        <>
-                                            {(screenShareOn ? !!screenTrack : !!localCameraTrack) ? (
-                                                <LocalUser
-                                                    audioTrack={localMicrophoneTrack}
-                                                    cameraOn={screenShareOn ? true : (cameraOn && !!localCameraTrack)}
-                                                    micOn={micOn}
-                                                    playAudio={false}
-                                                    videoTrack={screenShareOn && screenTrack ? screenTrack : localCameraTrack}
-                                                    key={`local-main-${forceUpdate}`}
-                                                    style={{ width: '100%', height: '100%' }}
-                                                />
-                                            ) : (
-                                                <Flex align="center" justify="center" w="full" h="full" bg="#202124" direction="column" gap={4}>
-                                                    <Text color="rgba(255,255,255,0.5)" fontSize="1.1rem" fontWeight="500">
-                                                        👋 Welcome {user?.fullName?.split(' ')[0]}
-                                                    </Text>
-                                                    <Text color="rgba(255,255,255,0.35)" fontSize="0.9rem">
-                                                        No one else has joined yet
-                                                    </Text>
-                                                    <Box
-                                                        w="72px"
-                                                        h="72px"
-                                                        borderRadius="full"
-                                                        bg="#3c4043"
-                                                        display="flex"
-                                                        alignItems="center"
-                                                        justifyContent="center"
-                                                        fontSize="1.8rem"
-                                                        color="white"
-                                                        fontWeight="700"
-                                                    >
-                                                        {user?.fullName?.[0]?.toUpperCase() || '?'}
-                                                    </Box>
-                                                </Flex>
-                                            )}
-                                        </>
+                                        // No one else has joined — show welcome message
+                                        <Flex align="center" justify="center" w="full" h="full" direction="column" gap={3}>
+                                            <Text fontSize="1.1rem" fontWeight="500" color="#202124">
+                                                👋 Welcome {user?.fullName?.split(' ')[0]}
+                                            </Text>
+                                            <Text fontSize="0.9rem" color="#5f6368">
+                                                No one else has joined yet
+                                            </Text>
+                                        </Flex>
                                     )}
 
-                                    {/* Local PiP — bottom right when remote is present */}
-                                    {remoteUsers.length > 0 && (
-                                        <Box
+                                    {/* Local PiP — bottom right, always visible */}
+                                    <Box
+                                        position="absolute"
+                                        bottom={4}
+                                        right={4}
+                                        w="200px"
+                                        style={{ aspectRatio: "4/3" }}
+                                        borderRadius="14px"
+                                        overflow="hidden"
+                                        borderWidth="1px"
+                                        borderColor="rgba(0,0,0,0.08)"
+                                        shadow="lg"
+                                        bg={remoteUsers.length === 0 && !screenShareOn ? "#F5E6D3" : "#3c4043"}
+                                    >
+                                        {(cameraOn && localCameraTrack) || (screenShareOn && screenTrack) ? (
+                                            <LocalUser
+                                                audioTrack={localMicrophoneTrack}
+                                                cameraOn={screenShareOn ? true : cameraOn}
+                                                micOn={micOn}
+                                                playAudio={false}
+                                                videoTrack={screenShareOn && screenTrack ? screenTrack : localCameraTrack}
+                                                key={`local-pip-${forceUpdate}`}
+                                                style={{ width: '100%', height: '100%' }}
+                                            />
+                                        ) : (
+                                            <Flex align="center" justify="center" w="full" h="full">
+                                                <Box
+                                                    w="52px"
+                                                    h="52px"
+                                                    borderRadius="full"
+                                                    bg="rgba(0,0,0,0.12)"
+                                                    display="flex"
+                                                    alignItems="center"
+                                                    justifyContent="center"
+                                                    fontSize="1.4rem"
+                                                    color={remoteUsers.length === 0 ? "#5f6368" : "white"}
+                                                    fontWeight="700"
+                                                >
+                                                    {user?.fullName?.[0]?.toUpperCase() || 'Y'}
+                                                </Box>
+                                            </Flex>
+                                        )}
+                                        {/* Name label */}
+                                        <HStack
                                             position="absolute"
-                                            bottom={20}
-                                            right={4}
-                                            w="160px"
-                                            style={{ aspectRatio: "4/3" }}
-                                            borderRadius="12px"
-                                            overflow="hidden"
-                                            borderWidth="2px"
-                                            borderColor="rgba(255,255,255,0.2)"
-                                            shadow="lg"
-                                            bg="#3c4043"
+                                            bottom={0}
+                                            left={0}
+                                            right={0}
+                                            px={2.5}
+                                            py={2}
+                                            bg={remoteUsers.length === 0 ? "rgba(253,246,238,0.85)" : "rgba(0,0,0,0.5)"}
+                                            justify="space-between"
+                                            align="center"
                                         >
-                                            {cameraOn && localCameraTrack ? (
-                                                <LocalUser
-                                                    audioTrack={localMicrophoneTrack}
-                                                    cameraOn={cameraOn}
-                                                    micOn={micOn}
-                                                    playAudio={false}
-                                                    videoTrack={localCameraTrack}
-                                                    key={`local-pip-${forceUpdate}`}
-                                                    style={{ width: '100%', height: '100%' }}
-                                                />
-                                            ) : (
-                                                <Flex align="center" justify="center" w="full" h="full">
-                                                    <Text color="white" fontWeight="700" fontSize="1.4rem">
-                                                        {user?.fullName?.[0]?.toUpperCase() || 'Y'}
-                                                    </Text>
-                                                </Flex>
-                                            )}
-                                            <Text
-                                                position="absolute"
-                                                bottom={1.5}
-                                                left={2}
-                                                fontSize="0.65rem"
-                                                color="white"
-                                                bg="rgba(0,0,0,0.5)"
-                                                px={1.5}
-                                                py={0.5}
-                                                borderRadius="4px"
-                                            >
-                                                You
-                                            </Text>
-                                        </Box>
-                                    )}
+                                            <HStack gap={1.5}>
+                                                <TbMicrophoneFilled size={12} color={remoteUsers.length === 0 ? "#444" : "white"} />
+                                                <Text
+                                                    fontSize="0.7rem"
+                                                    color={remoteUsers.length === 0 ? "#333" : "white"}
+                                                    fontWeight="500"
+                                                >
+                                                    {user?.fullName || 'You'}
+                                                </Text>
+                                            </HStack>
+                                            <MoreVertical size={14} color={remoteUsers.length === 0 ? "#444" : "white"} />
+                                        </HStack>
+                                    </Box>
                                 </Box>
 
                                 {/* ── Bottom toolbar ── */}
                                 <HStack
-                                    position="absolute"
-                                    bottom={0}
-                                    left={0}
-                                    right={0}
                                     px={6}
-                                    py={3}
-                                    bg="#3c4043"
+                                    py={4}
+                                    bg="white"
+                                    borderTopWidth="1px"
+                                    borderColor="#e8e8e8"
                                     justify="space-between"
                                     zIndex={10}
+                                    flexShrink={0}
                                 >
                                     {/* Left: empty spacer for balance */}
                                     <Box flex={1} />
@@ -1809,12 +1845,12 @@ const VideoContainer = ({ consultationId }: { consultationId?: string }) => {
                                             danger={!cameraOn}
                                             onClick={() => setCamera((a) => !a)}
                                         />
-                                        <ToolBtn
-                                            label="Emoji reactions"
-                                            icon={<SmileIcon size={20} />}
-                                            onClick={() => setShowVirtualBgPanel(!showVirtualBgPanel)}
-                                            active={virtualBgOptions.type !== 'none'}
-                                        />
+                                        {/* <ToolBtn
+                                            label="Messages"
+                                            icon={<MessageSquare size={20} />}
+                                            active={activePanel === 'chat'}
+                                            onClick={() => togglePanel('chat')}
+                                        /> */}
                                         <ToolBtn
                                             label="Participants"
                                             icon={<Users size={20} />}
@@ -1869,6 +1905,12 @@ const VideoContainer = ({ consultationId }: { consultationId?: string }) => {
                                 consultationName={`${otherParticipantName}'s Consultation`}
                                 tokenReady={tokenReady}
                                 joinError={joinError}
+                                onRetry={() => {
+                                    setJoinError(null);
+                                    setToken("");
+                                    setTokenReady(false);
+                                    setTokenRetryCount((c) => c + 1);
+                                }}
                             />
                         )}
 
@@ -2152,15 +2194,11 @@ const VideoChat: FC<{
     onClose?: () => void;
 }> = ({ messages, onSendMessage, currentUserId, isConnected, onClose }) => {
     const [newMessage, setNewMessage] = useState('');
+    const [chatTab, setChatTab] = useState<'public' | 'private'>('public');
     const messagesEndRef = useRef<HTMLDivElement>(null);
-    const { user } = useAuth();
-
-    const scrollToBottom = () => {
-        messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-    };
 
     useEffect(() => {
-        scrollToBottom();
+        messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
     }, [messages]);
 
     const handleSendMessage = () => {
@@ -2177,230 +2215,193 @@ const VideoChat: FC<{
         }
     };
 
-    const handleDownloadTranscript = () => {
-        const lines = messages
-            .filter((m) => m.senderId !== 'system')
-            .map((m) => `[${m.timestamp.toLocaleTimeString()}] ${m.senderName}: ${m.message}`)
-            .join('\n');
-        const blob = new Blob([lines], { type: 'text/plain' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = 'transcript.txt';
-        a.click();
-        URL.revokeObjectURL(url);
-    };
-
     return (
         <VStack
-            alignItems={"flex-start"}
-            rounded={"10px"}
             w="full"
-            borderWidth={0.5}
-            borderColor={"gray.50"}
-            shadow="md"
-            flex={2}
-            pos="relative"
-            bg="white"
             h="full"
+            bg="white"
+            align="stretch"
+            gap={0}
         >
-            {/* Transcript panel header */}
+            {/* ── Tab header ── */}
             <HStack
-                w="full"
                 px={4}
                 py={3}
-                borderBottom="1px"
-                borderColor="gray.100"
                 justify="space-between"
                 align="center"
                 flexShrink={0}
+                borderBottomWidth="1px"
+                borderColor="gray.100"
             >
-                <Text
-                    color="gray.800"
-                    fontWeight="600"
-                    fontSize="1rem"
+                <HStack
+                    bg="#f1f3f4"
+                    borderRadius="full"
+                    p="3px"
+                    gap={0}
                 >
-                    Meeting Transcript {!isConnected && <Text as="span" color="red.400" fontSize="xs">(Disconnected)</Text>}
-                </Text>
-                <HStack gap={1}>
-                    <Menu.Root>
-                        <Menu.Trigger asChild>
-                            <IconButton aria-label="More options" variant="ghost" size="sm" color="gray.500" _hover={{ bg: "gray.100" }}>
-                                <MoreVertical size={18} />
-                            </IconButton>
-                        </Menu.Trigger>
-                        <Portal>
-                            <Menu.Positioner>
-                                <Menu.Content minW="200px" shadow="lg" borderRadius="md">
-                                    <Menu.Item value="translate" fontSize="sm">Translate to...</Menu.Item>
-                                    <Menu.Item value="show-original" fontSize="sm">Show original and translated</Menu.Item>
-                                    <Menu.Item value="download" fontSize="sm" onClick={handleDownloadTranscript}>Download Transcript</Menu.Item>
-                                </Menu.Content>
-                            </Menu.Positioner>
-                        </Portal>
-                    </Menu.Root>
-                    {onClose && (
-                        <IconButton aria-label="Close panel" variant="ghost" size="sm" color="gray.500" _hover={{ bg: "gray.100" }} onClick={onClose}>
-                            <X size={18} />
-                        </IconButton>
-                    )}
+                    {(['public', 'private'] as const).map((tab) => (
+                        <Button
+                            key={tab}
+                            size="sm"
+                            borderRadius="full"
+                            px={4}
+                            h="32px"
+                            fontFamily="Outfit"
+                            fontSize="0.82rem"
+                            fontWeight={chatTab === tab ? "600" : "400"}
+                            bg={chatTab === tab ? "#111D4A" : "transparent"}
+                            color={chatTab === tab ? "white" : "#5f6368"}
+                            _hover={{ bg: chatTab === tab ? "#111D4A" : "rgba(0,0,0,0.06)" }}
+                            onClick={() => setChatTab(tab)}
+                        >
+                            {tab.charAt(0).toUpperCase() + tab.slice(1)}
+                        </Button>
+                    ))}
                 </HStack>
+                {onClose && (
+                    <IconButton
+                        aria-label="Close"
+                        variant="ghost"
+                        size="sm"
+                        borderRadius="full"
+                        color="gray.500"
+                        _hover={{ bg: "gray.100" }}
+                        onClick={onClose}
+                    >
+                        <X size={18} />
+                    </IconButton>
+                )}
             </HStack>
 
+            {/* ── Messages area ── */}
             <VStack
                 flex={1}
                 w="full"
                 overflowY="auto"
                 px={4}
-                py={2}
+                py={3}
                 gap={3}
                 align="stretch"
                 minH={0}
+                bg="#f8f9fa"
             >
-                {messages.length === 0 ? (
-                    <VStack justify="center" h="full" color="gray.500" gap={2}>
-                        <Text fontSize="sm">No messages yet</Text>
-                        <Text fontSize="xs">Start the conversation!</Text>
-                    </VStack>
-                ) : (
-                    messages.map((msg) => (
-                        <Box
-                            key={msg.id}
-                            alignSelf={msg.senderId === 'system' ? "center" : (msg.isOwn ? "flex-end" : "flex-start")}
-                            maxW={msg.senderId === 'system' ? "100%" : "80%"}
-                        >
-                            {msg.senderId === 'system' ? (
-                                // System message (join/leave notifications)
-                                <Box
-                                    bg="gray.200"
-                                    color="gray.600"
-                                    px={3}
-                                    py={1}
-                                    borderRadius="full"
-                                    textAlign="center"
-                                    fontSize="xs"
-                                    fontStyle="italic"
-                                >
-                                    <Text>{msg.message}</Text>
-                                </Box>
-                            ) : (
-                                // Regular chat message
-                                <VStack align={msg.isOwn ? "flex-end" : "flex-start"} gap={1}>
-                                    {!msg.isOwn && (
-                                        <HStack gap={2} align="center">
-                                            <Box
-                                                w={6}
-                                                h={6}
-                                                borderRadius="full"
-                                                overflow="hidden"
-                                            >
-                                                <Image
-                                                    src={msg.senderImage || partdp1}
-                                                    alt={msg.senderName}
-                                                    w="full"
-                                                    h="full"
-                                                    objectFit="cover"
-                                                />
-                                            </Box>
-                                            <Text fontSize="xs" color="gray.600" fontWeight="500">
-                                                {msg.senderName}
-                                            </Text>
-                                        </HStack>
-                                    )}
-                                    <Box
-                                        bg={msg.isOwn ? "blue.500" : "gray.100"}
-                                        color={msg.isOwn ? "white" : "gray.800"}
-                                        px={3}
-                                        py={2}
-                                        borderRadius="lg"
-                                        maxW="100%"
-                                        wordBreak="break-word"
-                                    >
-                                        <Text fontSize="sm">{msg.message}</Text>
-                                    </Box>
-                                    <Text fontSize="xs" color="gray.500">
-                                        {msg.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                {/* Welcome message — always shown at top */}
+                <Box
+                    bg="#e8eaed"
+                    borderRadius="10px"
+                    px={3}
+                    py={2.5}
+                >
+                    <Text fontSize="0.82rem" color="#444" lineHeight="1.5">
+                        Welcome to Chat!<br />
+                        All messages are deleted when call ends.
+                    </Text>
+                </Box>
+
+                {messages.map((msg) => (
+                    <Box
+                        key={msg.id}
+                        alignSelf={msg.senderId === 'system' ? "center" : (msg.isOwn ? "flex-end" : "flex-start")}
+                        maxW={msg.senderId === 'system' ? "100%" : "80%"}
+                    >
+                        {msg.senderId === 'system' ? (
+                            <Box
+                                bg="gray.200"
+                                color="gray.600"
+                                px={3}
+                                py={1}
+                                borderRadius="full"
+                                textAlign="center"
+                                fontSize="xs"
+                                fontStyle="italic"
+                            >
+                                <Text>{msg.message}</Text>
+                            </Box>
+                        ) : (
+                            <VStack align={msg.isOwn ? "flex-end" : "flex-start"} gap={1}>
+                                {!msg.isOwn && (
+                                    <Text fontSize="xs" color="gray.600" fontWeight="500">
+                                        {msg.senderName}
                                     </Text>
-                                </VStack>
-                            )}
-                        </Box>
-                    ))
-                )}
+                                )}
+                                <Box
+                                    bg={msg.isOwn ? "#111D4A" : "white"}
+                                    color={msg.isOwn ? "white" : "gray.800"}
+                                    px={3}
+                                    py={2}
+                                    borderRadius="12px"
+                                    maxW="100%"
+                                    wordBreak="break-word"
+                                    shadow="sm"
+                                >
+                                    <Text fontSize="0.82rem">{msg.message}</Text>
+                                </Box>
+                                <Text fontSize="0.68rem" color="gray.400">
+                                    {msg.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                </Text>
+                            </VStack>
+                        )}
+                    </Box>
+                ))}
                 <div ref={messagesEndRef} />
             </VStack>
 
-            <HStack
-                w="100%"
-                mx="auto"
-                p="4"
-                alignItems={"center"}
-                flexShrink={0}
-                bg="white"
-                borderTop="1px"
-                borderColor="gray.100"
-            >
-                <HStack
-                    w="full"
-                    bg="#F4F4F4"
-                    rounded="full"
-                    px="2"
-                    spaceX="0"
-                >
-                    <IconButton
-                        aria-label="emoji"
-                        variant="ghost"
-                        rounded="full"
-                        size="sm"
-                    >
-                        <SmileIcon />
-                    </IconButton>
+            {/* ── Input area ── */}
+            <Box flexShrink={0} borderTopWidth="1px" borderColor="gray.100">
+                <Box bg="#FDF6EE" px={4} py={3}>
                     <Input
-                        variant='flushed'
-                        focusRing={"none"}
-                        border={"none"}
-                        pl="3"
-                        _focus={{
-                            shadow: "none",
-                        }}
-                        shadow={"xs"}
-                        placeholder="Type a message..."
-                        color={"#999999"}
+                        variant="unstyled"
+                        placeholder="Type Message Here"
+                        _placeholder={{ color: "#999", fontSize: "0.875rem" }}
+                        fontSize="0.875rem"
+                        color="gray.800"
                         value={newMessage}
                         onChange={(e) => setNewMessage(e.target.value)}
                         onKeyPress={handleKeyPress}
-                        fontSize={"14px"}
                         disabled={!isConnected}
                     />
-                    <Button
-                        aria-label="Send message"
-                        size="sm"
-                        variant="ghost"
-                        onClick={handleSendMessage}
-                        disabled={!newMessage.trim() || !isConnected}
-                        p={2}
-                    >
-                        <Image src={"/icons/send.svg"} alt="send icon" boxSize={4} />
-                    </Button>
-                </HStack>
-            </HStack>
-
-            {/* Download Transcript button */}
-            <Box w="full" px={4} pb={4} flexShrink={0} mt="auto">
-                <Button
-                    w="full"
-                    variant="outline"
-                    size="sm"
-                    color="gray.600"
-                    borderColor="gray.200"
-                    _hover={{ bg: "gray.50" }}
-                    onClick={handleDownloadTranscript}
-                    disabled={messages.filter((m) => m.senderId !== 'system').length === 0}
+                </Box>
+                <HStack
+                    px={4}
+                    py={2.5}
+                    justify="space-between"
+                    bg="white"
                 >
                     <HStack gap={2}>
-                        <Download size={15} />
-                        <Text fontSize="sm">Download Transcript</Text>
+                        <IconButton
+                            aria-label="Attach file"
+                            variant="ghost"
+                            size="sm"
+                            borderRadius="full"
+                            color="gray.500"
+                            _hover={{ bg: "gray.100" }}
+                        >
+                            <ChevronRight size={18} style={{ transform: 'rotate(90deg)' }} />
+                        </IconButton>
+                        <IconButton
+                            aria-label="Emoji"
+                            variant="ghost"
+                            size="sm"
+                            borderRadius="full"
+                            color="gray.500"
+                            _hover={{ bg: "gray.100" }}
+                        >
+                            <SmileIcon size={18} />
+                        </IconButton>
                     </HStack>
-                </Button>
+                    <IconButton
+                        aria-label="Send"
+                        variant="ghost"
+                        size="sm"
+                        borderRadius="full"
+                        color={newMessage.trim() && isConnected ? "#111D4A" : "gray.300"}
+                        _hover={{ bg: "gray.100" }}
+                        onClick={handleSendMessage}
+                        disabled={!newMessage.trim() || !isConnected}
+                    >
+                        <ChevronRight size={20} />
+                    </IconButton>
+                </HStack>
             </Box>
         </VStack>
     );

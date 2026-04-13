@@ -11,7 +11,7 @@ import { useMemo, useState } from "react";
 import { LuSearch } from "react-icons/lu";
 import { useAppointment } from "mangarine/state/hooks/appointment.hook";
 import { useAuth } from "mangarine/state/hooks/user.hook";
-import { ConversationItem } from "mangarine/pages/message";
+import ConversationItem from "./ConversationItem";
 import {
   getConversationPreview,
   getConversationSubtitle,

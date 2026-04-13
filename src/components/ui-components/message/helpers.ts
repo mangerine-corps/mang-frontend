@@ -6,6 +6,7 @@ const getConversationMessagePayload = (conversation: any) => {
     conversation?.latestMessage ||
     conversation?.recentMessage ||
     conversation?.message ||
+    conversation?.lastAppointment?.message ||
     null
   );
 };
@@ -44,17 +45,17 @@ export const getConversationSubtitle = (profile: any) => {
 export const getConversationPreview = (conversation: any) => {
   const previewSource = getConversationMessagePayload(conversation);
   const preview =
-    previewSource?.content || previewSource || "Tap to open conversation";
+    previewSource?.content || previewSource || "";
 
   if (typeof preview === "string") {
     return preview;
   }
 
   if (preview && typeof preview === "object") {
-    return preview?.content || "Tap to open conversation";
+    return preview?.content || "";
   }
 
-  return "Tap to open conversation";
+  return "";
 };
 
 export const hasConversationActivity = (conversation: any) => {

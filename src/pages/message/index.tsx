@@ -61,6 +61,7 @@ import {
   isProfileVerified,
   resolveConversationProfile,
 } from "mangarine/components/ui-components/message/helpers";
+import ConversationItem from "mangarine/components/ui-components/message/ConversationItem";
 
 const DynamicAgoraChatProvider = dynamic(
   () =>
@@ -329,139 +330,6 @@ export const ChatHeader = ({
   );
 };
 
-export const ConversationItem = ({
-  conversation,
-  unreadCount = 0,
-}: {
-  conversation: any;
-  unreadCount?: number;
-}) => {
-  const { user } = useAuth();
-  const { currentConversation } = useAppointment();
-  const dispatch = useDispatch();
-  const router = useRouter();
-  const [markConversationRead] = useMarkConversationReadMutation();
-  const userId = user?.id ?? "";
-
-  const profile = useMemo(() => {
-    return resolveConversationProfile(conversation, userId);
-  }, [conversation, userId]);
-
-  const isActive = conversation?.id === currentConversation?.id;
-  const preview = getConversationPreview(conversation);
-  const time = formatConversationTime(getConversationTimestamp(conversation));
-
-  const handleSelectedConversation = async () => {
-    dispatch(setCurrentConversation({ conversation }));
-
-    try {
-      router.replace(
-        {
-          pathname: router.pathname,
-          query: { ...router.query, conversationId: conversation?.id },
-        },
-        undefined,
-        { shallow: true }
-      );
-    } catch (_) {}
-
-    try {
-      await markConversationRead({
-        conversationId: String(conversation?.id),
-      }).unwrap();
-    } catch (_) {}
-  };
-
-  return (
-    <Flex
-      align="center"
-      gap={3}
-      px="14px"
-      py="12px"
-      borderRadius="16px"
-      bg={isActive ? "bd_background" : "transparent"}
-      borderWidth={isActive ? "1px" : "1px"}
-      borderColor={isActive ? "border_background" : "transparent"}
-      boxShadow={isActive ? "0 10px 24px rgba(17, 29, 74, 0.06)" : "none"}
-      cursor="pointer"
-      transition="0.2s ease"
-      _hover={{
-        bg: "bd_background",
-        borderColor: "border_background",
-      }}
-      onClick={handleSelectedConversation}
-    >
-      <Box position="relative" flexShrink={0}>
-        <Avatar.Root size="lg">
-          <Avatar.Fallback name={profile?.fullName} />
-          <Avatar.Image src={profile?.profilePics} />
-        </Avatar.Root>
-        <Box
-          position="absolute"
-          right="2px"
-          bottom="2px"
-          boxSize="10px"
-          borderRadius="full"
-          bg="#48BB34"
-          borderWidth="2px"
-          borderColor="white"
-        />
-      </Box>
-
-      <VStack align="stretch" gap={1} flex={1} minW={0}>
-        <HStack justify="space-between" align="flex-start" gap={3}>
-          <HStack gap={1.5} minW={0}>
-            <Text
-              fontFamily="Outfit"
-              fontSize="1.05rem"
-              fontWeight="700"
-              color="text_primary"
-              lineClamp={1}
-            >
-              {profile?.fullName}
-            </Text>
-            {isProfileVerified(profile) ? (
-              <Image src="/icons/verified.svg" alt="Verified" boxSize="13px" />
-            ) : null}
-          </HStack>
-          <Text fontSize="0.74rem" color="text_subtle" flexShrink={0}>
-            {time}
-          </Text>
-        </HStack>
-
-        <HStack justify="space-between" align="center" gap={3}>
-          <Text
-            fontSize="0.82rem"
-            color="text_muted"
-            lineClamp={1}
-            flex={1}
-          >
-            {preview || getConversationSubtitle(profile)}
-          </Text>
-
-          {unreadCount > 0 ? (
-            <Flex
-              minW="22px"
-              h="22px"
-              px="6px"
-              align="center"
-              justify="center"
-              borderRadius="999px"
-              bg="button_bg"
-              color="button_text"
-              fontSize="0.72rem"
-              fontWeight="600"
-              flexShrink={0}
-            >
-              {unreadCount}
-            </Flex>
-          ) : null}
-        </HStack>
-      </VStack>
-    </Flex>
-  );
-};
-
 /** Renders incoming/outgoing call modals — must be inside ChatProvider */
 const CallModalManager = () => {
   const router = useRouter();
@@ -491,12 +359,13 @@ const CallModalManager = () => {
 const Index = () => {
   const [search, setSearch] = useState("");
   const [showDrawer, setShowDrawer] = useState(false);
+  const [messageTab, setMessageTab] = useState<"all" | "unread">("all");
   const router = useRouter();
   const [getConversations, { isLoading }] = useGetConversationMutation();
   const dispatch = useDispatch();
   const { conversations, currentConversation, messages } = useAppointment();
   const { user } = useAuth();
-  const { data: unreadData } = useGetUnreadByConversationQuery();
+  const { data: unreadData } = useGetUnreadByConversationQuery(undefined, { skip: true });
   const userId = user?.id ?? "";
   const queryConversationId = (router.query?.conversationId as string) || "";
   const hasSelectedConversation = Boolean(currentConversation?.id || queryConversationId);
@@ -524,7 +393,7 @@ const Index = () => {
 
   const filteredConversations = useMemo(() => {
     return conversations.filter((conversation: any) => {
-      if (!hasConversationActivity(conversation)) {
+      if (!conversation?.user?.id || !conversation?.consultant?.id) {
         return false;
       }
 
@@ -627,6 +496,31 @@ const Index = () => {
                 />
               </HStack>
 
+              <HStack gap={0} borderBottomWidth="1px" borderColor="border_background">
+                {(["all", "unread"] as const).map((tab) => (
+                  <Button
+                    key={tab}
+                    variant="ghost"
+                    size="sm"
+                    px={4}
+                    py={2}
+                    h="auto"
+                    borderRadius={0}
+                    fontFamily="Outfit"
+                    fontSize="0.875rem"
+                    fontWeight={messageTab === tab ? "600" : "400"}
+                    color={messageTab === tab ? "text_primary" : "text_muted"}
+                    borderBottomWidth="2px"
+                    borderBottomColor={messageTab === tab ? "text_primary" : "transparent"}
+                    mb="-1px"
+                    onClick={() => setMessageTab(tab)}
+                    _hover={{ bg: "transparent", color: "text_primary" }}
+                  >
+                    {tab === "all" ? "All messages" : "Unread messages"}
+                  </Button>
+                ))}
+              </HStack>
+
               <VStack
                 align="stretch"
                 gap={2}
@@ -639,14 +533,26 @@ const Index = () => {
                   <Flex justify="center" align="center" py={12}>
                     <Spinner color="button_bg" />
                   </Flex>
-                ) : filteredConversations.length ? (
-                  filteredConversations.map((conversation: any) => (
-                    <ConversationItem
-                      key={conversation.id}
-                      conversation={conversation}
-                      unreadCount={unreadMap.get(String(conversation.id)) || 0}
-                    />
-                  ))
+                ) : filteredConversations
+                    .filter((c: any) =>
+                      messageTab === "unread"
+                        ? (unreadMap.get(String(c.id)) || 0) > 0
+                        : true
+                    )
+                    .length ? (
+                  filteredConversations
+                    .filter((c: any) =>
+                      messageTab === "unread"
+                        ? (unreadMap.get(String(c.id)) || 0) > 0
+                        : true
+                    )
+                    .map((conversation: any) => (
+                      <ConversationItem
+                        key={conversation.id}
+                        conversation={conversation}
+                        unreadCount={unreadMap.get(String(conversation.id)) || 0}
+                      />
+                    ))
                 ) : (
                   <Box
                     py={10}
@@ -660,6 +566,8 @@ const Index = () => {
                     <Text fontSize="0.92rem" color="text_muted">
                       {search.trim()
                         ? `No conversations found for "${search}".`
+                        : messageTab === "unread"
+                        ? "No unread messages."
                         : "No conversations yet."}
                     </Text>
                   </Box>

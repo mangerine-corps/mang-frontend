@@ -1,15 +1,17 @@
 import { Box, Button, Image, Text, VStack } from "@chakra-ui/react";
+import { ReactNode } from "react";
 
 type Props = {
   onClick: () => void;
+  children?: ReactNode;
 };
 
-const MessageEmpty = ({ onClick }: Props) => {
+const MessageEmpty = ({ onClick, children }: Props) => {
   return (
     <VStack
       h="full"
       w="full"
-      justify="center"
+      justify={children ? "flex-start" : "center"}
       align="center"
       bg="bg_box"
       borderRadius="24px"
@@ -17,6 +19,7 @@ const MessageEmpty = ({ onClick }: Props) => {
       py={{ base: 10, md: 16 }}
       textAlign="center"
       gap={6}
+      overflowY="auto"
     >
       <Box
         boxSize={{ base: "88px", md: "108px" }}
@@ -68,6 +71,12 @@ const MessageEmpty = ({ onClick }: Props) => {
       >
         New Message
       </Button>
+
+      {children ? (
+        <VStack w="full" maxW="640px" align="stretch" gap={4} textAlign="left">
+          {children}
+        </VStack>
+      ) : null}
     </VStack>
   );
 };

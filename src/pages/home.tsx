@@ -181,7 +181,9 @@ function Home() {
           <Box w="full" cursor="pointer">
             {!isEmpty(upcomingConsultation) ? <ActivityBox /> : <ActivityEmptyState />}
           </Box>
-          <BookingCalendar />
+          <Box w="full">
+            <BookingCalendar />
+          </Box>
           <Stack display={{ base: "none", lg: "flex" }} w="full">
             {!isEmpty(trending) ? <TrendingCommunities /> : <TrendingEmptyState />}
           </Stack>

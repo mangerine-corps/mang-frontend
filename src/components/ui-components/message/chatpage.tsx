@@ -25,6 +25,7 @@ import { ChatHeader } from "mangarine/pages/message";
 import { useChat } from "./ChatProvider";
 import { useAuth } from "mangarine/state/hooks/user.hook";
 import MessageCard from "./MessageCard";
+import ConversationItem from "./ConversationItem";
 import { generateMessageObject } from "mangarine/utils/message";
 import { deleteCloudinaryResources } from "mangarine/utils/cloudinaryUpload";
 import {
@@ -37,13 +38,17 @@ import FileUploadComponent from "./FileUploadComponent";
 import ChatList from "./chatlist";
 import MessageEmpty from "../messageempty";
 import { useCheckIfBlockedQuery } from "mangarine/state/services/chat-management.service";
+import {
+  getConversationTimestamp,
+  hasConversationActivity,
+} from "./helpers";
 
 type Props = {
   onNewMessage: () => void;
 };
 
 const ChatPage = ({ onNewMessage }: Props) => {
-  const { currentConversation, messages } = useAppointment();
+  const { conversations, currentConversation, messages } = useAppointment();
   const { socket } = useChat();
   const messageRef = useRef<HTMLDivElement | null>(null);
   const [chatText, setchatText] = useState("");

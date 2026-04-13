@@ -258,7 +258,6 @@ const BookingCalendar = () => {
               fontWeight="500"
               fontSize="0.875rem"
               color="text_primary"
-              minW="132px"
               textAlign="center"
             >
               {buildRangeLabel(visibleDays)}
