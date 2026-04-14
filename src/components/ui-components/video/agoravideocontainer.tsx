@@ -1692,7 +1692,7 @@ const VideoContainer = ({ consultationId }: { consultationId?: string }) => {
         return (
             <Flex justify="center" align="center" h="100vh" direction="column" gap={4} bg="white">
                 <Text fontSize="1.1rem" fontWeight="600" color="#202124">Consultation not found</Text>
-                <Text fontSize="0.875rem" color="#5f6368">We couldn't find the details for this consultation.</Text>
+                <Text fontSize="0.875rem" color="#5f6368">We couldn&apos;t find the details for this consultation.</Text>
                 <Button
                     bg="#1C275D" color="white" borderRadius="10px"
                     onClick={() => router.back()}

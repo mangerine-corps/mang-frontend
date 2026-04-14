@@ -83,7 +83,7 @@ const PaymentSuccessfulModal = ({
                     textAlign="center"
                   >
                     Your payment of ${paymentAmount.toFixed(2)} has been processed successfully.
-                    Your consultation has been booked. You'll be able to join the call at the scheduled time.
+                    Your consultation has been booked. You&apos;ll be able to join the call at the scheduled time.
                   </Text>
                 </VStack>
               </VStack>
