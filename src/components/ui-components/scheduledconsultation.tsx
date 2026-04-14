@@ -2,12 +2,14 @@ import { Box, Flex, Text, HStack, Button, Image, Spinner, VStack } from "@chakra
 import { useState } from "react";
 import { useGetUpcomingConsultationQuery } from "mangarine/state/services/apointment.service";
 import { format } from "date-fns";
+import { useRouter } from "next/router";
 import AreyouCancellingModal from "./modals/areyoucancelling";
 import RescheduleConsultation from "./modals/rescheduleconsultation";
 
 const ScheduledConsultation = () => {
   const [cancelId, setCancelId] = useState<string | null>(null);
   const [rescheduleId, setRescheduleId] = useState<string | null>(null);
+  const router = useRouter();
 
   const { data, isLoading } = useGetUpcomingConsultationQuery({});
 
@@ -98,11 +100,14 @@ const ScheduledConsultation = () => {
                   </Box>
                   <Box
                     p={2}
-                    bg="gray.100"
+                    bg="primary.950"
                     borderRadius="md"
-                    _hover={{ bg: "gray.200", cursor: "pointer" }}
+                    cursor="pointer"
+                    _hover={{ opacity: 0.85 }}
+                    onClick={() => router.push(`/message/videoconsultation?consultationId=${item.id}`)}
+                    title="Join Call"
                   >
-                    <Image src="/icons/greyCamera.svg" alt="camera" boxSize="16px" />
+                    <Image src="/icons/greyCamera.svg" alt="Join Call" boxSize="16px" style={{ filter: "brightness(10)" }} />
                   </Box>
                 </HStack>
               </Flex>

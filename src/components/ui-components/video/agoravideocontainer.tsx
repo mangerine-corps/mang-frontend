@@ -37,7 +37,7 @@ const partdp1 = "/images/dp.png";
 import { FC, useEffect, useRef, useState, useMemo } from "react";
 import AgoraRTC, { AgoraRTCProvider } from "agora-rtc-react";
 import { useAppointment } from "mangarine/state/hooks/appointment.hook";
-import { useGetVideoTokenMutation, useGetConversationMutation } from "mangarine/state/services/apointment.service";
+import { useGetVideoTokenMutation, useGetConversationMutation, useGetAppointmentByIdQuery } from "mangarine/state/services/apointment.service";
 import { setCurrentConversation } from "mangarine/state/reducers/appointment.reducer";
 import { useDispatch } from "react-redux";
 import { useConsultationJoin } from "../../../hooks/useConsultationJoin";
@@ -663,25 +663,22 @@ const VideoContainer = ({ consultationId }: { consultationId?: string }) => {
     // Mark user as joined when they connect to the video call
     useEffect(() => {
         if (isConnected && currentConversation?.id && !hasMarkedJoined) {
-            markUserJoined(currentConversation.id)
-                .then(() => {
-                    console.log('Successfully marked user as joined consultation');
-                    setHasMarkedJoined(true);
-                })
-                .catch((error) => {
-                    console.error('Failed to mark user as joined:', error);
-                    // Retry after 5 seconds if failed
-                    setTimeout(() => {
-                        if (!hasMarkedJoined) {
-                            markUserJoined(currentConversation.id)
-                                .then(() => {
-                                    setHasMarkedJoined(true);
-                                })
-                                .catch(() => {
-                                    console.error('Retry failed to mark user as joined');
-                                });
-                        }
-                    }, 5000);
+            // The endpoint expects the UUID of the messaging conversation linked to the appointment,
+            // not the appointment ID itself. The appointment object carries this as `conversationId`.
+            const convId: string | undefined =
+                (currentConversation as any)?.conversationId ??
+                (currentConversation as any)?.conversation?.id;
+
+            if (!convId) {
+                // No conversation UUID available — mark as done so we don't retry
+                setHasMarkedJoined(true);
+                return;
+            }
+
+            markUserJoined(convId)
+                .then(() => setHasMarkedJoined(true))
+                .catch(() => {
+                    setHasMarkedJoined(true); // prevent repeated attempts
                 });
         }
     }, [isConnected, currentConversation?.id, hasMarkedJoined, markUserJoined]);
@@ -1180,9 +1177,17 @@ const VideoContainer = ({ consultationId }: { consultationId?: string }) => {
 
     const [tokenUid, setTokenUid] = useState<UID | null>(null);
     const [tokenRetryCount, setTokenRetryCount] = useState(0);
+    const [consultationStatus, setConsultationStatus] = useState<string | null>(null);
     const [getVideoToken, { isLoading }] = useGetVideoTokenMutation();
     const [getConversations] = useGetConversationMutation();
     const dispatch = useDispatch();
+
+    // Fetch appointment directly when consultationId is in URL — this is more reliable
+    // than scanning the conversations list which uses message-thread IDs that may differ
+    const { data: appointmentData, isLoading: isApptLoading, error: apptError } = useGetAppointmentByIdQuery(
+        consultationId as string,
+        { skip: !consultationId || !!currentConversation?.id }
+    );
 
     const muteRemoteAudio = (audioTrack: IRemoteAudioTrack | null) => {
         if (!audioTrack) return;
@@ -1284,7 +1289,20 @@ const VideoContainer = ({ consultationId }: { consultationId?: string }) => {
             })
             .catch((error) => {
                 console.error('Video token fetch failed:', error);
-                setJoinError('Could not retrieve a video token. Please check your connection and try again.');
+                const serverMsg: string = (error as any)?.data?.message ?? (error as any)?.message ?? '';
+                const upperMsg = serverMsg.toUpperCase();
+                if (upperMsg.includes('EXPIRED')) {
+                    setConsultationStatus('EXPIRED');
+                    setJoinError('This consultation has expired and can no longer be joined.');
+                } else if (upperMsg.includes('CANCELLED')) {
+                    setConsultationStatus('CANCELLED');
+                    setJoinError('This consultation has been cancelled.');
+                } else if (upperMsg.includes('COMPLETED')) {
+                    setConsultationStatus('COMPLETED');
+                    setJoinError('This consultation has already been completed.');
+                } else {
+                    setJoinError(serverMsg || 'Could not retrieve a video token. Please check your connection and try again.');
+                }
                 setTokenReady(true); // Unblock the UI so the retry button is reachable
             });
     }, [consultationId, currentConversation?.id, fallbackJoinUid, getVideoToken, tokenRetryCount, user?.id]);
@@ -1305,28 +1323,44 @@ const VideoContainer = ({ consultationId }: { consultationId?: string }) => {
         };
     }, [calling, isConnected]);
 
-    // Fetch conversation by consultationId if provided
+    // When appointment data loads, sync it into Redux as the current conversation.
+    // The appointment object has the same fields (id, user, consultant) that the
+    // video container needs — we no longer need the separate conversations endpoint.
     useEffect(() => {
-        if (consultationId && (!currentConversation?.id || currentConversation?.id !== consultationId)) {
-            setIsLoadingConversation(true);
-            getConversations({})
-                .unwrap()
-                .then((payload) => {
-                    const conversation = payload.data?.find((conv: any) => conv.id === consultationId);
-                    if (conversation) {
-                        dispatch(setCurrentConversation({ conversation }));
-                    } else {
-                        console.log('Conversation not found for consultationId:', consultationId);
-                    }
-                })
-                .catch((error) => {
-                    console.log('Error fetching conversation:', error);
-                })
-                .finally(() => {
-                    setIsLoadingConversation(false);
-                });
+        if (!appointmentData) return;
+        const appt = (appointmentData as any)?.data ?? appointmentData;
+        if (!appt?.id) return;
+
+        // Surface any terminal status so the gate screen shows
+        const status = (appt.status || '').toUpperCase();
+        if (['EXPIRED', 'CANCELLED', 'COMPLETED'].includes(status)) {
+            setConsultationStatus(status);
+            setIsLoadingConversation(false);
+            return;
         }
-    }, [consultationId, currentConversation?.id, getConversations, dispatch]);
+
+        dispatch(setCurrentConversation({ conversation: appt }));
+        setIsLoadingConversation(false);
+    }, [appointmentData, dispatch]);
+
+    // Handle appointment fetch error
+    useEffect(() => {
+        if (!apptError) return;
+        const serverMsg: string = (apptError as any)?.data?.message ?? '';
+        const upper = serverMsg.toUpperCase();
+        if (upper.includes('EXPIRED')) setConsultationStatus('EXPIRED');
+        else if (upper.includes('CANCELLED')) setConsultationStatus('CANCELLED');
+        else if (upper.includes('COMPLETED')) setConsultationStatus('COMPLETED');
+        setIsLoadingConversation(false);
+    }, [apptError]);
+
+    // Fallback: if we arrived via the messages page (currentConversation already set in Redux)
+    // and the IDs match, mark loading done.
+    useEffect(() => {
+        if (consultationId && currentConversation?.id === consultationId) {
+            setIsLoadingConversation(false);
+        }
+    }, [consultationId, currentConversation?.id]);
 
     // Build participants from conversation (self + other)
     const conversationParticipants = useMemo(() => {
@@ -1599,11 +1633,56 @@ const VideoContainer = ({ consultationId }: { consultationId?: string }) => {
         };
     }, [localCameraTrack, localMicrophoneTrack, chatConnected]);
 
-    // Show loading state while fetching conversation
-    if (isLoadingConversation) {
+    // Show loading state while fetching consultation data
+    if (isLoadingConversation || (isApptLoading && consultationId && !currentConversation?.id)) {
         return (
-            <Flex justify="center" align="center" h="100vh">
-                <Text>Loading consultation...</Text>
+            <Flex justify="center" align="center" h="100vh" direction="column" gap={3} bg="white">
+                <Box w="40px" h="40px" borderRadius="full" bg="#f0f2f8" display="flex" alignItems="center" justifyContent="center">
+                    <IoCall size={20} color="#1C275D" />
+                </Box>
+                <Text fontSize="0.95rem" color="#5f6368">Loading consultation...</Text>
+            </Flex>
+        );
+    }
+
+    // Consultation is expired / cancelled / completed — show a friendly gate screen
+    if (consultationStatus && (consultationStatus === 'EXPIRED' || consultationStatus === 'CANCELLED' || consultationStatus === 'COMPLETED')) {
+        const isExpired = consultationStatus === 'EXPIRED';
+        const isCancelled = consultationStatus === 'CANCELLED';
+        const headline = isExpired
+            ? 'Consultation Expired'
+            : isCancelled
+            ? 'Consultation Cancelled'
+            : 'Consultation Ended';
+        const subtitle = isExpired
+            ? 'This consultation session has passed its scheduled time.'
+            : isCancelled
+            ? 'This consultation was cancelled.'
+            : 'This consultation has already been completed.';
+
+        return (
+            <Flex justify="center" align="center" h="100vh" direction="column" gap={5} bg="white" px={6}>
+                <Box
+                    w="72px" h="72px" borderRadius="full"
+                    bg={isExpired ? "#fff3cd" : isCancelled ? "#fde8e8" : "#e8f5e9"}
+                    display="flex" alignItems="center" justifyContent="center"
+                >
+                    <IoCall size={30} color={isExpired ? "#b08000" : isCancelled ? "#c53030" : "#2e7d32"} />
+                </Box>
+                <VStack gap={1} textAlign="center">
+                    <Text fontSize="1.35rem" fontWeight="700" color="#202124">{headline}</Text>
+                    <Text fontSize="0.9rem" color="#5f6368" maxW="380px">{subtitle}</Text>
+                </VStack>
+                <Button
+                    bg="#1C275D"
+                    color="white"
+                    borderRadius="10px"
+                    px={6}
+                    onClick={() => router.push('/message')}
+                    _hover={{ bg: "#16214F" }}
+                >
+                    Go to Messages
+                </Button>
             </Flex>
         );
     }
@@ -1611,9 +1690,16 @@ const VideoContainer = ({ consultationId }: { consultationId?: string }) => {
     // Show error state if consultationId is provided but conversation is not found
     if (consultationId && !currentConversation?.id) {
         return (
-            <Flex justify="center" align="center" h="100vh" direction="column" gap={4}>
-                <Text>Consultation not found</Text>
-                <Button onClick={() => router.back()}>Go Back</Button>
+            <Flex justify="center" align="center" h="100vh" direction="column" gap={4} bg="white">
+                <Text fontSize="1.1rem" fontWeight="600" color="#202124">Consultation not found</Text>
+                <Text fontSize="0.875rem" color="#5f6368">We couldn't find the details for this consultation.</Text>
+                <Button
+                    bg="#1C275D" color="white" borderRadius="10px"
+                    onClick={() => router.back()}
+                    _hover={{ bg: "#16214F" }}
+                >
+                    Go Back
+                </Button>
             </Flex>
         );
     }

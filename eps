@@ -7739,6 +7739,37 @@ window.onload = function() {
           ]
         }
       },
+      "/consultants/verification": {
+        "post": {
+          "description": "Upload ID type and front/back images for consultant verification",
+          "operationId": "ConsultantsController_submitVerification",
+          "parameters": [],
+          "requestBody": {
+            "required": true,
+            "content": {
+              "multipart/form-data": {
+                "schema": {
+                  "$ref": "#/components/schemas/SubmitVerificationDto"
+                }
+              }
+            }
+          },
+          "responses": {
+            "201": {
+              "description": "Verification submitted successfully"
+            }
+          },
+          "security": [
+            {
+              "bearer": []
+            }
+          ],
+          "summary": "Submit ID verification",
+          "tags": [
+            "consultants"
+          ]
+        }
+      },
       "/invites/community-invites/invite-many": {
         "post": {
           "operationId": "InvitesController_inviteMany",
@@ -12740,6 +12771,165 @@ window.onload = function() {
           ]
         }
       },
+      "/payment/paystack/initialize": {
+        "post": {
+          "description": "Calculates booking amount, blocks timeslots, and returns a Paystack authorization URL to redirect the user to for payment",
+          "operationId": "PaystackController_initializePayment",
+          "parameters": [],
+          "requestBody": {
+            "required": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreatePaystackDto"
+                }
+              }
+            }
+          },
+          "responses": {
+            "201": {
+              "description": "Returns authorizationUrl, accessCode, reference, and paymentDetails"
+            },
+            "400": {
+              "description": "Timeslots unavailable or invalid request"
+            },
+            "401": {
+              "description": "Unauthorized"
+            }
+          },
+          "security": [
+            {
+              "bearer": []
+            }
+          ],
+          "summary": "Initialize a Paystack payment",
+          "tags": [
+            "payment-paystack"
+          ]
+        }
+      },
+      "/payment/paystack/webhook": {
+        "post": {
+          "description": "Receives and processes Paystack webhook events. Do not call manually — this is for Paystack only.",
+          "operationId": "PaystackController_handleWebhook",
+          "parameters": [
+            {
+              "name": "x-paystack-signature",
+              "required": true,
+              "in": "header",
+              "schema": {
+                "type": "string"
+              }
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "Webhook received and processed"
+            },
+            "400": {
+              "description": "Invalid signature or payload"
+            }
+          },
+          "summary": "Paystack webhook receiver",
+          "tags": [
+            "payment-paystack"
+          ]
+        }
+      },
+      "/payment/paypal/create-order": {
+        "post": {
+          "description": "Calculates booking amount, blocks timeslots, and returns a PayPal approveUrl to redirect the user to for payment",
+          "operationId": "PaypalController_createOrder",
+          "parameters": [],
+          "requestBody": {
+            "required": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreatePaypalDto"
+                }
+              }
+            }
+          },
+          "responses": {
+            "201": {
+              "description": "Returns orderId, approveUrl, and paymentDetails"
+            },
+            "400": {
+              "description": "Timeslots unavailable or invalid request"
+            },
+            "401": {
+              "description": "Unauthorized"
+            }
+          },
+          "security": [
+            {
+              "bearer": []
+            }
+          ],
+          "summary": "Create a PayPal order",
+          "tags": [
+            "payment-paypal"
+          ]
+        }
+      },
+      "/payment/paypal/capture/{orderId}": {
+        "post": {
+          "description": "Call this after the user approves the payment on PayPal to capture the funds",
+          "operationId": "PaypalController_captureOrder",
+          "parameters": [
+            {
+              "name": "orderId",
+              "required": true,
+              "in": "path",
+              "description": "The PayPal order ID returned from create-order",
+              "schema": {
+                "example": "5O190127TN364715T",
+                "type": "string"
+              }
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "Order captured successfully"
+            },
+            "400": {
+              "description": "Capture failed"
+            },
+            "401": {
+              "description": "Unauthorized"
+            }
+          },
+          "security": [
+            {
+              "bearer": []
+            }
+          ],
+          "summary": "Capture an approved PayPal order",
+          "tags": [
+            "payment-paypal"
+          ]
+        }
+      },
+      "/payment/paypal/webhook": {
+        "post": {
+          "description": "Receives and processes PayPal webhook events. Do not call manually — this is for PayPal only.",
+          "operationId": "PaypalController_handleWebhook",
+          "parameters": [],
+          "responses": {
+            "200": {
+              "description": "Webhook received and processed"
+            },
+            "400": {
+              "description": "Invalid payload"
+            }
+          },
+          "summary": "PayPal webhook receiver",
+          "tags": [
+            "payment-paypal"
+          ]
+        }
+      },
       "/uploads/sign-upload": {
         "post": {
           "operationId": "UploadsController_getUploadSignature",
@@ -15499,6 +15689,29 @@ window.onload = function() {
             "otherHoursDiscount"
           ]
         },
+        "SubmitVerificationDto": {
+          "type": "object",
+          "properties": {
+            "idType": {
+              "type": "string",
+              "description": "Type of ID e.g. passport, drivers_license, national_id"
+            },
+            "idFront": {
+              "type": "string",
+              "format": "binary",
+              "description": "Front of the ID document"
+            },
+            "idBack": {
+              "type": "string",
+              "format": "binary",
+              "description": "Back of the ID document (if applicable)"
+            }
+          },
+          "required": [
+            "idType",
+            "idFront"
+          ]
+        },
         "InviteManyDto": {
           "type": "object",
           "properties": {
@@ -16895,6 +17108,40 @@ window.onload = function() {
         "UpdatePaymentDto": {
           "type": "object",
           "properties": {}
+        },
+        "CreatePaystackDto": {
+          "type": "object",
+          "properties": {
+            "currency": {
+              "type": "string",
+              "description": "Currency code e.g. NGN, GHS, ZAR",
+              "example": "NGN"
+            },
+            "consultationDetails": {
+              "$ref": "#/components/schemas/ConsultationDetailsDto"
+            }
+          },
+          "required": [
+            "currency",
+            "consultationDetails"
+          ]
+        },
+        "CreatePaypalDto": {
+          "type": "object",
+          "properties": {
+            "currency": {
+              "type": "string",
+              "description": "Currency code e.g. USD, EUR, GBP",
+              "example": "USD"
+            },
+            "consultationDetails": {
+              "$ref": "#/components/schemas/ConsultationDetailsDto"
+            }
+          },
+          "required": [
+            "currency",
+            "consultationDetails"
+          ]
         },
         "SaveRecentSearchDto": {
           "type": "object",

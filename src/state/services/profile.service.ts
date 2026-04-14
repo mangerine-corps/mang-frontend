@@ -275,6 +275,20 @@ export const ProfileApi = createApi({
       }),
       providesTags: ["works"],
     }),
+    getFollowersList: builder.query<any, { profileId: string; page?: number; limit?: number }>({
+      query: ({ profileId, page = 1, limit = 20 }) => ({
+        url: `users/${profileId}/followers`,
+        params: { page, limit },
+      }),
+      providesTags: ["userInfo"],
+    }),
+    getFollowingList: builder.query<any, { profileId: string; page?: number; limit?: number }>({
+      query: ({ profileId, page = 1, limit = 20 }) => ({
+        url: `users/${profileId}/following`,
+        params: { page, limit },
+      }),
+      providesTags: ["userInfo"],
+    }),
   }),
 });
 
@@ -315,5 +329,6 @@ export const {
   useGetProfileCompletionQuery,
   useReportUserMutation,
   useGetblockedUserQuery,
-  
+  useGetFollowersListQuery,
+  useGetFollowingListQuery,
 } = ProfileApi;

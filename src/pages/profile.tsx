@@ -268,7 +268,7 @@ const Profile = () => {
           />
 
           <Box w="full" my="4">
-            <ProfileActivitySection isOwnProfile={isOwnProfile} />
+            <ProfileActivitySection isOwnProfile={isOwnProfile} profileId={profileId} userId={user?.id} />
           </Box>
         </Flex>
 

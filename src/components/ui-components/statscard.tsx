@@ -3,6 +3,7 @@ import { Box, Text } from '@chakra-ui/react';
 import { useFollowUserMutation } from 'mangarine/state/services/posts.service';
 import { useAuth } from 'mangarine/state/hooks/user.hook';
 import { toaster } from '../ui/toaster';
+import FollowersFollowingDrawer from './FollowersFollowingDrawer';
 
 interface StatsProps {
   followers: number;
@@ -80,53 +81,54 @@ export const StatsCard: FC<StatsProps> = ({ followers, following, data }) => {
 };
 
 const StatusCard: FC<StatsProps> = ({ data, followers, following }) => {
-  // const {isOpen, onOpen, onClose} = useDisclosure()
-  // const { isOpen:open, onOpen:openFollow, onClose:closeFollow } = useDisclosure();
-  return (
-    <Box
-      display="flex"
-      padding="8px"
-      alignItems="center"
-      gap="8px"
-      borderRadius="6px"
-      background="main_background"
-      boxShadow="0px 0px 4px 0px rgba(0, 0, 0, 0.10)"
-      w="fit-content"
-    >
-      <Text
-        // onClick={onOpen}
-        cursor={"pointer"}
-        fontSize="0.875rem"
-        fontWeight="500"
-        pr="2"
-      >
-        <Text as="span" color="grey.500" pr="1">
-          {" "}
-          {followers}
-        </Text>
-        <Text as="span" color="text_primary" fontWeight="600">
-          Followers
-        </Text>
-      </Text>
+  const [drawerType, setDrawerType] = useState<"followers" | "following" | null>(null);
+  const profileId: string = data?.id ?? data?.creator?.id ?? "";
 
-      <Text
-        // onClick={openFollow}
-        cursor={"pointer"}
-        fontSize="0.875rem"
-        fontWeight="500"
-        pr="2"
+  return (
+    <>
+      <Box
+        display="flex"
+        padding="8px"
+        alignItems="center"
+        gap="8px"
+        borderRadius="6px"
+        background="main_background"
+        boxShadow="0px 0px 4px 0px rgba(0, 0, 0, 0.10)"
+        w="fit-content"
       >
-        <Text as="span" color="grey.500" pr="1">
-          {" "}
-          {following}
+        <Text
+          cursor="pointer"
+          fontSize="0.875rem"
+          fontWeight="500"
+          pr="2"
+          onClick={() => setDrawerType("followers")}
+        >
+          <Text as="span" color="grey.500" pr="1">{followers}</Text>
+          <Text as="span" color="text_primary" fontWeight="600">Followers</Text>
         </Text>
-        <Text as="span" color="text_primary" fontWeight="600">
-          Following{" "}
+
+        <Text
+          cursor="pointer"
+          fontSize="0.875rem"
+          fontWeight="500"
+          pr="2"
+          onClick={() => setDrawerType("following")}
+        >
+          <Text as="span" color="grey.500" pr="1">{following}</Text>
+          <Text as="span" color="text_primary" fontWeight="600">Following</Text>
         </Text>
-      </Text>
-    {/* <EditFollowerModal isOpen={isOpen} onClose={onClose} /> */}
-      {/* <FollowingModal isOpen={open} onClose={closeFollow} /> */}
-    </Box>
+      </Box>
+
+      {drawerType && profileId && (
+        <FollowersFollowingDrawer
+          open={!!drawerType}
+          onClose={() => setDrawerType(null)}
+          type={drawerType}
+          profileId={profileId}
+          count={drawerType === "followers" ? followers : following}
+        />
+      )}
+    </>
   );
 };
 export default StatusCard

@@ -10,7 +10,6 @@ import {
   Input,
   RadioGroup,
   Spinner,
-  Stack,
   Text,
   VStack,
 } from "@chakra-ui/react";
@@ -18,7 +17,6 @@ import { useRouter } from "next/router";
 import { useDispatch } from "react-redux";
 import {
   LuChevronLeft,
-  LuFileText,
   LuPencil,
   LuTrash2,
   LuUpload,
@@ -26,10 +24,10 @@ import {
 import Biocard from "mangarine/components/ui-components/biocard";
 import DashboardCard from "mangarine/components/ui-components/dashboardcard";
 import { Checkbox } from "mangarine/components/ui/checkbox";
-import { Field } from "mangarine/components/ui/field";
 import { toaster } from "mangarine/components/ui/toaster";
 import { setUpdatedInfo } from "mangarine/state/reducers/auth.reducer";
 import { useAuth } from "mangarine/state/hooks/user.hook";
+import { useSubmitConsultantVerificationMutation } from "mangarine/state/services/consultant.service";
 import { useLazyGetUserInfoQuery } from "mangarine/state/services/profile.service";
 import { useBecomeConsultantMutation } from "mangarine/state/services/user.service";
 import {
@@ -56,7 +54,6 @@ const noScrollbar = {
 const STORAGE_KEY = "my-business-consultant-onboarding";
 const STEP_LABELS = [
   { id: "requirements", label: "Consultant Requirement" },
-  { id: "account", label: "Account Details" },
   { id: "idType", label: "ID details" },
   { id: "upload", label: "Upload document" },
 ];
@@ -65,6 +62,7 @@ type OnboardingStep = "intro" | "requirements" | "account" | "idType" | "upload"
 type DocumentSide = "front" | "back";
 
 type UploadedDocument = {
+  file?: File | null;
   name: string;
   publicId: string;
   size: number;
@@ -123,9 +121,9 @@ const helperItems = [
 ];
 
 const idOptions = [
-  { label: "ID card", value: "id-card" },
+  { label: "ID card", value: "national_id" },
   { label: "Passport", value: "passport" },
-  { label: "Driver's License", value: "drivers-license" },
+  { label: "Driver's License", value: "drivers_license" },
 ];
 
 const formatFileSize = (size: number) => {
@@ -139,7 +137,39 @@ const formatFileSize = (size: number) => {
 const getStorageSafeDraft = (draft: OnboardingDraft) => ({
   ...draft,
   step: draft.step,
+  documents: {
+    front: draft.documents.front
+      ? {
+          name: draft.documents.front.name,
+          publicId: draft.documents.front.publicId,
+          size: draft.documents.front.size,
+          url: draft.documents.front.url,
+        }
+      : null,
+    back: draft.documents.back
+      ? {
+          name: draft.documents.back.name,
+          publicId: draft.documents.back.publicId,
+          size: draft.documents.back.size,
+          url: draft.documents.back.url,
+        }
+      : null,
+  },
 });
+
+const normalizeStoredStep = (step: unknown): OnboardingStep => {
+  switch (step) {
+    case "requirements":
+    case "idType":
+    case "upload":
+    case "intro":
+      return step;
+    case "account":
+      return "idType";
+    default:
+      return "intro";
+  }
+};
 
 const GreenCheckIcon = ({ boxSize = "20px" }: { boxSize?: string | number }) => {
   return (
@@ -474,6 +504,7 @@ const ConsultantOnboardingFlow = () => {
   const dispatch = useDispatch();
   const { token, user } = useAuth();
   const [becomeConsultant] = useBecomeConsultantMutation();
+  const [submitConsultantVerification] = useSubmitConsultantVerificationMutation();
   const [triggerGetUserInfo] = useLazyGetUserInfoQuery();
 
   const profilePictureComplete = Boolean(user?.profilePics);
@@ -483,27 +514,17 @@ const ConsultantOnboardingFlow = () => {
       ? Intl.DateTimeFormat().resolvedOptions().timeZone
       : "");
   const timeZoneComplete = Boolean(timezoneValue);
-  const accountDetailsComplete = Boolean(
-    draft.accountDetails.accountHolderName.trim() &&
-      draft.accountDetails.bankName.trim() &&
-      draft.accountDetails.accountNumber.trim()
-  );
   const agreementsComplete = Object.values(draft.agreements).every(Boolean);
   const documentsComplete = Boolean(draft.documents.front && draft.documents.back);
 
   const completedSteps = useMemo(
     () => ({
       requirements: agreementsComplete,
-      account: accountDetailsComplete,
       idType: Boolean(draft.idType),
       upload: documentsComplete,
     }),
-    [accountDetailsComplete, agreementsComplete, draft.idType, documentsComplete]
+    [agreementsComplete, draft.idType, documentsComplete]
   );
-
-  const maskedAccountNumber = draft.accountDetails.accountNumber
-    ? `•••• ${draft.accountDetails.accountNumber.slice(-4)}`
-    : "";
 
   useEffect(() => {
     if (!router.isReady) {
@@ -533,6 +554,7 @@ const ConsultantOnboardingFlow = () => {
               ...DEFAULT_DRAFT.documents,
               ...(parsedDraft?.documents ?? {}),
             },
+            step: normalizeStoredStep(parsedDraft?.step),
           };
         } catch {
           nextDraft = DEFAULT_DRAFT;
@@ -580,20 +602,6 @@ const ConsultantOnboardingFlow = () => {
       agreements: {
         ...currentDraft.agreements,
         [key]: checked,
-      },
-    }));
-  };
-
-  const updateAccountField = (
-    key: keyof OnboardingDraft["accountDetails"],
-    value: string
-  ) => {
-    setDraft((currentDraft) => ({
-      ...currentDraft,
-      accountDetails: {
-        ...currentDraft.accountDetails,
-        [key]:
-          key === "accountNumber" ? value.replace(/[^\d]/g, "").slice(0, 10) : value,
       },
     }));
   };
@@ -651,6 +659,7 @@ const ConsultantOnboardingFlow = () => {
       });
 
       const nextDocument = {
+        file,
         name: file.name,
         publicId: uploaded.public_id,
         size: file.size,
@@ -696,18 +705,6 @@ const ConsultantOnboardingFlow = () => {
       return;
     }
 
-    setStep("account");
-  };
-
-  const handleAccountContinue = () => {
-    if (!accountDetailsComplete) {
-      toaster.create({
-        description: "Complete your payout account details to continue.",
-        type: "error",
-      });
-      return;
-    }
-
     setStep("idType");
   };
 
@@ -723,6 +720,27 @@ const ConsultantOnboardingFlow = () => {
     setStep("upload");
   };
 
+  const resolveUploadedDocumentFile = async (
+    document: UploadedDocument,
+    fallbackName: string
+  ) => {
+    if (document.file instanceof File) {
+      return document.file;
+    }
+
+    const response = await fetch(document.url);
+
+    if (!response.ok) {
+      throw new Error("Unable to prepare one of the verification documents.");
+    }
+
+    const blob = await response.blob();
+
+    return new File([blob], document.name || fallbackName, {
+      type: blob.type || "application/octet-stream",
+    });
+  };
+
   const handleSubmitVerification = async () => {
     if (!documentsComplete) {
       toaster.create({
@@ -732,10 +750,37 @@ const ConsultantOnboardingFlow = () => {
       return;
     }
 
+    if (!draft.idType) {
+      toaster.create({
+        description: "Select an ID type before submitting.",
+        type: "error",
+      });
+      return;
+    }
+
+    let verificationSubmitted = false;
+
     try {
       setIsSubmitting(true);
 
-      await becomeConsultant({}).unwrap();
+      const verificationFormData = new FormData();
+      const frontFile = await resolveUploadedDocumentFile(
+        draft.documents.front!,
+        "id-front"
+      );
+      const backFile = await resolveUploadedDocumentFile(
+        draft.documents.back!,
+        "id-back"
+      );
+
+      verificationFormData.append("idType", draft.idType);
+      verificationFormData.append("idFront", frontFile);
+      verificationFormData.append("idBack", backFile);
+
+      await submitConsultantVerification(verificationFormData).unwrap();
+      verificationSubmitted = true;
+
+      await becomeConsultant().unwrap();
 
       try {
         const userInfoResp = await triggerGetUserInfo(undefined).unwrap();
@@ -767,7 +812,9 @@ const ConsultantOnboardingFlow = () => {
         description:
           error?.data?.message ||
           error?.message ||
-          "Unable to complete consultant onboarding right now.",
+          (verificationSubmitted
+            ? "Your ID verification was submitted, but consultant activation could not be completed right now."
+            : "Unable to complete consultant onboarding right now."),
         type: "error",
       });
     } finally {
@@ -903,19 +950,6 @@ const ConsultantOnboardingFlow = () => {
 
                 <RequirementStatus
                   stepNumber="Step 3"
-                  title="Account Details Required"
-                  description={
-                    accountDetailsComplete
-                      ? `${draft.accountDetails.bankName} ${maskedAccountNumber}`
-                      : "Add your payout account."
-                  }
-                  isComplete={accountDetailsComplete}
-                  actionLabel={accountDetailsComplete ? "Edit Account Details" : "Add Account Details"}
-                  onAction={() => setStep("account")}
-                />
-
-                <RequirementStatus
-                  stepNumber="Step 4"
                   title="ID Verification Required"
                   description={
                     documentsComplete
@@ -924,9 +958,7 @@ const ConsultantOnboardingFlow = () => {
                   }
                   isComplete={documentsComplete}
                   actionLabel={documentsComplete ? "Review Uploads" : "Verify Identity"}
-                  onAction={() =>
-                    setStep(accountDetailsComplete ? (draft.idType ? "upload" : "idType") : "account")
-                  }
+                  onAction={() => setStep(draft.idType ? "upload" : "idType")}
                 />
 
                 <VStack align="stretch" gap={4} pt={2}>
@@ -968,82 +1000,7 @@ const ConsultantOnboardingFlow = () => {
                   onClick={handleRequirementsContinue}
                   _hover={{ bg: "button_bg" }}
                 >
-                  Continue to Application
-                </Button>
-              </VStack>
-            )}
-
-            {draft.step === "account" && (
-              <VStack align="stretch" gap={6} maxW="560px" mx="auto" w="full">
-                <Button
-                  variant="ghost"
-                  w="fit-content"
-                  px={0}
-                  color="text_primary"
-                  onClick={() => setStep("requirements")}
-                >
-                  <LuChevronLeft />
-                  Back
-                </Button>
-
-                <VStack align="flex-start" gap={1}>
-                  <Text fontSize="1.55rem" fontWeight="700" color="text_primary">
-                    Add your payout account
-                  </Text>
-                  <Text fontSize="0.95rem" color="gray.500">
-                    Enter the account details you want payouts sent to once your consultant profile is active.
-                  </Text>
-                </VStack>
-
-                <Field label="Account holder name" required>
-                  <Input
-                    value={draft.accountDetails.accountHolderName}
-                    onChange={(e) =>
-                      updateAccountField("accountHolderName", e.target.value)
-                    }
-                    h="50px"
-                    borderColor="input_border"
-                    bg="white"
-                  />
-                </Field>
-
-                <Field label="Bank name" required>
-                  <Input
-                    value={draft.accountDetails.bankName}
-                    onChange={(e) => updateAccountField("bankName", e.target.value)}
-                    h="50px"
-                    borderColor="input_border"
-                    bg="white"
-                  />
-                </Field>
-
-                <Field label="Account number" required>
-                  <Input
-                    value={draft.accountDetails.accountNumber}
-                    onChange={(e) =>
-                      updateAccountField("accountNumber", e.target.value)
-                    }
-                    h="50px"
-                    borderColor="input_border"
-                    bg="white"
-                    inputMode="numeric"
-                    placeholder="10-digit account number"
-                  />
-                </Field>
-
-                <Button
-                  alignSelf="center"
-                  w="full"
-                  maxW="320px"
-                  mt={4}
-                  bg="button_bg"
-                  color="button_text"
-                  disabled={!accountDetailsComplete}
-                  _disabled={{ opacity: 0.55, cursor: "not-allowed" }}
-                  onClick={handleAccountContinue}
-                  _hover={{ bg: "button_bg" }}
-                >
-                  Save and Continue
+                  Continue to Verification
                 </Button>
               </VStack>
             )}
@@ -1055,7 +1012,7 @@ const ConsultantOnboardingFlow = () => {
                   w="fit-content"
                   px={0}
                   color="text_primary"
-                  onClick={() => setStep("account")}
+                  onClick={() => setStep("requirements")}
                 >
                   <LuChevronLeft />
                   Back
@@ -1159,12 +1116,12 @@ const ConsultantOnboardingFlow = () => {
                   bg="button_bg"
                   color="button_text"
                   loading={isSubmitting}
-                  disabled={!documentsComplete || Boolean(uploadingSide)}
+                  disabled={!documentsComplete || Boolean(uploadingSide) || !draft.idType}
                   _disabled={{ opacity: 0.55, cursor: "not-allowed" }}
                   onClick={handleSubmitVerification}
                   _hover={{ bg: "button_bg" }}
                 >
-                  Submit Verification
+                  Finish Application
                 </Button>
               </VStack>
             )}

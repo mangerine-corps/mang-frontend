@@ -116,7 +116,8 @@ const system = createSystem(defaultConfig, {
         },
       },
       fonts: {
-        body: { value: "system-ui, sans-serif" },
+        body: { value: "var(--font-outfit), system-ui, sans-serif" },
+        heading: { value: "var(--font-outfit), system-ui, sans-serif" },
       },
     },
     semanticTokens: {

@@ -71,10 +71,10 @@ const CustomInput = ({
       // invalid={!!errors["name"]}
       // errorText={errors[name]?.message}
       w="full"
-      spaceY={label ? 0.5 : 0}
+      spaceY={0}
       alignItems={"flex-start"}
     >
-      <Text color={"#999999"} fontWeight={"400"} fontSize={"0.75rem"}>
+      <Text color={"#999999"} fontWeight={"400"} fontSize={"0.75rem"} mb="1px">
         {label}
         {required && (
           <Text as={"span"} color={"red.400"} ml={1}>

@@ -120,6 +120,15 @@ export const appointmentApi = createApi({
         params,
       }),
     }),
+    joinConsultation: builder.mutation<any, { appointmentId: string }>({
+      query: ({ appointmentId }) => ({
+        url: `/appointment/${appointmentId}/join`,
+        method: "POST",
+      }),
+      invalidatesTags: (result, error, arg) => [
+        { type: "Appointment", id: arg.appointmentId },
+      ],
+    }),
   }),
 });
 
@@ -138,4 +147,5 @@ export const {
   useGetAppointmentByPaymentIntentQuery,
   useCancelAppointmentMutation,
   useGetMyPaymentsQuery,
+  useJoinConsultationMutation,
 } = appointmentApi;

@@ -364,21 +364,35 @@ export default function ConsultationViewPage() {
                                 </HStack>
                             </VStack>
                         )}
-                        {['UPCOMING', 'RESCHEDULED'].includes((appointment?.status || '').toUpperCase()) && (
+                        {['UPCOMING', 'RESCHEDULED', 'CONFIRMED'].includes((appointment?.status || '').toUpperCase()) && (
                             <VStack
                                 w="full"
                                 py="2"
                                 rounded="xl"
                                 p="4"
-                            // shadow="xs"
+                                gap={3}
                             >
+                                {/* Join Call CTA */}
+                                <Button
+                                    w="full"
+                                    bg="#111D4A"
+                                    color="white"
+                                    borderRadius="10px"
+                                    h="48px"
+                                    fontSize="1rem"
+                                    fontWeight="600"
+                                    _hover={{ opacity: 0.85 }}
+                                    onClick={() => router.push(`/message/videoconsultation?consultationId=${consultation_id}`)}
+                                >
+                                    Join Call
+                                </Button>
+
                                 <HStack
                                     w="full"
                                     display={"flex"}
                                     alignItems={"center"}
                                     justifyContent={"space-between"}
                                     flexDir={"row"}
-                                // mx="auto"
                                 >
                                     <CustomButton customStyle={{ flex: 1 }} variant="outline" disabled={isCancelling}
                                        onClick={() => router.push(`/consultation/cancel?consultation_id=${consultation_id}`)}
@@ -389,7 +403,7 @@ export default function ConsultationViewPage() {
                                             fontSize={"1rem"}
                                             lineHeight={"100%"}
                                         >
-                                            Cancel Consultation
+                                            Cancel
                                         </Text>
 
                                     </CustomButton>
@@ -399,8 +413,6 @@ export default function ConsultationViewPage() {
                                             flex: 1
                                         }}
                                         onClick={() =>router.push(`/consultation/reschedule?consultation_id=${consultation_id}`)}
-                                    // loading={isLoading}
-                                    // onClick={handleSubmit(onSubmit, (error) => console.log(error))}
                                     >
                                         <Text
                                             color={"button_text"}

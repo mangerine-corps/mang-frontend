@@ -1,20 +1,44 @@
-import { Box, Button, Flex, Grid, HStack, Image, Text, VStack } from "@chakra-ui/react";
-import { useState } from "react";
+import { Box, Button, Flex, Grid, HStack, Image, Skeleton, SkeletonCircle, Text, VStack } from "@chakra-ui/react";
+import { useMemo, useState } from "react";
 import CreatePost from "./createpost";
 import NewsItem from "./newsitem";
+import { useGetUserPostsQuery } from "mangarine/state/services/posts.service";
 
 type ProfileActivitySectionProps = {
   isOwnProfile?: boolean;
+  profileId?: string;
+  userId?: string;
 };
 
 const ProfileActivitySection = ({
   isOwnProfile = false,
+  profileId,
+  userId,
 }: ProfileActivitySectionProps) => {
   const [activeTab, setActiveTab] = useState<"activity" | "images">("activity");
   const [openCreatePost, setOpenCreatePost] = useState(false);
-  const [createdPosts, setCreatedPosts] = useState<any[]>([]);
+  const [newlyCreated, setNewlyCreated] = useState<any[]>([]);
 
-  const imagePosts = createdPosts.flatMap((post) =>
+  const targetId = profileId ?? userId ?? "";
+
+  const { data: userPostsData, isLoading: postsLoading } = useGetUserPostsQuery(
+    { userId: targetId },
+    { skip: !targetId, refetchOnMountOrArgChange: true }
+  );
+
+  const fetchedPosts: any[] = useMemo(() => {
+    const raw = userPostsData?.data ?? userPostsData ?? [];
+    return Array.isArray(raw) ? raw : (raw?.items ?? raw?.posts ?? []);
+  }, [userPostsData]);
+
+  // Merge newly created (not yet in API response) with fetched
+  const allPosts = useMemo(() => {
+    const fetchedIds = new Set(fetchedPosts.map((p: any) => p?.id));
+    const fresh = newlyCreated.filter((p) => !fetchedIds.has(p?.id));
+    return [...fresh, ...fetchedPosts];
+  }, [newlyCreated, fetchedPosts]);
+
+  const imagePosts = allPosts.flatMap((post) =>
     (post?.images || []).map((src: string, index: number) => ({
       id: `${post?.id || "post"}-${index}`,
       src,
@@ -30,7 +54,7 @@ const ProfileActivitySection = ({
     : "This image gallery is currently empty. Once they start sharing posts with images, they will appear here.";
 
   const showEmptyState =
-    (activeTab === "activity" && createdPosts.length === 0) ||
+    (activeTab === "activity" && allPosts.length === 0) ||
     (activeTab === "images" && imagePosts.length === 0);
 
   return (
@@ -76,7 +100,24 @@ const ProfileActivitySection = ({
           </Box>
         </HStack>
 
-        {showEmptyState ? (
+        {postsLoading ? (
+          <VStack gap={4} align="stretch">
+            {[1, 2, 3].map((i) => (
+              <Box key={i} p={4} borderWidth="1px" borderColor="input_border" borderRadius="12px">
+                <HStack gap={3} mb={3}>
+                  <SkeletonCircle size="10" />
+                  <VStack align="flex-start" gap={2} flex={1}>
+                    <Skeleton h="3" w="40%" rounded="md" />
+                    <Skeleton h="3" w="25%" rounded="md" />
+                  </VStack>
+                </HStack>
+                <Skeleton h="3" w="full" rounded="md" mb={2} />
+                <Skeleton h="3" w="80%" rounded="md" mb={2} />
+                <Skeleton h="3" w="60%" rounded="md" />
+              </Box>
+            ))}
+          </VStack>
+        ) : showEmptyState ? (
           <Flex
             minH={{ base: "280px", lg: "340px" }}
             alignItems="center"
@@ -115,7 +156,7 @@ const ProfileActivitySection = ({
           </Flex>
         ) : activeTab === "activity" ? (
           <VStack gap={4} align="stretch">
-            {createdPosts.map((post) => (
+            {allPosts.map((post) => (
               <NewsItem key={post.id} post={post} />
             ))}
           </VStack>
@@ -149,7 +190,7 @@ const ProfileActivitySection = ({
         open={openCreatePost}
         onOpenChange={() => setOpenCreatePost(false)}
         onCreated={(post) => {
-          setCreatedPosts((prev) => [post, ...prev]);
+          setNewlyCreated((prev) => [post, ...prev]);
           setOpenCreatePost(false);
           setActiveTab("activity");
         }}

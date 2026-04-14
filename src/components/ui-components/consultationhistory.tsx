@@ -18,6 +18,7 @@ import { FC, useState } from "react";
 import { useGetUpcomingConsultationQuery } from "mangarine/state/services/apointment.service";
 import { format } from "date-fns";
 import { LuChevronLeft, LuChevronRight } from "react-icons/lu";
+import { useRouter } from "next/router";
 import ReviewModal from "./modals/reviewmodal";
 import PaymentModal from "./paymentreceipt";
 
@@ -39,6 +40,7 @@ const ConsultationHistory: FC<Props> = ({ searchTerm = "" }) => {
   const limit = 10;
   const [reviewItem, setReviewItem] = useState<any>(null);
   const [receiptItem, setReceiptItem] = useState<any>(null);
+  const router = useRouter();
 
   const { data, isLoading } = useGetUpcomingConsultationQuery({ page, limit });
 
@@ -198,56 +200,72 @@ const ConsultationHistory: FC<Props> = ({ searchTerm = "" }) => {
                       </Text>
                     </Table.Cell>
 
-                    {/* Menu */}
+                    {/* Action */}
                     <Table.Cell py={{ base: 3, md: 4 }} px={{ base: 2, md: 3 }}>
-                      <Menu.Root positioning={{ placement: "bottom-end" }}>
-                        <Menu.Trigger asChild>
-                          <Button variant="ghost" p={0} minW="auto">
-                            <Image src="/icons/dot.svg" alt="menu" />
-                          </Button>
-                        </Menu.Trigger>
-                        <Portal>
-                          <Menu.Positioner>
-                            <Menu.Content borderRadius="md" boxShadow="lg">
-                              <Menu.Item
-                                _hover={{ bg: "consult_hover" }}
-                                py={2}
-                                px={3}
-                                value="watch"
-                              >
-                                <HStack gap={3}>
-                                  <Image src="/icons/watch.svg" alt="icon" boxSize="16px" />
-                                  <Text fontSize="sm" fontFamily="Outfit">Watch Recording</Text>
-                                </HStack>
-                              </Menu.Item>
-                              <Menu.Item
-                                _hover={{ bg: "consult_hover" }}
-                                py={2}
-                                px={3}
-                                value="rate"
-                                onClick={() => setReviewItem(item)}
-                              >
-                                <HStack gap={3}>
-                                  <Image src="/icons/star.svg" alt="icon" boxSize="16px" />
-                                  <Text fontSize="sm" fontFamily="Outfit">Rate Consultant</Text>
-                                </HStack>
-                              </Menu.Item>
-                              <Menu.Item
-                                _hover={{ bg: "consult_hover" }}
-                                py={2}
-                                px={3}
-                                value="receipt"
-                                onClick={() => setReceiptItem(item)}
-                              >
-                                <HStack gap={3}>
-                                  <Image src="/icons/view.svg" alt="icon" boxSize="16px" />
-                                  <Text fontSize="sm" fontFamily="Outfit">View Payment Receipt</Text>
-                                </HStack>
-                              </Menu.Item>
-                            </Menu.Content>
-                          </Menu.Positioner>
-                        </Portal>
-                      </Menu.Root>
+                      {status === "UPCOMING" || status === "CONFIRMED" ? (
+                        <Button
+                          size="sm"
+                          bg="primary.950"
+                          color="white"
+                          borderRadius="8px"
+                          fontFamily="Outfit"
+                          fontSize="0.8rem"
+                          px={4}
+                          _hover={{ opacity: 0.85 }}
+                          onClick={() => router.push(`/message/videoconsultation?consultationId=${item.id}`)}
+                        >
+                          Join Call
+                        </Button>
+                      ) : (
+                        <Menu.Root positioning={{ placement: "bottom-end" }}>
+                          <Menu.Trigger asChild>
+                            <Button variant="ghost" p={0} minW="auto">
+                              <Image src="/icons/dot.svg" alt="menu" />
+                            </Button>
+                          </Menu.Trigger>
+                          <Portal>
+                            <Menu.Positioner>
+                              <Menu.Content borderRadius="md" boxShadow="lg">
+                                <Menu.Item
+                                  _hover={{ bg: "consult_hover" }}
+                                  py={2}
+                                  px={3}
+                                  value="watch"
+                                >
+                                  <HStack gap={3}>
+                                    <Image src="/icons/watch.svg" alt="icon" boxSize="16px" />
+                                    <Text fontSize="sm" fontFamily="Outfit">Watch Recording</Text>
+                                  </HStack>
+                                </Menu.Item>
+                                <Menu.Item
+                                  _hover={{ bg: "consult_hover" }}
+                                  py={2}
+                                  px={3}
+                                  value="rate"
+                                  onClick={() => setReviewItem(item)}
+                                >
+                                  <HStack gap={3}>
+                                    <Image src="/icons/star.svg" alt="icon" boxSize="16px" />
+                                    <Text fontSize="sm" fontFamily="Outfit">Rate Consultant</Text>
+                                  </HStack>
+                                </Menu.Item>
+                                <Menu.Item
+                                  _hover={{ bg: "consult_hover" }}
+                                  py={2}
+                                  px={3}
+                                  value="receipt"
+                                  onClick={() => setReceiptItem(item)}
+                                >
+                                  <HStack gap={3}>
+                                    <Image src="/icons/view.svg" alt="icon" boxSize="16px" />
+                                    <Text fontSize="sm" fontFamily="Outfit">View Payment Receipt</Text>
+                                  </HStack>
+                                </Menu.Item>
+                              </Menu.Content>
+                            </Menu.Positioner>
+                          </Portal>
+                        </Menu.Root>
+                      )}
                     </Table.Cell>
                   </Table.Row>
                 );

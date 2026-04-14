@@ -27,7 +27,7 @@ const PaymentSuccessfulModal = ({
 
   const handleViewConsultants = () => {
     onOpenChange(false);
-    router.push("/consultant");
+    router.push("/consultation");
   };
 
   const handleGoHome = () => {
@@ -83,7 +83,7 @@ const PaymentSuccessfulModal = ({
                     textAlign="center"
                   >
                     Your payment of ${paymentAmount.toFixed(2)} has been processed successfully.
-                    You can now schedule your consultation.
+                    Your consultation has been booked. You'll be able to join the call at the scheduled time.
                   </Text>
                 </VStack>
               </VStack>
@@ -125,7 +125,7 @@ const PaymentSuccessfulModal = ({
                     fontSize={"1rem"}
                     lineHeight={"100%"}
                   >
-                    View Consultants
+                    View My Bookings
                   </Text>
                 </CustomButton>
               </HStack>

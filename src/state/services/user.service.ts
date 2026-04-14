@@ -84,10 +84,9 @@ export const UserTypeApi = createApi({
       }),
     }),
      becomeConsultant : builder.mutation({
-      query:(credentials)=>({
+      query:()=>({
         url:"/become/consultant",
         method:"PATCH",
-        body:credentials
       })
      })
   }),

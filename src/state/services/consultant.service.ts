@@ -115,6 +115,15 @@ export const consultantsApi = createApi({
         method: "GET",
       }),
     }),
+    submitConsultantVerification: builder.mutation({
+      query: (credentials: FormData) => ({
+        url: "/verification",
+        method: "POST",
+        body: credentials,
+        formData: true,
+      }),
+      invalidatesTags: ["Consultant", "User"],
+    }),
   }),
 });
 
@@ -131,5 +140,6 @@ export const {
   useConsultantPricingMutation,
   useGetPricingQuery,
   useGetConsultantPricingQuery,
-  useGetConsultantPricingOnDemandMutation
+  useGetConsultantPricingOnDemandMutation,
+  useSubmitConsultantVerificationMutation,
 } = consultantsApi;

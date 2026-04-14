@@ -323,6 +323,15 @@ export const postsApi = createApi({
       providesTags: ["Post", "group"],
     }),
 
+    getUserPosts: builder.query<any, { userId: string; page?: number; limit?: number }>({
+      query: ({ userId, page = 1, limit = 20 }) => ({
+        url: `posts/users/${userId}`,
+        method: "GET",
+        params: { page, limit },
+      }),
+      providesTags: ["Post"],
+    }),
+
     toggleAllowComments: builder.mutation<
       { data: any },
       { postId: string; allow: boolean }
@@ -369,4 +378,5 @@ export const {
   useGetMyPostsInGroupQuery,
   useToggleAllowCommentsMutation,
   useGetFollowingQuery,
+  useGetUserPostsQuery,
 } = postsApi;
