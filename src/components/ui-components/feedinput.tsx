@@ -214,9 +214,169 @@ const addTag =(username:string)=>{
   //   }
   // };
 
+  const closeMobile = () => {
+    setShowMobileCreate(false);
+    setValue("");
+    setSelectedImage([]);
+    setImagePreview([]);
+    setSelectedVideo(null);
+    setVideoPreview(null);
+  };
+
   return (
     <>
       <UploadToPremiumModal isOpen={openImageLimit} onOpenChange={() => setOpenImageLimit(false)} />
+
+      {/* Mobile full-screen create post overlay */}
+      {showMobileCreate && (
+        <Portal>
+          <Box
+            display={{ base: "flex", md: "none" }}
+            position="fixed"
+            inset={0}
+            zIndex={1400}
+            bg="main_background"
+            flexDirection="column"
+          >
+            {/* Header */}
+            <HStack
+              px={4}
+              py={3}
+              borderBottomWidth="1px"
+              borderColor="#E8E8E9"
+              justifyContent="space-between"
+              alignItems="center"
+            >
+              <Text
+                fontSize="0.875rem"
+                fontWeight="500"
+                color="text_primary"
+                cursor="pointer"
+                onClick={closeMobile}
+              >
+                Cancel
+              </Text>
+              <Text fontSize="1rem" fontWeight="700" color="text_primary">
+                Create Post
+              </Text>
+              <Button
+                bg="#111D4A"
+                color="white"
+                size="sm"
+                borderRadius="8px"
+                px={4}
+                loading={isLoading}
+                onClick={submitPost}
+                _hover={{ bg: "#1a2a6c" }}
+              >
+                Post
+              </Button>
+            </HStack>
+
+            {/* Avatar + audience */}
+            <HStack px={4} pt={4} gap={3}>
+              <Avatar.Root w={9} h={9}>
+                <Avatar.Fallback name={`${user?.fullName}`} />
+                <Avatar.Image src={user?.profilePics} />
+              </Avatar.Root>
+              <HStack
+                borderWidth="1px"
+                borderColor="#E8E8E9"
+                borderRadius="full"
+                px={3}
+                py={1}
+                gap={1}
+                cursor="pointer"
+              >
+                <Text fontSize="0.8rem" fontWeight="500" color="text_primary">Everyone</Text>
+                <Icon color="text_primary"><BiChevronDown /></Icon>
+              </HStack>
+            </HStack>
+
+            {/* Textarea */}
+            <Box flex={1} px={4} pt={3} overflowY="auto">
+              <Textarea
+                border="none"
+                outline="none"
+                resize="none"
+                placeholder="What would you like to share?"
+                value={value}
+                onChange={(e: any) => setValue(e.target.value)}
+                color="text_primary"
+                fontSize="1rem"
+                minH="120px"
+                autoFocus
+                _focus={{ boxShadow: "none", borderColor: "transparent" }}
+              />
+
+              {/* Image previews */}
+              {imagePreview.length > 0 && (
+                <HStack pt={3} gap={2} flexWrap="wrap">
+                  {imagePreview.map((src, index) => (
+                    <Box key={index} position="relative" w="calc(50% - 4px)">
+                      <Image
+                        src={src}
+                        alt={`img-${index}`}
+                        w="full"
+                        h="140px"
+                        objectFit="cover"
+                        borderRadius="10px"
+                      />
+                      <Box
+                        position="absolute" top="6px" left="6px"
+                        w="24px" h="24px" borderRadius="4px"
+                        bg="rgba(0,0,0,0.4)" display="flex"
+                        alignItems="center" justifyContent="center"
+                        cursor="pointer" onClick={() => handleEditImage(index)}
+                      >
+                        <RiEditFill color="white" size={13} />
+                      </Box>
+                      <Box
+                        position="absolute" top="6px" right="6px"
+                        w="24px" h="24px" borderRadius="4px"
+                        bg="rgba(0,0,0,0.4)" display="flex"
+                        alignItems="center" justifyContent="center"
+                        cursor="pointer" onClick={() => handleRemoveImage(index)}
+                      >
+                        <IoClose color="white" size={13} />
+                      </Box>
+                    </Box>
+                  ))}
+                </HStack>
+              )}
+            </Box>
+
+            {/* Bottom actions */}
+            <HStack
+              px={4}
+              py={3}
+              borderTopWidth="1px"
+              borderColor="#E8E8E9"
+              gap={4}
+            >
+              <Box onClick={handleImageClick} cursor="pointer">
+                <Image src={image} alt="image" boxSize="22px" />
+                <input
+                  type="file"
+                  ref={fileInputRef}
+                  accept="image/*"
+                  onChange={handleMyImageChange}
+                  style={{ display: "none" }}
+                />
+              </Box>
+              <Box cursor="pointer" onClick={() => setShowPicker(!showPicker)} pos="relative">
+                <Image src={smily} alt="emoji" boxSize="22px" />
+                <Box ref={emojiRef} pos="absolute" bottom="40px" left={0} zIndex="max">
+                  {showPicker && <EmojiPicker onEmojiClick={onEmojiClick} />}
+                </Box>
+              </Box>
+              <Image src={location} alt="location" boxSize="22px" cursor="pointer" />
+              <Image src={tag} alt="tag" boxSize="22px" cursor="pointer" />
+            </HStack>
+          </Box>
+        </Portal>
+      )}
+
       <HStack
         rounded={"15px"}
         borderWidth={1}
@@ -509,13 +669,16 @@ const addTag =(username:string)=>{
         ) : (
           <HStack
             w={"full"}
-            // minH={"2rem"}
             rounded={"15px"}
             borderWidth={1}
             cursor={"pointer"}
             borderColor={"#E8E8E9"}
             onClick={() => {
-              setShowTextBox(true);
+              if (window.innerWidth < 768) {
+                setShowMobileCreate(true);
+              } else {
+                setShowTextBox(true);
+              }
             }}
             my={4}
             mr="4"

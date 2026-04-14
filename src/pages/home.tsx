@@ -117,7 +117,8 @@ function Home() {
         gridTemplateColumns={{ base: "1fr", md: "1fr 2fr", lg: "1fr 2fr 1fr" }}
         gap={4}
         w="full"
-        h="full"
+        h={{ base: "auto", md: "full" }}
+        alignItems="start"
         css={noScrollbar}
       >
         {/* Left sidebar */}
@@ -135,7 +136,7 @@ function Home() {
         </VStack>
 
         {/* Center feed */}
-        <Stack bg="bg_box" rounded="xl" px={4} pb={4} h="full" w="full" overflowY="auto" css={noScrollbar}>
+        <Stack bg="bg_box" rounded="xl" px={4} pb={4} h={{ base: "auto", md: "full" }} w="full" overflowY={{ base: "visible", md: "auto" }} css={noScrollbar}>
           {showConsultantBanner && !isConsultant && (
             <Box
               style={{ background: "linear-gradient(90deg, #D6DCF5 0%, #F7F8FD 100%)" }}

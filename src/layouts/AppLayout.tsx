@@ -68,7 +68,7 @@ const AppLayout: FC<Props> = ({ children, subHeader }) => {
           minH={0}
           w="full"
           px={{ base: "12px", md: "16px", lg: "18px", xl: "32px" }}
-          overflow="hidden"
+          overflow={{ base: "auto", md: "hidden" }}
           css={{
             "&::-webkit-scrollbar": { width: "0px", height: "0px" },
             "&::-webkit-scrollbar-track": { width: "0px", background: "transparent", height: "0px" },
