@@ -108,9 +108,17 @@ const Profile = () => {
     isLoading: consultingLoading,
   } = useGetConsultingServicesQuery({ profileId });
 
-  // fetch target user info when viewing another profile
-  const { data: profileInfoData } = useGetUserInfoQuery({ profileId });
-  const displayUser = profileId ? profileInfoData?.data : user;
+  // fetch target user info only when viewing another profile
+  const {
+    data: profileInfoRawData,
+    currentData: profileInfoCurrentData,
+  } = useGetUserInfoQuery({ profileId }, { skip: !profileId });
+
+  // API may return { data: {...} } or the object directly — normalise both shapes
+  const unwrapUserInfo = (res: any) => res?.data ?? res;
+  // Use currentData to avoid showing stale own-profile data while the new query loads
+  const otherUserData = profileId ? unwrapUserInfo(profileInfoCurrentData ?? profileInfoRawData) : undefined;
+  const displayUser = profileId ? otherUserData : user;
   const isOwnProfile = !profileId || profileId === user?.id;
 
   useEffect(() => {}, [user]);
