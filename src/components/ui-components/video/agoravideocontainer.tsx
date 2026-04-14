@@ -2350,7 +2350,9 @@ const VideoChat: FC<{
             <Box flexShrink={0} borderTopWidth="1px" borderColor="gray.100">
                 <Box bg="#FDF6EE" px={4} py={3}>
                     <Input
-                        variant="unstyled"
+                        border="none"
+                        outline="none"
+                        focusRing="none"
                         placeholder="Type Message Here"
                         _placeholder={{ color: "#999", fontSize: "0.875rem" }}
                         fontSize="0.875rem"
