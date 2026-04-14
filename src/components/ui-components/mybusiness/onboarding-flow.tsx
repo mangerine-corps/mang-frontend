@@ -515,7 +515,7 @@ const ConsultantOnboardingFlow = () => {
       : "");
   const timeZoneComplete = Boolean(timezoneValue);
   const agreementsComplete = Object.values(draft.agreements).every(Boolean);
-  const documentsComplete = Boolean(draft.documents.front && draft.documents.back);
+  const documentsComplete = Boolean(draft.documents.front); // back is optional
 
   const completedSteps = useMemo(
     () => ({
@@ -768,14 +768,17 @@ const ConsultantOnboardingFlow = () => {
         draft.documents.front!,
         "id-front"
       );
-      const backFile = await resolveUploadedDocumentFile(
-        draft.documents.back!,
-        "id-back"
-      );
 
       verificationFormData.append("idType", draft.idType);
       verificationFormData.append("idFront", frontFile);
-      verificationFormData.append("idBack", backFile);
+
+      if (draft.documents.back) {
+        const backFile = await resolveUploadedDocumentFile(
+          draft.documents.back,
+          "id-back"
+        );
+        verificationFormData.append("idBack", backFile);
+      }
 
       await submitConsultantVerification(verificationFormData).unwrap();
       verificationSubmitted = true;
@@ -1099,7 +1102,7 @@ const ConsultantOnboardingFlow = () => {
                   />
 
                   <UploadCard
-                    title={`Back of ${draft.idType === "passport" ? "passport" : "ID"}`}
+                    title={`Back of ${draft.idType === "passport" ? "passport" : "ID"} (optional)`}
                     file={draft.documents.back}
                     isUploading={uploadingSide === "back"}
                     onChange={(file) => uploadDocument("back", file)}

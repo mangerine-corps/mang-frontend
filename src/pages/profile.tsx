@@ -116,6 +116,7 @@ const Profile = () => {
   useEffect(() => {}, [user]);
 
   useEffect(() => {
+    if (!isOwnProfile) return;
     if (!isEmpty(curConsultData)) {
       const { data: consultingsData } = curConsultData;
       dispatch(setConsulting({ consultings: consultingsData }));
@@ -123,9 +124,10 @@ const Profile = () => {
       const { data: consultingsData } = consultData;
       dispatch(setConsulting({ consultings: consultingsData }));
     }
-  }, [consultData, curConsultData, dispatch]);
+  }, [consultData, curConsultData, dispatch, isOwnProfile]);
 
   useEffect(() => {
+    if (!isOwnProfile) return;
     if (!isEmpty(currentWorkData)) {
       const { data: worksData } = currentWorkData;
       dispatch(setWorks({ works: worksData }));
@@ -133,9 +135,10 @@ const Profile = () => {
       const { data: worksData } = workData;
       dispatch(setWorks({ works: worksData }));
     }
-  }, [workData, currentWorkData, dispatch]);
+  }, [workData, currentWorkData, dispatch, isOwnProfile]);
 
   useEffect(() => {
+    if (!isOwnProfile) return;
     if (!isEmpty(currentSkillData)) {
       const { data: skillsData } = currentSkillData;
       dispatch(setSkills({ skills: skillsData }));
@@ -143,23 +146,23 @@ const Profile = () => {
       const { data: skillsData } = skillData;
       dispatch(setSkills({ skills: skillsData }));
     }
-  }, [skillData, currentSkillData, error, dispatch]);
+  }, [skillData, currentSkillData, error, dispatch, isOwnProfile]);
 
   useEffect(() => {}, [error]);
 
   useEffect(() => {
+    if (!isOwnProfile) return;
     if (!isEmpty(eduCurrentData)) {
       const { data: educationData } = eduCurrentData;
-      // console.log(educationData,"edu")
       dispatch(setEducation({ educations: educationData }));
-      //  console.log(educationData, "daaaa");
     } else if (!isEmpty(eduData)) {
       const { data: educationData } = eduData;
       dispatch(setEducation({ educations: educationData }));
     }
-  }, [eduData, eduCurrentData, dispatch]);
+  }, [eduData, eduCurrentData, dispatch, isOwnProfile]);
 
   useEffect(() => {
+    if (!isOwnProfile) return;
     if (!isEmpty(expCurrData)) {
       const { data: experiencesData } = expCurrData;
       dispatch(setExperience({ experiences: experiencesData }));
@@ -167,9 +170,10 @@ const Profile = () => {
       const { data: experiencesData } = expData;
       dispatch(setExperience({ experiences: experiencesData }));
     }
-  }, [expData, expCurrData, dispatch]);
+  }, [expData, expCurrData, dispatch, isOwnProfile]);
 
   useEffect(() => {
+    if (!isOwnProfile) return;
     if (!isEmpty(currLangData)) {
       const { data: languagesData } = currLangData;
       dispatch(setLanguages({ languages: languagesData }));
@@ -177,7 +181,15 @@ const Profile = () => {
       const { data: languagesData } = langData;
       dispatch(setLanguages({ languages: languagesData }));
     }
-  }, [langData, currLangData, dispatch]);
+  }, [langData, currLangData, dispatch, isOwnProfile]);
+
+  // When viewing another user's profile, derive display data directly from query results
+  const displayWorks = isOwnProfile ? works : ((currentWorkData?.data ?? workData?.data) || []);
+  const displaySkills = isOwnProfile ? skills : ((currentSkillData?.data ?? skillData?.data) || []);
+  const displayEducations = isOwnProfile ? educations : ((eduCurrentData?.data ?? eduData?.data) || []);
+  const displayExperiences = isOwnProfile ? experiences : ((expCurrData?.data ?? expData?.data) || []);
+  const displayLanguages = isOwnProfile ? languages : ((currLangData?.data ?? langData?.data) || []);
+  const displayConsultings = isOwnProfile ? consultings : ((curConsultData?.data ?? consultData?.data) || []);
 
   return (
     <AppLayout>
@@ -263,7 +275,7 @@ const Profile = () => {
           <EditMyWorksCard
             title={"My Works"}
             edit={isOwnProfile ? edit : undefined}
-            works={works}
+            works={displayWorks}
             isLoading={workLoading}
           />
 
@@ -334,7 +346,7 @@ const Profile = () => {
             <Box mt={4}>
               <EditSkillCard
                 isLoading={skillLoading}
-                skills={skills}
+                skills={displaySkills}
                 title={"Skills & Expertise"}
                 edit={isOwnProfile ? edit : undefined}
               />
@@ -342,7 +354,7 @@ const Profile = () => {
             <Box mt={4}>
               <EditEducationCard
                 title={"Education"}
-                educations={educations}
+                educations={displayEducations}
                 edit={isOwnProfile ? edit : undefined}
                 isLoading={eduLoading}
               />
@@ -350,7 +362,7 @@ const Profile = () => {
             <Box mt={4}>
               <EditExperienceCard
                 title={"Experience"}
-                experiences={experiences}
+                experiences={displayExperiences}
                 edit={isOwnProfile ? edit : undefined}
                 isLoading={expLoading}
               />
@@ -358,7 +370,7 @@ const Profile = () => {
             <Box mt={4}>
               <EditLanguageCard
                 title={"Languages"}
-                languages={languages}
+                languages={displayLanguages}
                 edit={isOwnProfile ? edit : undefined}
                 isLoading={langLoading}
               />

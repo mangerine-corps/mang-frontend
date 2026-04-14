@@ -214,7 +214,18 @@ const NewsItem: React.FC<NewsItemProps> = ({ post, isDetailPage = false }) => {
           </Avatar.Root>
 
           <VStack align={"left"} gap={0} alignItems={"flex-start"} flex={1}>
-            <HStack onClick={() => router.replace("/profile")} mb={1} cursor="pointer">
+            <HStack
+              onClick={() => {
+                const creatorId = post?.creator?.id;
+                if (!creatorId || creatorId === user?.id) {
+                  router.push("/profile");
+                } else {
+                  router.push(`/profile?profileId=${creatorId}`);
+                }
+              }}
+              mb={1}
+              cursor="pointer"
+            >
               <Text fontSize={"1rem"} fontFamily={"Outfit"} color={"text_primary"} fontWeight={"600"}>
                 {post?.creator?.fullName}
               </Text>
