@@ -136,7 +136,7 @@ function Home() {
         </VStack>
 
         {/* Center feed */}
-        <Stack bg="bg_box" rounded="xl" px={4} pb={4} h={{ base: "auto", md: "full" }} w="full" overflowY={{ base: "visible", md: "auto" }} css={noScrollbar}>
+        <Stack bg="bg_box" rounded="xl" px={4} pb={4} h={{ base: "auto", md: "full" }} w="full" overflowY={{ base: "auto", md: "auto" }} css={noScrollbar}>
           {showConsultantBanner && !isConsultant && (
             <Box
               style={{ background: "linear-gradient(90deg, #D6DCF5 0%, #F7F8FD 100%)" }}

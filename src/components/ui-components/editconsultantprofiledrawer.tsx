@@ -380,6 +380,7 @@ const EditConsultDrawer = ({
                 </Box>
               </Box>
 
+              <Box h="10" w="full" /> {/* spacer for avatar overlap */}
               {showToast && (
                 <Toast
                   message={errorMessage}
@@ -388,7 +389,7 @@ const EditConsultDrawer = ({
                   close={() => setShowToast(false)}
                 />
               )}
-              <Controller
+              {/* <Controller
                 name="Title"
                 control={control}
                 render={({ field: { onChange, value } }) => (
@@ -411,7 +412,7 @@ const EditConsultDrawer = ({
                     }
                   />
                 )}
-              />
+              /> */}
               <Controller
                 name="fullName"
                 control={control}
@@ -470,9 +471,11 @@ const EditConsultDrawer = ({
                     id="dob"
                     required={true}
                     name="dob"
-                    value={
-                      value ? new Date(value).toISOString().split("T")[0] : ""
-                    }
+                    value={(() => {
+                      if (!value) return "";
+                      const d = new Date(value);
+                      return isNaN(d.getTime()) ? "" : d.toISOString().split("T")[0];
+                    })()}
                     size="md"
                     onChange={onChange}
                     //   error={{}}
@@ -530,23 +533,33 @@ const EditConsultDrawer = ({
                   />
                 )}
               />
-              <Controller
-                name="bio"
-                control={control}
-                render={({ field: { onChange, value } }) => (
-                  <Textarea
-                    borderWidth={1}
-                    borderColor={"gray.100"}
-                    px="3"
-                    color="text_primary"
-                    rows={5}
-                    value={value}
-                    onChange={onChange}
-                    resize={"none"}
-                    placeholder="Tell us about you."
-                  />
-                )}
-              />
+              <Box w="full">
+                <Text
+                  color="#999999"
+                  fontWeight={"400"}
+                  fontSize={"0.75rem"}
+                  mb={1}
+                >
+                  Bio
+                </Text>
+                <Controller
+                  name="bio"
+                  control={control}
+                  render={({ field: { onChange, value } }) => (
+                    <Textarea
+                      borderWidth={1}
+                      borderColor={"gray.100"}
+                      px="3"
+                      color="text_primary"
+                      rows={5}
+                      value={value}
+                      onChange={onChange}
+                      resize={"none"}
+                      placeholder="Tell us about you."
+                    />
+                  )}
+                />
+              </Box>
               <Box w="full" spaceY={4}>
                 <FileUploader handleChange={(file) => setResume(file)} />
                 <VideoUploader handleChange={(file) => setVideo(file)} />

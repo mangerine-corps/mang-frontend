@@ -74,7 +74,7 @@ const CustomInput = ({
       spaceY={label ? 0.5 : 0}
       alignItems={"flex-start"}
     >
-      <Text color={"text_primary"} fontWeight={"400"} fontSize={"1rem"}>
+      <Text color={"#999999"} fontWeight={"400"} fontSize={"0.75rem"}>
         {label}
         {required && (
           <Text as={"span"} color={"red.400"} ml={1}>

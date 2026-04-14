@@ -45,7 +45,7 @@ const AppLayout: FC<Props> = ({ children, subHeader }) => {
       userId={persistReady ? user?.id : undefined}
       options={persistReady && user?.id ? { mode: 'secure', token, autoReconnect: true } : undefined}
     >
-      <VStack gap={0} h="100vh" alignItems="stretch">
+      <VStack gap={0} h={{ base: "auto", md: "100vh" }} minH={{ base: "100vh", md: "unset" }} alignItems="stretch">
         <Header />
 
         {subHeader ? (
@@ -68,7 +68,7 @@ const AppLayout: FC<Props> = ({ children, subHeader }) => {
           minH={0}
           w="full"
           px={{ base: "12px", md: "16px", lg: "18px", xl: "32px" }}
-          overflow={{ base: "auto", md: "hidden" }}
+          overflow={{ base: "visible", md: "hidden" }}
           css={{
             "&::-webkit-scrollbar": { width: "0px", height: "0px" },
             "&::-webkit-scrollbar-track": { width: "0px", background: "transparent", height: "0px" },
