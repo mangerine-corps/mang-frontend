@@ -1,4 +1,6 @@
-import { Box, SkeletonCircle, SkeletonText, Stack, VStack } from "@chakra-ui/react";
+import { Box, HStack, Icon, SkeletonCircle, SkeletonText, Stack, Text, VStack } from "@chakra-ui/react";
+import { IoClose } from "react-icons/io5";
+import { PiSparkle } from "react-icons/pi";
 import AppLayout from "mangarine/layouts/AppLayout";
 import Biocard from "mangarine/components/ui-components/biocard";
 import DashboardCard from "mangarine/components/ui-components/dashboardcard";
@@ -13,10 +15,8 @@ import NewsItem from "mangarine/components/ui-components/newsitem";
 import { Post, setPosts } from "mangarine/state/reducers/post.reducer";
 import PostEmptyState from "mangarine/components/ui-components/postemptyState";
 import { useDispatch } from "react-redux";
-import ActivityEmptyState from "mangarine/components/ui-components/emptystate";
 import BecomeAConsultantModal from "mangarine/components/ui-components/modals/becomeaconsultant";
 import { useAuth } from "mangarine/state/hooks/user.hook";
-import { useConsultants } from "mangarine/state/hooks/consultant.hook";
 import { BiMenuAltRight } from "react-icons/bi";
 import MenuList from "mangarine/components/ui-components/mybusiness/modals/homerightmenu";
 import { usePostsPolling } from "mangarine/hooks/usePostsPolling";
@@ -40,6 +40,7 @@ const SkeletonPost = () => (
 
 function Home() {
   const [openConsultant, setOpenConsultant] = useState(false);
+  const [showConsultantBanner, setShowConsultantBanner] = useState(true);
   const [showMenuList, setShowMenuList] = useState(false);
   const [cursor, setCursor] = useState<string | undefined>(undefined);
   const [initialLoading, setInitialLoading] = useState(true);
@@ -50,7 +51,6 @@ function Home() {
   const { posts } = usePosts();
   const dispatch = useDispatch();
   const { user } = useAuth();
-  const { upcomingConsultation } = useConsultants();
   const { trending } = useCommunity();
   const isConsultant = user?.isConsultant;
 
@@ -124,6 +124,7 @@ function Home() {
         <VStack
           display={{ base: "none", md: "flex" }}
           alignItems="stretch"
+          w="full"
           spaceY={2}
           h="full"
           overflowY="auto"
@@ -135,6 +136,47 @@ function Home() {
 
         {/* Center feed */}
         <Stack bg="bg_box" rounded="xl" px={4} pb={4} h="full" w="full" overflowY="auto" css={noScrollbar}>
+          {showConsultantBanner && !isConsultant && (
+            <Box
+              style={{ background: "linear-gradient(90deg, #D6DCF5 0%, #F7F8FD 100%)" }}
+              rounded="xl"
+              px={4}
+              py={3}
+              mt={3}
+            >
+              <HStack alignItems="flex-start" justify="space-between">
+                <HStack alignItems="flex-start" gap={2}>
+                  <Icon color="#111D4A" mt={0.5}>
+                    <PiSparkle />
+                  </Icon>
+                  <VStack alignItems="flex-start" gap={0.5}>
+                    <Text fontWeight="600" fontSize="0.875rem" color="#111D4A">
+                      Become a consultant?
+                    </Text>
+                    <Text fontSize="0.8rem" color="#111D4A">
+                      Share your expertise and earn from sessions.
+                    </Text>
+                  </VStack>
+                </HStack>
+                <Icon
+                  as={IoClose}
+                  cursor="pointer"
+                  color="#111D4A"
+                  onClick={() => setShowConsultantBanner(false)}
+                />
+              </HStack>
+              <HStack justify="flex-end" mt={2}>
+                <Text
+                  fontSize="0.875rem"
+                  fontWeight="600"
+                  color="#111D4A"
+                  cursor="pointer"
+                >
+                  Learn more →
+                </Text>
+              </HStack>
+            </Box>
+          )}
           <FeedInput />
           {initialLoading ? (
             <VStack css={noScrollbar}>
@@ -179,14 +221,14 @@ function Home() {
           css={noScrollbar}
         >
           <Box w="full" cursor="pointer">
-            {!isEmpty(upcomingConsultation) ? <ActivityBox /> : <ActivityEmptyState />}
+            <ActivityBox />
           </Box>
           <Box w="full">
             <BookingCalendar />
           </Box>
-          <Stack display={{ base: "none", lg: "flex" }} w="full">
+          <Box display={{ base: "none", lg: "block" }} w="full">
             {!isEmpty(trending) ? <TrendingCommunities /> : <TrendingEmptyState />}
-          </Stack>
+          </Box>
           <WhoToFollow />
         </VStack>
 

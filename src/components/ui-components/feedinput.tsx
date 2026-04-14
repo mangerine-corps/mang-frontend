@@ -3,11 +3,15 @@ import {
   Box,
   Button,
   HStack,
+  Icon,
   Image,
+  Portal,
   Text,
   Textarea,
   VStack,
 } from "@chakra-ui/react";
+import { BiChevronDown } from "react-icons/bi";
+import { IoClose } from "react-icons/io5";
 import FeedAction from "./feedaction";
 import EmojiPicker from "emoji-picker-react";
 import { useRef, useState } from "react";
@@ -38,6 +42,7 @@ const FeedInput = ({ onCreated }: FeedInputProps) => {
   const [value, setValue] = useState("");
   const [, setIsModalOpen] = useState(false);
   const [showTextBox, setShowTextBox] = useState<boolean>(false);
+  const [showMobileCreate, setShowMobileCreate] = useState(false);
   const { user } = useAuth();
   const openModal = () => {
     setIsModalOpen(true);

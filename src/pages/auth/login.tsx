@@ -208,12 +208,13 @@ const loginUser = useGoogleLogin({
     <GuestLayout>
       <VStack
         className={outfit.className}
-        justifyContent={"center"}
+        justifyContent={{ base: "flex-start", lg: "center" }}
+        pt={{ base: "8", lg: "0" }}
         w="full"
         flex={1}
       >
-        <VStack w={{ base: "full", md: "4/6" }} spaceY={1}>
-          <Stack w="full" alignItems="center" justifyContent="flex-start"  display={{base:"flex", md:"flex", lg:"none"}} pb="12">
+        <VStack w={{ base: "full", md: "4/6" }} px={{ base: "5", md: "0" }} spaceY={1}>
+          <Stack w="full" alignItems="center" justifyContent="flex-start"  display={{base:"flex", md:"flex", lg:"none"}} pb="24">
             <Image
               boxSize={{ base: "64px", md: "64px" }}
               objectFit="contain"

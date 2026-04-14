@@ -135,24 +135,23 @@ const DashboardCard = () => {
         },
       ],
     },
-    {
-      items: [{ icon: JobsIcon, label: "Jobs" }],
-    },
-    {
-      items: [
-        {
-          icon: BusinessIcon,
-          label: "My Business",
-          action: () => router.push(businessHomePath),
-        },
-      ],
-    },
+    // {
+    //   items: [{ icon: JobsIcon, label: "Jobs" }],
+    // },
+    // {
+    //   items: [
+    //     {
+    //       icon: BusinessIcon,
+    //       label: "My Business",
+    //       action: () => router.push(businessHomePath),
+    //     },
+    //   ],
+    // },
   ];
 
   return (
     <VStack
-      w={{ base: "100%", sm: "90%", md: "100%" }}
-      maxW={{ base: "full", md: "340px", lg: "400px" }}
+      w="full"
       align="stretch"
       gap={3}
     >
@@ -165,28 +164,27 @@ const DashboardCard = () => {
           borderColor="#E8E8E9"
           borderRadius="16px"
           bg="transparent"
-          p="12px"
+          p="8px"
         >
-          <VStack w="full" align="stretch" gap={1}>
+          <VStack w="full" align="stretch" gap={0}>
             {section.items.map((item) => (
               <Box
                 key={item.label}
                 as={item.action ? "button" : "div"}
-
                 w="full"
                 onClick={item.action}
                 cursor={item.action ? "pointer" : "default"}
                 borderRadius="12px"
                 bg="transparent"
-                px="14px"
-                py="12px"
+                px="10px"
+                py="7px"
                 textAlign="left"
               >
-                <HStack gap={3}>
-                  <Icon as={item.icon} boxSize={5} color="text_primary" />
+                <HStack gap={2}>
+                  <Icon as={item.icon} boxSize={4} color="text_primary" />
                   <Text
                     fontFamily="Outfit"
-                    fontSize="0.95rem"
+                    fontSize="0.8rem"
                     fontWeight="400"
                     fontStyle="normal"
                     color="text_primary"

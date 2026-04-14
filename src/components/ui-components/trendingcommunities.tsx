@@ -93,17 +93,10 @@ const TrendingCommunities = () => {
 
   return (
     <Box
-      w={{ base: "100%", sm: "90%", md: "100%" }} // full width on mobile, tighter on small screens
-      maxW={{ base: "full", md: "340px", lg: "400px" }} // don’t stretch too wide on large screens
-      pb="12px"
-      borderRadius="lg"
-      // flex={1}
-      boxShadow="sm"
+      w="full"
       bg="bg_box"
       p="4"
       rounded={"15px"}
-      // py="6"
-      alignItems={"flex-start"}
     >
       <Text
         fontWeight="600"
@@ -115,14 +108,14 @@ const TrendingCommunities = () => {
         Trending Communities
       </Text>
 
-      <VStack>
+      <VStack w="full">
         {trending && (
           <Text color="grey.500" fontSize="sm">Loading trending communities…</Text>
         )}
         {!trending && Array.isArray(list) && list.length === 0 && (
           <Text color="grey.500" fontSize="sm">No trending communities found</Text>
         )}
-        {trending && Array.isArray(list) &&
+        {!trending && Array.isArray(list) &&
           list.map((community, index) => (
             <HStack key={index} justify="space-between" w="full">
               <HStack>

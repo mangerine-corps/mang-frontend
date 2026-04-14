@@ -55,12 +55,12 @@ const AppLayout: FC<Props> = ({ children, subHeader }) => {
             px={{ base: "12px", md: "16px", lg: "18px", xl: "32px" }}
             borderBottomWidth="1px"
             borderColor="input_border"
-            mb={{ base: "0", md: "16px" }}
+            mb={{ base: "12px", md: "16px" }}
           >
             {subHeader}
           </Box>
         ) : (
-          <Box mb={{ base: "0", md: "16px" }} />
+          <Box mb={{ base: "12px", md: "16px" }} />
         )}
 
         <Flex

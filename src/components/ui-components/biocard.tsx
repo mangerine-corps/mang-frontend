@@ -48,8 +48,7 @@ function Biocard() {
   console.log(user, "user")
   return (
     <VStack
-      w={{ base: "100%", sm: "90%", md: "100%" }} // full width on mobile, tighter on small screens
-      maxW={{ base: "full", md: "340px", lg: "400px" }} // don’t stretch too wide on large screens
+      w="full"
       // pb="12px"
       borderRadius="lg"
       border="1px solid"

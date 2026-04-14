@@ -174,7 +174,7 @@ const OnboardingOne = () => {
           },
         }}
       >
-        <VStack w={{ base: "full", md: "4/6" }} spaceY={2}>
+        <VStack w={{ base: "full", md: "4/6" }} px={{ base: "5", md: "0" }} spaceY={2}>
           <Stack
             w="full"
             alignItems="center"
@@ -291,65 +291,83 @@ const OnboardingOne = () => {
               />
             )}
           />
-          <Controller
-            name="password"
-            control={control}
-            render={({ field: { onChange, value } }) => (
-              <CustomInput
-                label="Password"
-                placeholder="******"
-                id="password"
-                required={true}
-                name="password"
-                value={value}
-                size="md"
-                onChange={onChange}
-                error={errors.password}
-                hasRightIcon={true}
-                type={showPassword ? "text" : "password"}
-                rightIcon={
-                  <Button
-                    variant={"ghost"}
-                    color={"#697586"}
-                    bg="none"
-                    p={0}
-                    borderWidth={0}
-                    _hover={{ bg: "transparent" }}
-                    onClick={() =>
-                      setShowPassword((showPassword) => !showPassword)
-                    }
-                  >
-                    {showPassword ? (
-                      <Icon
-                        size={"lg"}
-                        color={colorMode === "dark" ? "white" : "black"}
-                        mr={"4"}
-                      >
-                        <IoIosEyeOff />
-                      </Icon>
-                    ) : (
-                      <Icon
-                        size={"lg"}
-                        color={colorMode === "dark" ? "white" : "black"}
-                        mr={"4"}
-                      >
-                        <IoIosEye />
-                      </Icon>
-                    )}
-                  </Button>
-                }
-              />
+          <VStack w="full" gap={1}>
+            <Controller
+              name="password"
+              control={control}
+              render={({ field: { onChange, value } }) => (
+                <CustomInput
+                  label="Password"
+                  placeholder="******"
+                  id="password"
+                  required={true}
+                  name="password"
+                  value={value}
+                  size="md"
+                  onChange={onChange}
+                  error={errors.password}
+                  hideErrorText={true}
+                  hasRightIcon={true}
+                  type={showPassword ? "text" : "password"}
+                  rightIcon={
+                    <Button
+                      variant={"ghost"}
+                      color={"#697586"}
+                      bg="none"
+                      p={0}
+                      borderWidth={0}
+                      _hover={{ bg: "transparent" }}
+                      onClick={() =>
+                        setShowPassword((showPassword) => !showPassword)
+                      }
+                    >
+                      {showPassword ? (
+                        <Icon
+                          size={"lg"}
+                          color={colorMode === "dark" ? "white" : "black"}
+                          mr={"4"}
+                        >
+                          <IoIosEyeOff />
+                        </Icon>
+                      ) : (
+                        <Icon
+                          size={"lg"}
+                          color={colorMode === "dark" ? "white" : "black"}
+                          mr={"4"}
+                        >
+                          <IoIosEye />
+                        </Icon>
+                      )}
+                    </Button>
+                  }
+                />
+              )}
+            />
+            {errors.password ? (
+              <Text
+                color="red.500"
+                fontWeight={"400"}
+                fontSize={"0.75rem"}
+                lineHeight={"1.2"}
+                w="full"
+              >
+                {errors.password.message}
+              </Text>
+            ) : (
+              <Text
+                color="grey.500"
+                fontWeight={"400"}
+                fontSize={"0.75rem"}
+                lineHeight={"1.2"}
+                w="full"
+              >
+                Password must be at least{" "}
+                <Text as="span" color="primary.500" fontWeight={"600"}>8 characters</Text>
+                {" "}long and include at least{" "}
+                <Text as="span" color="primary.500" fontWeight={"600"}>one uppercase letter (A - Z)</Text>.
+              </Text>
             )}
-          />
-          <Text
-            color="text_primary"
-            fontWeight={"400"}
-            fontSize={"0.75rem"}
-            lineHeight={1}
-          >
-            Password must be at least 8 characters long and include at least one
-            uppercase letter (A - Z).
-          </Text>
+          </VStack>
           <Controller
             name="confirmPassword"
             control={control}

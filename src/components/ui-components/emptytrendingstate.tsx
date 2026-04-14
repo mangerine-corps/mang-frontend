@@ -4,12 +4,7 @@ import { outfit } from "mangarine/pages/_app";
 const TrendingEmptyState = () => {
   return (
     <Box
-      flex="flex-end"
-      w={{ base: "100%", sm: "90%", md: "100%" }} // full width on mobile, tighter on small screens
-      maxW={{ base: "full", md: "340px", lg: "400px" }}
-      // maxW="340px"
-      mx="auto"
-      // w={{ base: "95%", md: "280px", lg: "340px", xl: "340px" }}
+      w="full"
       display={{ base: "none", md: "block", lg: "block" }}
       p={6}
       bg="bg_box"

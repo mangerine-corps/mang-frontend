@@ -61,10 +61,11 @@ export default function Home() {
           // flex={1}
           // mb="16"
           alignItems={"center"}
-          justifyContent={"center"}
+          justifyContent={{ base: "space-between", lg: "center" }}
           w="full"
           h="full"
-          // h=""
+          pt={{ base: "8", lg: "0" }}
+          pb={{ base: "16", lg: "0" }}
           // bg="red.900"
         >
           {" "}
@@ -95,8 +96,7 @@ export default function Home() {
           </VStack>
           <Box
             display={{ base: "block", lg: "none" }}
-            w="full"
-            mt={6}
+            w="65%"
           >
             <Image
               src="/images/onboarding-card.png"
@@ -106,7 +106,7 @@ export default function Home() {
             />
           </Box>
 
-          <VStack w="65%" spaceY={"5"} pt={{ base: "6", lg: "24" }}>
+          <VStack w="65%" spaceY={"5"} pt={{ base: "0", lg: "24" }}>
             <CustomButton
               customStyle={{
                 w: "full",

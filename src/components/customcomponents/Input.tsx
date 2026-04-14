@@ -30,6 +30,7 @@ type Props = {
   max?: string;
   inputStyle?: SystemStyleObject;
   onKeyDown?: React.KeyboardEventHandler<HTMLInputElement>;
+  hideErrorText?: boolean;
 };
 const CustomInput = ({
   value,
@@ -54,6 +55,7 @@ const CustomInput = ({
   min,
   inputStyle = {},
   onKeyDown: onKeyDownProp,
+  hideErrorText = false,
 }: Props) => {
 
   const handleKeyDown = (event) => {
@@ -147,13 +149,13 @@ const CustomInput = ({
           {...inputStyle}
         />
       </InputGroup>
-      <Box mt={"1"} w="full" bg="red.700">
-        {!isEmpty(error) && (
+      <Box mt={"1"} w="full">
+        {!hideErrorText && !isEmpty(error) && (
           <Text
             color="red.500"
-            lineHeight={"0px"}
+            lineHeight={"1.2"}
             textAlign={"left"}
-            fontSize="sm"
+            fontSize="0.75rem"
           >
             {error.message}
           </Text>
