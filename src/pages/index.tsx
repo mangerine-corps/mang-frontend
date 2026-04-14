@@ -27,20 +27,12 @@ import GuestLayout from "mangarine/layouts/GuestLayout";
 // });
 
 export default function Home() {
-  const bg1 = "url(/images/bg2.svg)";
-  const bg1Dark = "url(/images/bg2.svg)";
-  const banner3 = "/images/banner3.svg";
-  const banner4 = "/images/banner3Dark.svg";
-  //const logo = "/images/logoDark.svg";
   const { colorMode } = useColorMode();
   const [isClient, setIsClient] = useState(false);
 
   useEffect(() => {
     setIsClient(true);
   }, []);
-
-  const img = `${!isClient ? bg1 : colorMode === "dark" ? bg1Dark : bg1}`;
-  const img2 = `${!isClient ? banner3 : colorMode === "dark" ? banner4 : banner3}`;
   const { token } = useAuth();
   const persistReady = usePersistReady();
   const router = useRouter();
@@ -101,7 +93,20 @@ export default function Home() {
               Mangerine
             </Text>
           </VStack>
-          <VStack w="65%" spaceY={"5"} pt="24">
+          <Box
+            display={{ base: "block", lg: "none" }}
+            w="full"
+            mt={6}
+          >
+            <Image
+              src="/images/onboarding-card.png"
+              alt="onboarding"
+              w="full"
+              objectFit="contain"
+            />
+          </Box>
+
+          <VStack w="65%" spaceY={"5"} pt={{ base: "6", lg: "24" }}>
             <CustomButton
               customStyle={{
                 w: "full",
