@@ -52,7 +52,7 @@ const LinkPreview = ({ link }: { link: string }) => {
             alt={domain}
             boxSize="16px"
             borderRadius="2px"
-            fallbackSrc="/icons/link.svg"
+            onError={(e) => { (e.target as HTMLImageElement).src = "/icons/link.svg"; }}
           />
           <Text fontSize="0.7rem" color="gray.500" fontWeight="500" truncate>
             {domain}

@@ -72,25 +72,11 @@ const GuestLayout: FC<Props> = ({ children }) => {
       <Flex
         flex={1}
         overflowY="auto"
+        scrollBehavior="smooth"
         css={{
-          "&::-webkit-scrollbar": {
-            width: "0px",
-
-            height: "0px",
-          },
-          "&::-webkit-scrollbar-track": {
-            width: "0px",
-            background: "transparent",
-
-            height: "0px",
-          },
-          "&::-webkit-scrollbar-thumb": {
-            background: "transparent",
-            borderRadius: "0px",
-            maxHeight: "0px",
-            height: "0px",
-            width: 0,
-          },
+          "&::-webkit-scrollbar": { width: "0px", height: "0px" },
+          "&::-webkit-scrollbar-track": { width: "0px", background: "transparent", height: "0px" },
+          "&::-webkit-scrollbar-thumb": { background: "transparent", borderRadius: "0px", maxHeight: "0px", height: "0px", width: 0 },
         }}
       >
         {children}

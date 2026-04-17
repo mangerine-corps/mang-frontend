@@ -74,7 +74,6 @@ const OnboardingOne = () => {
   const dispatch = useDispatch()
   const [errorMessage, setErrorMessage] = useState<string>('')
   const [showToast, setShowToast] = useState<boolean>(false)
-  const [isClient, setIsClient] = useState(false);
   const [handlePreAuth, { isLoading }] = usePreSignupMutation();
   const [handleGoogleAuth, { isLoading: isGoogleLoading }] = useGoogleAuthMutation();
 
@@ -185,13 +184,7 @@ const OnboardingOne = () => {
             <Image
               boxSize={{ base: "64px", md: "64px" }}
               objectFit="contain"
-              src={
-                !isClient
-                  ? "/images/logo.svg"
-                  : colorMode === "dark"
-                    ? "/images/logoDark.svg"
-                    : "/images/logo.svg"
-              }
+              src={colorMode === "dark" ? "/images/logoDark.svg" : "/images/logo.svg"}
               alt="logo"
             />
           </Stack>
