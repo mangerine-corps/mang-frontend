@@ -783,7 +783,7 @@ const ConsultantOnboardingFlow = () => {
       await submitConsultantVerification(verificationFormData).unwrap();
       verificationSubmitted = true;
 
-      await becomeConsultant().unwrap();
+      await becomeConsultant(undefined).unwrap();
 
       try {
         const userInfoResp = await triggerGetUserInfo(undefined).unwrap();

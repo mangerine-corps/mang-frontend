@@ -18,16 +18,21 @@ import AppLayout from "mangarine/layouts/AppLayout";
 import Biocard from "mangarine/components/ui-components/biocard";
 import DashboardCard from "mangarine/components/ui-components/dashboardcard";
 import ActivityEmptyState from "mangarine/components/ui-components/emptystate";
-import { useGetAppointmentByPaymentIntentQuery } from "mangarine/state/services/apointment.service";
+import {
+  useGetAppointmentByPaymentIntentQuery,
+  useCapturePaypalOrderMutation,
+} from "mangarine/state/services/apointment.service";
 
 export default function PaymentSuccessPage() {
   const router = useRouter();
   const [client, setClient] = useState(false);
   const [amount, setAmount] = useState<string | null>(null);
+  const [captureStatus, setCaptureStatus] = useState<'idle' | 'loading' | 'done' | 'error'>('idle');
   const { resolvedTheme } = useTheme();
 
-  const { redirect_status, payment_intent, consultantId } =
+  const { redirect_status, payment_intent, consultantId, token, reference } =
     router.query as Record<string, string>;
+  const [capturePaypalOrder] = useCapturePaypalOrderMutation();
   const { data: apptByIntent, isLoading: isLoadingAppt } = useGetAppointmentByPaymentIntentQuery(payment_intent as string, { skip: !payment_intent });
   const appointment: any = (apptByIntent as any)?.data ?? apptByIntent ?? null;
 
@@ -37,16 +42,34 @@ export default function PaymentSuccessPage() {
 
   useEffect(() => {
     if (!client) return;
-    // Retrieve saved amount (best effort)
     try {
       const saved = localStorage.getItem("paymentAmount");
       if (saved) setAmount(saved);
     } catch (e) {}
   }, [client]);
 
+  // Capture PayPal order when user returns from PayPal (token = orderId)
+  useEffect(() => {
+    if (!token || captureStatus !== 'idle') return;
+    setCaptureStatus('loading');
+    capturePaypalOrder(token)
+      .unwrap()
+      .then(() => setCaptureStatus('done'))
+      .catch(() => setCaptureStatus('error'));
+  }, [token, captureStatus, capturePaypalOrder]);
+
   const succeeded = useMemo(() => {
-    return redirect_status === "succeeded" || !!payment_intent;
-  }, [redirect_status, payment_intent]);
+    // Stripe success
+    if (redirect_status === "succeeded" || !!payment_intent) return true;
+    // PayPal success (token present + capture done or done regardless)
+    if (token) return captureStatus === 'done' || captureStatus === 'loading';
+    // Paystack success (reference present — backend webhook verified)
+    if (reference) return true;
+    return false;
+  }, [redirect_status, payment_intent, token, reference, captureStatus]);
+
+  // Resolve consultantId from query or localStorage (set before redirect for Paystack/PayPal)
+  const resolvedConsultantId = consultantId || (client ? localStorage.getItem('paymentConsultantId') ?? undefined : undefined);
 
   // Manually designed info card colors (Chakra v3: compute via next-themes)
   const isDark = resolvedTheme === "dark";
@@ -62,8 +85,9 @@ export default function PaymentSuccessPage() {
   const amountText = amount ? `$${Number(amount).toFixed(2)}` : undefined;
 
   const goToConsultant = () => {
-    if (consultantId) {
-      router.push(`/consultant/${consultantId}`);
+    if (resolvedConsultantId) {
+      if (client) localStorage.removeItem('paymentConsultantId');
+      router.push(`/consultant/${resolvedConsultantId}`);
     } else {
       router.push("/home");
     }
@@ -218,7 +242,7 @@ export default function PaymentSuccessPage() {
                     textTransform="capitalize"
                     color={"text_primary"}
                   >
-                    {isLoadingAppt && !appointment ? "..." : (
+                    {(isLoadingAppt && !appointment) || captureStatus === 'loading' ? "..." : (
                       item === "Consultant"
                         ? consultantName
                         : item === "Date"
@@ -256,7 +280,7 @@ export default function PaymentSuccessPage() {
               mt={12}
               onClick={goToConsultant}
             >
-              {consultantId ? "Back to Consultant" : "Go to Home"}
+              {resolvedConsultantId ? "Back to Consultant" : "Go to Home"}
             </Button>
 
             <Box mt={4}>

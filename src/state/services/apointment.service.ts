@@ -25,6 +25,26 @@ export const appointmentApi = createApi({
         body: formData,
       }),
     }),
+    initializePaystackPayment: builder.mutation({
+      query: (formData) => ({
+        url: `/payment/paystack/initialize`,
+        method: "POST",
+        body: formData,
+      }),
+    }),
+    createPaypalOrder: builder.mutation({
+      query: (formData) => ({
+        url: `/payment/paypal/create-order`,
+        method: "POST",
+        body: formData,
+      }),
+    }),
+    capturePaypalOrder: builder.mutation({
+      query: (orderId: string) => ({
+        url: `/payment/paypal/capture/${orderId}`,
+        method: "POST",
+      }),
+    }),
     rescheduleAppointment: builder.mutation({
       query: (formData: { consultationId: string; consultantId: string; availabilityId: string; timeslots: string[] }) => ({
         url: `/appointment/reschedule`,
@@ -141,6 +161,9 @@ export const {
   useGetConversationMutation,
   useGetVideoTokenMutation,
   useIntiateTransactionMutation,
+  useInitializePaystackPaymentMutation,
+  useCreatePaypalOrderMutation,
+  useCapturePaypalOrderMutation,
   useGetUpcomingConsultationQuery,
   useFetchUpcomingConsultationsMutation,
   useGetAppointmentByIdQuery,
