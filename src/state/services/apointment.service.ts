@@ -45,6 +45,13 @@ export const appointmentApi = createApi({
         method: "POST",
       }),
     }),
+    requestTimeExtension: builder.mutation({
+      query: ({ appointmentId, extraMinutes }: { appointmentId: string; extraMinutes: number }) => ({
+        url: `/appointment/${appointmentId}/request-extension`,
+        method: "POST",
+        body: { extraMinutes },
+      }),
+    }),
     rescheduleAppointment: builder.mutation({
       query: (formData: { consultationId: string; consultantId: string; availabilityId: string; timeslots: string[] }) => ({
         url: `/appointment/reschedule`,
@@ -164,6 +171,7 @@ export const {
   useInitializePaystackPaymentMutation,
   useCreatePaypalOrderMutation,
   useCapturePaypalOrderMutation,
+  useRequestTimeExtensionMutation,
   useGetUpcomingConsultationQuery,
   useFetchUpcomingConsultationsMutation,
   useGetAppointmentByIdQuery,

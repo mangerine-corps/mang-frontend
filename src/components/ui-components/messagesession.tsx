@@ -1,4 +1,5 @@
 import { Box, Button, HStack, Text, Image } from "@chakra-ui/react";
+import { DEFAULT_AVATAR } from "mangarine/lib/constants";
 
 const MessageSession = () => {
   return (

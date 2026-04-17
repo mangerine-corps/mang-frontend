@@ -1,4 +1,5 @@
 import { Box, Button, HStack, Text, Image, Textarea } from "@chakra-ui/react";
+import { DEFAULT_AVATAR } from "mangarine/lib/constants";
 
 const MessageReview = () => {
   return (
@@ -17,7 +18,7 @@ const MessageReview = () => {
          {/* Image */}
       <Box w="full" h="120px" display="flex" justifyContent="center" alignItems="center" mb={8}>
         <Image
-          src="/images/dp.png"
+          src={DEFAULT_AVATAR}
           alt="consultant image"
           boxSize="80px"
         />

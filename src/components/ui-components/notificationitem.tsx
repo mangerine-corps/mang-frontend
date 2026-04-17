@@ -1,5 +1,5 @@
 import { Button, HStack, Image, Text, VStack } from "@chakra-ui/react";
-const profile = "/images/dp.png";
+import { DEFAULT_AVATAR } from "mangarine/lib/constants";
 
 const NotificationItem = ({
   item,
@@ -12,7 +12,6 @@ const NotificationItem = ({
   hasReschedule?: boolean;
   handleRefund?: () => void;
 }) => {
-  console.log(item)
   return (
     <HStack spaceX={3} py={2} w="full" alignItems={"flex-start"}>
       <Image
@@ -20,7 +19,7 @@ const NotificationItem = ({
         align={"image profile"}
         width={12}
         height={12}
-        src={profile}
+        src={item?.senderProfilePic || DEFAULT_AVATAR}
       />
       <VStack>
         <HStack w="full" justifyContent={"space-between"}>

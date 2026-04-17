@@ -9,6 +9,7 @@ import { useGetConsultantsQuery } from "mangarine/state/services/consultant.serv
 import { useDispatch } from "react-redux";
 import { setConsultants } from "mangarine/state/reducers/consultant.reducer";
 import ConsultationPage from "mangarine/components/ui-components/consultationpage";
+import ConsultationReadyBanner from "mangarine/components/ui-components/ConsultationReadyBanner";
 
 const Consultation = () => {
   const dispatch = useDispatch();
@@ -20,6 +21,8 @@ const Consultation = () => {
   }, [myConsultdata, dispatch]);
   return (
     <AppLayout>
+      <>
+      <ConsultationReadyBanner />
       <Box
         display={"flex"}
         // bg="red.900"
@@ -118,6 +121,7 @@ const Consultation = () => {
           </>
         </VStack>
       </Box>
+      </>
     </AppLayout>
   );
 };

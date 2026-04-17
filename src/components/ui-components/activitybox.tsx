@@ -8,6 +8,7 @@ import { setUpcomingConsultation } from "mangarine/state/reducers/consultant.red
 import { isEmpty } from "es-toolkit/compat";
 import { format } from "date-fns";
 import AreyouCancellingModal from "./modals/areyoucancelling";
+import { DEFAULT_AVATAR } from "mangarine/lib/constants";
 import RescheduleConsultation from "./modals/rescheduleconsultation";
 
 const formatTime = (val: string) => {
@@ -93,7 +94,7 @@ const ActivitiesBox = () => {
               <Flex justify="space-between" align="center">
                 <HStack gap={3}>
                   <Image
-                    src={consultant.profilePics || "/images/dp.png"}
+                    src={consultant.profilePics || DEFAULT_AVATAR}
                     alt={consultant.fullName || "Consultant"}
                     boxSize="44px"
                     borderRadius="8px"

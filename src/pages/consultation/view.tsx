@@ -1,18 +1,104 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Box, Button, Center, Container, Flex, Heading, HStack, Icon, Stack, Text, Textarea, VStack, Spinner } from '@chakra-ui/react';
+import { Box, Button, HStack, Text, VStack, Spinner, Flex } from '@chakra-ui/react';
+import { useCountdown, resolveStartTime } from 'mangarine/hooks/useCountdown';
 import { useTheme } from 'next-themes';
 import { useRouter } from 'next/router';
-import { AiFillEye, AiOutlineInfoCircle } from 'react-icons/ai';
 import AppLayout from 'mangarine/layouts/AppLayout';
 import Biocard from 'mangarine/components/ui-components/biocard';
 import DashboardCard from 'mangarine/components/ui-components/dashboardcard';
 import ActivityEmptyState from 'mangarine/components/ui-components/emptystate';
-import { Controller } from 'react-hook-form';
 import { useGetAppointmentByIdQuery, useCancelAppointmentMutation } from 'mangarine/state/services/apointment.service';
 import CustomButton from 'mangarine/components/customcomponents/button';
-import AreyouCancellingModal from 'mangarine/components/ui-components/modals/areyoucancelling';
 import { useAuth } from 'mangarine/state/hooks/user.hook';
 import { outfit } from '../_app';
+
+const urgencyConfig = {
+  future:   { bg: 'transparent',  border: 'transparent', labelColor: '#5f6368', joinBg: '#111D4A', joinLabel: 'Join Call' },
+  soon:     { bg: '#FFF3E0',      border: '#FFB74D',      labelColor: '#E65100', joinBg: '#111D4A', joinLabel: 'Join Call' },
+  imminent: { bg: '#FFF3E0',      border: '#FF9800',      labelColor: '#E65100', joinBg: '#FF9800', joinLabel: 'Join Now' },
+  now:      { bg: '#E8F5E9',      border: '#66BB6A',      labelColor: '#2E7D32', joinBg: '#2E7D32', joinLabel: 'Join Now — Starting!' },
+};
+
+const ConsultationJoinSection = ({
+  appointment, isCancelling, onCancel, onReschedule, onJoin,
+}: {
+  appointment: any;
+  isCancelling: boolean;
+  onCancel: () => void;
+  onReschedule: () => void;
+  onJoin: () => void;
+}) => {
+  const startTime = resolveStartTime(appointment);
+  const countdown = useCountdown(startTime);
+  const cfg = urgencyConfig[countdown.urgency] ?? urgencyConfig.future;
+  const isUrgent = countdown.urgency === 'imminent' || countdown.urgency === 'now' || countdown.isPast;
+
+  return (
+    <VStack w="full" gap={3} pt={2}>
+      {/* Countdown banner — only shown when time info is available */}
+      {startTime && (
+        <Box
+          w="full"
+          px={4}
+          py={3}
+          borderRadius="12px"
+          bg={cfg.bg}
+          borderWidth={isUrgent ? '1.5px' : '0'}
+          borderColor={cfg.border}
+        >
+          <HStack justify="space-between" align="center">
+            <VStack align="start" gap={0}>
+              <Text fontSize="0.78rem" color="#888" fontFamily="Outfit">Starts</Text>
+              <HStack gap={2} align="center">
+                {(countdown.urgency === 'now' || countdown.isPast) && (
+                  <Box
+                    w="8px" h="8px" borderRadius="full" bg="#2E7D32"
+                    style={{ animation: 'dot-blink 1.2s ease-in-out infinite' }}
+                  />
+                )}
+                <style>{`@keyframes dot-blink { 0%,100%{opacity:1} 50%{opacity:0.2} }`}</style>
+                <Text fontSize="1rem" fontWeight="700" color={cfg.labelColor} fontFamily="Outfit">
+                  {countdown.isPast ? 'Right now' : countdown.label}
+                </Text>
+              </HStack>
+            </VStack>
+            {isUrgent && (
+              <Text fontSize="0.75rem" color={cfg.labelColor} fontWeight="600" fontFamily="Outfit">
+                {countdown.urgency === 'now' || countdown.isPast ? 'Live' : `${countdown.minutes}m left`}
+              </Text>
+            )}
+          </HStack>
+        </Box>
+      )}
+
+      {/* Join button */}
+      <Button
+        w="full"
+        bg={cfg.joinBg}
+        color="white"
+        borderRadius="10px"
+        h="52px"
+        fontSize="1rem"
+        fontWeight="700"
+        _hover={{ opacity: 0.88 }}
+        onClick={onJoin}
+        style={isUrgent ? { boxShadow: `0 0 0 4px ${cfg.border}40` } : undefined}
+      >
+        {cfg.joinLabel}
+      </Button>
+
+      {/* Secondary actions */}
+      <HStack w="full" gap={3}>
+        <CustomButton customStyle={{ flex: 1 }} variant="outline" disabled={isCancelling} onClick={onCancel}>
+          <Text fontWeight="600" fontSize="0.9rem">Cancel</Text>
+        </CustomButton>
+        <CustomButton customStyle={{ flex: 1 }} onClick={onReschedule}>
+          <Text color="button_text" fontWeight="600" fontSize="0.9rem">Reschedule</Text>
+        </CustomButton>
+      </HStack>
+    </VStack>
+  );
+};
 
 export default function ConsultationViewPage() {
     const router = useRouter();
@@ -365,66 +451,13 @@ export default function ConsultationViewPage() {
                             </VStack>
                         )}
                         {['UPCOMING', 'RESCHEDULED', 'CONFIRMED'].includes((appointment?.status || '').toUpperCase()) && (
-                            <VStack
-                                w="full"
-                                py="2"
-                                rounded="xl"
-                                p="4"
-                                gap={3}
-                            >
-                                {/* Join Call CTA */}
-                                <Button
-                                    w="full"
-                                    bg="#111D4A"
-                                    color="white"
-                                    borderRadius="10px"
-                                    h="48px"
-                                    fontSize="1rem"
-                                    fontWeight="600"
-                                    _hover={{ opacity: 0.85 }}
-                                    onClick={() => router.push(`/message/videoconsultation?consultationId=${consultation_id}`)}
-                                >
-                                    Join Call
-                                </Button>
-
-                                <HStack
-                                    w="full"
-                                    display={"flex"}
-                                    alignItems={"center"}
-                                    justifyContent={"space-between"}
-                                    flexDir={"row"}
-                                >
-                                    <CustomButton customStyle={{ flex: 1 }} variant="outline" disabled={isCancelling}
-                                       onClick={() => router.push(`/consultation/cancel?consultation_id=${consultation_id}`)}
-                                    >
-                                        <Text
-                                            color={""}
-                                            fontWeight={"600"}
-                                            fontSize={"1rem"}
-                                            lineHeight={"100%"}
-                                        >
-                                            Cancel
-                                        </Text>
-
-                                    </CustomButton>
-
-                                    <CustomButton
-                                        customStyle={{
-                                            flex: 1
-                                        }}
-                                        onClick={() =>router.push(`/consultation/reschedule?consultation_id=${consultation_id}`)}
-                                    >
-                                        <Text
-                                            color={"button_text"}
-                                            fontWeight={"600"}
-                                            fontSize={"1rem"}
-                                            lineHeight={"100%"}
-                                        >
-                                            Reschedule
-                                        </Text>
-                                    </CustomButton>
-                                </HStack>
-                            </VStack>
+                            <ConsultationJoinSection
+                                appointment={appointment}
+                                isCancelling={isCancelling}
+                                onCancel={() => router.push(`/consultation/cancel?consultation_id=${consultation_id}`)}
+                                onReschedule={() => router.push(`/consultation/reschedule?consultation_id=${consultation_id}`)}
+                                onJoin={() => router.push(`/message/videoconsultation?consultationId=${consultation_id}`)}
+                            />
                         )}
                         
                     </VStack>

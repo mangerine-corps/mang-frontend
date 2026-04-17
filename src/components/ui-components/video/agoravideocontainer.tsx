@@ -37,7 +37,8 @@ const partdp1 = "/images/dp.png";
 import { FC, useEffect, useRef, useState, useMemo } from "react";
 import AgoraRTC, { AgoraRTCProvider } from "agora-rtc-react";
 import { useAppointment } from "mangarine/state/hooks/appointment.hook";
-import { useGetVideoTokenMutation, useGetConversationMutation, useGetAppointmentByIdQuery } from "mangarine/state/services/apointment.service";
+import { useGetVideoTokenMutation, useGetConversationMutation, useGetAppointmentByIdQuery, useRequestTimeExtensionMutation } from "mangarine/state/services/apointment.service";
+import { formatSessionTime } from "mangarine/hooks/useCountdown";
 import { setCurrentConversation } from "mangarine/state/reducers/appointment.reducer";
 import { useDispatch } from "react-redux";
 import { useConsultationJoin } from "../../../hooks/useConsultationJoin";
@@ -53,7 +54,7 @@ import { RiRecordCircleFill, RiStopCircleFill } from "react-icons/ri";
 import { toaster } from "mangarine/components/ui/toaster";
 import {
     SmileIcon, Users, Grid2x2, MonitorUp, FileText, X, Download,
-    ChevronRight, MoreVertical, FlipHorizontal2, Camera, MessageSquare,
+    ChevronRight, MoreVertical, FlipHorizontal2, Camera, MessageSquare, PlusCircle,
 } from "lucide-react";
 import { VirtualBackgroundProcessor, VirtualBackgroundOptions, PREDEFINED_BACKGROUNDS } from "mangarine/utils/virtualBackground";
 
@@ -1175,6 +1176,15 @@ const VideoContainer = ({ consultationId }: { consultationId?: string }) => {
     // State for end call confirmation modal
     const [showEndCallModal, setShowEndCallModal] = useState(false);
 
+    // Session timer
+    const [callStartTime, setCallStartTime] = useState<number | null>(null);
+    const [sessionElapsed, setSessionElapsed] = useState(0);
+
+    // Time extension
+    const [showExtendModal, setShowExtendModal] = useState(false);
+    const [extendStatus, setExtendStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
+    const [requestTimeExtension] = useRequestTimeExtensionMutation();
+
     const [tokenUid, setTokenUid] = useState<UID | null>(null);
     const [tokenRetryCount, setTokenRetryCount] = useState(0);
     const [consultationStatus, setConsultationStatus] = useState<string | null>(null);
@@ -1386,6 +1396,14 @@ const VideoContainer = ({ consultationId }: { consultationId?: string }) => {
         return other?.fullName || 'Consultation';
     }, [currentConversation, user?.id]);
 
+
+    // Session duration from appointment timeslot; null when unknown
+    const sessionDurationSeconds = useMemo(() => {
+        const mins = (currentConversation as any)?.timeslots?.[0]?.duration;
+        return mins ? Number(mins) * 60 : null;
+    }, [currentConversation]);
+
+    const sessionRemaining = sessionDurationSeconds !== null ? sessionDurationSeconds - sessionElapsed : null;
 
     useEffect(() => {
         console.log('[Agora] appId:', appId, '| channel:', currentConversation?.id, '| uid:', joinUid ?? 'AUTO', '| token:', token || 'EMPTY', '| calling:', calling);
@@ -1621,6 +1639,18 @@ const VideoContainer = ({ consultationId }: { consultationId?: string }) => {
         }
     }, [isConnected]);
 
+    // Start/stop session elapsed timer when call connects/disconnects
+    useEffect(() => {
+        if (isConnected && callStartTime === null) setCallStartTime(Date.now());
+        if (!isConnected) { setCallStartTime(null); setSessionElapsed(0); }
+    }, [isConnected]); // eslint-disable-line react-hooks/exhaustive-deps
+
+    useEffect(() => {
+        if (!callStartTime) return;
+        const id = setInterval(() => setSessionElapsed(Math.floor((Date.now() - callStartTime) / 1000)), 1000);
+        return () => clearInterval(id);
+    }, [callStartTime]);
+
     // Cleanup effect — release camera/mic hardware when component unmounts
     useEffect(() => {
         return () => {
@@ -1779,20 +1809,42 @@ const VideoContainer = ({ consultationId }: { consultationId?: string }) => {
                                             </Text>
                                         </HStack>
                                     </HStack>
-                                    {isRecording && (
-                                        <HStack
-                                            px={3}
-                                            py={1.5}
-                                            bg="rgba(220,38,38,0.1)"
-                                            borderRadius="full"
-                                            gap={2}
-                                        >
-                                            <Box w={2.5} h={2.5} bg="red.500" borderRadius="full" />
-                                            <Text color="red.500" fontSize="0.82rem" fontWeight="600">
-                                                {recordingElapsed}
-                                            </Text>
-                                        </HStack>
-                                    )}
+                                    <HStack gap={3}>
+                                        {isRecording && (
+                                            <HStack px={3} py={1.5} bg="rgba(220,38,38,0.1)" borderRadius="full" gap={2}>
+                                                <Box w={2.5} h={2.5} bg="red.500" borderRadius="full" />
+                                                <Text color="red.500" fontSize="0.82rem" fontWeight="600">
+                                                    {recordingElapsed}
+                                                </Text>
+                                            </HStack>
+                                        )}
+                                        {sessionRemaining !== null && (
+                                            <HStack
+                                                px={3} py={1.5} borderRadius="full" gap={1.5}
+                                                bg={
+                                                    sessionRemaining < 0 ? "rgba(220,38,38,0.08)" :
+                                                    sessionRemaining < 300 ? "rgba(220,38,38,0.1)" :
+                                                    sessionRemaining < 600 ? "rgba(255,152,0,0.1)" :
+                                                    "#f1f3f4"
+                                                }
+                                            >
+                                                <Text
+                                                    fontSize="0.82rem"
+                                                    fontWeight="600"
+                                                    color={
+                                                        sessionRemaining < 0 ? "red.500" :
+                                                        sessionRemaining < 300 ? "red.500" :
+                                                        sessionRemaining < 600 ? "orange.400" :
+                                                        "#5f6368"
+                                                    }
+                                                >
+                                                    {sessionRemaining > 0
+                                                        ? `${formatSessionTime(sessionRemaining)} left`
+                                                        : `+${formatSessionTime(-sessionRemaining)} over`}
+                                                </Text>
+                                            </HStack>
+                                        )}
+                                    </HStack>
                                 </HStack>
 
                                 {/* ── Main video stage ── */}
@@ -1964,8 +2016,16 @@ const VideoContainer = ({ consultationId }: { consultationId?: string }) => {
                                         />
                                     </HStack>
 
-                                    {/* Right: end call */}
-                                    <HStack flex={1} justify="flex-end">
+                                    {/* Right: extra time + end call */}
+                                    <HStack flex={1} justify="flex-end" gap={2}>
+                                        {sessionRemaining !== null && sessionRemaining < 600 && (
+                                            <ToolBtn
+                                                label="Request Extra Time"
+                                                icon={<PlusCircle size={18} />}
+                                                active
+                                                onClick={() => { setExtendStatus('idle'); setShowExtendModal(true); }}
+                                            />
+                                        )}
                                         <ToolBtn
                                             label="End call"
                                             icon={<IoCall size={20} style={{ transform: 'rotate(135deg)' }} />}
@@ -2083,6 +2143,100 @@ const VideoContainer = ({ consultationId }: { consultationId?: string }) => {
                     )}
                 </Flex>
             </AppLayout>
+
+            {/* ── Time Extension Request Modal ── */}
+            <Dialog.Root
+                open={showExtendModal}
+                onOpenChange={({ open }) => { if (!open) { setShowExtendModal(false); setExtendStatus('idle'); } }}
+                placement="center"
+                size="xs"
+            >
+                <Portal>
+                    <Dialog.Backdrop />
+                    <Dialog.Positioner>
+                        <Dialog.Content borderRadius="16px" p={0} overflow="hidden">
+                            <Dialog.Header px={5} pt={5} pb={3} borderBottomWidth="1px" borderColor="#e8e8e8">
+                                <Dialog.Title fontFamily="Outfit" fontWeight="700" fontSize="1.1rem" color="#202124">
+                                    Request Extra Time
+                                </Dialog.Title>
+                                <Dialog.CloseTrigger asChild>
+                                    <CloseButton size="sm" pos="absolute" top={3} right={3} />
+                                </Dialog.CloseTrigger>
+                            </Dialog.Header>
+                            <Dialog.Body px={5} py={4}>
+                                {extendStatus === 'success' ? (
+                                    <VStack gap={3} py={2} textAlign="center">
+                                        <Box w="48px" h="48px" borderRadius="full" bg="#E8F5E9" display="flex" alignItems="center" justifyContent="center">
+                                            <Text fontSize="1.5rem">✓</Text>
+                                        </Box>
+                                        <Text fontFamily="Outfit" fontWeight="600" color="#202124">Request Sent!</Text>
+                                        <Text fontSize="0.875rem" color="#5f6368" fontFamily="Outfit">
+                                            The other participant has been notified. They will accept or decline shortly.
+                                        </Text>
+                                    </VStack>
+                                ) : extendStatus === 'error' ? (
+                                    <VStack gap={3} py={2} textAlign="center">
+                                        <Text fontSize="0.875rem" color="red.500" fontFamily="Outfit">
+                                            Could not send the extension request. Please try again.
+                                        </Text>
+                                    </VStack>
+                                ) : (
+                                    <VStack gap={3} align="stretch">
+                                        <Text fontSize="0.875rem" color="#5f6368" fontFamily="Outfit">
+                                            Choose how much additional time you need:
+                                        </Text>
+                                        {[15, 30].map((mins) => (
+                                            <Button
+                                                key={mins}
+                                                w="full"
+                                                px={4} py={6}
+                                                borderRadius="10px"
+                                                borderWidth="1.5px"
+                                                borderColor="#e0e0e0"
+                                                bg="white"
+                                                variant="outline"
+                                                justifyContent="flex-start"
+                                                _hover={{ borderColor: '#1C275D', bg: '#f8f9ff' }}
+                                                disabled={extendStatus === 'loading'}
+                                                loading={extendStatus === 'loading'}
+                                                onClick={async () => {
+                                                    const apptId = (currentConversation as any)?.id;
+                                                    if (!apptId) return;
+                                                    setExtendStatus('loading');
+                                                    try {
+                                                        await requestTimeExtension({ appointmentId: apptId, extraMinutes: mins }).unwrap();
+                                                        setExtendStatus('success');
+                                                    } catch {
+                                                        setExtendStatus('error');
+                                                    }
+                                                }}
+                                            >
+                                                <VStack align="start" gap={0}>
+                                                    <Text fontFamily="Outfit" fontWeight="600" color="#202124" fontSize="0.95rem">
+                                                        +{mins} minutes
+                                                    </Text>
+                                                    <Text fontFamily="Outfit" fontSize="0.78rem" color="#5f6368">
+                                                        Extend session by {mins} min
+                                                    </Text>
+                                                </VStack>
+                                            </Button>
+                                        ))}
+                                    </VStack>
+                                )}
+                            </Dialog.Body>
+                            {extendStatus !== 'success' && (
+                                <Dialog.Footer px={5} pb={5} pt={2}>
+                                    <Dialog.ActionTrigger asChild>
+                                        <Button variant="outline" borderRadius="8px" fontFamily="Outfit" w="full">
+                                            Cancel
+                                        </Button>
+                                    </Dialog.ActionTrigger>
+                                </Dialog.Footer>
+                            )}
+                        </Dialog.Content>
+                    </Dialog.Positioner>
+                </Portal>
+            </Dialog.Root>
 
             {/* Virtual Background Panel */}
             {showVirtualBgPanel && (

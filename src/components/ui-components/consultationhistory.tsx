@@ -12,6 +12,7 @@ import {
   ButtonGroup,
   Pagination,
   IconButton,
+  VStack,
 } from "@chakra-ui/react";
 import { outfit } from "mangarine/pages/_app";
 import { FC, useState } from "react";
@@ -21,6 +22,43 @@ import { LuChevronLeft, LuChevronRight } from "react-icons/lu";
 import { useRouter } from "next/router";
 import ReviewModal from "./modals/reviewmodal";
 import PaymentModal from "./paymentreceipt";
+import { useCountdown, resolveStartTime } from "mangarine/hooks/useCountdown";
+import { DEFAULT_AVATAR } from "mangarine/lib/constants";
+
+const urgencyChipStyle: Record<string, { bg: string; color: string }> = {
+  future:   { bg: '#f1f3f4', color: '#5f6368' },
+  soon:     { bg: '#FFF3E0', color: '#E65100' },
+  imminent: { bg: '#FFF3E0', color: '#E65100' },
+  now:      { bg: '#E8F5E9', color: '#2E7D32' },
+};
+
+const CountdownChip = ({ appointment }: { appointment: any }) => {
+  const startTime = resolveStartTime(appointment);
+  const countdown = useCountdown(startTime);
+  if (!startTime || !countdown.label) return null;
+  const style = urgencyChipStyle[countdown.urgency] ?? urgencyChipStyle.future;
+  return (
+    <Box
+      px={2}
+      py={0.5}
+      borderRadius="full"
+      bg={style.bg}
+      display="inline-flex"
+      alignItems="center"
+      gap={1}
+    >
+      {(countdown.urgency === 'now' || countdown.isPast) && (
+        <Box w="6px" h="6px" borderRadius="full" bg="#2E7D32"
+          style={{ animation: 'chip-pulse 1.5s ease-in-out infinite' }}
+        />
+      )}
+      <style>{`@keyframes chip-pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }`}</style>
+      <Text fontSize="0.72rem" fontWeight="600" color={style.color} whiteSpace="nowrap">
+        {countdown.isPast ? 'Now' : countdown.label}
+      </Text>
+    </Box>
+  );
+};
 
 const statusColorMap: Record<string, string> = {
   COMPLETED: "green.500",
@@ -149,7 +187,7 @@ const ConsultationHistory: FC<Props> = ({ searchTerm = "" }) => {
                     <Table.Cell py={{ base: 3, md: 4 }} px={{ base: 2, md: 3 }}>
                       <HStack gap={3}>
                         <Image
-                          src={item.consultant?.profilePics || item.consultant?.avatar || "/images/dp.png"}
+                          src={item.consultant?.profilePics || item.consultant?.avatar || DEFAULT_AVATAR}
                           alt={item.consultant?.fullName || "Consultant"}
                           boxSize={{ base: "32px", md: "40px" }}
                           borderRadius="full"
@@ -203,19 +241,22 @@ const ConsultationHistory: FC<Props> = ({ searchTerm = "" }) => {
                     {/* Action */}
                     <Table.Cell py={{ base: 3, md: 4 }} px={{ base: 2, md: 3 }}>
                       {status === "UPCOMING" || status === "CONFIRMED" ? (
-                        <Button
-                          size="sm"
-                          bg="primary.950"
-                          color="white"
-                          borderRadius="8px"
-                          fontFamily="Outfit"
-                          fontSize="0.8rem"
-                          px={4}
-                          _hover={{ opacity: 0.85 }}
-                          onClick={() => router.push(`/message/videoconsultation?consultationId=${item.id}`)}
-                        >
-                          Join Call
-                        </Button>
+                        <VStack align="end" gap={1}>
+                          <CountdownChip appointment={item} />
+                          <Button
+                            size="sm"
+                            bg="primary.950"
+                            color="white"
+                            borderRadius="8px"
+                            fontFamily="Outfit"
+                            fontSize="0.8rem"
+                            px={4}
+                            _hover={{ opacity: 0.85 }}
+                            onClick={() => router.push(`/message/videoconsultation?consultationId=${item.id}`)}
+                          >
+                            Join Call
+                          </Button>
+                        </VStack>
                       ) : (
                         <Menu.Root positioning={{ placement: "bottom-end" }}>
                           <Menu.Trigger asChild>
