@@ -148,10 +148,10 @@ const OnboardingOne = () => {
     <VStack w="full" h="full" flex={1}>
       <VStack
         className={outfit.className}
-        justifyContent={"center"}
+        justifyContent={"flex-start"}
         w="full"
         flex={1}
-        // overflowY={"auto"}
+        py={{ base: "6", md: "10" }}
         css={{
           "&::-webkit-scrollbar": {
             width: "0px",
@@ -184,7 +184,7 @@ const OnboardingOne = () => {
             <Image
               boxSize={{ base: "64px", md: "64px" }}
               objectFit="contain"
-              src={colorMode === "dark" ? "/images/logoDark.svg" : "/images/logo.svg"}
+              src="/mangerine-logo.png"
               alt="logo"
             />
           </Stack>

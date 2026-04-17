@@ -101,7 +101,8 @@ const OnboardingThree = () => {
     <GuestLayout>
       <VStack
         className={outfit.className}
-        justifyContent={"center"}
+        justifyContent={"flex-start"}
+        py={{ base: "6", md: "10" }}
         w="full"
         flex={1}
       >
