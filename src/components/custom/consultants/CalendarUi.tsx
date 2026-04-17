@@ -150,6 +150,25 @@ const AvailabilityCalendar: React.FC<Props> = ({
     );
 };
 
+const formatTimeRange = (startTime: string, endTime?: string): string => {
+  if (endTime) return `${startTime} - ${endTime}`;
+  try {
+    const [time, meridiem] = startTime.trim().split(' ');
+    const [hourStr, minuteStr] = time.split(':');
+    let hour = parseInt(hourStr, 10);
+    const minute = minuteStr || '00';
+    if (meridiem?.toUpperCase() === 'PM' && hour !== 12) hour += 12;
+    if (meridiem?.toUpperCase() === 'AM' && hour === 12) hour = 0;
+    const endHour = (hour + 1) % 24;
+    const endMeridiem = endHour < 12 ? 'AM' : 'PM';
+    const displayEnd = endHour === 0 ? 12 : endHour > 12 ? endHour - 12 : endHour;
+    const startDisplay = meridiem ? startTime : `${hour > 12 ? hour - 12 : hour || 12}:${minute} ${hour < 12 ? 'AM' : 'PM'}`;
+    return `${startDisplay} - ${displayEnd}:${minute} ${endMeridiem}`;
+  } catch {
+    return startTime;
+  }
+};
+
 const formatDateToYYYYMMDD = (date) => {
     const d = new Date(date);
     const year = d.getFullYear();
@@ -370,7 +389,7 @@ const BookingCalendarCard = ({ date, setDate, slots, setSlots, userId }: Booking
                         mb="4"
                         color="text_primary"
                     >
-                        Selected Date: {!isEmpty(selectedDay) && selectedDay.toDateString()}
+                        Select a time slot for {!isEmpty(selectedDay) && selectedDay.toDateString()}
                     </Heading>
                     {!isEmpty(availabilities.filter((availability: any) => availability.date === formatDateToYYYYMMDD(selectedDate))) ? (
                         <Flex wrap="wrap" gap={2}>
@@ -390,7 +409,7 @@ const BookingCalendarCard = ({ date, setDate, slots, setSlots, userId }: Booking
                                             }}
                                             onClick={() => handleSlotSelection(slot.id)}
                                         >
-                                            {slot.startTime}
+                                            {formatTimeRange(slot.startTime, slot.endTime)}
                                         </Button>
                                     ))}
                                 </Grid>

@@ -46,10 +46,8 @@ const CustomButton = ({
       borderColor={"primary.300"}
       color={variant === "solid" ? "white" : "primary.300"}
       loading={loading}
-      _hover={{
-        bg: bgColor,
-        opacity: 0.9,
-      }}
+      _hover={{ bg: bgColor, opacity: 0.9 }}
+      _active={{ transform: "scale(0.96)", opacity: 0.8 }}
       loadingText={"Please wait..."}
       type="submit"
       fontWeight={"600"}

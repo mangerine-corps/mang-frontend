@@ -30,10 +30,6 @@ import { useAuth } from "mangarine/state/hooks/user.hook";
 import { useSubmitConsultantVerificationMutation } from "mangarine/state/services/consultant.service";
 import { useLazyGetUserInfoQuery } from "mangarine/state/services/profile.service";
 import { useBecomeConsultantMutation } from "mangarine/state/services/user.service";
-import {
-  deleteCloudinaryResources,
-  uploadToCloudinary,
-} from "mangarine/utils/cloudinaryUpload";
 
 const noScrollbar = {
   "&::-webkit-scrollbar": { width: "0px", height: "0px" },
@@ -62,11 +58,9 @@ type OnboardingStep = "intro" | "requirements" | "account" | "idType" | "upload"
 type DocumentSide = "front" | "back";
 
 type UploadedDocument = {
-  file?: File | null;
+  file: File;
   name: string;
-  publicId: string;
   size: number;
-  url: string;
 };
 
 type OnboardingDraft = {
@@ -108,7 +102,6 @@ const DEFAULT_DRAFT: OnboardingDraft = {
 };
 
 const allowedDocumentTypes = [
-  "application/pdf",
   "image/jpeg",
   "image/jpg",
   "image/png",
@@ -116,7 +109,7 @@ const allowedDocumentTypes = [
 
 const helperItems = [
   "Make sure the document clearly shows your name and full details.",
-  "Supported file types PNG, JPG, JPEG, PDF",
+  "Supported file types: PNG, JPG, JPEG",
   "Maximum file size: 5MB",
 ];
 
@@ -136,25 +129,7 @@ const formatFileSize = (size: number) => {
 
 const getStorageSafeDraft = (draft: OnboardingDraft) => ({
   ...draft,
-  step: draft.step,
-  documents: {
-    front: draft.documents.front
-      ? {
-          name: draft.documents.front.name,
-          publicId: draft.documents.front.publicId,
-          size: draft.documents.front.size,
-          url: draft.documents.front.url,
-        }
-      : null,
-    back: draft.documents.back
-      ? {
-          name: draft.documents.back.name,
-          publicId: draft.documents.back.publicId,
-          size: draft.documents.back.size,
-          url: draft.documents.back.url,
-        }
-      : null,
-  },
+  documents: { front: null, back: null },
 });
 
 const normalizeStoredStep = (step: unknown): OnboardingStep => {
@@ -342,16 +317,14 @@ const RequirementStatus = ({
 const UploadCard = ({
   descriptionItems,
   file,
-  isUploading,
   onChange,
   onRemove,
   title,
 }: {
   descriptionItems: string[];
   file: UploadedDocument | null;
-  isUploading: boolean;
-  onChange: (file: File) => Promise<void>;
-  onRemove: () => Promise<void>;
+  onChange: (file: File) => void;
+  onRemove: () => void;
   title: string;
 }) => {
   const inputRef = useRef<HTMLInputElement | null>(null);
@@ -375,15 +348,11 @@ const UploadCard = ({
         ref={inputRef}
         type="file"
         display="none"
-        accept=".pdf,.jpg,.jpeg,.png"
-        onChange={async (event) => {
+        accept=".jpg,.jpeg,.png"
+        onChange={(event) => {
           const nextFile = event.target.files?.[0];
           event.target.value = "";
-          if (!nextFile) {
-            return;
-          }
-
-          await onChange(nextFile);
+          if (nextFile) onChange(nextFile);
         }}
       />
 
@@ -394,16 +363,11 @@ const UploadCard = ({
         {file ? (
           <HStack color="#41B62A" fontSize="0.82rem">
             <GreenCheckIcon />
-            <Text>Uploaded successfully</Text>
-          </HStack>
-        ) : isUploading ? (
-          <HStack color="#111D4A" fontSize="0.82rem">
-            <Spinner size="sm" />
-            <Text>Uploading document...</Text>
+            <Text>Selected</Text>
           </HStack>
         ) : (
           <Text fontSize="0.82rem" color="gray.500">
-            Upload a clear file in PNG, JPG, JPEG or PDF format.
+            Upload a clear file in PNG, JPG, or JPEG format.
           </Text>
         )}
       </VStack>
@@ -459,7 +423,6 @@ const UploadCard = ({
           color="text_primary"
           flex={1}
           onClick={selectFile}
-          disabled={isUploading}
         >
           <LuPencil />
           {file ? "Change" : "Upload"}
@@ -471,7 +434,7 @@ const UploadCard = ({
           color="#D92D20"
           flex={1}
           onClick={onRemove}
-          disabled={!file || isUploading}
+          disabled={!file}
         >
           <LuTrash2 />
           Remove
@@ -498,11 +461,10 @@ const ConsultantOnboardingFlow = () => {
   const [draft, setDraft] = useState<OnboardingDraft>(DEFAULT_DRAFT);
   const [hydrated, setHydrated] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [uploadingSide, setUploadingSide] = useState<DocumentSide | null>(null);
 
   const router = useRouter();
   const dispatch = useDispatch();
-  const { token, user } = useAuth();
+  const { user } = useAuth();
   const [becomeConsultant] = useBecomeConsultantMutation();
   const [submitConsultantVerification] = useSubmitConsultantVerificationMutation();
   const [triggerGetUserInfo] = useLazyGetUserInfoQuery();
@@ -606,38 +568,17 @@ const ConsultantOnboardingFlow = () => {
     }));
   };
 
-  const removeDocument = async (side: DocumentSide) => {
-    const existingDocument = draft.documents[side];
-
-    if (!existingDocument) {
-      return;
-    }
-
-    setUploadingSide(side);
-
-    try {
-      await deleteCloudinaryResources([existingDocument.publicId], token);
-    } catch {
-      toaster.create({
-        description: "Unable to remove the uploaded document right now.",
-        type: "error",
-      });
-    } finally {
-      setDraft((currentDraft) => ({
-        ...currentDraft,
-        documents: {
-          ...currentDraft.documents,
-          [side]: null,
-        },
-      }));
-      setUploadingSide(null);
-    }
+  const removeDocument = (side: DocumentSide) => {
+    setDraft((currentDraft) => ({
+      ...currentDraft,
+      documents: { ...currentDraft.documents, [side]: null },
+    }));
   };
 
-  const uploadDocument = async (side: DocumentSide, file: File) => {
+  const uploadDocument = (side: DocumentSide, file: File) => {
     if (!allowedDocumentTypes.includes(file.type)) {
       toaster.create({
-        description: "Use a PNG, JPG, JPEG or PDF file.",
+        description: "Use a PNG, JPG, or JPEG file.",
         type: "error",
       });
       return;
@@ -651,49 +592,13 @@ const ConsultantOnboardingFlow = () => {
       return;
     }
 
-    setUploadingSide(side);
-
-    try {
-      const uploaded = await uploadToCloudinary(file, token, {
-        folder: "consultant-verification",
-      });
-
-      const nextDocument = {
-        file,
-        name: file.name,
-        publicId: uploaded.public_id,
-        size: file.size,
-        url: uploaded.secure_url,
-      };
-
-      const previousDocument = draft.documents[side];
-
-      if (previousDocument?.publicId) {
-        deleteCloudinaryResources([previousDocument.publicId], token).catch(() => {
-          return null;
-        });
-      }
-
-      setDraft((currentDraft) => ({
-        ...currentDraft,
-        documents: {
-          ...currentDraft.documents,
-          [side]: nextDocument,
-        },
-      }));
-
-      toaster.create({
-        description: `${titleCase(side)} document uploaded successfully.`,
-        type: "success",
-      });
-    } catch (error: any) {
-      toaster.create({
-        description: error?.message || "Unable to upload the selected document.",
-        type: "error",
-      });
-    } finally {
-      setUploadingSide(null);
-    }
+    setDraft((currentDraft) => ({
+      ...currentDraft,
+      documents: {
+        ...currentDraft.documents,
+        [side]: { file, name: file.name, size: file.size },
+      },
+    }));
   };
 
   const handleRequirementsContinue = () => {
@@ -720,31 +625,10 @@ const ConsultantOnboardingFlow = () => {
     setStep("upload");
   };
 
-  const resolveUploadedDocumentFile = async (
-    document: UploadedDocument,
-    fallbackName: string
-  ) => {
-    if (document.file instanceof File) {
-      return document.file;
-    }
-
-    const response = await fetch(document.url);
-
-    if (!response.ok) {
-      throw new Error("Unable to prepare one of the verification documents.");
-    }
-
-    const blob = await response.blob();
-
-    return new File([blob], document.name || fallbackName, {
-      type: blob.type || "application/octet-stream",
-    });
-  };
-
   const handleSubmitVerification = async () => {
     if (!documentsComplete) {
       toaster.create({
-        description: "Upload both document files before submitting.",
+        description: "Upload the front document before submitting.",
         type: "error",
       });
       return;
@@ -764,20 +648,11 @@ const ConsultantOnboardingFlow = () => {
       setIsSubmitting(true);
 
       const verificationFormData = new FormData();
-      const frontFile = await resolveUploadedDocumentFile(
-        draft.documents.front!,
-        "id-front"
-      );
-
       verificationFormData.append("idType", draft.idType);
-      verificationFormData.append("idFront", frontFile);
+      verificationFormData.append("idFront", draft.documents.front!.file);
 
       if (draft.documents.back) {
-        const backFile = await resolveUploadedDocumentFile(
-          draft.documents.back,
-          "id-back"
-        );
-        verificationFormData.append("idBack", backFile);
+        verificationFormData.append("idBack", draft.documents.back.file);
       }
 
       await submitConsultantVerification(verificationFormData).unwrap();
@@ -796,7 +671,7 @@ const ConsultantOnboardingFlow = () => {
         toaster.create({
           description:
             "Your consultant status was updated, but your profile refresh is delayed.",
-          type: "success",
+          type: "info",
         });
       }
 
@@ -1095,7 +970,6 @@ const ConsultantOnboardingFlow = () => {
                   <UploadCard
                     title={`Front of ${draft.idType === "passport" ? "passport" : "ID"}`}
                     file={draft.documents.front}
-                    isUploading={uploadingSide === "front"}
                     onChange={(file) => uploadDocument("front", file)}
                     onRemove={() => removeDocument("front")}
                     descriptionItems={helperItems}
@@ -1104,7 +978,6 @@ const ConsultantOnboardingFlow = () => {
                   <UploadCard
                     title={`Back of ${draft.idType === "passport" ? "passport" : "ID"} (optional)`}
                     file={draft.documents.back}
-                    isUploading={uploadingSide === "back"}
                     onChange={(file) => uploadDocument("back", file)}
                     onRemove={() => removeDocument("back")}
                     descriptionItems={helperItems}
@@ -1119,7 +992,7 @@ const ConsultantOnboardingFlow = () => {
                   bg="button_bg"
                   color="button_text"
                   loading={isSubmitting}
-                  disabled={!documentsComplete || Boolean(uploadingSide) || !draft.idType}
+                  disabled={!documentsComplete || !draft.idType}
                   _disabled={{ opacity: 0.55, cursor: "not-allowed" }}
                   onClick={handleSubmitVerification}
                   _hover={{ bg: "button_bg" }}
@@ -1134,8 +1007,5 @@ const ConsultantOnboardingFlow = () => {
     </Box>
   );
 };
-
-const titleCase = (value: string) =>
-  value.charAt(0).toUpperCase() + value.slice(1);
 
 export default ConsultantOnboardingFlow;

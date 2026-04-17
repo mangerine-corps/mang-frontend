@@ -106,7 +106,7 @@ const MyBusinessWorkspace = () => {
     >
       <Box
         w="full"
-        flex={1.5}
+        flex={3}
         borderRight="1px"
         mr="3"
         borderColor="gray.200"
@@ -163,7 +163,7 @@ const MyBusinessWorkspace = () => {
                           <Image src={item.icon} alt={item.text} boxSize="4" />
                         </Stack>
 
-                        <Text color="text_primary" fontSize="1.5rem">
+                        <Text color="text_primary" fontSize="1.25rem" fontWeight="500">
                           {item.text}
                         </Text>
                       </HStack>
@@ -263,28 +263,14 @@ const MyBusinessWorkspace = () => {
             bg="button_bg"
             w="90%"
             mx="auto"
-            py="6"
-            mb="10"
+            mb="6"
             justifySelf="flex-end"
             onClick={() => {
               setOpenModal(true);
             }}
           >
-            <Text
-              fontSize="1.5rem"
-              fontFamily="Outfit"
-              color="button_text"
-              fontWeight="400"
-            >
-              +
-            </Text>
-            <Text
-              fontSize="1rem"
-              fontFamily="Outfit"
-              color="button_text"
-              fontWeight="400"
-            >
-              Create Group Session
+            <Text fontFamily="Outfit" color="button_text" fontWeight="400">
+              + Create Group Session
             </Text>
           </Button>
         </Box>

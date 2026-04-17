@@ -12,9 +12,9 @@ const VideoUploader = ({ handleChange }: { handleChange: (file: any) => void }) 
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
-    handleChange(file)
     if (file) {
       setFileName(file.name);
+      handleChange(file);
     }
   };
 
@@ -23,7 +23,7 @@ const VideoUploader = ({ handleChange }: { handleChange: (file: any) => void }) 
       {/* Hidden file input */}
       <Input
         type="file"
-        accept=".mp4,.mp3,.mov,.avi,.mkv"
+        accept=".mp4,.avi"
         ref={fileInputRef}
         display="none"
         onChange={handleFileChange}

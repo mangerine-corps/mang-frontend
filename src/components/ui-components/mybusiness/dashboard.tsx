@@ -1,5 +1,4 @@
 import { Box, HStack, VStack } from "@chakra-ui/react";
-import AppLayout from "mangarine/layouts/AppLayout";
 import ShareReview from "mangarine/components/ui-components/sharereview";
 import AddPaymentMethod from "mangarine/components/ui-components/addpaymentmethod";
 import ActivityOverview from "mangarine/components/ui-components/activityoverview";
@@ -72,7 +71,7 @@ const Dashboard = () => {
         <Box w="full" h="full">
           <ActivityOverview />
           <EarningDashboard />
-          <HStack align="flex-start" flexDir={{base:"column", md:"column", lg:"row", xl:"row"}}  w="full" mb="12">
+          <HStack align="flex-start" flexDir={{base:"column", md:"column", lg:"row", xl:"row"}} w="full" mb="4">
 
 
               <ConsultationOverview />

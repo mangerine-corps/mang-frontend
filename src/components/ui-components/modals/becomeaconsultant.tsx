@@ -6,18 +6,15 @@ import {
   Text,
   VStack,
 } from "@chakra-ui/react";
-import { useState } from "react";
 import CustomButton from "mangarine/components/customcomponents/button";
-import FilterDrawer from "./filterdrawer";
 import { useRouter } from "next/router";
 
 type props = {
-  onOpenChange: any;
-  isOpen: any;
+  onOpenChange: () => void;
+  isOpen: boolean;
 };
 
 const BecomeAConsultantModal = ({ onOpenChange, isOpen }: props) => {
-  const [open, setOpen] = useState<boolean>(false);
   const router = useRouter();
   const becomeAConsultant = () => {
     onOpenChange();
@@ -118,7 +115,6 @@ const BecomeAConsultantModal = ({ onOpenChange, isOpen }: props) => {
                 alignItems={"center"}
                 justifyContent={"center"}
                 flexDir={"row"}
-              // mx="auto"
               >
                 <CustomButton
                   customStyle={{
@@ -127,8 +123,6 @@ const BecomeAConsultantModal = ({ onOpenChange, isOpen }: props) => {
                     borderWidth: "2px",
                   }}
                   onClick={onOpenChange}
-                // loading={isLoading}
-                // onClick={handleSubmit(onSubmit, (error) => console.log(error))}
                 >
                   <Text
                     color={"text_primary"}
@@ -144,8 +138,6 @@ const BecomeAConsultantModal = ({ onOpenChange, isOpen }: props) => {
                     w: "50%",
                   }}
                   onClick={becomeAConsultant}
-                // loading={isLoading}
-                // onClick={handleSubmit(onSubmit, (error) => console.log(error))}
                 >
                   <Text
                     color={"button_text"}
@@ -157,12 +149,6 @@ const BecomeAConsultantModal = ({ onOpenChange, isOpen }: props) => {
                   </Text>
                 </CustomButton>
               </HStack>
-              <FilterDrawer
-                open={open}
-                onOpenChange={() => {
-                  setOpen(false);
-                }}
-              />
             </Dialog.Footer>
             <Dialog.CloseTrigger asChild>
               <CloseButton size="sm" />

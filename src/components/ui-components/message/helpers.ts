@@ -22,11 +22,11 @@ export const resolveConversationProfile = (conversation: any, userId: string) =>
 };
 
 export const isProfileVerified = (profile: any) => {
+  if (!profile?.isConsultant) return false;
   return Boolean(
     profile?.isVerified ||
       profile?.verified ||
-      profile?.isAccountVerified ||
-      profile?.isConsultant
+      profile?.isAccountVerified
   );
 };
 

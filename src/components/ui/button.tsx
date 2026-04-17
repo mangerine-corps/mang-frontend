@@ -18,7 +18,13 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
   function Button(props, ref) {
     const { loading, disabled, loadingText, children, ...rest } = props
     return (
-      <ChakraButton disabled={loading || disabled} ref={ref} {...rest}>
+      <ChakraButton
+        disabled={loading || disabled}
+        ref={ref}
+        transition="transform 0.1s ease, opacity 0.1s ease"
+        _active={{ transform: "scale(0.96)", opacity: 0.8 }}
+        {...rest}
+      >
         {loading && !loadingText ? (
           <>
             <AbsoluteCenter display="inline-flex">

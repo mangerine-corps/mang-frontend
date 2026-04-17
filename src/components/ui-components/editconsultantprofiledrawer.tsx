@@ -6,6 +6,7 @@ import {
   HStack,
   Icon,
   Image,
+  NativeSelect,
   Spinner,
   Text,
   Textarea,
@@ -40,18 +41,14 @@ import VideoUploader from "../customcomponents/videoUpload";
 import { useUpdateDetailsMutation } from "mangarine/state/services/auth.service";
 import TopRightDrawer from "../ui/top-right-drawer";
 const profileSchema = Yup.object().shape({
-  fullName: Yup.string().required("full name is required"),
-  Title: Yup.string(),
-  email: Yup.string()
-    .required("Email is required")
-    .email("Eneter a valid email address"),
-
-  location: Yup.string().required("location  is required"),
-  occupation: Yup.string().required("location  is required"),
-  dateOfBirth: Yup.date().required("date of birth is required"),
+  fullName: Yup.string().required("Full name is required"),
+  title: Yup.string().optional(),
+  email: Yup.string().required("Email is required").email("Enter a valid email address"),
+  location: Yup.string().required("Location is required"),
+  occupation: Yup.string().required("Occupation is required"),
+  dateOfBirth: Yup.date().required("Date of birth is required"),
   bio: Yup.string().optional(),
-
-  // enable_selfpay: Yup.boolean().notRequired(),
+  timeZone: Yup.string().optional(),
 });
 
 const camera = "/icons/whitCamera.svg";
@@ -76,18 +73,15 @@ const EditConsultDrawer = ({
   const [resume, setResume] = useState<any>({})
   const [video, setVideo] = useState<any>({})
   const [addInfo, { isLoading: uploading }] = useUpdateDetailsMutation();
-  const {
-    control,
-    handleSubmit,
-    formState: { isValid },
-  } = useForm({
+  const { control, handleSubmit } = useForm({
     resolver: yupResolver(profileSchema),
     defaultValues: {
       fullName: user?.fullName ?? "",
       email: user?.email ?? "",
       occupation: user?.occupation ?? "",
-      Title: user?.Title ?? "",
+      title: user?.title ?? user?.Title ?? "",
       location: user?.location ?? "",
+      timeZone: user?.timeZone ?? "",
       dateOfBirth: !isEmpty(user?.dateOfBirth)
         ? new Date(
             new Date(user?.dateOfBirth).toLocaleString("en", {
@@ -111,30 +105,6 @@ const EditConsultDrawer = ({
       handleProfilePicsUpload(file);
     }
   };
-    const addDetails = (data: any) => {
-      console.log(data);
-      const formData = new FormData();
-      formData.append("resume", resume);
-      formData.append("video", video);
-      formData.append('title', data.title)
-      // formData.append('description', data.description)
-      addInfo(formData)
-        .unwrap()
-        .then((payload) => {
-          console.log(payload)
-
-        })
-        .catch((error) => {
-          const { data } = error;
-          console.log(data,"data")
-          if (!isEmpty(data) && data.hasOwnProperty("message")) {
-            setErrorMessage(data.message);
-          } else {
-            setErrorMessage("Update failed");
-          }
-          setShowToast(true);
-        });
-    };
   const handleCoverChange = (e) => {
     const file = e.target.files[0]; // Get the selected file
 
@@ -192,39 +162,24 @@ const EditConsultDrawer = ({
       });
   };
 
-  const handleError = (error) => {
-    console.log(error, "err");
-  };
+  const handleProfileUpdate = async (data: any) => {
+    try {
+      const profileResp = await updateProfile(data).unwrap();
+      dispatch(setUpdatedInfo({ updatedInfo: profileResp.data }));
 
-  const handleProfileUpdate = (data: any) => {
+      const formData = new FormData();
+      if (data.title) formData.append("title", data.title);
+      if (data.bio) formData.append("description", data.bio);
+      if (video instanceof File) formData.append("video", video);
+      if (resume instanceof File) formData.append("resume", resume);
+      await addInfo(formData).unwrap();
 
-    if (isValid) {
-      updateProfile(data)
-        .unwrap()
-        .then((payload) => {
-          const { data } = payload;
-          dispatch(setUpdatedInfo({ updatedInfo: data }));
-          toaster.create({ title: "Profile Updated", description: data?.message, type: "success", duration: 9000, closable: true, });
-          // console.log(data, "buttonclicked", "sucesspicture");
-          onOpenChange();
-        })
-        .catch((err) => {
-          const { data, message } = err;
-          //  const { data, message } = err;
-          console.log(err);
-          toaster.create({
-            title: "Profile Error",
-            description: message,
-            type: "error",
-            duration: 3000,
-            closable: true,
-          });
-
-          setErrorMessage(data.message);
-          setShowToast(true);
-        });
-    } else {
-      console.log("here");
+      toaster.create({ title: "Profile Updated", type: "success", duration: 4000, closable: true });
+      onOpenChange();
+    } catch (err: any) {
+      const msg = err?.data?.message ?? err?.message ?? "Update failed";
+      setErrorMessage(Array.isArray(msg) ? msg.join(", ") : msg);
+      setShowToast(true);
     }
   };
   return (
@@ -389,30 +344,54 @@ const EditConsultDrawer = ({
                   close={() => setShowToast(false)}
                 />
               )}
-              {/* <Controller
-                name="Title"
-                control={control}
-                render={({ field: { onChange, value } }) => (
-                  <CustomInput
-                    label="Title "
-                    placeholder="Input Title"
-                    id="Title"
-                    required={false}
-                    name="Title"
-                    value={value}
-                    size="md"
-                    onChange={onChange}
-                    //   error={{}}
-                    hasRightIcon={true}
-                    type={"text"}
-                    rightIcon={
-                      <Icon mr={"4"}>
-                        <Image src="/icons/UserIcon.svg" alt="mail-icon" />
-                      </Icon>
-                    }
-                  />
-                )}
-              /> */}
+              <Box w="full">
+                <Text color="#999999" fontWeight="400" fontSize="0.75rem" mb={1}>
+                  Title
+                </Text>
+                <Controller
+                  name="title"
+                  control={control}
+                  render={({ field: { onChange, value } }) => (
+                    <NativeSelect.Root size="md" w="full">
+                      <NativeSelect.Field
+                        value={value}
+                        onChange={(e) => onChange(e.target.value)}
+                        borderWidth={1}
+                        borderColor="gray.100"
+                        color="text_primary"
+                        px={3}
+                      >
+                        <option value="">Select title</option>
+                        <optgroup label="Honorifics">
+                          <option value="Mr.">Mr.</option>
+                          <option value="Mrs.">Mrs.</option>
+                          <option value="Ms.">Ms.</option>
+                          <option value="Dr.">Dr.</option>
+                          <option value="Prof.">Prof.</option>
+                          <option value="Engr.">Engr.</option>
+                          <option value="Barr.">Barr.</option>
+                          <option value="Chief">Chief</option>
+                          <option value="Rev.">Rev.</option>
+                        </optgroup>
+                        <optgroup label="Professional">
+                          <option value="Consultant">Consultant</option>
+                          <option value="Senior Consultant">Senior Consultant</option>
+                          <option value="Lead Consultant">Lead Consultant</option>
+                          <option value="Principal Consultant">Principal Consultant</option>
+                          <option value="Director">Director</option>
+                          <option value="Manager">Manager</option>
+                          <option value="Analyst">Analyst</option>
+                          <option value="Specialist">Specialist</option>
+                          <option value="Advisor">Advisor</option>
+                          <option value="Coach">Coach</option>
+                          <option value="Mentor">Mentor</option>
+                        </optgroup>
+                      </NativeSelect.Field>
+                      <NativeSelect.Indicator />
+                    </NativeSelect.Root>
+                  )}
+                />
+              </Box>
               <Controller
                 name="fullName"
                 control={control}
@@ -560,6 +539,47 @@ const EditConsultDrawer = ({
                   )}
                 />
               </Box>
+              <Box w="full">
+                <Text color="#999999" fontWeight="400" fontSize="0.75rem" mb={1}>
+                  Time Zone
+                </Text>
+                <Controller
+                  name="timeZone"
+                  control={control}
+                  render={({ field: { onChange, value } }) => (
+                    <NativeSelect.Root size="md" w="full">
+                      <NativeSelect.Field
+                        value={value}
+                        onChange={(e) => onChange(e.target.value)}
+                        borderWidth={1}
+                        borderColor="gray.100"
+                        color="text_primary"
+                        px={3}
+                      >
+                        <option value="">Select time zone</option>
+                        <option value="Africa/Lagos">Africa/Lagos (WAT, UTC+1)</option>
+                        <option value="Africa/Nairobi">Africa/Nairobi (EAT, UTC+3)</option>
+                        <option value="Africa/Johannesburg">Africa/Johannesburg (SAST, UTC+2)</option>
+                        <option value="Africa/Accra">Africa/Accra (GMT, UTC+0)</option>
+                        <option value="Europe/London">Europe/London (GMT/BST)</option>
+                        <option value="Europe/Paris">Europe/Paris (CET, UTC+1)</option>
+                        <option value="America/New_York">America/New_York (EST, UTC-5)</option>
+                        <option value="America/Chicago">America/Chicago (CST, UTC-6)</option>
+                        <option value="America/Denver">America/Denver (MST, UTC-7)</option>
+                        <option value="America/Los_Angeles">America/Los_Angeles (PST, UTC-8)</option>
+                        <option value="Asia/Dubai">Asia/Dubai (GST, UTC+4)</option>
+                        <option value="Asia/Kolkata">Asia/Kolkata (IST, UTC+5:30)</option>
+                        <option value="Asia/Singapore">Asia/Singapore (SGT, UTC+8)</option>
+                        <option value="Asia/Tokyo">Asia/Tokyo (JST, UTC+9)</option>
+                        <option value="Australia/Sydney">Australia/Sydney (AEST, UTC+10)</option>
+                        <option value="UTC">UTC (UTC+0)</option>
+                      </NativeSelect.Field>
+                      <NativeSelect.Indicator />
+                    </NativeSelect.Root>
+                  )}
+                />
+              </Box>
+
               <Box w="full" spaceY={4}>
                 <FileUploader handleChange={(file) => setResume(file)} />
                 <VideoUploader handleChange={(file) => setVideo(file)} />
@@ -612,7 +632,7 @@ const EditConsultDrawer = ({
                     }}
                     // isDisabled={isEmpty(selectedDay) || selectedTime == ''}
                     rounded={"6px"}
-                    onClick={handleSubmit(handleProfileUpdate,  addDetails)}
+                    onClick={handleSubmit(handleProfileUpdate)}
                   >
                     <Text
                       ml={2}

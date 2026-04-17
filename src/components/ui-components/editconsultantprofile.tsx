@@ -31,7 +31,7 @@ import { usePathname } from "next/navigation";
 import { format } from "date-fns";
 import ReportUser from "./modals/reportuser";
 import { useBlockUserMutation } from "mangarine/state/services/profile.service";
-import { safeProfilePic } from "mangarine/lib/constants";
+import { safeProfilePic, getBannerGradient } from "mangarine/lib/constants";
 import ConsultantNotificationModal from "./modals/consultantnotificationmodal";
 
 interface EditConsultantProfileCardProps {
@@ -150,7 +150,11 @@ const EditConsultantProfileCard = ({
               objectFit="cover"
             />
           ) : (
-            <Box h="full" w="full" bg="gray.200" />
+            <Box
+              h="full"
+              w="full"
+              style={{ background: getBannerGradient(info?.id || info?.fullName) }}
+            />
           )}
         </Box>
 
@@ -190,7 +194,7 @@ const EditConsultantProfileCard = ({
                 >
                   {info?.fullName}
                 </Text>
-                {info?.isVerified && (
+                {info?.isConsultant && info?.isVerified && (
                   <Box color="#F5A623" flexShrink={0}>
                     <RiVerifiedBadgeFill size={16} />
                   </Box>

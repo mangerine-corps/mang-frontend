@@ -138,7 +138,7 @@ const UserProfile = ({
                 >
                   {user?.fullName}
                 </Text>
-                {user?.isVerified && checkmarkSrc && (
+                {user?.isConsultant && user?.isVerified && checkmarkSrc && (
                   <Box
                     display={{ base: "hidden", lg: "block" }}
                     color="yellow.500"

@@ -157,7 +157,7 @@ const BlockedConsultant = ({
                 >
                   {info?.fullName}
                 </Text>
-                {info?.isVerified && checkmarkSrc && (
+                {info?.isConsultant && info?.isVerified && checkmarkSrc && (
                   <Box
                     display={{ base: "hidden", lg: "block" }}
                     color="yellow.500"
