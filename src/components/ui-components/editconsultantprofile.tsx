@@ -31,6 +31,7 @@ import { usePathname } from "next/navigation";
 import { format } from "date-fns";
 import ReportUser from "./modals/reportuser";
 import { useBlockUserMutation } from "mangarine/state/services/profile.service";
+import { safeProfilePic } from "mangarine/lib/constants";
 import ConsultantNotificationModal from "./modals/consultantnotificationmodal";
 
 interface EditConsultantProfileCardProps {
@@ -169,7 +170,7 @@ const EditConsultantProfileCard = ({
             <Avatar.Root style={{ width: "100%", height: "100%", borderRadius: "50%" }}>
               <Avatar.Fallback>{info?.fullName}</Avatar.Fallback>
               <Avatar.Image
-                src={info?.profilePics}
+                src={safeProfilePic(info?.profilePics)}
                 style={{ width: "100%", height: "100%", objectFit: "cover" }}
               />
             </Avatar.Root>

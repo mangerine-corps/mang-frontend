@@ -74,6 +74,7 @@ const AddWorkDrawer = ({
   );
   const [previewUrl, setPreviewUrl] = useState<any>(null);
   const [file, setFile] = useState<any>({});
+  const [isDragging, setIsDragging] = useState(false);
   const [addWork, { isLoading: addwork }] = useAddWorkMutation();
   const [editWork, { isLoading }] = useEditWorkMutation();
 
@@ -129,6 +130,25 @@ const AddWorkDrawer = ({
 
   const handleImageClick = () => {
     document.getElementById("work-file-input")?.click();
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = () => setIsDragging(false);
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+    const dropped = e.dataTransfer.files[0];
+    if (dropped && dropped.type.startsWith("image/")) {
+      setFile(dropped);
+      const reader = new FileReader();
+      reader.onloadend = () => setPreviewUrl(reader.result);
+      reader.readAsDataURL(dropped);
+    }
   };
 
   const createWork = (data: any) => {
@@ -303,7 +323,10 @@ const AddWorkDrawer = ({
                 </Text>
                 <Box
                   rounded="12px"
-                  bg="#f2f2f2"
+                  bg={isDragging ? "primary.50" : "#f2f2f2"}
+                  borderWidth={isDragging ? "2px" : "1.5px"}
+                  borderStyle="dashed"
+                  borderColor={isDragging ? "primary.500" : "transparent"}
                   w="full"
                   h={44}
                   display="flex"
@@ -312,7 +335,11 @@ const AddWorkDrawer = ({
                   alignItems="center"
                   overflow="hidden"
                   cursor="pointer"
+                  transition="all 0.15s"
                   onClick={handleImageClick}
+                  onDragOver={handleDragOver}
+                  onDragLeave={handleDragLeave}
+                  onDrop={handleDrop}
                 >
                   <input
                     id="work-file-input"
@@ -324,7 +351,12 @@ const AddWorkDrawer = ({
                   {previewUrl ? (
                     <Image w="100%" h="full" src={previewUrl} alt="selected" objectFit="cover" />
                   ) : (
-                    <Image w={12} h={10} objectFit="cover" src={upload} alt="upload" />
+                    <VStack gap={2} pointerEvents="none">
+                      <Image w={12} h={10} objectFit="cover" src={upload} alt="upload" />
+                      <Text fontSize="0.75rem" color={isDragging ? "primary.500" : "gray.400"} fontWeight="500">
+                        {isDragging ? "Drop to upload" : "Click or drag & drop an image"}
+                      </Text>
+                    </VStack>
                   )}
                 </Box>
               </Box>

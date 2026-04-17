@@ -245,10 +245,15 @@ const SkillsModal = ({
   onOpenChange: () => void;
 }) => {
   const { skills } = useProfile();
-  const [localSkills, setLocalSkills] = useState<SkillObj[]>(skills);
+  const emptySkill = (): SkillObj => ({ id: moment().unix().toString(), name: "", skills: [] });
 
-  useEffect(() =>
-    setLocalSkills(skills), [skills]);
+  const [localSkills, setLocalSkills] = useState<SkillObj[]>(
+    skills?.length ? skills : [emptySkill()]
+  );
+
+  useEffect(() => {
+    setLocalSkills(skills?.length ? skills : [emptySkill()]);
+  }, [skills]);
 
   const handleAddSkillBlock = () => {
     const newSkill: SkillObj = {
@@ -294,22 +299,6 @@ const SkillsModal = ({
         ))}
       </VStack>
 
-      <HStack mt={6} onClick={handleAddSkillBlock} cursor="pointer">
-        <Box
-          border={0.5}
-          rounded={4}
-          py={2}
-          px={2}
-          borderColor="gray.150"
-          shadow="md"
-          color={"text_primary"}
-        >
-          <HiMiniPlus />
-        </Box>
-        <Text fontSize="0.875rem" fontWeight="600" color="gray.500">
-          Add Skills
-        </Text>
-      </HStack>
     </TopRightDrawer>
   );
 };

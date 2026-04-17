@@ -154,11 +154,11 @@ const EditIntroductionVideoCard = ({
         </Box>
       )}
 
-      {isEditable && !hasVideo && (
+      {isEditable && (
         <Box w="full" px="4" pt="4">
           <SectionActionButton
             title={title}
-            label="Upload Video"
+            label={hasVideo ? "Update Video" : "Upload Video"}
             fullWidth
             onClick={() => {
               setOpen(true);

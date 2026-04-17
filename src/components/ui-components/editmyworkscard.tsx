@@ -9,6 +9,7 @@ import {
   Portal,
   Button,
   Stack,
+  Link,
 } from "@chakra-ui/react";
 import { useRef, useState } from "react";
 import { size } from "lodash";
@@ -21,6 +22,52 @@ import AddWorkDrawer from "./addworkdrawer";
 import BoxLoader from "./profile/boxloader";
 import { toaster } from "../ui/toaster";
 // import { IoEllipsisVerticalOutline } from "react-icons/io5";
+
+const LinkPreview = ({ link }: { link: string }) => {
+  let domain = "";
+  try {
+    domain = new URL(link).hostname.replace("www.", "");
+  } catch {}
+
+  return (
+    <Link href={link} target="_blank" rel="noopener noreferrer" textDecoration="none" _hover={{ textDecoration: "none" }}>
+      <Box
+        w="168px"
+        h="100px"
+        borderRadius="8px"
+        borderWidth="1px"
+        borderColor="gray.100"
+        bg="gray.50"
+        overflow="hidden"
+        display="flex"
+        flexDir="column"
+        justifyContent="space-between"
+        p={3}
+        _hover={{ bg: "gray.100" }}
+        transition="background 0.15s"
+      >
+        <HStack gap={2} align="center">
+          <Image
+            src={`https://www.google.com/s2/favicons?sz=32&domain=${domain}`}
+            alt={domain}
+            boxSize="16px"
+            borderRadius="2px"
+            fallbackSrc="/icons/link.svg"
+          />
+          <Text fontSize="0.7rem" color="gray.500" fontWeight="500" truncate>
+            {domain}
+          </Text>
+        </HStack>
+        <VStack align="flex-start" gap={1}>
+          <Box w="full" h="2px" bg="gray.200" borderRadius="full" />
+          <Text fontSize="0.65rem" color="gray.400" truncate w="full">
+            {link}
+          </Text>
+        </VStack>
+      </Box>
+    </Link>
+  );
+};
 
 const WorkItem = ({
   work,
@@ -71,13 +118,17 @@ const WorkItem = ({
       boxShadow="0px 0px 4px 0px rgba(0, 0, 0, 0.10)"
     >
       <Box pos={"relative"}>
-        <Image
-          height={100}
-          width={150}
-          src={work.file}
-          alt={work.title}
-          borderRadius="8px"
-        />
+        {work.link && !work.file ? (
+          <LinkPreview link={work.link} />
+        ) : (
+          <Image
+            height={100}
+            width={150}
+            src={work.file}
+            alt={work.title}
+            borderRadius="8px"
+          />
+        )}
 
         {editable ? (
           <Menu.Root>
@@ -146,7 +197,7 @@ const WorkItem = ({
       <Text fontSize="1rem" fontWeight="600" mt={2} color="text_primary">
         {work.title}
       </Text>
-      <Text textAlign={"justify"} fontSize="0.875rem" color="#666">
+      <Text fontSize="0.875rem" color="#666" lineClamp={2} overflow="hidden">
         {work.description}
       </Text>
       {/*<EditWorkModal work={work} open={open} onClose={onClose} /> */}
