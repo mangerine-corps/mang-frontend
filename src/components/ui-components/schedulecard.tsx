@@ -1,4 +1,5 @@
 import { Box, Flex, Text, HStack, Button, Image, Link } from "@chakra-ui/react";
+import { safeProfilePic, imgErrorFallback } from "mangarine/lib/constants";
 import { isEmpty } from "es-toolkit/compat";
 import { useAuth } from "mangarine/state/hooks/user.hook";
 import { setUpcomingConsultation } from "mangarine/state/reducers/consultant.reducer";
@@ -79,7 +80,8 @@ const Schedulecard
                       h="14"
                       w="14"
                       borderRadius="full"
-                      src={item.consultant.profilePics}
+                      src={safeProfilePic(item.consultant.profilePics)}
+                      onError={imgErrorFallback}
                       alt="profile-img"
                     />
                     <Box>
@@ -202,7 +204,7 @@ const Schedulecard
               >
                 <Flex justify="space-between" align="center">
                   <HStack>
-                    <Image src={item.user.profilePics} alt="profile-img" />
+                    <Image src={safeProfilePic(item.user.profilePics)} onError={imgErrorFallback} alt="profile-img" />
                     <Box>
                       <Text
                         fontWeight="bold"

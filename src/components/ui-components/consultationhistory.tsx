@@ -23,7 +23,7 @@ import { useRouter } from "next/router";
 import ReviewModal from "./modals/reviewmodal";
 import PaymentModal from "./paymentreceipt";
 import { useCountdown, resolveStartTime } from "mangarine/hooks/useCountdown";
-import { DEFAULT_AVATAR } from "mangarine/lib/constants";
+import { safeProfilePic, imgErrorFallback } from "mangarine/lib/constants";
 
 const urgencyChipStyle: Record<string, { bg: string; color: string }> = {
   future:   { bg: '#f1f3f4', color: '#5f6368' },
@@ -187,7 +187,8 @@ const ConsultationHistory: FC<Props> = ({ searchTerm = "" }) => {
                     <Table.Cell py={{ base: 3, md: 4 }} px={{ base: 2, md: 3 }}>
                       <HStack gap={3}>
                         <Image
-                          src={item.consultant?.profilePics || item.consultant?.avatar || DEFAULT_AVATAR}
+                          src={safeProfilePic(item.consultant?.profilePics || item.consultant?.avatar)}
+                          onError={imgErrorFallback}
                           alt={item.consultant?.fullName || "Consultant"}
                           boxSize={{ base: "32px", md: "40px" }}
                           borderRadius="full"

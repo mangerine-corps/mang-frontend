@@ -2,6 +2,7 @@
 import { useEffect } from "react";
 import { Text, VStack, Image, Flex, Box, HStack } from "@chakra-ui/react";
 import { useGetFavoriteConsultantsQuery } from "mangarine/state/services/consultant.service";
+import { safeProfilePic, imgErrorFallback } from "mangarine/lib/constants";
 import { isEmpty } from "es-toolkit/compat";
 import { setFavoriteConsultant } from "mangarine/state/reducers/consultant.reducer";
 import { useDispatch, useSelector } from "react-redux";
@@ -69,7 +70,8 @@ const FavouriteConsultantsComp = ({ title }: FavouriteConsultantsCompProps) => {
                 {/* Circular Profile Image */}
                 <Box boxSize="40px" borderRadius="full" overflow="hidden" flexShrink={0}>
                   <Image
-                    src={item?.consultant?.profilePics}
+                    src={safeProfilePic(item?.consultant?.profilePics)}
+                    onError={imgErrorFallback}
                     alt="Consultant picture"
                     w="full"
                     h="full"

@@ -4,7 +4,7 @@ import { useGetUpcomingConsultationQuery } from "mangarine/state/services/apoint
 import { format } from "date-fns";
 import { useRouter } from "next/router";
 import AreyouCancellingModal from "./modals/areyoucancelling";
-import { DEFAULT_AVATAR } from "mangarine/lib/constants";
+import { safeProfilePic, imgErrorFallback } from "mangarine/lib/constants";
 import RescheduleConsultation from "./modals/rescheduleconsultation";
 
 const ScheduledConsultation = () => {
@@ -74,7 +74,8 @@ const ScheduledConsultation = () => {
               <Flex justify="space-between" align="center">
                 <HStack gap={3}>
                   <Image
-                    src={consultant.profilePics || DEFAULT_AVATAR}
+                    src={safeProfilePic(consultant.profilePics)}
+                    onError={imgErrorFallback}
                     alt={consultant.fullName || "Consultant"}
                     boxSize="40px"
                     borderRadius="full"

@@ -2,6 +2,7 @@
 import React, { useEffect, useState } from "react";
 import { Box, BoxProps, Image, Text, Flex } from "@chakra-ui/react";
 import { useConsultants } from "mangarine/state/hooks/consultant.hook";
+import { safeProfilePic, imgErrorFallback } from "mangarine/lib/constants";
 import { useFavoriteConsultantMutation, useUnfavoriteConsultantMutation } from "mangarine/state/services/consultant.service";
 import { useAuth } from "mangarine/state/hooks/user.hook";
 import { useDispatch } from "react-redux";
@@ -103,14 +104,14 @@ const handleHeartClick = () => {
       {...props}
     >
       <Image
-        src={imageSrc}
+        src={safeProfilePic(imageSrc)}
+        onError={imgErrorFallback}
         alt={imageAlt}
         alignSelf="stretch"
         w="100%"
         onClick={onClick}
         h="180px"
         borderRadius="10px"
-        background={`linear-gradient(0deg, rgba(0, 0, 0, 0.20) 0%, rgba(0, 0, 0, 0.20) 100%), url(${imageSrc}) lightgray 0px 0.012px / 100% 113.918% no-repeat`}
         objectFit="cover"
       />
 
