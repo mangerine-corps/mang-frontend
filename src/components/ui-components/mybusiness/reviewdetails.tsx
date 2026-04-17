@@ -1,4 +1,5 @@
 import { Box, Button, HStack, Image, RatingGroup, Stack, Text, Textarea, VStack } from '@chakra-ui/react'
+import { DEFAULT_AVATAR } from "mangarine/lib/constants";
 import CustomButton from 'mangarine/components/customcomponents/button';
 import React, { useState } from 'react'
 import { FaHeart } from 'react-icons/fa';
@@ -40,7 +41,7 @@ const ReviewComp =()=>{
                 h="full"
                 w="full"
                 rounded="full"
-                src="/images/dp.png"
+                src={DEFAULT_AVATAR}
                 alt="review-img"
               />
             </Stack>{" "}

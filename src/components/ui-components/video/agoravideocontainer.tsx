@@ -17,8 +17,9 @@ import {
     UID,
 } from "agora-rtc-react";
 
-const part1 = "/images/participant1.png";
-const part2 = "/images/participant2.png";
+import { DEFAULT_AVATAR } from "mangarine/lib/constants";
+const part1 = DEFAULT_AVATAR;
+const part2 = DEFAULT_AVATAR;
 const up = "/images/up.png";
 const menu = "/icons/videomenu.svg";
 
@@ -33,7 +34,7 @@ const partvidslash = "/icons/main_backgroundcamslash.svg";
 import { BsCameraVideoFill, BsCameraVideoOff } from "react-icons/bs";
 import { TbMicrophoneFilled, TbMicrophoneOff } from "react-icons/tb";
 
-const partdp1 = "/images/dp.png";
+const partdp1 = DEFAULT_AVATAR;
 import { FC, useEffect, useRef, useState, useMemo } from "react";
 import AgoraRTC, { AgoraRTCProvider } from "agora-rtc-react";
 import { useAppointment } from "mangarine/state/hooks/appointment.hook";

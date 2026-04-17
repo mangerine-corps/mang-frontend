@@ -37,7 +37,7 @@ const MessageSession = () => {
       {/* Image */}
       <Box w="full" h="120px" display="flex" justifyContent="center" alignItems="center" mb={8}>
         <Image
-          src="/images/dp.png"
+          src={DEFAULT_AVATAR}
           alt="consultant image"
           boxSize="80px"
         />

@@ -6,12 +6,13 @@ import {
   Flex,
   Image,
 } from "@chakra-ui/react";
+import { DEFAULT_AVATAR } from "mangarine/lib/constants";
 
 const participants = [
-  { name: "Me", image: "/images/dp.png", mic: "/icons/mic.svg", video: "/icons/video.svg" },
-  { name: "Jenny Wilson", image: "/images/dp.png", mic: "/icons/mic.svg", video: "/icons/video.svg" },
-  { name: "Jacob Jones", image: "/images/dp.png", mic: "/icons/mic.svg", video: "/icons/video.svg" },
-  { name: "Robert Fox", image: "/images/dp.png", mic: "/icons/mic.svg", video: "/icons/video-.svg" },
+  { name: "Me", image: DEFAULT_AVATAR, mic: "/icons/mic.svg", video: "/icons/video.svg" },
+  { name: "Jenny Wilson", image: DEFAULT_AVATAR, mic: "/icons/mic.svg", video: "/icons/video.svg" },
+  { name: "Jacob Jones", image: DEFAULT_AVATAR, mic: "/icons/mic.svg", video: "/icons/video.svg" },
+  { name: "Robert Fox", image: DEFAULT_AVATAR, mic: "/icons/mic.svg", video: "/icons/video-.svg" },
 ];
 
 const ParticipantBox = () => {

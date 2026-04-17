@@ -1,5 +1,6 @@
 import {Box, Button, HStack, Image, Menu, Portal, Stack, Table, Text,} from "@chakra-ui/react";
 import {outfit} from "mangarine/pages/_app";
+import { DEFAULT_AVATAR } from "mangarine/lib/constants";
 
 const consultations = [
     {
@@ -10,7 +11,7 @@ const consultations = [
         topic: "Resume Building",
         status: "Completed",
         statusColor: "green.500",
-        avatar: "/images/dp.png",
+        avatar: DEFAULT_AVATAR,
     },
     {
         id: 2,
@@ -20,7 +21,7 @@ const consultations = [
         topic: "Business Planning",
         status: "Completed",
         statusColor: "green.500",
-        avatar: "/images/dp.png",
+        avatar: DEFAULT_AVATAR,
     },
     {
         id: 3,
@@ -30,7 +31,7 @@ const consultations = [
         topic: "Interview Preparation",
         status: "Cancelled",
         statusColor: "red.500",
-        avatar: "/images/dp.png",
+        avatar: DEFAULT_AVATAR,
     },
     {
         id: 4,
@@ -40,7 +41,7 @@ const consultations = [
         topic: "Digital Marketing",
         status: "Rescheduled",
         statusColor: "blue.500",
-        avatar: "/images/dp.png",
+        avatar: DEFAULT_AVATAR,
     },
     {
         id: 5,
@@ -50,7 +51,7 @@ const consultations = [
         topic: "System Integration",
         status: "Completed",
         statusColor: "green.500",
-        avatar: "/images/dp.png",
+        avatar: DEFAULT_AVATAR,
     },
     {
         id: 6,
@@ -60,7 +61,7 @@ const consultations = [
         topic: "System Integration",
         status: "Completed",
         statusColor: "green.500",
-        avatar: "/images/dp.png",
+        avatar: DEFAULT_AVATAR,
     },
     {
         id: 7,
@@ -70,7 +71,7 @@ const consultations = [
         topic: "System Integration",
         status: "Completed",
         statusColor: "green.500",
-        avatar: "/images/dp.png",
+        avatar: DEFAULT_AVATAR,
     },
     {
         id: 8,
@@ -80,7 +81,7 @@ const consultations = [
         topic: "System Integration",
         status: "Completed",
         statusColor: "green.500",
-        avatar: "/images/dp.png",
+        avatar: DEFAULT_AVATAR,
     },
 ];
 

@@ -37,10 +37,11 @@ import { toaster } from "mangarine/components/ui/toaster";
 import { useGetNotificationsQuery } from "mangarine/state/services/notifications.service";
 import { BlockedComp } from "mangarine/components/ui-components/blockedcomp";
 import { useGetFollowingQuery } from "mangarine/state/services/posts.service";
+import { DEFAULT_AVATAR } from "mangarine/lib/constants";
 
 const contactme = "/assets/images/contactme.png";
 // const coverphoto = "/images/coverphoto.png";
-const dp = "/images/dp.png";
+const dp = DEFAULT_AVATAR;
 const play = "/assets/images/play.svg";
 // const works3 = "/images/works3.png";
 const verified = "/assets/images/verified consultant.svg";

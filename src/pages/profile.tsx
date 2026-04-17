@@ -34,10 +34,11 @@ import {
   setWorks,
 } from "mangarine/state/reducers/profile.reducer";
 import { useProfile } from "mangarine/state/hooks/profile.hook";
+import { DEFAULT_AVATAR } from "mangarine/lib/constants";
 
 const contactme = "/assets/images/contactme.png";
 // const coverphoto = "/images/coverphoto.png";
-const dp = "/images/dp.png";
+const dp = DEFAULT_AVATAR;
 const play = "/assets/images/play.svg";
 // const works3 = "/images/works3.png";
 const verified = "/assets/images/verified consultant.svg";

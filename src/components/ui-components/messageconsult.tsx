@@ -32,6 +32,7 @@ import { FiMaximize } from "react-icons/fi";
 
 import { BiChevronDown, BiChevronLeft } from "react-icons/bi";
 import SessionEnded from "./modals/sessionended";
+import { DEFAULT_AVATAR } from "mangarine/lib/constants";
 import ThankYouModal from "./modals/thankyoumadl";
 import LeftMeeting from "./modals/leftmeeting";
 import ReviewModal from "./modals/reviewmodal";
@@ -67,7 +68,7 @@ const send = "icons/send.svg";
 
 // participant list icon
 
-const partdp1 = "/images/dp.png";
+const partdp1 = DEFAULT_AVATAR;
 const partdp4 = "/images/dp1.png";
 const partdp3 = "/images/dp2.png";
 

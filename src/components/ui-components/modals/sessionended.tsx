@@ -1,4 +1,5 @@
 import { Box, Button, Dialog, HStack, IconButton, Image, Portal, Text, VStack } from "@chakra-ui/react";
+import { DEFAULT_AVATAR } from "mangarine/lib/constants";
 import { useEffect, useState } from "react";
 import CustomButton from "mangarine/components/customcomponents/button";
 import ReportConsultant from "./report";
@@ -93,7 +94,7 @@ const SessionEnded = ({ onOpenChange, isOpen }: props) => {
                     rounded="full"
                     w="full"
                     h="full"
-                    src={"/images/participant2.png"}
+                    src={DEFAULT_AVATAR}
                     alt={"display-image"}
                   />
                 </Box>

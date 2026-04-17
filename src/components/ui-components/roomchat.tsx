@@ -6,29 +6,30 @@ import {
   Text,
   VStack,
 } from "@chakra-ui/react";
+import { DEFAULT_AVATAR } from "mangarine/lib/constants";
 
 const messages = [
   {
     id: 1,
-    avatar: "/images/dp.png",
+    avatar: DEFAULT_AVATAR,
     text: "I’m in a noisy environment sir so I can’t talk.\nThank you for understanding sir",
     bg: "gray.50",
   },
   {
     id: 2,
-    avatar: "/images/dp.png",
+    avatar: DEFAULT_AVATAR,
     text: "I’m in a noisy environment sir so I can’t talk.\nThank you for understanding sir",
     bg: "gray.50",
   },
   {
     id: 3,
-    avatar: "/images/dp.png",
+    avatar: DEFAULT_AVATAR,
     text: "I will drop a link in this comment section so you all can access the file",
     bg: "orange.50",
   },
   {
     id: 4,
-    avatar: "/images/dp.png",
+    avatar: DEFAULT_AVATAR,
     text: "I’m in a noisy environment sir so I can’t talk.\nThank you for understanding sir",
     bg: "gray.50",
   },

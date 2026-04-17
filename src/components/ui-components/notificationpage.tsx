@@ -9,11 +9,12 @@ import {
 } from "@chakra-ui/react";
 import { BiChevronLeft, BiChevronRight } from "react-icons/bi";
 import Rescheduleconsultation from "mangarine/components/ui-components/modals/rescheduleconsultation";
-import { useState } from "react"
+import { useState } from "react";
+import { DEFAULT_AVATAR } from "mangarine/lib/constants";
 const todayNotifications = [
   {
     id: 1,
-    avatar: "/images/dp.png",
+    avatar: DEFAULT_AVATAR,
     title: "New Appointment Booked",
     description:
       "Reminder: You have an upcoming appointment with Sharon Grace on 12th of August. Don't forget to prepare your questions!",
@@ -21,7 +22,7 @@ const todayNotifications = [
   },
   {
     id: 2,
-    avatar: "/images/dp.png",
+    avatar: DEFAULT_AVATAR,
     title: "Payment Confirmation",
     description:
       "Payment confirmed: Your payment of $5,000 for the consultation with Abdul Sharron has been processed.",
@@ -29,7 +30,7 @@ const todayNotifications = [
   },
   {
     id: 3,
-    avatar: "/images/dp.png",
+    avatar: DEFAULT_AVATAR,
     title: "Review Request",
     description:
       "You have 6 days left to review your recent consultation with Mel Silver. Your feedback is valuable!",
@@ -37,7 +38,7 @@ const todayNotifications = [
   },
   {
     id: 4,
-    avatar: "/images/dp.png",
+    avatar: DEFAULT_AVATAR,
     title: "Session Review",
     description:
       "Reminder: Your group consultation session with Doreen Bush starts in 1 hour.",
@@ -48,7 +49,7 @@ const todayNotifications = [
 const yesterdayNotifications = [
   {
     id: 5,
-    avatar: "/images/dp.png",
+    avatar: DEFAULT_AVATAR,
     title: "Community Interaction",
     description:
       "Someone replied to your comment in the Virtual Assistant community discussion. Continue the conversation!",
@@ -56,7 +57,7 @@ const yesterdayNotifications = [
   },
   {
     id: 6,
-    avatar: "/images/dp.png",
+    avatar: DEFAULT_AVATAR,
     title: "Canceled Consultation",
     description:
       "Your consultation with Riel Hungry on 5th of September at 3:00pm has been canceled. You can reschedule or request a refund.",
@@ -65,14 +66,14 @@ const yesterdayNotifications = [
   },
   {
     id: 7,
-    avatar: "/images/dp.png",
+    avatar: DEFAULT_AVATAR,
     title: "Profile Activity",
     description: "You have a new follower! View their profile and connect.",
     time: "4:38pm",
   },
   {
     id: 8,
-    avatar: "/images/dp.png",
+    avatar: DEFAULT_AVATAR,
     title: "New Friend Request",
     description:
       "You've got a new friend request from Adejane Grace. They'd like to connect with you and see your posts. Check it out and decide whether to accept or decline their request.",
