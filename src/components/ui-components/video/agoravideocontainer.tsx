@@ -56,6 +56,7 @@ import { toaster } from "mangarine/components/ui/toaster";
 import {
     SmileIcon, Users, Grid2x2, MonitorUp, FileText, X, Download,
     ChevronRight, MoreVertical, FlipHorizontal2, Camera, MessageSquare, PlusCircle,
+    Check, Mic, Volume2, Video,
 } from "lucide-react";
 import { VirtualBackgroundProcessor, VirtualBackgroundOptions, PREDEFINED_BACKGROUNDS } from "mangarine/utils/virtualBackground";
 
@@ -440,7 +441,7 @@ export const PreJoinPanel: React.FC<{
 
             {/* Join Room button */}
             <Button
-                disabled={!appId || !channel || calling || !tokenReady || !!joinError}
+                disabled={!appId || !channel || calling || !tokenReady}
                 loading={calling || !tokenReady}
                 loadingText={!tokenReady ? "Preparing..." : "Joining..."}
                 onClick={() => setCalling(true)}
@@ -633,8 +634,17 @@ const VideoContainer = ({ consultationId }: { consultationId?: string }) => {
     const [micOn, setMic] = useState(true);
     const [cameraOn, setCamera] = useState(true);
 
-    const { localMicrophoneTrack } = useLocalMicrophoneTrack(micOn);
-    const { localCameraTrack } = useLocalCameraTrack(cameraOn);
+    const { localMicrophoneTrack } = useLocalMicrophoneTrack(true);
+    const { localCameraTrack } = useLocalCameraTrack(true);
+
+    // Use setEnabled to mute/unmute without destroying the track
+    useEffect(() => {
+        localMicrophoneTrack?.setEnabled(micOn).catch(() => {});
+    }, [micOn, localMicrophoneTrack]);
+
+    useEffect(() => {
+        localCameraTrack?.setEnabled(cameraOn).catch(() => {});
+    }, [cameraOn, localCameraTrack]);
     const { markUserJoined } = useConsultationJoin();
     const [hasMarkedJoined, setHasMarkedJoined] = useState(false);
 
@@ -644,6 +654,20 @@ const VideoContainer = ({ consultationId }: { consultationId?: string }) => {
     const [screenTrack, setScreenTrack] = useState<ILocalVideoTrack | null>(null);
     const [forceUpdate, setForceUpdate] = useState(0);
     const [localVideoReady, setLocalVideoReady] = useState(false);
+
+    // Device selection
+    const [cameras, setCameras] = useState<MediaDeviceInfo[]>([]);
+    const [microphones, setMicrophones] = useState<MediaDeviceInfo[]>([]);
+    const [speakers, setSpeakers] = useState<MediaDeviceInfo[]>([]);
+    const [activeMicId, setActiveMicId] = useState<string>('default');
+    const [activeCameraId, setActiveCameraId] = useState<string>('default');
+    const [activeSpeakerId, setActiveSpeakerId] = useState<string>('default');
+
+    useEffect(() => {
+        AgoraRTC.getCameras().then(d => { setCameras(d); if (d[0]) setActiveCameraId(d[0].deviceId); }).catch(() => {});
+        AgoraRTC.getMicrophones().then(d => { setMicrophones(d); if (d[0]) setActiveMicId(d[0].deviceId); }).catch(() => {});
+        AgoraRTC.getPlaybackDevices().then(d => { setSpeakers(d); if (d[0]) setActiveSpeakerId(d[0].deviceId); }).catch(() => {});
+    }, []);
 
     // Ensure video track is properly enabled when available
     useEffect(() => {
@@ -720,15 +744,13 @@ const VideoContainer = ({ consultationId }: { consultationId?: string }) => {
                 const videoTrack: ILocalVideoTrack = Array.isArray(result) ? result[0] : result as ILocalVideoTrack;
                 setScreenTrack(videoTrack);
                 setScreenShareOn(true);
-                setCamera(false); // turn off camera while sharing screen
-                // Nudge re-render to ensure LocalUser swaps tracks immediately
+                // Keep camera ON — we show it in PiP while screen sharing
                 setForceUpdate((p) => p + 1);
                 // Auto stop when user ends share via browser UI
                 try {
                     videoTrack.on && (videoTrack as any).on('track-ended', () => {
                         setScreenTrack(null);
                         setScreenShareOn(false);
-                        setCamera(true);
                         setForceUpdate((p) => p + 1);
                     });
                 } catch { }
@@ -769,9 +791,6 @@ const VideoContainer = ({ consultationId }: { consultationId?: string }) => {
             }
             setScreenTrack(null);
             setScreenShareOn(false);
-            setCamera(true); // restore camera
-
-            // Force re-render of published tracks
             setForceUpdate(prev => prev + 1);
         }
     };
@@ -1226,19 +1245,47 @@ const VideoContainer = ({ consultationId }: { consultationId?: string }) => {
         return fallbackJoinUid;
     }, [tokenUid, fallbackJoinUid]);
 
+    const channelName = consultationId ?? "";
+
     const joinOptions = useMemo(() => {
         return {
             appid: appId ?? "",
-            channel: currentConversation?.id ?? "",
+            channel: channelName,
             token: token || null,
             ...(joinUid !== null ? { uid: joinUid } : {}),
         };
-    }, [appId, currentConversation?.id, token, joinUid]);
+    }, [appId, channelName, token, joinUid]);
+
+    // If user clicked Join but the token isn't ready yet, immediately retry the token fetch.
+    useEffect(() => {
+        if (calling && !token && tokenReady) {
+            setJoinError(null);
+            setTokenReady(false);
+            setTokenRetryCount((c) => c + 1);
+        }
+    }, [calling]);
 
     // Only attempt to join when all required params are present and valid.
     // Passing undefined channel or empty appId causes Agora to throw an unhandled exception.
-    const canJoin = Boolean(calling && appId && currentConversation?.id && token);
-    const { error: joinErr } = useJoin(joinOptions, canJoin);
+    const canJoin = Boolean(calling && appId && channelName && token);
+
+    useEffect(() => {
+        console.log('[Agora] canJoin check:', {
+            canJoin,
+            calling,
+            appId: appId || 'MISSING',
+            channel: channelName || 'MISSING',
+            token: token ? `${token.slice(0, 20)}...` : 'MISSING',
+            uid: joinUid ?? 'AUTO',
+            consultationId,
+        });
+    }, [canJoin, calling, appId, channelName, token, joinUid]);
+
+    const { error: joinErr, data: joinedUid, isLoading: joinLoading } = useJoin(joinOptions, canJoin);
+
+    useEffect(() => {
+        console.log('[Agora] useJoin state — isLoading:', joinLoading, '| joinedUid:', joinedUid ?? 'none', '| error:', joinErr ?? 'none');
+    }, [joinLoading, joinedUid, joinErr]);
 
     useEffect(() => {
         if (joinErr) {
@@ -1256,27 +1303,66 @@ const VideoContainer = ({ consultationId }: { consultationId?: string }) => {
         }
     }, [joinErr]);
     const publishedTracks = useMemo(() => {
-        if (screenShareOn && screenTrack) {
-            return [localMicrophoneTrack, screenTrack];
-        }
-        return [localMicrophoneTrack, localCameraTrack];
+        const tracks = screenShareOn && screenTrack
+            ? [localMicrophoneTrack, screenTrack, localCameraTrack]
+            : [localMicrophoneTrack, localCameraTrack];
+        return tracks.filter(Boolean);
     }, [screenShareOn, screenTrack, localMicrophoneTrack, localCameraTrack]);
 
     usePublish(publishedTracks as any);
 
     const remoteUsers = useRemoteUsers();
 
-    // Fetch token only once the correct conversation is loaded
+    const switchCamera = (deviceId: string) => {
+        localCameraTrack?.setDevice(deviceId).catch(() => {});
+        setActiveCameraId(deviceId);
+    };
+    const switchMicrophone = (deviceId: string) => {
+        localMicrophoneTrack?.setDevice(deviceId).catch(() => {});
+        setActiveMicId(deviceId);
+    };
+    const switchSpeaker = (deviceId: string) => {
+        remoteUsers.forEach(u => {
+            (u.audioTrack as any)?.setPlaybackDevice?.(deviceId).catch?.(() => {});
+        });
+        setActiveSpeakerId(deviceId);
+    };
+
     useEffect(() => {
-        const convId = currentConversation?.id;
-        if (!convId) return;
-        // If a consultationId was given, wait until the conversation matches it
-        if (consultationId && convId !== consultationId) return;
+        console.log('[Agora] isConnected:', isConnected, '| channel:', channelName || 'NONE');
+    }, [isConnected, currentConversation?.id]);
+
+    const prevRemoteCountRef = useRef(0);
+    useEffect(() => {
+        console.log('[Agora] remoteUsers changed — count:', remoteUsers.length, '| uids:', remoteUsers.map(u => u.uid));
+        if (remoteUsers.length > prevRemoteCountRef.current) {
+            try {
+                const ctx = new AudioContext();
+                const gain = ctx.createGain();
+                gain.gain.setValueAtTime(0.3, ctx.currentTime);
+                gain.connect(ctx.destination);
+                [523, 659, 784].forEach((freq, i) => {
+                    const osc = ctx.createOscillator();
+                    osc.type = 'sine';
+                    osc.frequency.value = freq;
+                    osc.connect(gain);
+                    osc.start(ctx.currentTime + i * 0.12);
+                    osc.stop(ctx.currentTime + i * 0.12 + 0.15);
+                });
+            } catch { }
+        }
+        prevRemoteCountRef.current = remoteUsers.length;
+    }, [remoteUsers]);
+
+    // Fetch token using appointmentId as the channel name
+    useEffect(() => {
+        const channelId = consultationId;
+        if (!channelId) return;
 
         setTokenReady(false);
         setJoinError(null);
         setTokenUid(null);
-        getVideoToken(convId)
+        getVideoToken(channelId)
             .unwrap()
             .then((payload) => {
                 console.log('[Agora] rtc-token response:', payload);
@@ -1312,11 +1398,11 @@ const VideoContainer = ({ consultationId }: { consultationId?: string }) => {
                     setConsultationStatus('COMPLETED');
                     setJoinError('This consultation has already been completed.');
                 } else {
-                    setJoinError(serverMsg || 'Could not retrieve a video token. Please check your connection and try again.');
+                    setJoinError(serverMsg || 'Could not retrieve a video token. Please try again.');
                 }
                 setTokenReady(true); // Unblock the UI so the retry button is reachable
             });
-    }, [consultationId, currentConversation?.id, fallbackJoinUid, getVideoToken, tokenRetryCount, user?.id]);
+    }, [consultationId, getVideoToken, tokenRetryCount]);
 
     // If calling but Agora hasn't connected after 12s, surface an error
     useEffect(() => {
@@ -1652,17 +1738,24 @@ const VideoContainer = ({ consultationId }: { consultationId?: string }) => {
         return () => clearInterval(id);
     }, [callStartTime]);
 
-    // Cleanup effect — release camera/mic hardware when component unmounts
+    // Keep refs pointing to the latest tracks so the unmount cleanup can release them
+    // without re-running every time the track instances change (which was closing tracks mid-call).
+    const cameraTrackRef = useRef(localCameraTrack);
+    const micTrackRef = useRef(localMicrophoneTrack);
+    useEffect(() => { cameraTrackRef.current = localCameraTrack; }, [localCameraTrack]);
+    useEffect(() => { micTrackRef.current = localMicrophoneTrack; }, [localMicrophoneTrack]);
+
+    // Cleanup effect — release camera/mic hardware only when component truly unmounts
     useEffect(() => {
         return () => {
-            try { localCameraTrack?.stop(); (localCameraTrack as any)?.close?.(); } catch { }
-            try { localMicrophoneTrack?.stop(); (localMicrophoneTrack as any)?.close?.(); } catch { }
-            if (socketRef.current && chatConnected) {
+            try { cameraTrackRef.current?.stop(); (cameraTrackRef.current as any)?.close?.(); } catch { }
+            try { micTrackRef.current?.stop(); (micTrackRef.current as any)?.close?.(); } catch { }
+            if (socketRef.current) {
                 try { socketRef.current.disconnect(); } catch { }
             }
             try { stopRecordingRef.current(); } catch { }
         };
-    }, [localCameraTrack, localMicrophoneTrack, chatConnected]);
+    }, []); // empty — runs only on unmount
 
     // Show loading state while fetching consultation data
     if (isLoadingConversation || (isApptLoading && consultationId && !currentConversation?.id)) {
@@ -1852,14 +1945,42 @@ const VideoContainer = ({ consultationId }: { consultationId?: string }) => {
                                 <Box ref={containerRef} flex={1} position="relative" overflow="hidden"
                                     bg={remoteUsers.length > 0 || screenShareOn ? "#202124" : "#FDF6EE"}
                                 >
-                                    {remoteUsers.length > 0 ? (
-                                        // Remote user takes full stage
-                                        <RemoteUser
-                                            user={remoteUsers[0]}
-                                            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                                        />
-                                    ) : screenShareOn && screenTrack ? (
-                                        // Screen share preview fills the main stage when alone
+                                    {/* Google Meet-style screen share banner */}
+                                    {screenShareOn && (
+                                        <Flex
+                                            position="absolute"
+                                            top={0} left={0} right={0}
+                                            zIndex={20}
+                                            bg="#1a73e8"
+                                            align="center"
+                                            justify="space-between"
+                                            px={4} py={2}
+                                        >
+                                            <HStack gap={2}>
+                                                <Box w={2} h={2} bg="white" borderRadius="full" />
+                                                <Text fontSize="0.85rem" fontWeight="600" color="white">
+                                                    You are presenting to everyone
+                                                </Text>
+                                            </HStack>
+                                            <Button
+                                                size="sm"
+                                                bg="white"
+                                                color="#1a73e8"
+                                                borderRadius="6px"
+                                                fontWeight="600"
+                                                fontSize="0.8rem"
+                                                px={3}
+                                                h="28px"
+                                                _hover={{ bg: "#e8f0fe" }}
+                                                onClick={toggleScreenShare}
+                                            >
+                                                Stop presenting
+                                            </Button>
+                                        </Flex>
+                                    )}
+
+                                    {screenShareOn && screenTrack ? (
+                                        // Screen share fills the main stage
                                         <LocalUser
                                             audioTrack={localMicrophoneTrack}
                                             cameraOn={true}
@@ -1869,6 +1990,14 @@ const VideoContainer = ({ consultationId }: { consultationId?: string }) => {
                                             key={`screen-main-${forceUpdate}`}
                                             style={{ width: '100%', height: '100%' }}
                                         />
+                                    ) : remoteUsers.length > 0 ? (
+                                        // Remote user takes full stage
+                                        <Box w="full" h="full" sx={{ '& video': { width: '100% !important', height: '100% !important', objectFit: 'cover', objectPosition: 'center center' } }}>
+                                            <RemoteUser
+                                                user={remoteUsers[0]}
+                                                style={{ width: '100%', height: '100%' }}
+                                            />
+                                        </Box>
                                     ) : (
                                         // No one else has joined — show welcome message
                                         <Flex align="center" justify="center" w="full" h="full" direction="column" gap={3}>
@@ -1881,30 +2010,56 @@ const VideoContainer = ({ consultationId }: { consultationId?: string }) => {
                                         </Flex>
                                     )}
 
-                                    {/* Local PiP — bottom right, always visible */}
+                                    {/* Remote user PiP — shown bottom-left when screen sharing */}
+                                    {screenShareOn && remoteUsers.length > 0 && (
+                                        <Box
+                                            position="absolute"
+                                            bottom={4}
+                                            left={4}
+                                            w="200px"
+                                            style={{ aspectRatio: "16/9" }}
+                                            borderRadius="14px"
+                                            overflow="hidden"
+                                            borderWidth="2px"
+                                            borderColor="rgba(255,255,255,0.2)"
+                                            shadow="lg"
+                                            bg="#3c4043"
+                                        >
+                                            <Box w="full" h="full" sx={{ '& video': { width: '100% !important', height: '100% !important', objectFit: 'cover', objectPosition: 'center center' } }}>
+                                                <RemoteUser
+                                                    user={remoteUsers[0]}
+                                                    style={{ width: '100%', height: '100%' }}
+                                                />
+                                            </Box>
+                                        </Box>
+                                    )}
+
+                                    {/* Local PiP — always shows camera feed, even during screen share */}
                                     <Box
                                         position="absolute"
                                         bottom={4}
                                         right={4}
                                         w="200px"
-                                        style={{ aspectRatio: "4/3" }}
+                                        style={{ aspectRatio: "16/9" }}
                                         borderRadius="14px"
                                         overflow="hidden"
                                         borderWidth="1px"
                                         borderColor="rgba(0,0,0,0.08)"
                                         shadow="lg"
-                                        bg={remoteUsers.length === 0 && !screenShareOn ? "#F5E6D3" : "#3c4043"}
+                                        bg="#3c4043"
                                     >
-                                        {(cameraOn && localCameraTrack) || (screenShareOn && screenTrack) ? (
-                                            <LocalUser
-                                                audioTrack={localMicrophoneTrack}
-                                                cameraOn={screenShareOn ? true : cameraOn}
-                                                micOn={micOn}
-                                                playAudio={false}
-                                                videoTrack={screenShareOn && screenTrack ? screenTrack : localCameraTrack}
-                                                key={`local-pip-${forceUpdate}`}
-                                                style={{ width: '100%', height: '100%' }}
-                                            />
+                                        {cameraOn && localCameraTrack ? (
+                                            <Box w="full" h="full" sx={{ '& video': { width: '100% !important', height: '100% !important', objectFit: 'cover', objectPosition: 'center center' } }}>
+                                                <LocalUser
+                                                    audioTrack={localMicrophoneTrack}
+                                                    cameraOn={true}
+                                                    micOn={micOn}
+                                                    playAudio={false}
+                                                    videoTrack={localCameraTrack}
+                                                    key={`local-pip-${forceUpdate}`}
+                                                    style={{ width: '100%', height: '100%' }}
+                                                />
+                                            </Box>
                                         ) : (
                                             <Flex align="center" justify="center" w="full" h="full">
                                                 <Box
@@ -1966,24 +2121,160 @@ const VideoContainer = ({ consultationId }: { consultationId?: string }) => {
 
                                     {/* Center: main controls */}
                                     <HStack gap={{ base: 2, md: 3 }} justify="center" flex={2}>
-                                        <ToolBtn
-                                            label={micOn ? "Mute" : "Unmute"}
-                                            icon={micOn
-                                                ? <TbMicrophoneFilled size={20} />
-                                                : <TbMicrophoneOff size={20} />}
-                                            active={micOn}
-                                            danger={!micOn}
-                                            onClick={() => setMic((a) => !a)}
-                                        />
-                                        <ToolBtn
-                                            label={cameraOn ? "Turn off camera" : "Turn on camera"}
-                                            icon={cameraOn
-                                                ? <BsCameraVideoFill size={18} />
-                                                : <BsCameraVideoOff size={18} />}
-                                            active={cameraOn}
-                                            danger={!cameraOn}
-                                            onClick={() => setCamera((a) => !a)}
-                                        />
+                                        {/* Mic + device picker */}
+                                        <HStack gap={0}>
+                                            <ToolBtn
+                                                label={micOn ? "Mute" : "Unmute"}
+                                                icon={micOn ? <TbMicrophoneFilled size={20} /> : <TbMicrophoneOff size={20} />}
+                                                active={micOn}
+                                                danger={!micOn}
+                                                onClick={() => setMic((a) => !a)}
+                                            />
+                                            <Menu.Root>
+                                                <Menu.Trigger asChild>
+                                                    <IconButton aria-label="Audio settings" size="xs" variant="ghost" borderRadius="full" color="#888" _hover={{ bg: "#f0f0f0", color: "#111" }} h="18px" w="14px" minW="unset" mb="14px">
+                                                        <BiChevronDown size={12} />
+                                                    </IconButton>
+                                                </Menu.Trigger>
+                                                <Portal>
+                                                    <Menu.Positioner>
+                                                        <Menu.Content
+                                                            minW="280px"
+                                                            bg="white"
+                                                            borderRadius="14px"
+                                                            shadow="0 8px 30px rgba(0,0,0,0.14)"
+                                                            border="1px solid #f0f0f0"
+                                                            py={2}
+                                                            overflow="hidden"
+                                                        >
+                                                            {/* Microphone section */}
+                                                            <Box px={4} pt={2} pb={1}>
+                                                                <HStack gap={2} mb={2}>
+                                                                    <Box p={1.5} bg="#f0f4ff" borderRadius="8px">
+                                                                        <Mic size={13} color="#1C275D" />
+                                                                    </Box>
+                                                                    <Text fontSize="0.75rem" fontWeight="700" color="#1C275D" letterSpacing="0.04em" textTransform="uppercase">Microphone</Text>
+                                                                </HStack>
+                                                                {microphones.map(d => {
+                                                                    const isActive = d.deviceId === activeMicId;
+                                                                    return (
+                                                                        <HStack
+                                                                            key={d.deviceId}
+                                                                            px={2} py={2}
+                                                                            borderRadius="8px"
+                                                                            cursor="pointer"
+                                                                            bg={isActive ? "#f0f4ff" : "transparent"}
+                                                                            _hover={{ bg: isActive ? "#e8eeff" : "#f7f7f7" }}
+                                                                            onClick={() => switchMicrophone(d.deviceId)}
+                                                                            justify="space-between"
+                                                                        >
+                                                                            <Text fontSize="0.82rem" color={isActive ? "#1C275D" : "#444"} fontWeight={isActive ? "600" : "400"} noOfLines={1}>
+                                                                                {d.label || `Microphone ${d.deviceId.slice(0, 6)}`}
+                                                                            </Text>
+                                                                            {isActive && <Check size={14} color="#1C275D" />}
+                                                                        </HStack>
+                                                                    );
+                                                                })}
+                                                            </Box>
+
+                                                            {speakers.length > 0 && (
+                                                                <>
+                                                                    <Box h="1px" bg="#f0f0f0" mx={4} my={2} />
+                                                                    <Box px={4} pb={2}>
+                                                                        <HStack gap={2} mb={2}>
+                                                                            <Box p={1.5} bg="#f0f4ff" borderRadius="8px">
+                                                                                <Volume2 size={13} color="#1C275D" />
+                                                                            </Box>
+                                                                            <Text fontSize="0.75rem" fontWeight="700" color="#1C275D" letterSpacing="0.04em" textTransform="uppercase">Speaker</Text>
+                                                                        </HStack>
+                                                                        {speakers.map(d => {
+                                                                            const isActive = d.deviceId === activeSpeakerId;
+                                                                            return (
+                                                                                <HStack
+                                                                                    key={d.deviceId}
+                                                                                    px={2} py={2}
+                                                                                    borderRadius="8px"
+                                                                                    cursor="pointer"
+                                                                                    bg={isActive ? "#f0f4ff" : "transparent"}
+                                                                                    _hover={{ bg: isActive ? "#e8eeff" : "#f7f7f7" }}
+                                                                                    onClick={() => switchSpeaker(d.deviceId)}
+                                                                                    justify="space-between"
+                                                                                >
+                                                                                    <Text fontSize="0.82rem" color={isActive ? "#1C275D" : "#444"} fontWeight={isActive ? "600" : "400"} noOfLines={1}>
+                                                                                        {d.label || `Speaker ${d.deviceId.slice(0, 6)}`}
+                                                                                    </Text>
+                                                                                    {isActive && <Check size={14} color="#1C275D" />}
+                                                                                </HStack>
+                                                                            );
+                                                                        })}
+                                                                    </Box>
+                                                                </>
+                                                            )}
+                                                        </Menu.Content>
+                                                    </Menu.Positioner>
+                                                </Portal>
+                                            </Menu.Root>
+                                        </HStack>
+
+                                        {/* Camera + device picker */}
+                                        <HStack gap={0}>
+                                            <ToolBtn
+                                                label={cameraOn ? "Turn off camera" : "Turn on camera"}
+                                                icon={cameraOn ? <BsCameraVideoFill size={18} /> : <BsCameraVideoOff size={18} />}
+                                                active={cameraOn}
+                                                danger={!cameraOn}
+                                                onClick={() => setCamera((a) => !a)}
+                                            />
+                                            <Menu.Root>
+                                                <Menu.Trigger asChild>
+                                                    <IconButton aria-label="Camera settings" size="xs" variant="ghost" borderRadius="full" color="#888" _hover={{ bg: "#f0f0f0", color: "#111" }} h="18px" w="14px" minW="unset" mb="14px">
+                                                        <BiChevronDown size={12} />
+                                                    </IconButton>
+                                                </Menu.Trigger>
+                                                <Portal>
+                                                    <Menu.Positioner>
+                                                        <Menu.Content
+                                                            minW="280px"
+                                                            bg="white"
+                                                            borderRadius="14px"
+                                                            shadow="0 8px 30px rgba(0,0,0,0.14)"
+                                                            border="1px solid #f0f0f0"
+                                                            py={2}
+                                                            overflow="hidden"
+                                                        >
+                                                            <Box px={4} pt={2} pb={2}>
+                                                                <HStack gap={2} mb={2}>
+                                                                    <Box p={1.5} bg="#f0f4ff" borderRadius="8px">
+                                                                        <Video size={13} color="#1C275D" />
+                                                                    </Box>
+                                                                    <Text fontSize="0.75rem" fontWeight="700" color="#1C275D" letterSpacing="0.04em" textTransform="uppercase">Camera</Text>
+                                                                </HStack>
+                                                                {cameras.map(d => {
+                                                                    const isActive = d.deviceId === activeCameraId;
+                                                                    return (
+                                                                        <HStack
+                                                                            key={d.deviceId}
+                                                                            px={2} py={2}
+                                                                            borderRadius="8px"
+                                                                            cursor="pointer"
+                                                                            bg={isActive ? "#f0f4ff" : "transparent"}
+                                                                            _hover={{ bg: isActive ? "#e8eeff" : "#f7f7f7" }}
+                                                                            onClick={() => switchCamera(d.deviceId)}
+                                                                            justify="space-between"
+                                                                        >
+                                                                            <Text fontSize="0.82rem" color={isActive ? "#1C275D" : "#444"} fontWeight={isActive ? "600" : "400"} noOfLines={1}>
+                                                                                {d.label || `Camera ${d.deviceId.slice(0, 6)}`}
+                                                                            </Text>
+                                                                            {isActive && <Check size={14} color="#1C275D" />}
+                                                                        </HStack>
+                                                                    );
+                                                                })}
+                                                            </Box>
+                                                        </Menu.Content>
+                                                    </Menu.Positioner>
+                                                </Portal>
+                                            </Menu.Root>
+                                        </HStack>
                                         {/* <ToolBtn
                                             label="Messages"
                                             icon={<MessageSquare size={20} />}
@@ -2040,7 +2331,7 @@ const VideoContainer = ({ consultationId }: { consultationId?: string }) => {
                         ) : (
                             <PreJoinPanel
                                 appId={appId as string}
-                                channel={currentConversation?.id}
+                                channel={channelName}
                                 calling={calling}
                                 setCalling={(v) => setCalling(v)}
                                 cameraOn={cameraOn}

@@ -159,6 +159,15 @@ const TableRowRenderer = ({ appointment }: { appointment: any }) => {
                   <BiComment />
                   <Text>{"Message"}</Text>
                 </Menu.Item>
+                {appointment.status === 'UPCOMING' && (
+                  <Menu.Item
+                    p={2}
+                    onClick={() => router.push(`/message/videoconsultation?consultationId=${appointment.id}`)}
+                    value="join"
+                  >
+                    <Text>{"Join Call"}</Text>
+                  </Menu.Item>
+                )}
               </Menu.Content>
             </Menu.Positioner>
           </Portal>

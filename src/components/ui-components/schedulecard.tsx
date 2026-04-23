@@ -120,7 +120,7 @@ const Schedulecard
                       cursor="pointer"
                       onClick={() => {
                         router.push(
-                          `/message/videoconsultation?consultation_id=${item?.id}`
+                          `/message/videoconsultation?consultationId=${item?.id}`
                         );
                       }}
                       _hover={{ bg: "gray.200", cursor: "pointer" }}
