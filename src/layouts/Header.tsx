@@ -339,7 +339,7 @@ const Header = () => {
       <HStack w={{ base: "auto", lg: "60%" }} flexShrink={0} justifyContent={"flex-end"}>
         <MobileDrawer />
 
-        <HStack spaceX={3} display={{ base: "none", md: "none", lg: "flex" }}>
+        <HStack gap={3} display={{ base: "none", md: "none", lg: "flex" }}>
           {Links.map((link) =>
             link.label === "Notification" ? (
               <NotificationDropdown
@@ -347,7 +347,7 @@ const Header = () => {
                 trigger={(onClick, unreadCount) => (
                   <Box cursor="pointer" onClick={onClick}>
                     <VStack
-                      spaceY="0"
+                      gap={0}
                       borderBottom="2px solid transparent"
                       color="#494949"
                       _hover={{ color: "text_primary", borderColor: "button_bg" }}

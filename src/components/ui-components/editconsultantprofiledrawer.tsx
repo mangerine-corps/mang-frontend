@@ -65,7 +65,7 @@ const EditConsultDrawer = ({
   const [errorMessage, setErrorMessage] = useState("");
   const [updateProfilePic, { isLoading: picLoading }] = useUpdateProfilePictureMutation();
   const [updateBanner, { isLoading: bannerLoading }] = useUpdateProfileBannerMutation();
-  const [updateProfile,] = useUpdateProfileInfoMutation();
+  const [updateProfile, { isLoading: profileLoading }] = useUpdateProfileInfoMutation();
   //   const toast = useToast();
   const { user } = useAuth();
   const dispatch = useDispatch();
@@ -178,8 +178,7 @@ const EditConsultDrawer = ({
       onOpenChange();
     } catch (err: any) {
       const msg = err?.data?.message ?? err?.message ?? "Update failed";
-      setErrorMessage(Array.isArray(msg) ? msg.join(", ") : msg);
-      setShowToast(true);
+      toaster.create({ title: "Error", description: Array.isArray(msg) ? msg.join(", ") : msg, type: "error", duration: 6000, closable: true });
     }
   };
   return (
@@ -624,13 +623,12 @@ const EditConsultDrawer = ({
                     borderColor={"#111D4A"}
                     py={2}
                     w="45%"
-                    //   isLoading={isLoading}
+                    loading={profileLoading || uploading}
                     px={4}
                     _hover={{
                       textDecor: "none",
                       bg: "#111D4A",
                     }}
-                    // isDisabled={isEmpty(selectedDay) || selectedTime == ''}
                     rounded={"6px"}
                     onClick={handleSubmit(handleProfileUpdate)}
                   >

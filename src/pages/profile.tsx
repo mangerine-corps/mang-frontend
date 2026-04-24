@@ -1,4 +1,5 @@
-import { Box, Flex, HStack, Stack, Text } from "@chakra-ui/react";
+import { Box, Flex, HStack, Icon, Stack, Text } from "@chakra-ui/react";
+import { LuArrowLeft } from "react-icons/lu";
 import EditConsultantProfileCard from "mangarine/components/ui-components/editconsultantprofile";
 import EditContactMeCard from "mangarine/components/ui-components/editcontactme";
 import EditEducationCard from "mangarine/components/ui-components/editeducationcard";
@@ -243,6 +244,21 @@ const Profile = () => {
           rounded={"xl"}
           // overflowX="hidden"
         >
+          <HStack
+            mb={3}
+            cursor="pointer"
+            onClick={() => router.back()}
+            color="text_muted"
+            _hover={{ color: "text_primary" }}
+            transition="color 0.2s"
+            w="fit-content"
+          >
+            <Icon>
+              <LuArrowLeft />
+            </Icon>
+            <Text fontSize="0.875rem" fontWeight="500">Back</Text>
+          </HStack>
+
           <Box w="full">
             <EditConsultantProfileCard
               checkmarkSrc={verified}

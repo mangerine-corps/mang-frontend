@@ -58,16 +58,24 @@ const experienceType = [
 ];
 
 const experienceSchema = Yup.object().shape({
-  title: Yup.string().required("title is required"),
+  title: Yup.string().required("Title is required"),
   employment_type: Yup.array()
     .of(Yup.string())
-    .min(1, "employment type is required"),
-  company_name: Yup.string().required("company name is required"),
-  location: Yup.string().required("location is required"),
-  start_month: Yup.string().required("start month is required"),
-  start_year: Yup.string().required("start month is required"),
-  end_month: Yup.string().required("end month is required"),
-  end_year: Yup.string().required("end month is required"),
+    .min(1, "Employment type is required"),
+  company_name: Yup.string().required("Company name is required"),
+  location: Yup.string().required("Location is required"),
+  start_month: Yup.string().required("Start month is required"),
+  start_year: Yup.string().required("Start year is required"),
+  end_month: Yup.string().when("isCurrent", {
+    is: true,
+    then: (schema) => schema.optional(),
+    otherwise: (schema) => schema.required("End month is required"),
+  }),
+  end_year: Yup.string().when("isCurrent", {
+    is: true,
+    then: (schema) => schema.optional(),
+    otherwise: (schema) => schema.required("End year is required"),
+  }),
   isCurrent: Yup.boolean(),
 });
 
@@ -82,11 +90,11 @@ const ExperienceItem = ({
 }) => {
   const [addNewExperience, { isLoading }] = useAddExperienceMutation();
   const [deleteExperience] = useDeleteExperienceMutation();
-  // const [current, setCurrent] = useState(false);
   const {
     handleSubmit,
     control,
     setValue,
+    watch,
     formState: { errors },
   } = useForm({
     resolver: yupResolver(experienceSchema),
@@ -103,19 +111,18 @@ const ExperienceItem = ({
     },
   });
 
+  const isCurrent = watch("isCurrent");
+
   useEffect(() => {
-    // console.log(experience);
     const expItem = experienceType.find(
       (item) => item.value === experience.employment_type
     );
-    // console.log(expItem, "exp");
     if (!isEmpty(expItem)) {
       setValue("employment_type", [expItem.label]);
     }
   }, [experience, setValue]);
 
   const handleAddExperience = (data: any) => {
-    // console.log(data, "data")
 
     const {
       employment_type: [employment_typeString],
@@ -203,7 +210,7 @@ const ExperienceItem = ({
           control={control}
           render={({ field: { onChange, value } }) => (
             <CustomInput
-              label="Title "
+              label="Title"
               placeholder="Enter Title"
               id="title"
               required={true}
@@ -211,7 +218,7 @@ const ExperienceItem = ({
               value={value}
               size="md"
               onChange={onChange}
-              //   error={{}}
+              error={errors.title}
               hasRightIcon={false}
               type={"text"}
             />
@@ -223,19 +230,6 @@ const ExperienceItem = ({
           name="employment_type"
           control={control}
           render={({ field: { onChange, value } }) => (
-            // <CustomSelect
-            //   id={"experienceTypeOpt"}
-            //   placeholder="Input your area of interest"
-            //   name={"Area of Interest"}
-            //   size="md"
-            //   // options={experienceType}
-            //   label="Experience type"
-            //   isMulti={true}
-            //   // value={value}
-            //   required={true}
-            //   // error={errors.experience_type}
-            //   onChange={onChange}
-            // />
             <CustomSelect
               id={experience.id}
               placeholder="Select employment type"
@@ -258,7 +252,7 @@ const ExperienceItem = ({
           control={control}
           render={({ field: { onChange, value } }) => (
             <CustomInput
-              label="Company Name "
+              label="Company Name"
               placeholder="Enter company name"
               id="company_name"
               required={true}
@@ -266,7 +260,7 @@ const ExperienceItem = ({
               value={value}
               size="md"
               onChange={onChange}
-              //   error={{}}
+              error={errors.company_name}
               hasRightIcon={false}
               type={"text"}
             />
@@ -280,15 +274,15 @@ const ExperienceItem = ({
           control={control}
           render={({ field: { onChange, value } }) => (
             <CustomInput
-              label="Location "
-              placeholder="Lagos, Nigeria "
+              label="Location"
+              placeholder="Lagos, Nigeria"
               id="location"
               required={true}
               name="location"
               value={value}
               size="md"
               onChange={onChange}
-              //   error={{}}
+              error={errors.location}
               hasRightIcon={false}
               type={"text"}
             />
@@ -305,13 +299,13 @@ const ExperienceItem = ({
               <CustomInput
                 label="Start Month"
                 placeholder="Start Month"
-                id="start_date"
+                id="start_month"
                 required={true}
-                name="start_date"
+                name="start_month"
                 value={value}
                 size="md"
                 onChange={onChange}
-                //   error={{}}
+                error={errors.start_month}
                 hasRightIcon={false}
                 type={"text"}
               />
@@ -322,15 +316,15 @@ const ExperienceItem = ({
             control={control}
             render={({ field: { onChange, value } }) => (
               <CustomInput
-                label="Start year"
-                placeholder="start year"
-                id="end_date"
+                label="Start Year"
+                placeholder="Start Year"
+                id="start_year"
                 required={true}
-                name="end_date"
+                name="start_year"
                 value={value}
                 size="md"
                 onChange={onChange}
-                //   error={{}}
+                error={errors.start_year}
                 hasRightIcon={false}
                 type={"text"}
               />
@@ -338,48 +332,50 @@ const ExperienceItem = ({
           />
         </HStack>
       </HStack>
-      <HStack pb="2" w="full">
-        <HStack w="full">
-          <Controller
-            name="end_month"
-            control={control}
-            render={({ field: { onChange, value } }) => (
-              <CustomInput
-                label="End Month"
-                placeholder="End Month"
-                id="start_date"
-                required={true}
-                name="start_date"
-                value={value}
-                size="md"
-                onChange={onChange}
-                //   error={{}}
-                hasRightIcon={false}
-                type={"text"}
-              />
-            )}
-          />
-          <Controller
-            name="end_year"
-            control={control}
-            render={({ field: { onChange, value } }) => (
-              <CustomInput
-                label="End Year"
-                placeholder="End Year"
-                id="end_date"
-                required={true}
-                name="end_date"
-                value={value}
-                size="md"
-                onChange={onChange}
-                //   error={{}}
-                hasRightIcon={false}
-                type={"text"}
-              />
-            )}
-          />
+      {!isCurrent && (
+        <HStack pb="2" w="full">
+          <HStack w="full">
+            <Controller
+              name="end_month"
+              control={control}
+              render={({ field: { onChange, value } }) => (
+                <CustomInput
+                  label="End Month"
+                  placeholder="End Month"
+                  id="end_month"
+                  required={true}
+                  name="end_month"
+                  value={value}
+                  size="md"
+                  onChange={onChange}
+                  error={errors.end_month}
+                  hasRightIcon={false}
+                  type={"text"}
+                />
+              )}
+            />
+            <Controller
+              name="end_year"
+              control={control}
+              render={({ field: { onChange, value } }) => (
+                <CustomInput
+                  label="End Year"
+                  placeholder="End Year"
+                  id="end_year"
+                  required={true}
+                  name="end_year"
+                  value={value}
+                  size="md"
+                  onChange={onChange}
+                  error={errors.end_year}
+                  hasRightIcon={false}
+                  type={"text"}
+                />
+              )}
+            />
+          </HStack>
         </HStack>
-      </HStack>
+      )}
       <Box pb={8} w="full">
         <HStack alignItems={"center"}>
           <Controller

@@ -69,8 +69,9 @@ const AddWorkDrawer = ({
   initialMode?: WorkMode | null;
 }) => {
   const isEditing = !isEmpty(work);
+  const inferMode = (w: any): WorkMode => (w?.link && !w?.file ? "link" : "media");
   const [mode, setMode] = useState<WorkMode | null>(
-    isEditing ? (work?.link ? "link" : "media") : (initialMode ?? null)
+    isEditing ? inferMode(work) : (initialMode ?? null)
   );
   const [previewUrl, setPreviewUrl] = useState<any>(null);
   const [file, setFile] = useState<any>({});
@@ -98,7 +99,7 @@ const AddWorkDrawer = ({
         link: work.link || "",
       });
       setPreviewUrl(work.file || null);
-      setMode(work?.link ? "link" : "media");
+      setMode(inferMode(work));
     } else {
       reset({ title: "", description: "", link: "" });
       setPreviewUrl(null);

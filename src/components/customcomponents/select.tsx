@@ -133,13 +133,13 @@ const CustomSelect = ({
           </SelectItem>
         ))}
       </SelectContent>
-      <Box mt={"1"} w="full" bg="red.700">
+      <Box mt={"1"} w="full">
         {!isEmpty(error) && (
           <Text
             color="red.500"
-            lineHeight={"0px"}
+            lineHeight={"1.2"}
             textAlign={"left"}
-            fontSize="sm"
+            fontSize="0.75rem"
           >
             {error.message}
           </Text>

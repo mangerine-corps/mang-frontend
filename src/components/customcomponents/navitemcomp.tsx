@@ -34,7 +34,7 @@ export const NavItem: React.FC<Props> = ({ link, isMobile }) => {
       <LinkBox w={isMobile ? "full" : "auto"}>
         <LinkOverlay href={link.href}>
           <VStack
-            spaceY="0"
+            gap={0}
             w={isMobile ? "full" : "auto"}
             bg={isMobile && isActive ? "#111D4A" : "transparent"}
             px={isMobile ? 4 : 0}

@@ -68,7 +68,7 @@ export const MobileDrawer = () => {
               </Drawer.Header>
               <Drawer.Body pt="2">
                 <VStack
-                  spaceY="6"
+                  gap={6}
                   alignItems={"flex-start"}
                   justifyContent={"flex-start"}
                   w="full"
