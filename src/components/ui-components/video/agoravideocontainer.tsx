@@ -1992,7 +1992,7 @@ const VideoContainer = ({ consultationId }: { consultationId?: string }) => {
                                         />
                                     ) : remoteUsers.length > 0 ? (
                                         // Remote user takes full stage
-                                        <Box w="full" h="full" sx={{ '& video': { width: '100% !important', height: '100% !important', objectFit: 'cover', objectPosition: 'center center' } }}>
+                                        <Box w="full" h="full" css={{ '& video': { width: '100% !important', height: '100% !important', objectFit: 'cover', objectPosition: 'center center' } }}>
                                             <RemoteUser
                                                 user={remoteUsers[0]}
                                                 style={{ width: '100%', height: '100%' }}
@@ -2025,7 +2025,7 @@ const VideoContainer = ({ consultationId }: { consultationId?: string }) => {
                                             shadow="lg"
                                             bg="#3c4043"
                                         >
-                                            <Box w="full" h="full" sx={{ '& video': { width: '100% !important', height: '100% !important', objectFit: 'cover', objectPosition: 'center center' } }}>
+                                            <Box w="full" h="full" css={{ '& video': { width: '100% !important', height: '100% !important', objectFit: 'cover', objectPosition: 'center center' } }}>
                                                 <RemoteUser
                                                     user={remoteUsers[0]}
                                                     style={{ width: '100%', height: '100%' }}
@@ -2049,7 +2049,7 @@ const VideoContainer = ({ consultationId }: { consultationId?: string }) => {
                                         bg="#3c4043"
                                     >
                                         {cameraOn && localCameraTrack ? (
-                                            <Box w="full" h="full" sx={{ '& video': { width: '100% !important', height: '100% !important', objectFit: 'cover', objectPosition: 'center center' } }}>
+                                            <Box w="full" h="full" css={{ '& video': { width: '100% !important', height: '100% !important', objectFit: 'cover', objectPosition: 'center center' } }}>
                                                 <LocalUser
                                                     audioTrack={localMicrophoneTrack}
                                                     cameraOn={true}
@@ -2168,7 +2168,7 @@ const VideoContainer = ({ consultationId }: { consultationId?: string }) => {
                                                                             onClick={() => switchMicrophone(d.deviceId)}
                                                                             justify="space-between"
                                                                         >
-                                                                            <Text fontSize="0.82rem" color={isActive ? "#1C275D" : "#444"} fontWeight={isActive ? "600" : "400"} noOfLines={1}>
+                                                                            <Text fontSize="0.82rem" color={isActive ? "#1C275D" : "#444"} fontWeight={isActive ? "600" : "400"} lineClamp={1}>
                                                                                 {d.label || `Microphone ${d.deviceId.slice(0, 6)}`}
                                                                             </Text>
                                                                             {isActive && <Check size={14} color="#1C275D" />}
@@ -2200,7 +2200,7 @@ const VideoContainer = ({ consultationId }: { consultationId?: string }) => {
                                                                                     onClick={() => switchSpeaker(d.deviceId)}
                                                                                     justify="space-between"
                                                                                 >
-                                                                                    <Text fontSize="0.82rem" color={isActive ? "#1C275D" : "#444"} fontWeight={isActive ? "600" : "400"} noOfLines={1}>
+                                                                                    <Text fontSize="0.82rem" color={isActive ? "#1C275D" : "#444"} fontWeight={isActive ? "600" : "400"} lineClamp={1}>
                                                                                         {d.label || `Speaker ${d.deviceId.slice(0, 6)}`}
                                                                                     </Text>
                                                                                     {isActive && <Check size={14} color="#1C275D" />}
@@ -2262,7 +2262,7 @@ const VideoContainer = ({ consultationId }: { consultationId?: string }) => {
                                                                             onClick={() => switchCamera(d.deviceId)}
                                                                             justify="space-between"
                                                                         >
-                                                                            <Text fontSize="0.82rem" color={isActive ? "#1C275D" : "#444"} fontWeight={isActive ? "600" : "400"} noOfLines={1}>
+                                                                            <Text fontSize="0.82rem" color={isActive ? "#1C275D" : "#444"} fontWeight={isActive ? "600" : "400"} lineClamp={1}>
                                                                                 {d.label || `Camera ${d.deviceId.slice(0, 6)}`}
                                                                             </Text>
                                                                             {isActive && <Check size={14} color="#1C275D" />}
