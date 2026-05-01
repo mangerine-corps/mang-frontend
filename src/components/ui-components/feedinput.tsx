@@ -58,7 +58,7 @@ const FeedInput = ({ onCreated }: FeedInputProps) => {
   const [selectedVideo, setSelectedVideo] = useState<File | null>(null);
   const [videoPreview, setVideoPreview] = useState<string | null>(null);
   const [, setEditingImageIndex] = useState<number | null>(null);
-  const [lightboxSrc, setLightboxSrc] = useState<string | null>(null);
+  const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
 
   // const [, setIsPreviewMode] = useState(false);
   const dispatch = useDispatch();
@@ -463,7 +463,7 @@ const addTag =(username:string)=>{
                         maxHeight={selectedImage.length > 1 ? "auto" : "auto"}
                         borderRadius="md"
                         cursor="pointer"
-                        onClick={() => setLightboxSrc(src)}
+                        onClick={() => setLightboxIndex(index)}
                       />
 
                       {/* edit image button */}
@@ -695,7 +695,7 @@ const addTag =(username:string)=>{
 
         {/* <CreatePostModal isOpen={isModalOpen} onClose={closeModal} /> */}
       </HStack>
-      {lightboxSrc && <ImageLightbox src={lightboxSrc} onClose={() => setLightboxSrc(null)} />}
+      <ImageLightbox images={imagePreview} initialIndex={lightboxIndex} onClose={() => setLightboxIndex(null)} />
     </>
   );
 };
