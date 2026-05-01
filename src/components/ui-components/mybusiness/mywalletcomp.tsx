@@ -7,6 +7,7 @@ import { useGetTransactionMutation } from "mangarine/state/services/payment.serv
 const MyWalletComponent = () => {
   const [transactions, setTransactions] = useState<boolean>(false);
   const [income, setIncome] = useState<boolean>(false);
+  const [balanceHidden, setBalanceHidden] = useState<boolean>(false);
   const [getTransaction, { data, isLoading, error }] = useGetTransactionMutation();
 
   useEffect(() => {
@@ -139,9 +140,15 @@ const MyWalletComponent = () => {
                 fontWeight="600"
                 // lineHeight={"36px"}
               >
-                {isLoading ? "Loading…" : formatCurrency(totalOwed)}
+                {isLoading ? "Loading…" : balanceHidden ? "••••••" : formatCurrency(totalOwed)}
               </Text>
-              <Image src="/icons/walleteye.svg" alt="close-wallet" />
+              <Image
+                src="/icons/walleteye.svg"
+                alt="toggle balance"
+                cursor="pointer"
+                onClick={() => setBalanceHidden((v) => !v)}
+                opacity={balanceHidden ? 0.4 : 1}
+              />
             </HStack>
             <Text
               color="main_background"

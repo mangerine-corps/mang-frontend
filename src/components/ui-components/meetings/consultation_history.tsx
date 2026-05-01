@@ -1,192 +1,134 @@
-import { Box, HStack, Input, Stack, Text, VStack } from "@chakra-ui/react";
-import AppointmentTable from "../appointmenttable";
-import { Calendar } from "react-date-range";
-import { useEffect, useState } from "react";
+import { Box, HStack, Input, Text, VStack } from "@chakra-ui/react";
+import { useState } from "react";
 import { FaCalendar } from "react-icons/fa6";
-import * as Yup from "yup";
-import { yupResolver } from "@hookform/resolvers/yup";
-import CustomSelect from "mangarine/components/customcomponents/select";
-import { Controller, useForm } from "react-hook-form";
-import { SelectOptions } from "mangarine/types";
+import AppointmentTable from "../appointmenttable";
 
+const statusOptions = ["Pending", "Ongoing", "Completed", "Cancelled", "Rescheduled"];
 
-const Schema = Yup.object().shape({
-  advance: Yup.array().of(Yup.string()).min(1, "advance is required"),
-  status: Yup.array().of(Yup.string()).min(1, "Status is required"),
-
-});
-const status = [
-  {
-    id: "1",
-    label: "Pending",
-    value: "Pending",
-  },
-  {
-    id: "2",
-    label: "Ongoing",
-    value: "Ongoing",
-  },
-  {
-    id: "3",
-    label: "Completed",
-    value: "Completed",
-  },
-  {
-    id: "4",
-    label: "Cancelled",
-    value: "Cancelled",
-  },
-];
 const ConsultationHistory = () => {
-    const [date, setDate] = useState(null);
-    const [showCalendar, setShowCalendar] = useState(false)
-    const [searchTerm, setSearchTerm] = useState<string>("")
-     const [showTo, setShowTo] = useState(false);
-       const [timeOptions, setTimeOptions] = useState<SelectOptions[]>([]);
-    useEffect(() => {
-    console.log(date, "date")
-    }, [date])
-  const {
-    control,
-    handleSubmit,
-    formState: { errors },
-  } = useForm({
-    resolver: yupResolver(Schema),
-    defaultValues: {
-      advance: [],
-      status: [],
+  const [fromDate, setFromDate] = useState("");
+  const [toDate, setToDate] = useState("");
+  const [status, setStatus] = useState("Pending");
+  const [nameSearch, setNameSearch] = useState("");
 
-    },
-  });
-  const onSubmit = () => {
-    console.log("here");
-  };
-    return (
-      <Box
-        w="100%"
-        mx="auto"
-        // p={4}
-        boxShadow="md"
-        borderRadius="md"
-        // bg="main_background"
+  return (
+    <Box w="100%" mx="auto" boxShadow="md" borderRadius="md">
+      {/* ── Filter bar ── */}
+      <HStack
+        w="full"
+        bg="bg_box"
+        mb={4}
+        p={4}
+        rounded="lg"
+        gap={4}
+        flexWrap="wrap"
+        alignItems="flex-end"
       >
-        <HStack w="full" h="full" bg="bg_box" mb="6" p="4" rounded={"lg"}>
-          <VStack w="full" alignItems={"flex-start"} pb="4">
-            <Text>From</Text>
-            <HStack
-              w="full"
-              borderWidth={"1.5px"}
-              rounded="lg"
-              py="2"
-              px="2"
-              pos="relative"
-              justifyContent={"space-between"}
-              alignItems={"center"}
-              borderColor="grey.300"
-              onClick={() => {
-                setShowCalendar(!showCalendar);
-              }}
-            >
-              <Text></Text>{" "}
-              <Text color="grey.300">
-                <FaCalendar />
-              </Text>
-            </HStack>
-            {showCalendar && (
-              <Stack pos="absolute" top="60" maxW="200px">
-                <Calendar
-                  onChange={(item) => setDate(item)}
-                  //   locale={locales[locale]}
-                  date={date}
-                />
-              </Stack>
-            )}
-          </VStack>
-          <VStack w="full" alignItems={"flex-start"} pb="4">
-            <Text>To</Text>
-            <HStack
-              w="full"
-              borderWidth={"1.5px"}
-              rounded="lg"
-              py="2"
-              px="2"
-              justifyContent={"space-between"}
-              alignItems={"center"}
-              borderColor="grey.300"
-              onClick={() => {
-                setShowTo(!showTo);
-              }}
-            >
-              <Text></Text>{" "}
-              <Text color="grey.300">
-                <FaCalendar />
-              </Text>
-            </HStack>
+        {/* From */}
+        <VStack alignItems="flex-start" flex={1} minW="140px" gap={1}>
+          <Text fontSize="0.8rem" color="gray.500" fontWeight="400">From</Text>
+          <HStack
+            w="full"
+            borderWidth="1.5px"
+            rounded="lg"
+            py="2.5"
+            px="3"
+            borderColor="gray.200"
+            bg="main_background"
+            justify="space-between"
+          >
+            <Input
+              type="date"
+              border="none"
+              focusRing="none"
+              outline="none"
+              p={0}
+              h="auto"
+              fontSize="0.875rem"
+              color="text_primary"
+              value={fromDate}
+              onChange={(e) => setFromDate(e.target.value)}
+            />
+            <FaCalendar color="#9CA3AF" size={14} />
+          </HStack>
+        </VStack>
 
-            {showTo && (
-              <Stack pos="absolute" top="60" maxW="200px">
-                <Calendar
-                  onChange={(item) => setDate(item)}
-                  //   locale={locales[locale]}
-                  date={date}
-                />
-              </Stack>
-            )}
-          </VStack>
-          <VStack w="full" alignItems={"flex-start"}>
-            <Stack w="full">
-              <Controller
-                name="status"
-                control={control}
-                render={({ field: { onChange, value } }) => (
-                  <CustomSelect
-                    id={"status"}
-                    placeholder="Select meeting buffer time"
-                    name={"meeting time"}
-                    size="sm"
-                    options={status}
-                    label="         Status"
-                    value={value}
-                    bg="main_background"
-                    required={false}
-                    error={{}}
-                    onChange={onChange}
-                  />
-                )}
-              />
-            </Stack>
-          </VStack>
-          <VStack w="full" alignItems={"flex-start"} pb="4">
-            <Text>Name</Text>
-            <HStack
-              borderWidth="1.5px"
-              rounded="lg"
-              borderColor="grey.300"
-              px="3"
-              w={{ base: "full", md: "full" }}
-            >
-              {/* <Image src="/Icons/searchSvg.svg" alt="Search" /> */}
-              <Input
-                size="xs"
-                outline={"none"}
-                focusRing={"none"}
-                border="none"
-                alignItems={"center"}
-                justifyContent={"flex-start"}
-                // flex="2"
-                placeholder="Search Name"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
-            </HStack>
-          </VStack>
-        </HStack>
-        <AppointmentTable />
-        {/* <AppointmentDetails />
-            <FollowUp />
-            <FollowupSchedule />
-            <BookingCalendar /> */}
-      </Box>
-    );
-}
+        {/* To */}
+        <VStack alignItems="flex-start" flex={1} minW="140px" gap={1}>
+          <Text fontSize="0.8rem" color="gray.500" fontWeight="400">To</Text>
+          <HStack
+            w="full"
+            borderWidth="1.5px"
+            rounded="lg"
+            py="2.5"
+            px="3"
+            borderColor="gray.200"
+            bg="main_background"
+            justify="space-between"
+          >
+            <Input
+              type="date"
+              border="none"
+              focusRing="none"
+              outline="none"
+              p={0}
+              h="auto"
+              fontSize="0.875rem"
+              color="text_primary"
+              value={toDate}
+              onChange={(e) => setToDate(e.target.value)}
+            />
+            <FaCalendar color="#9CA3AF" size={14} />
+          </HStack>
+        </VStack>
+
+        {/* Status */}
+        <VStack alignItems="flex-start" flex={1} minW="140px" gap={1}>
+          <Text fontSize="0.8rem" color="gray.500" fontWeight="400">Status</Text>
+          <select
+            value={status}
+            onChange={(e) => setStatus(e.target.value)}
+            style={{
+              width: "100%",
+              border: "1.5px solid #E5E7EB",
+              borderRadius: "8px",
+              padding: "10px 12px",
+              fontSize: "0.875rem",
+              background: "transparent",
+              outline: "none",
+              cursor: "pointer",
+              appearance: "none",
+            }}
+          >
+            {statusOptions.map((s) => (
+              <option key={s} value={s}>{s}</option>
+            ))}
+          </select>
+        </VStack>
+
+        {/* Name */}
+        <VStack alignItems="flex-start" flex={1} minW="140px" gap={1}>
+          <Text fontSize="0.8rem" color="gray.500" fontWeight="400">Name</Text>
+          <Input
+            borderWidth="1.5px"
+            rounded="lg"
+            py="2.5"
+            px="3"
+            borderColor="gray.200"
+            bg="main_background"
+            fontSize="0.875rem"
+            placeholder="Search by name"
+            focusRing="none"
+            value={nameSearch}
+            onChange={(e) => setNameSearch(e.target.value)}
+          />
+        </VStack>
+      </HStack>
+
+      {/* ── Table ── */}
+      <AppointmentTable filters={{ fromDate, toDate, status, nameSearch }} />
+    </Box>
+  );
+};
+
 export default ConsultationHistory;

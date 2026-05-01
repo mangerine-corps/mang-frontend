@@ -44,7 +44,7 @@ const AccountVerification = () => {
   const [errorMessage, setErrorMessage] = useState("");
   const [sendOtp] = useSendEmailOtpMutation();
   const [verifyEmail, { isLoading: verifying }] = useVerifyEmailMutation();
-  const [visible, setVisible] = useState(false);
+  const [visible, setVisible] = useState(true);
 
   const [intervalValue] = useState<number>(1000);
   const [count, { startCountdown, resetCountdown }] =
@@ -87,6 +87,12 @@ const AccountVerification = () => {
         setShowToast(true);
       });
   };
+
+  // Start countdown on mount
+  useEffect(() => {
+    if (!emailEnabled) return;
+    startCountdown();
+  }, []);
 
   useEffect(() => {
     if (!emailEnabled) return;
@@ -256,40 +262,46 @@ const AccountVerification = () => {
           {errors.otp?.message}
         </FormErrorMessage> */}
 
-            <VStack
-              w="full"
-              alignItems="center"
-              spaceY={4}
-              justifyItems={"center"}
-            >
-              <HStack>
-                <Text
-                  color={"text_primary"}
-                  fontWeight={"600"}
-                  fontSize={"1rem"}
-                  lineHeight={"100%"}
-                >
-                  {" Didn't receive a code?"}
-                </Text>
-                {visible ? (
-                  <Text display={"inline"} color={"text_primary"}>
-                    {" "}
-                    {formatTime(count)}
+            <VStack w="full" alignItems="center" gap={2}>
+              {visible ? (
+                <HStack gap={2}>
+                  <Text
+                    color={count > 60 ? "green.500" : count > 30 ? "orange.400" : "red.500"}
+                    fontWeight="600"
+                    fontSize="0.875rem"
+                  >
+                    Code expires in {formatTime(count)}
                   </Text>
-                ) : (
-                  <span>
-                    <Link
-                      textDecor={"underline"}
-                      color="text_primary"
-                      fontWeight="700"
-                      onClick={resendOtp}
-                    >
-                      {" "}
-                      Resend
-                    </Link>
-                  </span>
-                )}
-              </HStack>
+                </HStack>
+              ) : (
+                <HStack gap={1}>
+                  <Text color="red.500" fontWeight="500" fontSize="0.875rem">
+                    Code expired.
+                  </Text>
+                  <Link
+                    textDecor="underline"
+                    color="text_primary"
+                    fontWeight="600"
+                    fontSize="0.875rem"
+                    onClick={resendOtp}
+                  >
+                    Resend code
+                  </Link>
+                </HStack>
+              )}
+              {visible && (
+                <Text color="grey.500" fontSize="0.8rem">
+                  {`Didn't receive a code?`}{" "}
+                  <Link
+                    textDecor="underline"
+                    color="text_primary"
+                    fontWeight="600"
+                    onClick={resendOtp}
+                  >
+                    Resend
+                  </Link>
+                </Text>
+              )}
             </VStack>
 
             <CustomButton

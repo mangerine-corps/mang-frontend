@@ -156,6 +156,32 @@ export const appointmentApi = createApi({
         { type: "Appointment", id: arg.appointmentId },
       ],
     }),
+    getConsultationHistory: builder.query<any, {
+      page?: number;
+      limit?: number;
+      fromDate?: string;
+      toDate?: string;
+      status?: string;
+      name?: string;
+      sortBy?: string;
+    }>({
+      query: (params) => ({
+        url: `/appointment/consultation-history`,
+        method: "GET",
+        params: {
+          page:     params.page     ?? 1,
+          limit:    params.limit    ?? 10,
+          fromDate: params.fromDate || undefined,
+          toDate:   params.toDate   || undefined,
+          status:   params.status   || undefined,
+          name:     params.name     || undefined,
+          sortBy:   params.sortBy   || undefined,
+        },
+      }),
+      providesTags: (result, error, params) => [
+        { type: "Appointments", id: `HISTORY-${params.page}` },
+      ],
+    }),
   }),
 });
 
@@ -179,4 +205,5 @@ export const {
   useCancelAppointmentMutation,
   useGetMyPaymentsQuery,
   useJoinConsultationMutation,
+  useGetConsultationHistoryQuery,
 } = appointmentApi;

@@ -1,4 +1,4 @@
-import { Box, HStack, Image, Input, Progress, Stack, Text, VStack } from "@chakra-ui/react";
+import { Box, HStack, Image, Input, Progress, Text, VStack } from "@chakra-ui/react";
 import GuestLayout from "mangarine/layouts/GuestLayout";
 import { useRef, useState } from "react";
 import * as yup from "yup";
@@ -75,6 +75,11 @@ const OnboardingThree = () => {
     // console.log(imageSrc)
   };
   const submitProps = () => {
+    if (!selectedFile || !selectedFile.name) {
+      setErrorMessage("Please upload a photo or skip to continue.");
+      setShowToast(true);
+      return;
+    }
     const formData = new FormData();
     formData.append("file", selectedFile);
     addProfile(formData)

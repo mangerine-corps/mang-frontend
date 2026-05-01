@@ -124,6 +124,14 @@ export const consultantsApi = createApi({
       }),
       invalidatesTags: ["Consultant", "User"],
     }),
+    getPreferences: builder.query<any, void>({
+      query: () => ({ url: "/preferences", method: "GET" }),
+      providesTags: ["Consultant"],
+    }),
+    savePreferences: builder.mutation<any, { advanceNotice: string; meetingBuffer: string; dailyLimit: number }>({
+      query: (body) => ({ url: "/preferences", method: "POST", body }),
+      invalidatesTags: ["Consultant"],
+    }),
   }),
 });
 
@@ -142,4 +150,6 @@ export const {
   useGetConsultantPricingQuery,
   useGetConsultantPricingOnDemandMutation,
   useSubmitConsultantVerificationMutation,
+  useGetPreferencesQuery,
+  useSavePreferencesMutation,
 } = consultantsApi;

@@ -12,6 +12,7 @@ import {
   VStack,
 } from "@chakra-ui/react";
 import { BiMenuAltLeft } from "react-icons/bi";
+import { LuChevronRight, LuChevronDown } from "react-icons/lu";
 import { useRouter } from "next/router";
 import MyAccounts from "mangarine/components/ui-components/myaccount/TabPages/my_account";
 import MyMeetings from "mangarine/components/ui-components/meetings/TabPages/my_meeting";
@@ -27,18 +28,8 @@ import { accountItems, meetingItems, meetingType } from "mangarine/utils/busines
 
 const noScrollbar = {
   "&::-webkit-scrollbar": { width: "0px", height: "0px" },
-  "&::-webkit-scrollbar-track": {
-    width: "0px",
-    background: "transparent",
-    height: "0px",
-  },
-  "&::-webkit-scrollbar-thumb": {
-    background: "transparent",
-    borderRadius: "0px",
-    maxHeight: "0px",
-    height: "0px",
-    width: 0,
-  },
+  "&::-webkit-scrollbar-track": { width: "0px", background: "transparent", height: "0px" },
+  "&::-webkit-scrollbar-thumb": { background: "transparent", borderRadius: "0px", maxHeight: "0px", height: "0px", width: 0 },
 };
 
 const MyBusinessWorkspace = () => {
@@ -65,16 +56,11 @@ const MyBusinessWorkspace = () => {
 
   const renderContent = () => {
     switch (activeTab) {
-      case "dashboard":
-        return <Dashboard />;
-      case "meetings":
-        return <MyMeetings page={activePage} />;
-      case "wallet":
-        return <MyWalletComponent />;
-      case "myaccount":
-        return <MyAccounts page={feedbackActivePage} />;
-      default:
-        return <Dashboard />;
+      case "dashboard":   return <Dashboard />;
+      case "meetings":    return <MyMeetings page={activePage} />;
+      case "wallet":      return <MyWalletComponent />;
+      case "myaccount":   return <MyAccounts page={feedbackActivePage} />;
+      default:            return <Dashboard />;
     }
   };
 
@@ -83,7 +69,6 @@ const MyBusinessWorkspace = () => {
       setActiveTab(tab);
       return;
     }
-
     setActiveTab("dashboard");
   }, [tab]);
 
@@ -99,18 +84,20 @@ const MyBusinessWorkspace = () => {
       borderBottom="1px"
       borderLeft="1px"
       pos="relative"
-      overflow="hidden"
       display="flex"
       borderRadius="lg"
       boxShadow="lg"
+      minH="100vh"
+      overflow="visible"
     >
+      {/* ── Sidebar ── */}
       <Box
-        w="full"
-        flex={3}
+        flexShrink={0}
+        w={{ lg: "260px", xl: "280px" }}
         borderRight="1px"
-        mr="3"
         borderColor="gray.200"
         display={{ base: "none", md: "none", lg: "flex", xl: "flex" }}
+        flexDirection="column"
       >
         <Box
           as="nav"
@@ -119,155 +106,146 @@ const MyBusinessWorkspace = () => {
           w="full"
           h="full"
           borderRadius="16px"
-          boxShadow="sm"
           justifyContent="space-between"
           bg="main_background"
         >
-          <VStack w="full" alignItems="flex-start" justifyContent="flex-start">
-            {menuData.map((item, index: number) => (
-              <VStack w="full" key={index}>
-                <Flex
-                  key={item.id}
-                  width={activeTab === item.id ? "95%" : "full"}
-                  mx="auto"
-                  align="center"
-                  justify="space-between"
-                  p="4"
-                  roundedTopLeft={activeTab === item.id ? "lg" : "none"}
-                  roundedBottomLeft={activeTab === item.id ? "lg" : "none"}
-                  borderLeftWidth={activeTab === item.id ? "4px" : "0px"}
-                  borderLeftColor={
-                    activeTab === item.id ? "gray.500" : "transparent"
-                  }
-                  backgroundColor={
-                    activeTab === item.id ? "gray.100" : "transparent"
-                  }
-                  mt={activeTab === item.id ? "2" : "0"}
-                  color={activeTab === item.id ? "gray.900" : "gray.700"}
-                  _hover={{ backgroundColor: "gray.50" }}
-                  onClick={() => syncTabQuery(item.id)}
-                  cursor="pointer"
-                >
-                  <Flex align="center">
-                    <VStack alignItems="flex-start" justifyContent="flex-start">
-                      <HStack>
-                        <Stack
-                          h="10"
-                          w="10"
-                          marginRight={4}
-                          rounded="full"
-                          alignItems="center"
-                          justifyContent="center"
-                          bg="#F71AFC14"
-                        >
-                          <Image src={item.icon} alt={item.text} boxSize="4" />
-                        </Stack>
+          <VStack w="full" alignItems="flex-start" justifyContent="flex-start" pt={2}>
+            {menuData.map((item, index: number) => {
+              const isActive = activeTab === item.id;
+              const hasSubs = item.id === "meetings" || item.id === "myaccount";
 
-                        <Text color="text_primary" fontSize="1.25rem" fontWeight="500">
-                          {item.text}
-                        </Text>
-                      </HStack>
-                    </VStack>
+              return (
+                <VStack w="full" key={index} gap={0}>
+                  {/* Main menu item */}
+                  <Flex
+                    w="full"
+                    align="center"
+                    justify="space-between"
+                    px={4}
+                    py={3}
+                    borderLeftWidth={isActive ? "4px" : "0px"}
+                    borderLeftColor={isActive ? "primary.950" : "transparent"}
+                    backgroundColor={isActive ? "gray.100" : "transparent"}
+                    color={isActive ? "gray.900" : "gray.700"}
+                    _hover={{ backgroundColor: "gray.50" }}
+                    onClick={() => syncTabQuery(item.id)}
+                    cursor="pointer"
+                    transition="all 0.15s"
+                  >
+                    <HStack gap={3}>
+                      <Stack
+                        h="9"
+                        w="9"
+                        rounded="full"
+                        alignItems="center"
+                        justifyContent="center"
+                        bg="#F71AFC14"
+                        flexShrink={0}
+                      >
+                        <Image src={item.icon} alt={item.text} boxSize="4" />
+                      </Stack>
+                      <Text color="text_primary" fontSize="1rem" fontWeight="500">
+                        {item.text}
+                      </Text>
+                    </HStack>
+
+                    {hasSubs ? (
+                      isActive ? <LuChevronDown size={16} color="#666" /> : <LuChevronRight size={16} color="#666" />
+                    ) : (
+                      <LuChevronRight size={16} color="#666" />
+                    )}
                   </Flex>
-                  <Image src={item.iconBg} alt="arrow" />
-                </Flex>
 
-                {activeTab === item.id &&
-                  item.id === "myaccount" &&
-                  item.text === "My Account" && (
-                    <VStack
-                      alignItems="flex-start"
-                      justifyContent="flex-start"
-                      ml="2rem"
-                      gap={0}
-                      borderColor="grey.400"
-                      h="full"
-                      pos="relative"
-                    >
-                      {accountItems.map((accountItem: meetingType) => (
-                        <HStack
-                          key={accountItem.title}
-                          w="full"
-                          pt={3}
-                          m={0}
-                          cursor="pointer"
-                          onClick={() =>
-                            setFeedbackActivePage(accountItem.title)
-                          }
-                          borderLeftWidth={2}
-                          borderColor="grey.400"
-                          flex={1}
-                        >
-                          <Box w="12" h="0.5" bg="grey.500" />
-
-                          <Text
-                            color={
-                              feedbackActivePage === accountItem.title
-                                ? "gray.400"
-                                : "text_primary"
-                            }
-                            _hover={{ color: "grey.300" }}
+                  {/* Sub-items for My Meeting */}
+                  {isActive && item.id === "meetings" && (
+                    <VStack alignItems="flex-start" w="full" gap={0} ml="44px">
+                      {meetingItems.map((sub: meetingType, i: number) => {
+                        const isLast = i === meetingItems.length - 1;
+                        return (
+                          <HStack
+                            key={sub.title}
+                            w="full"
+                            py={2}
+                            cursor="pointer"
+                            onClick={() => setActivePage(sub.title)}
+                            gap={0}
+                            position="relative"
                           >
-                            {accountItem.text}
-                          </Text>
-                        </HStack>
-                      ))}
+                            {/* vertical segment — full height except last item stops at midpoint */}
+                            <Box
+                              position="absolute"
+                              left="0"
+                              top="0"
+                              bottom={isLast ? "50%" : "0"}
+                              w="2px"
+                              bg="gray.300"
+                            />
+                            {/* horizontal connector */}
+                            <Box w="16px" h="2px" bg="gray.300" flexShrink={0} />
+                            <Text
+                              ml={2}
+                              fontSize="0.875rem"
+                              fontWeight={activePage === sub.title ? "600" : "400"}
+                              color={activePage === sub.title ? "text_primary" : "gray.500"}
+                              _hover={{ color: "text_primary" }}
+                            >
+                              {sub.text}
+                            </Text>
+                          </HStack>
+                        );
+                      })}
                     </VStack>
                   )}
 
-                {activeTab === item.id &&
-                  item.id === "meetings" &&
-                  item.text === "My Meeting" && (
-                    <VStack
-                      alignItems="flex-start"
-                      justifyContent="flex-start"
-                      ml="2rem"
-                      gap={0}
-                      borderColor="grey.400"
-                      h="full"
-                      pos="relative"
-                    >
-                      {meetingItems.map((meetingItem: meetingType) => (
-                        <HStack
-                          key={meetingItem.title}
-                          pt={3}
-                          m={0}
-                          cursor="pointer"
-                          onClick={() => setActivePage(meetingItem.title)}
-                          borderLeftWidth={2}
-                          borderColor="grey.400"
-                          flex={1}
-                          width="full"
-                        >
-                          <Box w="12" h="0.5" bg="grey.500" />
-
-                          <Text
-                            color={
-                              activePage === meetingItem.title
-                                ? "gray.400"
-                                : "text_primary"
-                            }
-                            _hover={{ color: "grey.300" }}
+                  {/* Sub-items for My Account */}
+                  {isActive && item.id === "myaccount" && (
+                    <VStack alignItems="flex-start" w="full" gap={0} ml="44px">
+                      {accountItems.map((sub: meetingType, i: number) => {
+                        const isLast = i === accountItems.length - 1;
+                        return (
+                          <HStack
+                            key={sub.title}
+                            w="full"
+                            py={2}
+                            cursor="pointer"
+                            onClick={() => setFeedbackActivePage(sub.title)}
+                            gap={0}
+                            position="relative"
                           >
-                            {meetingItem.text}
-                          </Text>
-                        </HStack>
-                      ))}
+                            <Box
+                              position="absolute"
+                              left="0"
+                              top="0"
+                              bottom={isLast ? "50%" : "0"}
+                              w="2px"
+                              bg="gray.300"
+                            />
+                            <Box w="16px" h="2px" bg="gray.300" flexShrink={0} />
+                            <Text
+                              ml={2}
+                              fontSize="0.875rem"
+                              fontWeight={feedbackActivePage === sub.title ? "600" : "400"}
+                              color={feedbackActivePage === sub.title ? "text_primary" : "gray.500"}
+                              _hover={{ color: "text_primary" }}
+                            >
+                              {sub.text}
+                            </Text>
+                          </HStack>
+                        );
+                      })}
                     </VStack>
                   )}
-              </VStack>
-            ))}
+                </VStack>
+              );
+            })}
           </VStack>
 
           <Button
             bg="button_bg"
             w="90%"
             mx="auto"
-            mb="6"
-            justifySelf="flex-end"
-            onClick={() => {
-              setOpenModal(true);
-            }}
+            mb={6}
+            onClick={() => setOpenModal(true)}
           >
             <Text fontFamily="Outfit" color="button_text" fontWeight="400">
               + Create Group Session
@@ -276,21 +254,15 @@ const MyBusinessWorkspace = () => {
         </Box>
       </Box>
 
+      {/* ── Mobile menu trigger ── */}
       <Stack
         as="button"
         cursor="pointer"
-        onClick={() => {
-          setShowMenuList(true);
-        }}
-        display={{
-          base: "flex",
-          md: "flex",
-          lg: "none",
-          xl: "none",
-        }}
+        onClick={() => setShowMenuList(true)}
+        display={{ base: "flex", md: "flex", lg: "none", xl: "none" }}
         pos="absolute"
         left="0"
-        top="80"
+        top="80px"
         bg="main_background"
         p="2"
         zIndex={1000}
@@ -306,24 +278,21 @@ const MyBusinessWorkspace = () => {
         <BiMenuAltLeft />
       </Stack>
 
-      <Box flex="3" overflow="scroll" maxH="100vh" css={noScrollbar}>
+      {/* ── Main content ── */}
+      <Box flex={1} overflowY="auto" css={noScrollbar} px={4} py={4}>
         {renderContent()}
       </Box>
 
       <MenuList
         action={handleMobileTabChange}
         open={showMenuList}
-        onOpenChange={() => {
-          setShowMenuList(false);
-        }}
+        onOpenChange={() => setShowMenuList(false)}
       />
 
       {openModal && (
         <ScheduleGroupConsultation
           isOpen={openModal}
-          onOpenChange={() => {
-            setOpenModal(false);
-          }}
+          onOpenChange={() => setOpenModal(false)}
         />
       )}
     </Box>

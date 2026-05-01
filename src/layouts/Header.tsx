@@ -27,7 +27,6 @@ import { useEffect, useState } from "react";
 import SideBar from "./Sidebar";
 import { CgSearch } from "react-icons/cg";
 import CustomInput from "mangarine/components/customcomponents/Input";
-import { isEmpty, size } from "es-toolkit/compat";
 import { useSearch } from "mangarine/hooks/useSearch";
 import FilterSearch from "mangarine/components/ui-components/filtersearch";
 import { useSaveRecentSearchMutation } from "mangarine/state/services/search.service";
@@ -35,6 +34,7 @@ import { useGetUnreadTotalMessagesQuery } from "mangarine/state/services/chat-ma
 import NotificationDropdown from "mangarine/components/ui-components/NotificationDropdown";
 import { outfit } from "mangarine/pages/_app";
 import { useDispatch } from "react-redux";
+import { DEFAULT_AVATAR } from "mangarine/lib/constants";
 
 type ProfileMenuItem = {
   action: () => void;
@@ -415,29 +415,14 @@ const Header = () => {
             )
           )}
         </HStack>
-        <VStack gap={1} mb={0.5} display={{ base: "none", lg: "flex" }}>
-          <Avatar.Root
-            width={{ base: "25px", lg: "25px" }}
-            height={{ base: "25px", lg: "25px" }}
-            rounded={"full"}
-            objectFit="cover"
-            boxSize="32px" // fixes avatar size
-          >
-            <Avatar.Fallback name={`${user?.fullName}`} />
-            <Avatar.Image src={user?.profilePics} />
-          </Avatar.Root>
-
+        <Box display={{ base: "none", lg: "flex" }} ml={4}>
           <Menu.Root positioning={{ placement: "bottom" }}>
             <Menu.Trigger asChild cursor={"pointer"}>
-              <HStack alignItems={"center"}>
-                <Text
-                  fontSize={"0.688rem"}
-                  color={"text_primary"}
-                  textTransform={"capitalize"}
-                >
-                  {(!isEmpty(user?.fullName) && size(user?.fullName.split(" ")) > 1) ? user?.fullName.split(" ")[0] + user?.fullName.split(" ")[1][0] : user?.fullName}
-
-                </Text>
+              <HStack alignItems={"center"} gap={1}>
+                <Avatar.Root boxSize="32px" rounded="full">
+                  <Avatar.Fallback name={`${user?.fullName}`} />
+                  <Avatar.Image src={user?.profilePics || DEFAULT_AVATAR} />
+                </Avatar.Root>
                 <Icon color="text_primary">
                   <LiaSortDownSolid />
                 </Icon>
@@ -465,7 +450,7 @@ const Header = () => {
                 >
                   <Avatar.Root boxSize="12">
                     <Avatar.Fallback name={`${user?.fullName}`} />
-                    <Avatar.Image src={user?.profilePics} />
+                    <Avatar.Image src={user?.profilePics || DEFAULT_AVATAR} />
                   </Avatar.Root>
                   <VStack alignItems="flex-start" gap={0}>
                     <Text
@@ -539,7 +524,7 @@ const Header = () => {
               </Menu.Content>
             </Menu.Positioner>
           </Menu.Root>
-        </VStack>
+        </Box>
         {/* <ColorModeButton /> */}
       </HStack>
       <SideBar

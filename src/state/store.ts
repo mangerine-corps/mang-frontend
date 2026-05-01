@@ -36,6 +36,8 @@ import { notificationsApi } from "./services/notifications.service";
 import { transactionApi } from "./services/transaction.service";
 import { searchApi } from "./services/search.service";
 import { jobsApi } from "./services/jobs.service";
+import { ratingsApi } from "./services/ratings.service";
+import { dashboardApi } from "./services/dashboard.service";
 import { extractAuthToken, registerAuthTokenResolver } from "../lib/api-client";
 
 const persistConfig = {
@@ -63,6 +65,8 @@ const persistConfig = {
     transactionApi.reducerPath,
     searchApi.reducerPath,
     jobsApi.reducerPath,
+    ratingsApi.reducerPath,
+    dashboardApi.reducerPath,
   ],
 };
 
@@ -98,6 +102,8 @@ const reducers = combineReducers({
   [transactionApi.reducerPath]: transactionApi.reducer,
   [searchApi.reducerPath]: searchApi.reducer,
   [jobsApi.reducerPath]: jobsApi.reducer,
+  [ratingsApi.reducerPath]: ratingsApi.reducer,
+  [dashboardApi.reducerPath]: dashboardApi.reducer,
 });
 
 // Root reducer with reset logic
@@ -139,6 +145,8 @@ export const createStore = () =>
         transactionApi.middleware,
         searchApi.middleware,
         jobsApi.middleware,
+        ratingsApi.middleware,
+        dashboardApi.middleware,
       ]),
   });
 

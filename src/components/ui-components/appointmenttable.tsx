@@ -1,250 +1,272 @@
 import { useState } from "react";
 import {
   Box,
-  Flex,
-  Input,
-  Text,
   Button,
+  Flex,
   HStack,
-  TableRoot,
-  TableHeader,
-  TableBody,
-  TableRow,
-  TableCell,
-  TableColumnHeader,
+  Input,
   Menu,
-  Image,
+  Portal,
+  Spinner,
+  Text,
+  Table,
 } from "@chakra-ui/react";
 import AppointmentView from "./appointmentdetails";
 import { MdOutlineFileUpload } from "react-icons/md";
-import { LuListFilter } from "react-icons/lu";
+import { LuListFilter, LuChevronLeft, LuChevronRight } from "react-icons/lu";
+import { useGetConsultationHistoryQuery } from "mangarine/state/services/apointment.service";
+import { format } from "date-fns";
 
-const appointments = [
-  { id: 1, clientName: "Ralph Edwards", dateTime: "23 Jan, 2024 | 2:22pm", status: "completed" },
-  { id: 2, clientName: "Ralph Edwards", dateTime: "23 Jan, 2024 | 2:22pm", status: "completed" },
-  { id: 3, clientName: "Ralph Edwards", dateTime: "23 Jan, 2024 | 2:22pm", status: "rescheduled" },
-  { id: 4, clientName: "Ralph Edwards", dateTime: "23 Jan, 2024 | 2:22pm", status: "rescheduled" },
-  { id: 5, clientName: "Ralph Edwards", dateTime: "23 Jan, 2024 | 2:22pm", status: "completed" },
-  { id: 6, clientName: "Ralph Edwards", dateTime: "23 Jan, 2024 | 2:22pm", status: "canceled" },
+const sortOptions = [
+  { value: "shortest-longest", label: "Shortest - Longest" },
+  { value: "longest-shortest", label: "Longest - Shortest" },
+  { value: "duration",         label: "Duration" },
+  { value: "client-name",      label: "Client Name" },
+  { value: "time",             label: "Time" },
 ];
 
-const getStatusColor = (status) => {
-  switch (status) {
-    case "completed":
-      return "green.500";
-    case "rescheduled":
-      return "orange.400";
-    case "canceled":
-      return "red.500";
-    default:
-      return "gray.500";
-  }
+const statusColorMap: Record<string, string> = {
+  completed:   "#22C55E",
+  rescheduled: "#F97316",
+  canceled:    "#EF4444",
+  cancelled:   "#EF4444",
+  pending:     "#9CA3AF",
+  upcoming:    "#3B82F6",
+  no_show:     "#6B7280",
 };
 
-const getStatusText = (status) => status.charAt(0).toUpperCase() + status.slice(1);
+const formatDateTime = (val: string) => {
+  if (!val) return "—";
+  try { return format(new Date(val), "dd MMM, yyyy | h:mmaaa"); }
+  catch { return val; }
+};
 
-const AppointmentTable = () => {
+const capitalize = (s: string) =>
+  s ? s.charAt(0).toUpperCase() + s.slice(1).toLowerCase() : "—";
+
+const LIMIT = 10;
+
+type Filters = {
+  fromDate?: string;
+  toDate?: string;
+  status?: string;
+  nameSearch?: string;
+};
+
+const AppointmentTable = ({ filters = {} }: { filters?: Filters }) => {
   const [searchTerm, setSearchTerm] = useState("");
-  const [sortBy, setSortBy] = useState("name-az");
-  const [currentPage, setCurrentPage] = useState(5);
+  const [sortBy, setSortBy]         = useState("shortest-longest");
+  const [page, setPage]             = useState(1);
+  const [details, setDetails]       = useState(false);
+  const [selected, setSelected]     = useState<any>(null);
 
+  const { data, isLoading, isFetching } = useGetConsultationHistoryQuery({
+    page,
+    limit:    LIMIT,
+    fromDate: filters.fromDate || undefined,
+    toDate:   filters.toDate   || undefined,
+    status:   filters.status && filters.status !== "Pending" ? filters.status : undefined,
+    name:     filters.nameSearch || searchTerm || undefined,
+    sortBy,
+  });
 
-  const sortOptions = [
-    { value: "name-az", label: "Client's name (A - Z)" },
-    { value: "name-za", label: "Client's name (Z - A)" },
-    { value: "latest-oldest", label: "Latest - oldest" },
-    { value: "oldest-latest", label: "Oldest - latest" },
-  ];
+  const rows: any[]     = data?.data?.consultations ?? data?.data ?? [];
+  const totalPages: number = data?.data?.pagination?.totalPages ?? data?.pagination?.totalPages ?? 1;
+  const totalItems: number = data?.data?.pagination?.total ?? data?.pagination?.total ?? 0;
 
-  const getSortLabel = (value) => sortOptions.find((option) => option.value === value)?.label || "Sort by";
-     const [details, setDetails] = useState<boolean>(false);
+  // Build visible page numbers (up to 7 around current)
+  const pageNums: number[] = [];
+  const range = 3;
+  for (let i = Math.max(1, page - range); i <= Math.min(totalPages, page + range); i++) {
+    pageNums.push(i);
+  }
+
   return (
-    <Box w="full" h="full" p="4" bg="bg_box">
-      <Box mb={10}>
-        <Flex
-          justify="space-between"
-          mb={6}
-          gap={4}
-          direction={{ base: "column", md: "row" }}
-        >
-          <HStack
-            borderWidth="1.5px"
-            rounded="lg"
-            borderColor="gray.200"
-            px="3"
-            w={{ base: "full", md: "full" }}
-          >
-            <Image src="/Icons/searchSvg.svg" alt="Search" />
-            <Input
-              size="sm"
-              outline={"none"}
-              focusRing={"none"}
-              border="none"
-              alignItems={"center"}
-              justifyContent={"flex-start"}
-              // flex="2"
-              placeholder="Search my business"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
-          </HStack>
+    <Box w="full" bg="bg_box" borderRadius="lg" p={4}>
+      {/* ── Toolbar ── */}
+      <Flex justify="space-between" align="center" mb={6} gap={4} direction={{ base: "column", md: "row" }}>
+        <HStack flex={1} borderWidth="1.5px" rounded="lg" borderColor="gray.200" px={3} bg="main_background">
+          <Box color="gray.400" flexShrink={0}>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <circle cx="11" cy="11" r="8" /><path d="m21 21-4.35-4.35" />
+            </svg>
+          </Box>
+          <Input
+            border="none"
+            focusRing="none"
+            placeholder="Search my business"
+            fontSize="0.875rem"
+            value={searchTerm}
+            onChange={(e) => { setSearchTerm(e.target.value); setPage(1); }}
+          />
+        </HStack>
 
-          <HStack ml="4" justify="flex-end">
-            <Menu.Root>
-              <Menu.Trigger asChild>
-                <Button variant="outline" px="2" py="4" rounded={"lg"}>
-                  <Text fontSize={"1rem"} color="text_primary">
-                    <LuListFilter />
-                  </Text>
-
-                  <Text>{getSortLabel(sortBy)}</Text>
-                  {/* <Image
-                  src="/icons/chevron-down.svg"
-                  alt="Sort"
-                  boxSize="16px"
-                  ml={2}
-                /> */}
-                </Button>
-              </Menu.Trigger>
-              {/* <Portal>
-              <Menu.Positioner>
-                <Menu.Content>
-                  {sortOptions.map((option) => (
-                    <Menu.Item >
-                      <Text Text key={option.value} onClick={() => setSortBy(option.value)}>
-                        {option.label}
-                      </Text>
+        <HStack gap={3} flexShrink={0}>
+          <Menu.Root positioning={{ placement: "bottom-end" }}>
+            <Menu.Trigger asChild>
+              <Button variant="outline" borderColor="gray.200" rounded="lg" px={4} py={2} bg="main_background">
+                <HStack gap={2}>
+                  <LuListFilter size={16} />
+                  <Text fontSize="0.875rem" color="text_primary" fontWeight="400">Sort by</Text>
+                </HStack>
+              </Button>
+            </Menu.Trigger>
+            <Portal>
+              <Menu.Positioner zIndex="max">
+                <Menu.Content bg="main_background" borderWidth="1px" borderColor="gray.100" rounded="lg" shadow="lg" minW="180px" p={1}>
+                  {sortOptions.map((opt) => (
+                    <Menu.Item
+                      key={opt.value}
+                      value={opt.value}
+                      onClick={() => { setSortBy(opt.value); setPage(1); }}
+                      px={4} py={2} borderRadius="md" cursor="pointer"
+                      bg={sortBy === opt.value ? "gray.50" : "transparent"}
+                      _hover={{ bg: "gray.50" }}
+                    >
+                      <Text fontSize="0.875rem" color="text_primary">{opt.label}</Text>
                     </Menu.Item>
                   ))}
                 </Menu.Content>
               </Menu.Positioner>
-            </Portal> */}
-            </Menu.Root>
-            <Button
-              px="4"
-              py="4"
-              borderRadius="8px"
-              bg="blue.900"
-              color="white"
-              _hover={{ bg: "blue.800" }}
-            >
-              <Text fontSize={"1rem"} color="main_background">
-                <MdOutlineFileUpload />
-              </Text>
-              Export
-            </Button>
-          </HStack>
-        </Flex>
-        <TableRoot w="898px" h="644px" borderRadius="12px" pb="24px">
-          <TableHeader>
-            <TableRow>
-              <TableColumnHeader
-                font="outfit"
-                color="text_primary"
-                fontSize="0.875rem"
-                fontWeight="600"
-              >
-               {`Client's Name`}
-              </TableColumnHeader>
-              <TableColumnHeader
-                font="outfit"
-                color="text_primary"
-                fontSize="0.875rem"
-                fontWeight="600"
-              >
+            </Portal>
+          </Menu.Root>
+
+          <Button bg="#0B1441" color="white" rounded="lg" px={5} py={2} _hover={{ bg: "#1a2a6e" }}>
+            <HStack gap={2}>
+              <MdOutlineFileUpload size={18} />
+              <Text fontSize="0.875rem" fontWeight="500">Export</Text>
+            </HStack>
+          </Button>
+        </HStack>
+      </Flex>
+
+      {/* ── Table ── */}
+      <Box overflowX="auto">
+        <Table.Root variant="line" size="md" w="full">
+          <Table.Header>
+            <Table.Row borderColor="gray.100">
+              <Table.ColumnHeader fontSize="0.875rem" fontWeight="700" color="text_primary" py={4}>
+                {`CLIENT'S NAME`}
+              </Table.ColumnHeader>
+              <Table.ColumnHeader fontSize="0.875rem" fontWeight="700" color="text_primary" py={4}>
                 DATE & TIME
-              </TableColumnHeader>
-              <TableColumnHeader
-                font="outfit"
-                color="text_primary"
-                fontSize="0.875rem"
-                fontWeight="600"
-              >
+              </Table.ColumnHeader>
+              <Table.ColumnHeader fontSize="0.875rem" fontWeight="700" color="text_primary" py={4}>
                 STATUS
-              </TableColumnHeader>
-              <TableColumnHeader
-                font="outfit"
-                textAlign="end"
-                // pr="6"
-                color="text_primary"
-                fontSize="0.875rem"
-                fontWeight="600"
-              >
-                ACTION
-              </TableColumnHeader>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {appointments.map((appt) => (
-              <TableRow key={appt.id}>
-                <TableCell
-                  font="outfit"
-                  color="text_primary"
-                  fontSize="0.875rem"
-                  fontWeight="400"
-                >
-                  {appt.clientName}
-                </TableCell>
-                <TableCell color="gray.600">{appt.dateTime}</TableCell>
-                <TableCell
-                  color={getStatusColor(appt.status)}
-                  fontWeight="medium"
-                >
-                  {getStatusText(appt.status)}
-                </TableCell>
-                <TableCell textAlign="end">
-                  <Button
-                    onClick={() => {
-                      setDetails(true);
-                    }}
-                    w="85px"
-                    h="40px"
-                    borderRadius="8px"
-                    border="1px solid"
-                    variant="outline"
-                  >
-                    view
-                  </Button>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </TableRoot>
-        <AppointmentView
-          isOpen={details}
-          onOpenChange={() => {
-            setDetails(false);
-          }}
-        />
+              </Table.ColumnHeader>
+              <Table.ColumnHeader py={4} />
+            </Table.Row>
+          </Table.Header>
+
+          <Table.Body>
+            {isLoading || isFetching ? (
+              <Table.Row>
+                <Table.Cell colSpan={4} textAlign="center" py={12}>
+                  <HStack justify="center" gap={2}>
+                    <Spinner size="sm" />
+                    <Text fontSize="sm" color="gray.400">Loading…</Text>
+                  </HStack>
+                </Table.Cell>
+              </Table.Row>
+            ) : rows.length === 0 ? (
+              <Table.Row>
+                <Table.Cell colSpan={4} textAlign="center" py={12}>
+                  <Text fontSize="sm" color="gray.400">No consultations found.</Text>
+                </Table.Cell>
+              </Table.Row>
+            ) : (
+              rows.map((appt: any) => {
+                const status = (appt.status ?? "").toLowerCase();
+                const clientName = appt.user?.fullName ?? appt.client?.fullName ?? appt.clientName ?? "—";
+                const dateTime   = formatDateTime(appt.scheduledDateTimeStart ?? appt.scheduledAt ?? appt.createdAt);
+                return (
+                  <Table.Row key={appt.id} borderColor="gray.100" _hover={{ bg: "gray.50" }}>
+                    <Table.Cell fontSize="0.875rem" color="text_primary" fontWeight="400" py={5}>
+                      {clientName}
+                    </Table.Cell>
+                    <Table.Cell fontSize="0.875rem" color="gray.500" py={5}>
+                      {dateTime}
+                    </Table.Cell>
+                    <Table.Cell py={5}>
+                      <Text fontSize="0.875rem" fontWeight="500" color={statusColorMap[status] ?? "gray.500"}>
+                        {capitalize(appt.status)}
+                      </Text>
+                    </Table.Cell>
+                    <Table.Cell textAlign="end" py={5}>
+                      <Button
+                        variant="outline"
+                        borderColor="gray.200"
+                        borderWidth="1.5px"
+                        rounded="lg"
+                        px={6} py={2} h="auto"
+                        fontSize="0.875rem"
+                        color="text_primary"
+                        fontWeight="400"
+                        _hover={{ bg: "gray.50" }}
+                        onClick={() => { setSelected(appt); setDetails(true); }}
+                      >
+                        View
+                      </Button>
+                    </Table.Cell>
+                  </Table.Row>
+                );
+              })
+            )}
+          </Table.Body>
+        </Table.Root>
       </Box>
 
-      <Flex justify="center" gap={2} mt={6} wrap="wrap">
-        <Button variant="ghost" size="sm" p={2}>
-          <Image src="/icons/left.svg" alt="Prev" />
-        </Button>
-        <Button variant="ghost" size="sm" w={8} h={8}>
-          ...
-        </Button>
-        {[2, 3, 4, 5, 6, 7, 8].map((page) => (
+      {/* ── Pagination ── */}
+      {totalPages > 1 && (
+        <Flex justify="center" align="center" gap={1} mt={8}>
           <Button
-            key={page}
-            variant={page === currentPage ? "solid" : "ghost"}
-            colorScheme={page === currentPage ? "gray" : undefined}
-            size="sm"
-            w={8}
-            h={8}
-            onClick={() => setCurrentPage(page)}
+            variant="ghost" size="sm" w={8} h={8} rounded="md" color="text_primary"
+            onClick={() => setPage((p) => Math.max(1, p - 1))}
+            disabled={page <= 1}
           >
-            {page}
+            <LuChevronLeft size={16} />
           </Button>
-        ))}
-        <Button variant="ghost" size="sm" w={8} h={8}>
-          ...
-        </Button>
-        <Button variant="ghost" size="sm" p={2}>
-          <Image src="/icons/right.svg" alt="Next" />
-        </Button>
-      </Flex>
+
+          {pageNums[0] > 1 && (
+            <Button variant="ghost" size="sm" w={8} h={8} rounded="md" color="gray.400" fontSize="0.875rem"
+              onClick={() => setPage(1)}>1</Button>
+          )}
+          {pageNums[0] > 2 && (
+            <Text color="gray.400" px={1}>…</Text>
+          )}
+
+          {pageNums.map((p) => (
+            <Button
+              key={p} size="sm" w={8} h={8} rounded="md" fontSize="0.875rem"
+              fontWeight={p === page ? "600" : "400"}
+              bg={p === page ? "#0B1441" : "transparent"}
+              color={p === page ? "white" : "text_primary"}
+              _hover={{ bg: p === page ? "#0B1441" : "gray.100" }}
+              onClick={() => setPage(p)}
+            >
+              {p}
+            </Button>
+          ))}
+
+          {pageNums[pageNums.length - 1] < totalPages - 1 && (
+            <Text color="gray.400" px={1}>…</Text>
+          )}
+          {pageNums[pageNums.length - 1] < totalPages && (
+            <Button variant="ghost" size="sm" w={8} h={8} rounded="md" color="gray.400" fontSize="0.875rem"
+              onClick={() => setPage(totalPages)}>{totalPages}</Button>
+          )}
+
+          <Button
+            variant="ghost" size="sm" w={8} h={8} rounded="md" color="text_primary"
+            onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+            disabled={page >= totalPages}
+          >
+            <LuChevronRight size={16} />
+          </Button>
+        </Flex>
+      )}
+
+      <AppointmentView isOpen={details} onOpenChange={() => { setDetails(false); setSelected(null); }} />
     </Box>
   );
 };

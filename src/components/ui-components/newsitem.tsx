@@ -2,6 +2,7 @@ import {
   Avatar,
   Box,
   Button,
+  Grid,
   HStack,
   Icon,
   Image,
@@ -97,7 +98,7 @@ const NewsItem: React.FC<NewsItemProps> = ({ post, isDetailPage = false }) => {
   // const [addFollower] = useFollowUserMutation();
   // const [unfollowUser] = useUnfollowUserMutation();
   const [view, setView] = useState<boolean>(false);
-  const [lightboxSrc, setLightboxSrc] = useState<string | null>(null);
+  const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
 
   const [showCollections, setShowCollections] = useState(false);
   // Hook manages isFollowing state and label consistently across app
@@ -357,25 +358,80 @@ const NewsItem: React.FC<NewsItemProps> = ({ post, isDetailPage = false }) => {
           </Text>
         ) : null}
 
-        {size(post?.images) > 0 && (
-          <HStack mt={5} alignItems={"stretch"} spaceX={4}>
-            {post?.images.map((url, index) => (
-              <Box flex={1} key={index} onClick={(e) => { e.stopPropagation(); setLightboxSrc(url); }} cursor="pointer">
-                <Image
-                  h="200px"
-                  w="full"
-                  alt={`Post Image ${index}`}
-                  objectFit={"cover"}
-                  objectPosition={"center"}
-                  rounded="6px"
-                  src={url}
-                />
-              </Box>
-            ))}
-          </HStack>
-        )}
+        {size(post?.images) > 0 && (() => {
+          const imgs = post.images;
+          const total = imgs.length;
+          const remaining = total - 3;
 
-        <ImageLightbox src={lightboxSrc} onClose={() => setLightboxSrc(null)} />
+          if (total === 1) {
+            return (
+              <Box
+                mt={5} cursor="pointer" rounded="6px" overflow="hidden"
+                onClick={(e) => { e.stopPropagation(); setLightboxIndex(0); }}
+              >
+                <Image h={{ base: "220px", md: "300px" }} w="full" objectFit="cover" objectPosition="center" src={imgs[0]} alt="Post image" />
+              </Box>
+            );
+          }
+
+          if (total === 2) {
+            return (
+              <Grid mt={5} templateColumns="1fr 1fr" gap={1}>
+                {imgs.map((url, i) => (
+                  <Box key={i} cursor="pointer" rounded="6px" overflow="hidden"
+                    onClick={(e) => { e.stopPropagation(); setLightboxIndex(i); }}
+                  >
+                    <Image h={{ base: "160px", md: "220px" }} w="full" objectFit="cover" objectPosition="center" src={url} alt={`Post image ${i + 1}`} />
+                  </Box>
+                ))}
+              </Grid>
+            );
+          }
+
+          // 3+ images: left large, right two stacked
+          return (
+            <HStack mt={5} gap={1} alignItems="stretch" h={{ base: "200px", md: "260px" }}>
+              {/* Left: first image full height */}
+              <Box
+                flex={1} cursor="pointer" rounded="6px" overflow="hidden" h="full"
+                onClick={(e) => { e.stopPropagation(); setLightboxIndex(0); }}
+              >
+                <Image h="full" w="full" objectFit="cover" objectPosition="center" src={imgs[0]} alt="Post image 1" />
+              </Box>
+              {/* Right: two stacked */}
+              <VStack flex={1} gap={1} h="full">
+                <Box
+                  flex={1} w="full" cursor="pointer" rounded="6px" overflow="hidden"
+                  onClick={(e) => { e.stopPropagation(); setLightboxIndex(1); }}
+                >
+                  <Image h="full" w="full" objectFit="cover" objectPosition="center" src={imgs[1]} alt="Post image 2" />
+                </Box>
+                <Box
+                  flex={1} w="full" position="relative" cursor="pointer" rounded="6px" overflow="hidden"
+                  onClick={(e) => { e.stopPropagation(); setLightboxIndex(2); }}
+                >
+                  <Image h="full" w="full" objectFit="cover" objectPosition="center" src={imgs[2]} alt="Post image 3" />
+                  {remaining > 0 && (
+                    <Box
+                      position="absolute" inset={0} bg="rgba(0,0,0,0.55)"
+                      display="flex" alignItems="center" justifyContent="center"
+                    >
+                      <Text color="white" fontWeight="700" fontSize={{ base: "1.25rem", md: "1.5rem" }}>
+                        +{remaining}
+                      </Text>
+                    </Box>
+                  )}
+                </Box>
+              </VStack>
+            </HStack>
+          );
+        })()}
+
+        <ImageLightbox
+          images={post?.images ?? []}
+          initialIndex={lightboxIndex}
+          onClose={() => setLightboxIndex(null)}
+        />
 
         {post?.video && (
           <Box mt={5}>
@@ -387,37 +443,34 @@ const NewsItem: React.FC<NewsItemProps> = ({ post, isDetailPage = false }) => {
         )}
       </Box>
 
-      <HStack mt={4} justifyContent={"space-between"}>
-        {/* Error display for like operations */}
-        {likeError && (
-          <Box
-            w="full"
-            p={2}
-            mb={2}
-            bg="red.50"
-            border="1px"
-            borderColor="red.200"
-            borderRadius="md"
-            color="red.600"
-            fontSize="sm"
-          >
-            {likeError}
-          </Box>
-        )}
+      {likeError && (
+        <Box
+          w="full"
+          p={2}
+          mt={2}
+          bg="red.50"
+          border="1px"
+          borderColor="red.200"
+          borderRadius="md"
+          color="red.600"
+          fontSize="sm"
+        >
+          {likeError}
+        </Box>
+      )}
 
+      <HStack mt={4} w="full" justifyContent={"space-between"} alignItems={"center"}>
         {/* Like Button */}
         <NewsAction
           icon={
             <Icon
               size={"md"}
               color={isLiked ? "blue.500" : "gray.400"}
-              mr={"4"}
               transition="all 0.2s ease-in-out"
               _hover={{
                 transform: "scale(1.1)",
                 color: isLiked ? "blue.600" : "gray.500",
               }}
-              // Show loading state
               opacity={isLikeLoading ? 0.6 : 1}
             >
               <FiThumbsUp />
@@ -435,13 +488,11 @@ const NewsItem: React.FC<NewsItemProps> = ({ post, isDetailPage = false }) => {
             <Icon
               size={"md"}
               color={isUnliked ? "red.500" : "gray.400"}
-              mr={"4"}
               transition="all 0.2s ease-in-out"
               _hover={{
                 transform: "scale(1.1)",
                 color: isUnliked ? "red.600" : "gray.400",
               }}
-              // Show loading state
               opacity={isLikeLoading ? 0.6 : 1}
             >
               <FiThumbsDown />
@@ -457,14 +508,12 @@ const NewsItem: React.FC<NewsItemProps> = ({ post, isDetailPage = false }) => {
           icon={
             <Icon
               size={"md"}
-              mr={"4"}
               color={"gray.400"}
               transition="all 0.2s ease-in-out"
               _hover={{
                 transform: "scale(1.1)",
                 color: (post?.allowComments ?? true) ? "gray.500" : "gray.400",
               }}
-              // Show loading state
               opacity={isLikeLoading ? 0.6 : 1}
             >
               <MessageSquareText size={10} />
@@ -475,9 +524,10 @@ const NewsItem: React.FC<NewsItemProps> = ({ post, isDetailPage = false }) => {
           action={toggleComment}
           isDisabled={!(post?.allowComments ?? true)}
         />
+
         <NewsAction
           icon={
-            <Icon size={"md"} color={"gray.400"} mr={"4"}>
+            <Icon size={"md"} color={"gray.400"}>
               <FiEye />
             </Icon>
           }
@@ -491,7 +541,7 @@ const NewsItem: React.FC<NewsItemProps> = ({ post, isDetailPage = false }) => {
             <Button bg="transparent" border={"none"} size="sm">
               <NewsAction
                 icon={
-                  <Icon size={"lg"} color={"gray.400"} mr={"4"}>
+                  <Icon size={"lg"} color={"gray.400"}>
                     <BiShareAlt />
                   </Icon>
                 }

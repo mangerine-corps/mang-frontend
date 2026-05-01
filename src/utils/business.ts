@@ -14,6 +14,15 @@ const meetingItems : meetingType[] = [
     }, {
         text: 'Pricing',
         title: 'pricing'
+    }, {
+        text: 'Calendar',
+        title: 'calendar'
+    }, {
+        text: 'Upcoming Appointments',
+        title: 'upcoming_appointments'
+    }, {
+        text: 'Consultation History',
+        title: 'consultation_history'
     }
 ]
 const accountItems : meetingType[] = [
