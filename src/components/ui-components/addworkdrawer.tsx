@@ -321,6 +321,9 @@ const AddWorkDrawer = ({
               <Box w="full">
                 <Text color="#999999" fontSize="0.75rem" fontWeight="400" mb={2}>
                   Media
+                  {!isEditing && (
+                    <Text as="span" color="red.400" ml={1}>*</Text>
+                  )}
                 </Text>
                 <Box
                   rounded="12px"
@@ -370,6 +373,7 @@ const AddWorkDrawer = ({
                 <VStack w="full" alignItems="flex-start" gap={0}>
                   <Text color="#999999" fontSize="0.75rem" fontWeight="400" mb={2}>
                     Work Description
+                    <Text as="span" color="red.400" ml={1}>*</Text>
                   </Text>
                   <Textarea
                     p="3"
