@@ -58,34 +58,43 @@ function Biocard() {
         goToProfile();
       }}
     >
+      {/* Banner */}
       <Box
         w="full"
         h="120px"
-        bgImage={`url(${user?.profileBanner})`}
         borderTopRadius="lg"
         position="relative"
-        // bgRepeat={"no-repeat"}
-        // objectFit={"stretch"}
-        objectPosition={"center"}
-        // pt="24px"
-        // px="24px"
-        roundedTop={"lg"}
         bg="grey.300"
       >
-        <Box>
-          <Avatar.Root
+        {user?.profileBanner ? (
+          <Image
+            src={user.profileBanner}
+            alt="profile banner"
             position="absolute"
-            bottom="-28px"
-            left={{ base: "4", md: "4", lg: "4" }}
-            boxSize={{ base: "16", md: "80px", lg: "80px" }}
-            borderRadius="full"
-            overflow="hidden"
-            border={{ base: "3px solid white", md: "4px solid white" }}
-          >
-            <Avatar.Fallback name={`${user?.fullName}`} />
-            <Avatar.Image src={user?.profilePics} />
-          </Avatar.Root>
-        </Box>
+            top={0}
+            left={0}
+            w="full"
+            h="full"
+            objectFit="cover"
+            objectPosition="center"
+            borderTopRadius="lg"
+          />
+        ) : null}
+
+        {/* Avatar overlapping below the banner */}
+        <Avatar.Root
+          position="absolute"
+          bottom="-28px"
+          left={{ base: "4", md: "4", lg: "4" }}
+          boxSize={{ base: "16", md: "80px", lg: "80px" }}
+          borderRadius="full"
+          overflow="hidden"
+          border={{ base: "3px solid white", md: "4px solid white" }}
+          zIndex={1}
+        >
+          <Avatar.Fallback name={`${user?.fullName}`} />
+          <Avatar.Image src={user?.profilePics} />
+        </Avatar.Root>
       </Box>
 
       <Box
