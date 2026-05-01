@@ -94,7 +94,8 @@ const StatusCard: FC<StatsProps> = ({ data, followers, following }) => {
         borderRadius="6px"
         background="main_background"
         boxShadow="0px 0px 4px 0px rgba(0, 0, 0, 0.10)"
-        w="fit-content"
+        w={{ base: "full", md: "fit-content" }}
+        justifyContent={{ base: "space-around", md: "flex-start" }}
       >
         <Text
           cursor="pointer"

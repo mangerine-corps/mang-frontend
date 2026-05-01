@@ -27,18 +27,18 @@ export const NavLinks: NavLink[] = [
       dark: "/icons/navicons/darkhome.svg",
     },
   },
-  {
-    label: "Groups",
-    href: "/groups",
-    icon: {
-      light: "/icons/navicons/commactive.svg",
-      dark: "/icons/navicons/darkinactiveom.svg",
-    },
-    iconActive: {
-      light: "/icons/navicons/lightcomm.svg",
-      dark: "/icons/navicons/darkactivecomm.svg",
-    },
-  },
+  // {
+  //   label: "Groups",
+  //   href: "/groups",
+  //   icon: {
+  //     light: "/icons/navicons/commactive.svg",
+  //     dark: "/icons/navicons/darkinactiveom.svg",
+  //   },
+  //   iconActive: {
+  //     light: "/icons/navicons/lightcomm.svg",
+  //     dark: "/icons/navicons/darkactivecomm.svg",
+  //   },
+  // },
 
   {
     label: "Consultants",
@@ -126,18 +126,18 @@ export const UserLinks: NavLink[] = [
       dark: "/icons/navicons/darkhome.svg",
     },
   },
-  {
-    label: "Groups",
-    href: "/groups",
-    icon: {
-      light: "/icons/navicons/commactive.svg",
-      dark: "/icons/navicons/darkinactiveom.svg",
-    },
-    iconActive: {
-      light: "/icons/navicons/lightcomm.svg",
-      dark: "/icons/navicons/darkactivecomm.svg",
-    },
-  },
+  // {
+  //   label: "Groups",
+  //   href: "/groups",
+  //   icon: {
+  //     light: "/icons/navicons/commactive.svg",
+  //     dark: "/icons/navicons/darkinactiveom.svg",
+  //   },
+  //   iconActive: {
+  //     light: "/icons/navicons/lightcomm.svg",
+  //     dark: "/icons/navicons/darkactivecomm.svg",
+  //   },
+  // },
   {
     label: "Consultants",
     href: "/consultant",

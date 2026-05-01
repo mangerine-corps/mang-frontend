@@ -1,4 +1,4 @@
-import { Box, Flex, HStack, Image, Stack, Text, VStack } from "@chakra-ui/react";
+import { Box, CloseButton, Dialog, Flex, HStack, Image, Portal, Stack, Text, VStack } from "@chakra-ui/react";
 import { RiVerifiedBadgeFill } from "react-icons/ri";
 import { IoChevronForward } from "react-icons/io5";
 import ProfileActivitySection from "mangarine/components/ui-components/profileactivitysection";
@@ -388,7 +388,9 @@ const ConsultantProfile = () => {
               <>
                 <Flex
                   justify="space-between"
-                  align="center"
+                  align={{ base: "flex-start", md: "center" }}
+                  flexDir={{ base: "column", md: "row" }}
+                  gap={{ base: 3, md: 0 }}
                   my={4}
                   fontSize="0.875rem"
                   color="text_primary"
@@ -398,30 +400,28 @@ const ConsultantProfile = () => {
                     data={displayInfo}
                     following={displayInfo?.followingCount}
                   />
-                  <Flex gap={4}>
+                  <Flex gap={3} w={{ base: "full", md: "auto" }}>
                     <Button
+                      flex={{ base: 1, md: "none" }}
                       px="4"
                       bg="bg_box"
                       borderRadius={8}
                       color="text_primary"
-                      // {...buttonStyles(0)}
                       onClick={handleFollow}
                     >
                       {followLabel}
                     </Button>
                     <Button
-                      //   {...buttonStyles(1, true)}
+                      flex={{ base: 1, md: "none" }}
                       onClick={() => setShowBookConsult(true)}
                       px="4"
                       bg="button_bg"
                       color="button_text"
                       borderRadius={8}
                     >
-                      {/* <Text display={{ base: "none", md: "flex" }}>
-                        <HiOutlineUserAdd style={{ marginRight: "8px" }} />
-                      </Text> */}
                       <Image src="/icons/book.svg" alt="book-img-button"/>
-                      Book Consultation
+                      <Text display={{ base: "none", sm: "inline" }}>Book Consultation</Text>
+                      <Text display={{ base: "inline", sm: "none" }}>Book</Text>
                     </Button>
                   </Flex>
                 </Flex>
@@ -437,8 +437,49 @@ const ConsultantProfile = () => {
             )}
           </Flex>
 
+          {/* Mobile booking modal */}
+          <Dialog.Root
+            open={showBookConsult}
+            onOpenChange={(e) => { if (!(e as any).open) { setShowBookConsult(false); setShowPayment(undefined); } }}
+            size="full"
+          >
+            <Portal>
+              <Dialog.Backdrop display={{ base: "block", lg: "none" }} />
+              <Dialog.Positioner display={{ base: "flex", lg: "none" }}>
+                <Dialog.Content bg="main_background" maxH="95dvh" overflowY="auto">
+                  <Dialog.Header borderBottomWidth="1px" borderColor="gray.100" px={4} py={3}>
+                    <HStack justify="space-between" w="full">
+                      <Text fontWeight="600" fontSize="1rem" color="text_primary">Book Consultation</Text>
+                      <Dialog.CloseTrigger asChild>
+                        <CloseButton size="sm" />
+                      </Dialog.CloseTrigger>
+                    </HStack>
+                  </Dialog.Header>
+                  <Dialog.Body px={4} py={4}>
+                    {showPayment ? (
+                      <Box bg="main_background" borderRadius="20px">
+                        <Elements
+                          options={{ clientSecret: showPayment.secret, appearance: appearance, loader }}
+                          stripe={stripePromise}
+                        >
+                          <PaymentCard
+                            paymentDetails={showPayment.paymentDetails}
+                            clientSecret={showPayment.secret}
+                            onBack={() => setShowPayment(undefined)}
+                          />
+                        </Elements>
+                      </Box>
+                    ) : (
+                      <CustomDatePicker onClick={(value) => setShowPayment(value)} />
+                    )}
+                  </Dialog.Body>
+                </Dialog.Content>
+              </Dialog.Positioner>
+            </Portal>
+          </Dialog.Root>
+
           {/* Fixed Stack on the right */}
-          <Stack flexDir={"column"} h="full" overflowY="auto" flex="1.5">
+          <Stack flexDir={"column"} h={{ base: "auto", lg: "full" }} overflowY={{ base: "visible", lg: "auto" }} flex={{ base: "none", lg: "1.5" }}>
             {showBookConsult ? (
               <Stack
                 h="full"
@@ -473,77 +514,122 @@ const ConsultantProfile = () => {
                 )}
               </Stack>
             ) : (
-              <Box
-                overflowY="auto"
-                flex="1"
-                css={{
-                  "&::-webkit-scrollbar": {
-                    width: "0px",
-
-                    height: "0px",
-                  },
-                  "&::-webkit-scrollbar-track": {
-                    width: "0px",
-                    background: "transparent",
-
-                    height: "0px",
-                  },
-                  "&::-webkit-scrollbar-thumb": {
-                    background: "transparent",
-                    borderRadius: "0px",
-                    maxHeight: "0px",
-                    height: "0px",
-                    width: 0,
-                  },
-                }}
-              >
-                <EditIntroductionVideoCard
-                  title={"Introduction Video"}
-                  imageSrc={contactme}
-                  playIconSrc={play}
-                  videoLink={consultantInfo?.videoIntro}
-                  consultantId={id}
-                />
-                {/* <Box mt={4} w="full">
-                <EditContactMeCard
-                  title={"Contact Me"}
-                  email={info?.email}
-                  phone={info?.mobileNumber}
-                  website={"www.sharongraceshow.com"}
-                  edit={<BiSolidEditAlt />}
-                  consultantId={id}
-                />
-              </Box> */}
-                <Box mt={4}>
-                  <EditSkillCard
-                    title={"Skills & Expertise"}
-                    isLoading={isLoading}
-                    skills={consultantInfo?.skills}
+              <>
+                {/* Desktop — original layout, all cards always shown */}
+                <Box
+                  display={{ base: "none", lg: "block" }}
+                  overflowY="auto"
+                  flex="1"
+                  css={{
+                    "&::-webkit-scrollbar": { width: "0px", height: "0px" },
+                    "&::-webkit-scrollbar-track": { width: "0px", background: "transparent", height: "0px" },
+                    "&::-webkit-scrollbar-thumb": { background: "transparent", borderRadius: "0px", height: "0px", width: 0 },
+                  }}
+                >
+                  <EditIntroductionVideoCard
+                    title={"Introduction Video"}
+                    imageSrc={contactme}
+                    playIconSrc={play}
+                    videoLink={consultantInfo?.videoIntro}
+                    consultantId={id}
                   />
-                </Box>
-                <Box mt={4}>
-                  <EditEducationCard
-                    title={"Education"}
-                    isLoading={isLoading}
-                    educations={consultantInfo?.educations}
-                  />
-                </Box>
-                <Box mt={4}>
-                  <EditExperienceCard
-                    title={"Experience"}
-                    isLoading={isLoading}
-                    experiences={consultantInfo?.experiences}
-                  />
+                  <Box mt={4}>
+                    <EditSkillCard
+                      title={"Skills & Expertise"}
+                      isLoading={isLoading}
+                      skills={consultantInfo?.skills}
+                    />
+                  </Box>
+                  <Box mt={4}>
+                    <EditEducationCard
+                      title={"Education"}
+                      isLoading={isLoading}
+                      educations={consultantInfo?.educations}
+                    />
+                  </Box>
+                  <Box mt={4}>
+                    <EditExperienceCard
+                      title={"Experience"}
+                      isLoading={isLoading}
+                      experiences={consultantInfo?.experiences}
+                    />
+                  </Box>
+                  <Box mt={4}>
+                    <EditLanguageCard
+                      title={"Languages"}
+                      isLoading={isLoading}
+                      languages={consultantInfo?.languages}
+                    />
+                  </Box>
                 </Box>
 
-                <Box mt={4}>
-                  <EditLanguageCard
-                    title={"Languages"}
-                    isLoading={isLoading}
-                    languages={consultantInfo?.languages}
-                  />
-                </Box>
-              </Box>
+                {/* Mobile — only show sections with data, combined empty state */}
+                {(() => {
+                  const hasVideo      = !!consultantInfo?.videoIntro;
+                  const hasSkills     = consultantInfo?.skills?.length > 0;
+                  const hasEducation  = consultantInfo?.educations?.length > 0;
+                  const hasExperience = consultantInfo?.experiences?.length > 0;
+                  const hasLanguages  = consultantInfo?.languages?.length > 0;
+                  const hasAnything   = hasVideo || hasSkills || hasEducation || hasExperience || hasLanguages;
+
+                  return (
+                    <VStack display={{ base: "flex", lg: "none" }} gap={4} align="stretch" pb={4}>
+                      {isLoading ? (
+                        <>
+                          {[1, 2, 3].map((i) => (
+                            <Box key={i} bg="bg_box" borderRadius="15px" p={6} boxShadow="0px 0px 4px 0px #0000001A">
+                              <Box h="20px" w="40%" bg="gray.100" borderRadius="4px" mb={3} />
+                              <Box h="14px" w="70%" bg="gray.100" borderRadius="4px" mb={2} />
+                              <Box h="14px" w="50%" bg="gray.100" borderRadius="4px" />
+                            </Box>
+                          ))}
+                        </>
+                      ) : !hasAnything ? (
+                        <VStack
+                          bg="bg_box"
+                          borderRadius="15px"
+                          p={8}
+                          boxShadow="0px 0px 4px 0px #0000001A"
+                          gap={2}
+                          align="center"
+                          textAlign="center"
+                        >
+                          <Text fontSize="1rem" fontWeight="600" color="text_primary">
+                            Profile incomplete
+                          </Text>
+                          <Text fontSize="0.875rem" color="grey.500">
+                            This consultant hasn&apos;t added their skills, education, or experience yet.
+                          </Text>
+                        </VStack>
+                      ) : (
+                        <>
+                          {hasVideo && (
+                            <EditIntroductionVideoCard
+                              title={"Introduction Video"}
+                              imageSrc={contactme}
+                              playIconSrc={play}
+                              videoLink={consultantInfo?.videoIntro}
+                              consultantId={id}
+                            />
+                          )}
+                          {hasSkills && (
+                            <EditSkillCard title={"Skills & Expertise"} isLoading={false} skills={consultantInfo?.skills} />
+                          )}
+                          {hasEducation && (
+                            <EditEducationCard title={"Education"} isLoading={false} educations={consultantInfo?.educations} />
+                          )}
+                          {hasExperience && (
+                            <EditExperienceCard title={"Experience"} isLoading={false} experiences={consultantInfo?.experiences} />
+                          )}
+                          {hasLanguages && (
+                            <EditLanguageCard title={"Languages"} isLoading={false} languages={consultantInfo?.languages} />
+                          )}
+                        </>
+                      )}
+                    </VStack>
+                  );
+                })()}
+              </>
             )}
           </Stack>
         </Flex>

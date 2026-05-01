@@ -7,7 +7,6 @@ import {
   HStack,
   Icon,
   Image,
-  Link,
   Portal,
   Text,
   VStack,
@@ -51,21 +50,7 @@ export const MobileDrawer = () => {
           <Drawer.Backdrop />
           <Drawer.Positioner>
             <Drawer.Content>
-              <Drawer.Header pb={2}>
-                <Link href="/home">
-                  <Image
-                    src={
-                      !isClient
-                        ? "/images/logo.svg"
-                        : colorMode === "dark"
-                          ? "/images/logoDark.svg"
-                          : "/images/logo.svg"
-                    }
-                    alt="logo"
-                    w="8"
-                  />
-                </Link>
-              </Drawer.Header>
+              <Drawer.Header pb={2} />
               <Drawer.Body pt="2">
                 <VStack
                   gap={6}
