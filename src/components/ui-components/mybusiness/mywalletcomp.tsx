@@ -1,4 +1,4 @@
-import { Box, Button, Flex, HStack, Image, Stack, Text, VStack } from "@chakra-ui/react";
+import { Box, Button, Flex, HStack, Image, Skeleton, Stack, Text, VStack } from "@chakra-ui/react";
 import { useEffect, useMemo, useState } from "react";
 import { WalletTable } from "./wallettable";
 import IncomeChart from "./incomechart";
@@ -134,14 +134,17 @@ const MyWalletComponent = () => {
               We Owe
             </Text>
             <HStack>
-              <Text
-                color="main_background"
-                fontSize={{base:"1.2rem",md:"1.5rem",lg:"2.5rem"}}
-                fontWeight="600"
-                // lineHeight={"36px"}
-              >
-                {isLoading ? "Loading…" : balanceHidden ? "••••••" : formatCurrency(totalOwed)}
-              </Text>
+              {isLoading ? (
+                <Skeleton h={{ base: "2rem", md: "2.5rem", lg: "3.5rem" }} w="160px" borderRadius="md" startColor="whiteAlpha.300" endColor="whiteAlpha.600" />
+              ) : (
+                <Text
+                  color="main_background"
+                  fontSize={{base:"1.2rem",md:"1.5rem",lg:"2.5rem"}}
+                  fontWeight="600"
+                >
+                  {balanceHidden ? "••••••" : formatCurrency(totalOwed)}
+                </Text>
+              )}
               <Image
                 src="/icons/walleteye.svg"
                 alt="toggle balance"
@@ -154,9 +157,8 @@ const MyWalletComponent = () => {
               color="main_background"
               fontSize={{base:"0.8rem",md:"0.875rem",lg:"1rem"}}
               fontWeight="300"
-              //   lineHeight={"36px"}
             >
-              Last updated: {isLoading ? "Loading…" : formatDateTime(lastUpdated)}
+              {isLoading ? "" : `Last updated: ${formatDateTime(lastUpdated)}`}
             </Text>
           </VStack>
           <Stack

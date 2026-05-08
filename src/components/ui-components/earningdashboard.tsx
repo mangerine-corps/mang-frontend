@@ -55,11 +55,11 @@ const EarningDashboard: React.FC = () => {
   };
 
   return (
-    <Box w="full" my="3" mx="auto" bg="bg_box" borderRadius="xl" boxShadow="lg" p={6}>
+    <Box w="full" my="3" mx="auto" bg="bg_box" borderRadius="xl" boxShadow="lg" p={{ base: 4, md: 6 }}>
       <VStack align="flex-start" gap={4}>
         <Text fontSize="lg" fontWeight="bold" color="gray.700">Earnings Overview</Text>
 
-        <HStack gap={2}>
+        <HStack gap={2} w="full" px={{ base: 0, md: 0 }} flexWrap="wrap">
           {(["day", "week", "month", "year"] as Period[]).map((p) => (
             <Button
               key={p}
@@ -70,6 +70,8 @@ const EarningDashboard: React.FC = () => {
               _hover={{ bg: period === p ? "#0B1441" : "gray.100" }}
               onClick={() => setPeriod(p)}
               textTransform="capitalize"
+              px={4}
+              borderRadius="md"
             >
               {p.charAt(0).toUpperCase() + p.slice(1)}
             </Button>
