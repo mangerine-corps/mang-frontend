@@ -464,7 +464,7 @@ const ConsultantProfile = () => {
 
           {/* Mobile booking modal */}
           <Dialog.Root
-            open={showBookConsult}
+            open={showBookConsult && isMobile}
             onOpenChange={(e) => { if (!(e as any).open) { setShowBookConsult(false); setShowPayment(undefined); } }}
             size="full"
           >
