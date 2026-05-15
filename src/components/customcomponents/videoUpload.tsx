@@ -2,7 +2,13 @@ import React, { useRef, useState } from "react";
 import { Box, Button, Input } from "@chakra-ui/react";
 import { HiCheck, HiOutlineUpload } from "react-icons/hi";
 
-const VideoUploader = ({ handleChange }: { handleChange: (file: any) => void }) => {
+const VideoUploader = ({
+  handleChange,
+  currentFile,
+}: {
+  handleChange: (file: any) => void;
+  currentFile?: string;
+}) => {
   const [fileName, setFileName] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -18,9 +24,10 @@ const VideoUploader = ({ handleChange }: { handleChange: (file: any) => void }) 
     }
   };
 
+  const displayName = fileName ?? (currentFile ? currentFile.split("/").pop() : null);
+
   return (
     <Box>
-      {/* Hidden file input */}
       <Input
         type="file"
         accept=".mp4,.avi"
@@ -28,13 +35,8 @@ const VideoUploader = ({ handleChange }: { handleChange: (file: any) => void }) 
         display="none"
         onChange={handleFileChange}
       />
-
-      {/* Button or file name display */}
-      {fileName ? (
+      {displayName ? (
         <Button
-          // border={2}
-          // borderRadius="md"
-          // borderColor={"mainBlack"}
           w="full"
           variant="outline"
           onClick={handleFileSelect}
@@ -43,15 +45,10 @@ const VideoUploader = ({ handleChange }: { handleChange: (file: any) => void }) 
           color="text_primary"
           borderColor={"input_border"}
         >
-          <HiCheck /> {fileName}
+          <HiCheck /> {displayName}
         </Button>
       ) : (
-        <Button
-          w="full"
-          variant="outline"
-          onClick={handleFileSelect}
-          colorScheme="blue"
-        >
+        <Button w="full" variant="outline" onClick={handleFileSelect} colorScheme="blue">
           <HiOutlineUpload /> Upload video showcasing skills, and value
         </Button>
       )}

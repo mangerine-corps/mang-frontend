@@ -47,7 +47,7 @@ const MAIN_FILTERS: { label: string; value: FilterType }[] = [
   { label: "Post", value: "posts" },
   { label: "People", value: "people" },
   { label: "Consultant", value: "consultants" },
-  { label: "Groups", value: "groups" },
+  // { label: "Groups", value: "groups" },
 ];
 
 const SkeletonCard = () => (
@@ -383,12 +383,12 @@ function SearchPage() {
             </Box>
           )}
 
-          {/* Groups — no endpoint available */}
+          {/* Groups nav hidden
           {activeFilter === "groups" && q.trim() && (
             <Box bg="bg_box" rounded="xl" px={4} py={12}>
               <EmptyState message="Group search is not available yet" />
             </Box>
-          )}
+          )} */}
 
           {/* ALL filter */}
           {activeFilter === "all" && q.trim() && (
@@ -529,9 +529,9 @@ function SearchPage() {
             {!isEmpty(upcomingConsultation) ? <ActivityBox /> : <ActivityEmptyState />}
           </Box>
           <BookingCalendar />
-          <Stack display={{ base: "none", lg: "flex" }} w="full">
+          {/* <Stack display={{ base: "none", lg: "flex" }} w="full">
             {!isEmpty(trending) ? <TrendingCommunities /> : <TrendingEmptyState />}
-          </Stack>
+          </Stack> */}
           <WhoToFollow />
         </VStack>
       </Box>

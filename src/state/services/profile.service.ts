@@ -72,15 +72,15 @@ export const ProfileApi = createApi({
       invalidatesTags: ["userInfo"],
     }),
 
-    reportUser: builder.mutation({
-      query: ({ postId, userId, reportDetails }) => ({
-        url: `users/${userId}/report`,
+    reportUser: builder.mutation<
+      any,
+      { reportedUserId: string; conversationId?: string; reason: string; description?: string }
+    >({
+      query: (body) => ({
+        url: `users/report`,
         method: "POST",
-        body: { userId, postId, reportDetails },
+        body,
       }),
-      // invalidatesTags: (result, error, { postId }) => [
-      //   { type: "Post", id: postId },
-      // ],
     }),
     updateProfileVideo: builder.mutation({
       query: (credentials) => ({
@@ -251,7 +251,7 @@ export const ProfileApi = createApi({
         body: credentials,
         formData: true,
       }),
-      invalidatesTags: ["works", "userInfo"],
+      invalidatesTags: [{ type: "works", id: "own" }, "userInfo"],
     }),
     editWork: builder.mutation({
       query: ({ workId, credentials }) => ({
@@ -260,20 +260,22 @@ export const ProfileApi = createApi({
         body: credentials,
         formData: true,
       }),
-      invalidatesTags: ["works", "userInfo"],
+      invalidatesTags: [{ type: "works", id: "own" }, "userInfo"],
     }),
     deleteWork: builder.mutation({
       query: (id) => ({
         url: `work/${id}`,
         method: "DELETE",
       }),
-      invalidatesTags: ["works", "userInfo"],
+      invalidatesTags: [{ type: "works", id: "own" }, "userInfo"],
     }),
     getWork: builder.query({
       query: ({ profileId }: { profileId?: string } = {}) => ({
         url: `work/get${profileId ? `?profileId=${profileId}` : ""}`,
       }),
-      providesTags: ["works"],
+      providesTags: (_result, _error, { profileId }: { profileId?: string } = {}) => [
+        { type: "works" as const, id: profileId ?? "own" },
+      ],
     }),
     getFollowersList: builder.query<any, { profileId: string; page?: number; limit?: number }>({
       query: ({ profileId, page = 1, limit = 20 }) => ({

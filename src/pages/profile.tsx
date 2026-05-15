@@ -194,7 +194,7 @@ const Profile = () => {
   }, [langData, currLangData, dispatch, isOwnProfile]);
 
   // When viewing another user's profile, derive display data directly from query results
-  const displayWorks = isOwnProfile ? works : ((currentWorkData?.data ?? workData?.data) || []);
+  const displayWorks = isOwnProfile ? works : (currentWorkData?.data || []);
   const displaySkills = isOwnProfile ? skills : ((currentSkillData?.data ?? skillData?.data) || []);
   const displayEducations = isOwnProfile ? educations : ((eduCurrentData?.data ?? eduData?.data) || []);
   const displayExperiences = isOwnProfile ? experiences : ((expCurrData?.data ?? expData?.data) || []);

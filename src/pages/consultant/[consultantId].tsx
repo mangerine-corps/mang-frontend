@@ -92,6 +92,8 @@ const ConsultantProfile = () => {
 
   useEffect(() => {
     if (id) {
+      setWorks([]);
+      setServices([]);
       getConsultant(id)
         .unwrap()
         .then((payload) => {
@@ -110,6 +112,7 @@ const ConsultantProfile = () => {
 
   const [consultantInfo, setConsultantInfo] = useState<any>({});
   const [availabilityInfo, setAvailabilityInfo] = useState<any>({});
+  const [localFollowerCount, setLocalFollowerCount] = useState<number | null>(null);
   const [paymentSuccessfull, setPaymentSuccessfull] = useState(false);
   const [showPaymentSuccess, setShowPaymentSuccess] = useState(false);
   const [paymentAmount, setPaymentAmount] = useState(0);
@@ -125,6 +128,16 @@ const ConsultantProfile = () => {
 
   const [activeButton, setActiveButton] = useState<number | null>(null);
   const [showBookConsult, setShowBookConsult] = useState<boolean>(false);
+  // Track viewport so the mobile Dialog is never "open" on desktop — prevents
+  // Chakra's dialog from locking body scroll and firing closeOnInteractOutside
+  // (which would close the desktop panel when a calendar date is clicked).
+  const [isMobile, setIsMobile] = useState(false);
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth < 992); // Chakra lg breakpoint
+    check();
+    window.addEventListener("resize", check);
+    return () => window.removeEventListener("resize", check);
+  }, []);
   const [showPayment, setShowPayment] = useState<{
     secret: string;
     paymentDetails: any;
@@ -151,7 +164,12 @@ const ConsultantProfile = () => {
   //      setIsFollowing(isFollow);
   //    }
   //  }, [isFollow]);
-  const handleFollow = () => toggleFollow();
+  const handleFollow = () => {
+    setLocalFollowerCount(prev =>
+      prev !== null ? prev + (hookFollowing ? -1 : 1) : prev
+    );
+    toggleFollow();
+  };
 
   useEffect(() => {
     if (!isEmpty(data)) {
@@ -234,6 +252,13 @@ const ConsultantProfile = () => {
   // Merge unread count into the info object passed to children
   const baseInfo: any = info || consultantInfo || {};
   const displayInfo: any = { ...baseInfo, unreadNotifications: unreadTotal };
+
+  // Initialize local follower count once data is available
+  useEffect(() => {
+    if (displayInfo?.followerCount != null && localFollowerCount === null) {
+      setLocalFollowerCount(displayInfo.followerCount);
+    }
+  }, [displayInfo?.followerCount]);
 
   return (
     <AppLayout>
@@ -396,7 +421,7 @@ const ConsultantProfile = () => {
                   color="text_primary"
                 >
                   <StatusCard
-                    followers={displayInfo?.followerCount}
+                    followers={localFollowerCount ?? displayInfo?.followerCount}
                     data={displayInfo}
                     following={displayInfo?.followingCount}
                   />

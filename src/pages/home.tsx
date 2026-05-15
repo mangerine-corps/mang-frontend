@@ -227,9 +227,9 @@ function Home() {
           <Box w="full">
             <BookingCalendar />
           </Box>
-          <Box display={{ base: "none", lg: "block" }} w="full">
+          {/* <Box display={{ base: "none", lg: "block" }} w="full">
             {!isEmpty(trending) ? <TrendingCommunities /> : <TrendingEmptyState />}
-          </Box>
+          </Box> */}
           <WhoToFollow />
         </VStack>
 

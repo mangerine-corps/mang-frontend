@@ -9,7 +9,7 @@ import CustomInput from "mangarine/components/customcomponents/Input";
 import CustomSelect from "mangarine/components/customcomponents/select";
 
 import { toaster } from "mangarine/components/ui/toaster";
-import { useReportIssueMutation } from "mangarine/state/services/settings.service";
+import { useReportIssueMutation, useSendMessageMutation } from "mangarine/state/services/settings.service";
 const reportType = [
   { id: "1", label: "bug", value: "bug" },
   { id: "2", label: "feature", value: "feature" },
@@ -20,57 +20,77 @@ const reportType = [
 
 
 const Schema = yup.object().shape({
-  reportType: yup.array().of(yup.string()).min(1, "Feedback type is required"),
-  issueType: yup.string().required("description is required"),
-  // subject: yup.string(),
+  reportType: yup.string().required("Feedback type is required"),
+  issueType: yup.string().required("Description is required"),
 });
 const Support = ({ onClick }: { onClick: () => void }) => {
-  // const [value, setValue] = useState<number>(3);
-  const [text, setText] = useState<string>(null);
-  const [reportIssue, {isLoading, error, data}] = useReportIssueMutation()
-       const {
-         control,
-         handleSubmit,
-         setValue,
-         getValues,
-         formState: { errors },
-       } = useForm({
-         resolver: yupResolver(Schema),
-         defaultValues: {
-           reportType: [],
-           issueType: "",
-          //  rating: 1,
-         },
-       });
-       const submit = (data) => {
-        console.log(data)
-         const formData = {
-           description: data.issueType,
-           issueType: data.reportType.join(","),
-          //  comment: data.comment,
-         };
-         console.log(formData, "payload");
-         reportIssue(formData)
-           .unwrap()
-           .then((res) => {
-             console.log(res, "res");
-             toaster.create({
-               type: "success",
-               title: "Success",
-               description: res.message,
-               closable: true,
-             });
-           })
-           .catch((err) => {
-             console.log(err, "err");
-             toaster.create({
-               type: "error",
-               title: "Failed",
-               description: err.message,
-               closable: true,
-             });
-           });
-       };
+  const [text, setText] = useState<string>("");
+  const [reportIssue, { isLoading: reportLoading }] = useReportIssueMutation();
+  const [sendMessage, { isLoading: messageLoading }] = useSendMessageMutation();
+
+  const {
+    control,
+    handleSubmit,
+    formState: { errors },
+  } = useForm({
+    resolver: yupResolver(Schema),
+    defaultValues: {
+      reportType: "",
+      issueType: "",
+    },
+  });
+
+  const handleSendMessage = () => {
+    if (!text.trim()) {
+      toaster.create({
+        type: "error",
+        title: "Message required",
+        description: "Please enter a message before submitting.",
+        closable: true,
+      });
+      return;
+    }
+    sendMessage({ subject: "Customer Support", messageBody: text })
+      .unwrap()
+      .then((res) => {
+        setText("");
+        toaster.create({
+          type: "success",
+          title: "Message sent",
+          description: res.message ?? "We'll get back to you shortly.",
+          closable: true,
+        });
+      })
+      .catch((err) => {
+        toaster.create({
+          type: "error",
+          title: "Failed to send",
+          description: err?.data?.message ?? "Something went wrong. Please try again.",
+          closable: true,
+        });
+      });
+  };
+
+  const submit = (data) => {
+    reportIssue({ description: data.issueType, issueType: data.reportType })
+      .unwrap()
+      .then((res) => {
+        toaster.create({
+          type: "success",
+          title: "Issue reported",
+          description: res.message ?? "Your issue has been reported successfully.",
+          closable: true,
+        });
+      })
+      .catch((err) => {
+        toaster.create({
+          type: "error",
+          title: "Failed to report",
+          description: err?.data?.message ?? "Something went wrong. Please try again.",
+          closable: true,
+        });
+      });
+  };
 
   return (
     <Box
@@ -147,9 +167,7 @@ const Support = ({ onClick }: { onClick: () => void }) => {
         <Textarea
           p="3"
           value={text}
-          onChange={(e: any) => {
-            e.target.value;
-          }}
+          onChange={(e) => setText(e.target.value)}
           borderWidth={1}
           color="text_primary"
           bg="main_background"
@@ -180,8 +198,8 @@ const Support = ({ onClick }: { onClick: () => void }) => {
           color: "text_primary",
           my: "8",
         }}
-        // loading={isLoading}
-        onClick={() => {}}
+        loading={messageLoading}
+        onClick={handleSendMessage}
       >
         <Text
           color={"button_text"}
@@ -219,14 +237,14 @@ const Support = ({ onClick }: { onClick: () => void }) => {
         render={({ field: { onChange, value } }) => (
           <CustomSelect
             id="reportType"
-            placeholder="reportType"
+            placeholder="Select issue type"
             name="reportType"
             size="md"
             options={reportType}
-            label="Title "
+            label="Issue Type "
             isMulti={false}
             value={value}
-            required={false}
+            required={true}
             error={errors.reportType}
             onChange={onChange}
           />
@@ -267,7 +285,7 @@ const Support = ({ onClick }: { onClick: () => void }) => {
           color: "text_primary",
           my: "8",
         }}
-        // loading={isLoading}
+        loading={reportLoading}
         onClick={handleSubmit(submit)}
       >
         <Text

@@ -580,8 +580,8 @@ const EditConsultDrawer = ({
               </Box>
 
               <Box w="full" spaceY={4}>
-                <FileUploader handleChange={(file) => setResume(file)} />
-                <VideoUploader handleChange={(file) => setVideo(file)} />
+                <FileUploader handleChange={(file) => setResume(file)} currentFile={user?.resume} />
+                <VideoUploader handleChange={(file) => setVideo(file)} currentFile={user?.videoIntro} />
               </Box>
 
                 <HStack

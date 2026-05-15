@@ -28,9 +28,10 @@ import {
   useIncrementPostViewsQuery,
   useUnfollowUserMutation,
   useToggleAllowCommentsMutation,
+  useMarkNotInterestedMutation,
 } from "mangarine/state/services/posts.service";
 import { useAddPostToCollectionMutation } from "mangarine/state/services/bookmark.service";
-import { Post, updateSinglePost } from "mangarine/state/reducers/post.reducer";
+import { Post, updateSinglePost, deletePost as removeFromFeed } from "mangarine/state/reducers/post.reducer";
 import NewsAction from "./newsaction";
 import AddToCollection from "./addtocollection";
 import { BiShareAlt } from "react-icons/bi";
@@ -92,6 +93,7 @@ const NewsItem: React.FC<NewsItemProps> = ({ post, isDetailPage = false }) => {
 
   const [removePost] = useDeletePostMutation();
   const [toggleAllowComments] = useToggleAllowCommentsMutation();
+  const [markNotInterested] = useMarkNotInterestedMutation();
 
   // const [, { isLoading }] = useAddToBookmarkMutation();
 
@@ -235,11 +237,19 @@ const NewsItem: React.FC<NewsItemProps> = ({ post, isDetailPage = false }) => {
               </Text>
             </HStack>
             <Text fontSize={"12px"} fontFamily={"Outfit"} color={"grey.500"} fontWeight={"400"}>
-              {new Date(post?.createdAt).toLocaleTimeString("en-US", {
-                hour: "numeric",
-                minute: "numeric",
-                hour12: true,
-              })}
+              {(() => {
+                const d = new Date(post?.createdAt);
+                const now = new Date();
+                const isToday =
+                  d.getFullYear() === now.getFullYear() &&
+                  d.getMonth() === now.getMonth() &&
+                  d.getDate() === now.getDate();
+                const time = d.toLocaleTimeString("en-US", { hour: "numeric", minute: "numeric", hour12: true });
+                if (isToday) return time;
+                const day = d.toLocaleDateString("en-GB", { day: "numeric", month: "short" });
+                const yr = String(d.getFullYear()).slice(-2);
+                return `${day} '${yr}, ${time}`;
+              })()}
             </Text>
           </VStack>
         </HStack>
@@ -319,6 +329,30 @@ const NewsItem: React.FC<NewsItemProps> = ({ post, isDetailPage = false }) => {
                     <Menu.Item
                       p={2}
                       value="not-interested"
+                      cursor="pointer"
+                      onClick={() => {
+                        markNotInterested(post?.id)
+                          .unwrap()
+                          .then(() => {
+                            dispatch(removeFromFeed(post?.id));
+                            toaster.create({
+                              title: "Post hidden",
+                              description: "You won't see this post in your feed anymore.",
+                              type: "success",
+                              duration: 3000,
+                              closable: true,
+                            });
+                          })
+                          .catch(() => {
+                            toaster.create({
+                              title: "Something went wrong",
+                              description: "Could not hide this post. Please try again.",
+                              type: "error",
+                              duration: 3000,
+                              closable: true,
+                            });
+                          });
+                      }}
                     >
                       <HStack gap={2}>
                         <svg width="17" height="17" viewBox="0 0 17 17" fill="none" xmlns="http://www.w3.org/2000/svg">

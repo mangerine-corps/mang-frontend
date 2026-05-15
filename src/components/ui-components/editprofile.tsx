@@ -13,7 +13,7 @@ import {
   Drawer,
   Input,
 } from "@chakra-ui/react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 import { useDispatch } from "react-redux";
 
@@ -60,24 +60,33 @@ const EditProfileModal = ({
   const {
     control,
     handleSubmit,
-    formState: { isValid },
+    reset,
+    formState: { errors },
   } = useForm({
-    // resolver: yupResolver(onboardingSchema),
     defaultValues: {
       fullName: user?.fullName ?? "",
       occupation: user?.occupation ?? "",
       location: user?.location ?? "",
       dateOfBirth: !isEmpty(user?.dateOfBirth)
-        ? new Date(
-            new Date(user?.dateOfBirth).toLocaleString("en", {
-              timeZone: "GMT",
-            })
-          )
+        ? new Date(new Date(user?.dateOfBirth).toLocaleString("en", { timeZone: "GMT" }))
         : new Date(),
       bio: user?.bio ?? "",
-      // enable_selfpay: false,
     },
   });
+
+  useEffect(() => {
+    if (open && user) {
+      reset({
+        fullName: user.fullName ?? "",
+        occupation: user.occupation ?? "",
+        location: user.location ?? "",
+        dateOfBirth: !isEmpty(user.dateOfBirth)
+          ? new Date(new Date(user.dateOfBirth).toLocaleString("en", { timeZone: "GMT" }))
+          : new Date(),
+        bio: user.bio ?? "",
+      });
+    }
+  }, [open, user, reset]);
   const handleFileChange = (e) => {
     const file = e.target.files[0]; // Get the selected file
 
@@ -154,29 +163,21 @@ const EditProfileModal = ({
   };
 
   const handleProfileUpdate = (data: any) => {
-    if (isValid) {
-      updateProfile(data)
-        .unwrap()
-        .then((payload) => {
-          const { data } = payload;
-          dispatch(setUpdatedInfo({ updatedInfo: data }));
-        //   toast({
-        //     title: "Profile Update",
-        //     description: message,
-        //     status: "success",
-        //     duration: 4000,
-        //     isClosable: true,
-        //   });
-          onOpenChange();
-        })
-        .catch((err) => {
-          const { data } = err;
-          setErrorMessage(data.message);
-          setShowToast(true);
-        });
-    } else {
-      console.log("here");
-    }
+    console.log("handleProfileUpdate called", data);
+    updateProfile(data)
+      .unwrap()
+      .then((payload) => {
+        console.log("updateProfile success", payload);
+        const { data } = payload;
+        dispatch(setUpdatedInfo({ updatedInfo: data }));
+        onOpenChange();
+      })
+      .catch((err) => {
+        console.log("updateProfile error", err);
+        const errorData = err?.data;
+        setErrorMessage(errorData?.message ?? "Something went wrong");
+        setShowToast(true);
+      });
   };
   return (
    
@@ -393,35 +394,29 @@ const EditProfileModal = ({
               <Controller
                 control={control}
                 rules={{
-                  maxLength: 100,
+                  required: "Full name is required",
+                  minLength: { value: 2, message: "Name must be at least 2 characters" },
+                  maxLength: { value: 100, message: "Name must be under 100 characters" },
                 }}
                 render={({ field: { onChange, value } }) => (
-                  <Field.Root mt={10} id="email">
-                    <Field.Label
-                      color="#999"
-                      fontFamily="Outfit"
-                      fontSize="12px"
-                      fontStyle="normal"
-                      fontWeight="400"
-                    >
-                      Full Name
+                  <Field.Root mt={10} invalid={!!errors.fullName}>
+                    <Field.Label color="#999" fontFamily="Outfit" fontSize="12px" fontWeight="400">
+                      Full Name <Text as="span" color="red.500">*</Text>
                     </Field.Label>
-
                     <Input
-                      onChange={(v: any) => onChange(v)}
+                      onChange={onChange}
                       placeholder="Input full name here"
-                      // errors={{}}
-                      // validator={undefined}
-                      name="email"
-                      type="email"
+                      name="fullName"
+                      type="text"
                       value={value}
                       borderWidth={1}
-                      borderColor={"grey.200"}
+                      borderColor={errors.fullName ? "red.500" : "grey.200"}
                       px="3"
-                      // hasRightIcon={false}
-                      // hasLeftIcon={false}
                       width={"full"}
                     />
+                    {errors.fullName && (
+                      <Field.ErrorText>{errors.fullName.message}</Field.ErrorText>
+                    )}
                   </Field.Root>
                 )}
                 name="fullName"
@@ -429,35 +424,28 @@ const EditProfileModal = ({
               <Controller
                 control={control}
                 rules={{
-                  maxLength: 100,
+                  required: "Occupation is required",
+                  maxLength: { value: 100, message: "Occupation must be under 100 characters" },
                 }}
                 render={({ field: { onChange, value } }) => (
-                  <Field.Root id="email">
-                    <Field.Label
-                      color="#999"
-                      fontFamily="Outfit"
-                      fontSize="12px"
-                      fontStyle="normal"
-                      fontWeight="400"
-                    >
-                      Occupation
+                  <Field.Root invalid={!!errors.occupation}>
+                    <Field.Label color="#999" fontFamily="Outfit" fontSize="12px" fontWeight="400">
+                      Occupation <Text as="span" color="red.500">*</Text>
                     </Field.Label>
-
                     <Input
                       value={value}
                       px="3"
-                      onChange={(v: any) => onChange(v)}
+                      onChange={onChange}
                       placeholder="What do you do?"
-                      // errors={{}}
-                      // validator={undefined}
-                      name="email"
-                      type="email"
+                      name="occupation"
+                      type="text"
                       borderWidth={1}
-                      borderColor={"grey.200"}
-                      // hasRightIcon={false}
-                      // hasLeftIcon={false}
+                      borderColor={errors.occupation ? "red.500" : "grey.200"}
                       width={"full"}
                     />
+                    {errors.occupation && (
+                      <Field.ErrorText>{errors.occupation.message}</Field.ErrorText>
+                    )}
                   </Field.Root>
                 )}
                 name="occupation"
@@ -465,35 +453,28 @@ const EditProfileModal = ({
               <Controller
                 control={control}
                 rules={{
-                  maxLength: 100,
+                  required: "Location is required",
+                  maxLength: { value: 100, message: "Location must be under 100 characters" },
                 }}
                 render={({ field: { onChange, value } }) => (
-                  <Field.Root id="email">
-                    <Field.Label
-                      color="#999"
-                      fontFamily="Outfit"
-                      fontSize="12px"
-                      fontStyle="normal"
-                      fontWeight="400"
-                    >
-                      Location
+                  <Field.Root invalid={!!errors.location}>
+                    <Field.Label color="#999" fontFamily="Outfit" fontSize="12px" fontWeight="400">
+                      Location <Text as="span" color="red.500">*</Text>
                     </Field.Label>
-
                     <Input
                       value={value}
                       px="3"
-                      onChange={(v: any) => onChange(v)}
-                      placeholder="What do you do?"
+                      onChange={onChange}
+                      placeholder="Where are you located?"
                       borderWidth={1}
-                      borderColor={"grey.200"}
-                      // errors={{}}
-                      // validator={undefined}
-                      name="email"
-                      type="email"
-                      // hasRightIcon={false}
-                      // hasLeftIcon={false}
+                      borderColor={errors.location ? "red.500" : "grey.200"}
+                      name="location"
+                      type="text"
                       width={"full"}
                     />
+                    {errors.location && (
+                      <Field.ErrorText>{errors.location.message}</Field.ErrorText>
+                    )}
                   </Field.Root>
                 )}
                 name="location"
@@ -501,19 +482,14 @@ const EditProfileModal = ({
               <Controller
                 control={control}
                 rules={{
-                  maxLength: 100,
+                  required: "Date of birth is required",
+                  validate: (v) => (v instanceof Date && !isNaN(v.getTime())) || "Enter a valid date",
                 }}
                 render={({ field: { onChange, value } }) => (
-                  <Box
-                    id="birthdate"
-                    flex={1}
-                    w="full"
-                    flexDir={{ base: "column", md: "row" }}
-                    mb={{ base: "3", md: "0" }}
-                  >
-                    <Field.Root w="full">
-                      <Field.Label htmlFor="birthdate">
-                        Date of Birth
+                  <Box flex={1} w="full" flexDir={{ base: "column", md: "row" }} mb={{ base: "3", md: "0" }}>
+                    <Field.Root w="full" invalid={!!errors.dateOfBirth}>
+                      <Field.Label htmlFor="birthdate" color="#999" fontFamily="Outfit" fontSize="12px" fontWeight="400">
+                        Date of Birth <Text as="span" color="red.500">*</Text>
                       </Field.Label>
                       <DatePicker
                         w="full"
@@ -523,9 +499,12 @@ const EditProfileModal = ({
                         onChange={onChange}
                         placeholderText="mm/dd/yyyy"
                         dateFormat="MM/dd/yyyy"
-                        className="custom-datepicker"
+                        className={`custom-datepicker${errors.dateOfBirth ? " datepicker-error" : ""}`}
                         maxDate={new Date()}
                       />
+                      {errors.dateOfBirth && (
+                        <Field.ErrorText>{errors.dateOfBirth.message}</Field.ErrorText>
+                      )}
                     </Field.Root>
                   </Box>
                 )}
@@ -534,23 +513,18 @@ const EditProfileModal = ({
               <Controller
                 control={control}
                 rules={{
-                  maxLength: 100,
+                  required: "Bio is required",
+                  minLength: { value: 10, message: "Bio must be at least 10 characters" },
+                  maxLength: { value: 500, message: "Bio must be under 500 characters" },
                 }}
                 render={({ field: { onChange, value } }) => (
-                  <Field.Root id="email">
-                    <Field.Label
-                      color="#999"
-                      fontFamily="Outfit"
-                      fontSize="12px"
-                      fontStyle="normal"
-                      fontWeight="400"
-                    >
-                      Bio
+                  <Field.Root invalid={!!errors.bio}>
+                    <Field.Label color="#999" fontFamily="Outfit" fontSize="12px" fontWeight="400">
+                      Bio <Text as="span" color="red.500">*</Text>
                     </Field.Label>
-
                     <Textarea
                       borderWidth={1}
-                      borderColor={"grey.200"}
+                      borderColor={errors.bio ? "red.500" : "grey.200"}
                       rows={5}
                       value={value}
                       px="3"
@@ -558,11 +532,9 @@ const EditProfileModal = ({
                       resize={"none"}
                       placeholder="Tell us about you."
                     />
-                    {/* {errors.email && (
-              <Text color="red.500" fontSize="sm">
-                {errors.email}
-              </Text>
-            )} */}
+                    {errors.bio && (
+                      <Field.ErrorText>{errors.bio.message}</Field.ErrorText>
+                    )}
                   </Field.Root>
                 )}
                 name="bio"

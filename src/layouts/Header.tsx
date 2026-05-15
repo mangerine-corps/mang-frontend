@@ -161,9 +161,10 @@ const Header = () => {
   const handleResultClick = (item: { id: string; type: 'user' | 'group'; name?: string }) => {
     if (item.type === 'user') {
       router.push(`/profile?profileId=${item.id}`);
-    } else {
-      router.push(`/groups/${item.id}`);
     }
+    // else {
+    //   router.push(`/groups/${item.id}`);
+    // }
     setIsSearchOpen(false);
     setIsSearchFocused(false);
     if (item.type === 'user' && item.name) {
@@ -365,21 +366,21 @@ const Header = () => {
                         {unreadCount > 0 && (
                           <Box
                             position="absolute"
-                            top={-1}
-                            right={-1}
-                            bg="text_primary"
-                            color="main_background"
-                            fontWeight="bold"
+                            top="-6px"
+                            right="-6px"
+                            bg="red.500"
+                            color="white"
+                            fontWeight="700"
                             rounded="full"
-                            minW="12px"
-                            h="12px"
-                            px={0.5}
-                            fontSize="6px"
-                            lineHeight="12px"
+                            minW="18px"
+                            h="18px"
+                            px="4px"
+                            fontSize="10px"
+                            lineHeight="18px"
                             textAlign="center"
                             pointerEvents="none"
                           >
-                            {unreadCount}
+                            {unreadCount > 99 ? "99+" : unreadCount}
                           </Box>
                         )}
                       </Box>
@@ -394,21 +395,21 @@ const Header = () => {
                 {link.href === "/message" && (unreadMsgs?.totalUnreadMessages ?? 0) > 0 && (
                   <Box
                     position="absolute"
-                    top={-1}
-                    right={-1}
-                    bg="text_primary"
-                    color="main_background"
-                    fontWeight="bold"
+                    top="-6px"
+                    right="-6px"
+                    bg="red.500"
+                    color="white"
+                    fontWeight="700"
                     rounded="full"
-                    minW="12px"
-                    h="12px"
-                    px={0.5}
-                    fontSize="6px"
-                    lineHeight="12px"
+                    minW="18px"
+                    h="18px"
+                    px="4px"
+                    fontSize="10px"
+                    lineHeight="18px"
                     textAlign="center"
                     pointerEvents="none"
                   >
-                    {unreadMsgs?.totalUnreadMessages}
+                    {(unreadMsgs?.totalUnreadMessages ?? 0) > 99 ? "99+" : unreadMsgs?.totalUnreadMessages}
                   </Box>
                 )}
               </Box>

@@ -105,7 +105,7 @@ const JobSearchPage = () => {
               Explore opportunities tailored to your interests and take the next step toward the career you deserve.
             </Text>
             <HStack bg="white" borderRadius="10px" border="1px solid" borderColor="input_border" px={3} py={2} gap={2}>
-              <Box color="gray.400" flexShrink={0}>
+              <Box color="gray.400" flexShrink={0} cursor="pointer" onClick={handleSearch}>
                 <BiSearch size={18} />
               </Box>
               <Input
@@ -122,6 +122,18 @@ const JobSearchPage = () => {
                 p={0}
                 h="auto"
               />
+              <Button
+                size="sm"
+                bg="#111D4A"
+                color="white"
+                borderRadius="6px"
+                px={4}
+                flexShrink={0}
+                _hover={{ bg: "#0D173B" }}
+                onClick={handleSearch}
+              >
+                Search
+              </Button>
             </HStack>
           </Box>
 

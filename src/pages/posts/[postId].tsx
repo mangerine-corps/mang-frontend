@@ -224,7 +224,7 @@ const PostPage = () => {
               spaceY={"6"}
               w="full"
             >
-              <TrendingCommunities />
+              {/* <TrendingCommunities /> */}
               {/* <FollowingLists title="Prospective Following" /> */}
               {/* <CommunityLists
                 type="trending"

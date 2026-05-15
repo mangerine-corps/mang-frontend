@@ -11,7 +11,6 @@ import { MdInsertPhoto } from "react-icons/md";
 import FeedAction from "./feedaction";
 
 const smily = "/icons/smily.svg";
-const location = "/icons/loc.svg";
 const tag = "/icons/tag.svg";
 
 interface CommentInputWrapperProps {
@@ -92,7 +91,6 @@ const CommentInputWrapper: React.FC<CommentInputWrapperProps> = ({ postId }) => 
                   {showPicker && <EmojiPicker onEmojiClick={onEmojiClick} />}
                 </Box>
               </Box>
-              <FeedAction icon={location} />
               <FeedAction icon={tag} />
             </HStack>
 

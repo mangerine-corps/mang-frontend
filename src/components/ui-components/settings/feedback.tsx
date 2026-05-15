@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 import HeaderContent from "./headercontent";
 import { Box, RatingGroup, Text, Textarea, VStack } from "@chakra-ui/react";
 import CustomButton from "mangarine/components/customcomponents/button";
@@ -15,10 +15,7 @@ const feedbackType = [
 ];
 
 const Schema = Yup.object().shape({
-
-  feedbackType: Yup.array()
-    .of(Yup.string())
-    .min(1, "Feedback type is required"),
+  feedbackType: Yup.string().required("Feedback type is required"),
   rating: Yup.number().required("Rating is required"),
   comment: Yup.string().required("Comment is required"),
 });
@@ -26,18 +23,14 @@ const Schema = Yup.object().shape({
 const Feedback = ({ onClick }: { onClick: () => void }) => {
   const [createFeedback, { data, error, isLoading }] =
     useCreateFeedbackMutation();
-  const [rating, setRating] = useState<number>(1);
-  const [text, setText] = useState<string>("");
     const {
       control,
       handleSubmit,
-      setValue,
-      getValues,
       formState: { errors },
     } = useForm({
       resolver: yupResolver(Schema),
       defaultValues: {
-        feedbackType: [],
+        feedbackType: "",
         comment:"",
         rating:1
       },
@@ -47,7 +40,7 @@ const Feedback = ({ onClick }: { onClick: () => void }) => {
 
     const payload = {
       rating: data.rating,
-      feedbackType: data.feedbackType.join(",") ,
+      feedbackType: data.feedbackType,
       comment: data.comment,
     };
     console.log(payload, "payload");
@@ -92,7 +85,7 @@ const Feedback = ({ onClick }: { onClick: () => void }) => {
     >
       <HeaderContent
         onClick={onClick}
-        title="Frequently Asked Questions"
+        title="Feedback"
         desc=""
         extra=""
       />

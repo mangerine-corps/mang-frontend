@@ -160,6 +160,13 @@ export const postsApi = createApi({
       ],
     }),
 
+    markNotInterested: builder.mutation({
+      query: (postId) => ({
+        url: `posts/${postId}/not-interested`,
+        method: "POST",
+      }),
+    }),
+
     likeComment: builder.mutation({
       query: ({ commentId }) => ({
         url: `posts/comment/${commentId}/like`,
@@ -379,4 +386,5 @@ export const {
   useToggleAllowCommentsMutation,
   useGetFollowingQuery,
   useGetUserPostsQuery,
+  useMarkNotInterestedMutation,
 } = postsApi;

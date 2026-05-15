@@ -7,60 +7,52 @@ import {
   Textarea,
   VStack,
 } from "@chakra-ui/react";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import CustomButton from "mangarine/components/customcomponents/button";
-import { Global } from "@emotion/react";
-import ReportPoster from "./reportposter";
-import { useReportPostMutation } from "mangarine/state/services/posts.service";
-import { usePosts } from "mangarine/state/hooks/post.hook";
+import { useReportUserMutation } from "mangarine/state/services/profile.service";
 import { toaster } from "mangarine/components/ui/toaster";
+
+const reportReasons = [
+  { id: 1, label: "Inappropriate Content", value: "inappropriate_content", description: "Content that is violent, sexually explicit, or otherwise inappropriate." },
+  { id: 2, label: "Harassment or Bullying", value: "harassment", description: "Behavior that targets and intimidates another user." },
+  { id: 3, label: "Spam or Scam", value: "spam", description: "Posts or messages that are misleading or fraudulent." },
+  { id: 4, label: "Fake Account", value: "fake_account", description: "An account impersonating someone else or providing false information." },
+  { id: 5, label: "Hate Speech or Offensive Language", value: "hate_speech", description: "Content that promotes hate or uses offensive language." },
+];
 
 type props = {
   onOpenChange: any;
   isOpen: any;
- 
   userId?: string;
 };
 
 const ReportUser = ({ onOpenChange, isOpen, userId }: props) => {
-  const [date, setDate] = useState(new Date());
-  const [selectedTime, setSelectedTime] = useState("08:00 am");
-  const [open, setopen] = useState(false);
-  const [value, setValue] = useState<string>("");
-  const [report, setReport] = useState<string>("");
+  const [selectedReason, setSelectedReason] = useState<string>("");
+  const [description, setDescription] = useState<string>("");
 
-  const [reportPost, { data, error, isLoading }] = useReportPostMutation();
+  const [reportUser, { isLoading }] = useReportUserMutation();
 
-  useEffect(() => {
-    console.log(date, "date");
-  }, [date]);
-  const openModal = () => {
-    onOpenChange();
-    setopen(true);
-  };
   const handleSubmit = () => {
-    const reportDetails = value || report;
-    const formdata = {
-      reportDetails,
-      // postId: postId.toString(),
-      userId,
-    };
-
-    reportPost(formdata)
+    const reason = selectedReason || "other";
+    if (!reason && !description.trim()) {
+      toaster.create({ type: "error", title: "Please select a reason or provide a description.", closable: true });
+      return;
+    }
+    reportUser({ reportedUserId: userId, reason, description: description || undefined })
       .unwrap()
       .then((res) => {
         toaster.create({
-          description: "Post reported successfully.",
+          description: res?.message ?? "User reported successfully.",
           type: "success",
           closable: true,
         });
+        setSelectedReason("");
+        setDescription("");
         onOpenChange();
-        setopen(false);
       })
-      .catch((error) => {
-        console.error("Error reporting post:", error, formdata);
+      .catch((err) => {
         toaster.create({
-          description: error?.data?.message || "Failed to report post.",
+          description: err?.data?.message || "Failed to report user.",
           type: "error",
           closable: true,
         });
@@ -112,53 +104,20 @@ const ReportUser = ({ onOpenChange, isOpen, userId }: props) => {
                   Please select a reason for reporting this user
                 </Text>
                 <RadioGroup.Root
-                  value={value}
-                  onValueChange={(e) => setValue(e.value)}
+                  value={selectedReason}
+                  onValueChange={(e) => setSelectedReason(e.value)}
                 >
                   <VStack gap="6" alignItems={"flex-start"} w="full">
-                    {[
-                      {
-                        id: 1,
-                        label: "Inappropriate Content",
-                        description:
-                          "Content that is violent, sexually explicit, or otherwise inappropriate.",
-                      },
-                      {
-                        id: 2,
-                        label: "Harassment or Bullying",
-                        description:
-                          "Behavior that targets and intimidates another user.",
-                      },
-                      {
-                        id: 3,
-                        label: "Spam or Scam",
-                        description:
-                          "Posts or messages that are misleading or fraudulent.",
-                      },
-                      {
-                        id: 4,
-                        label: "Fake Account",
-                        description:
-                          "An account impersonating someone else or providing false information.",
-                      },
-                      {
-                        id: 5,
-                        label: "Hate Speech or Offensive Language",
-                        description:
-                          "Content that promotes hate or uses offensive language.",
-                      },
-                    ].map((item) => (
-                      <RadioGroup.Item key={item.id} value={item.label}>
+                    {reportReasons.map((item) => (
+                      <RadioGroup.Item key={item.id} value={item.value}>
                         <RadioGroup.ItemHiddenInput />
                         <RadioGroup.ItemIndicator />
                         <RadioGroup.ItemText color={"text_primary"}>
                           <HStack>
-                            {item.label} {item.description}
+                            {item.label}
                           </HStack>
+                          <Text fontSize="0.875rem" color={"grey.300"}>{item.description}</Text>
                         </RadioGroup.ItemText>
-                        <RadioGroup.ItemText
-                          color={"grey.300"}
-                        ></RadioGroup.ItemText>
                       </RadioGroup.Item>
                     ))}
                   </VStack>
@@ -191,12 +150,12 @@ const ReportUser = ({ onOpenChange, isOpen, userId }: props) => {
               </Text>
               <Textarea
                 placeholder="Any other issue not covered above"
-                // minH="100px"
                 mb="6"
                 color="text_primary"
                 p={3}
                 h="6lh"
-                onChange={(e) => setReport(e.target.value)}
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
               />
             </Dialog.Body>
             <Dialog.Footer mx="auto" w="100%" pb={6}>
@@ -214,9 +173,7 @@ const ReportUser = ({ onOpenChange, isOpen, userId }: props) => {
                     bg: "main_background",
                     borderWidth: "2px",
                   }}
-                  onClick={() => {}}
-                  // loading={isLoading}
-                  // onClick={handleSubmit(onSubmit, (error) => console.log(error))}
+                  onClick={onOpenChange}
                 >
                   <Text
                     color={"text_primary"}
@@ -231,8 +188,7 @@ const ReportUser = ({ onOpenChange, isOpen, userId }: props) => {
                   customStyle={{
                     w: "35%",
                   }}
-                  // onClick={openModal}
-                  // loading={isLoading}
+                  loading={isLoading}
                   onClick={handleSubmit}
                 >
                   <Text
@@ -249,12 +205,6 @@ const ReportUser = ({ onOpenChange, isOpen, userId }: props) => {
             {/* <Dialog.CloseTrigger asChild>
               <CloseButton size="sm" />
             </Dialog.CloseTrigger> */}
-            <ReportPoster
-              isOpen={open}
-              onOpenChange={() => {
-                setopen(false);
-              }}
-            />
           </Dialog.Content>
         </Dialog.Positioner>
       </Portal>

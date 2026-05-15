@@ -29,7 +29,6 @@ import UploadToPremiumModal from "./modals/uploadtopremium";
 import ImageLightbox from "./imagelightbox";
 
 const smily = "/icons/smily.svg";
-const location = "/icons/loc.svg";
 const tag = "/icons/tag.svg";
 const image = "/icons/img.svg";
 const videoimg = <IoVideocamOutline />;
@@ -572,7 +571,6 @@ const addTag =(username:string)=>{
                         )}
                       </Box>
                     </Box>
-                    <FeedAction icon={location} />
                     <FeedAction icon={tag} />
                   </HStack>
                   <VStack

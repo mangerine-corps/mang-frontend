@@ -53,16 +53,20 @@ const JobDetailPage = () => {
   const { jobId } = router.query;
 
   const { data, isLoading, isError } = useGetJobByIdQuery(jobId as string, {
-    skip: !jobId,
+    skip: !router.isReady || !jobId,
   });
 
-  const job: any = (data as any)?.data ?? data;
+  const isPageLoading = !router.isReady || isLoading;
+
+  const job: any = (data as any)?.data?.job ?? (data as any)?.data ?? data;
 
   const formatSalary = () => {
-    if (!job?.salaryFrom && !job?.salaryTo) return null;
-    const currency = job?.currency ?? "USD";
-    const from = job?.salaryFrom ? `${currency} ${Number(job.salaryFrom).toLocaleString()}` : null;
-    const to = job?.salaryTo ? `${currency} ${Number(job.salaryTo).toLocaleString()}` : null;
+    const salaryFrom = job?.salaryRange?.from ?? job?.salaryFrom;
+    const salaryTo = job?.salaryRange?.to ?? job?.salaryTo;
+    if (!salaryFrom && !salaryTo) return null;
+    const currency = job?.salaryRange?.currency ?? job?.currency ?? "USD";
+    const from = salaryFrom ? `${currency} ${Number(salaryFrom).toLocaleString()}` : null;
+    const to = salaryTo ? `${currency} ${Number(salaryTo).toLocaleString()}` : null;
     if (from && to) return `${from} – ${to}`;
     return from ?? to;
   };
@@ -114,7 +118,7 @@ const JobDetailPage = () => {
             </HStack>
           </Button>
 
-          {isLoading ? (
+          {isPageLoading ? (
             <Box bg="bg_box" borderRadius="12px" p={{ base: 5, md: 8 }} border="1px solid" borderColor="input_border">
               <Skeleton h="28px" w="50%" mb={3} />
               <Skeleton h="20px" w="30%" mb={6} />
@@ -247,29 +251,35 @@ const JobDetailPage = () => {
               )}
 
               {/* Apply */}
-              {job.applicationValue && (
+              {(job.application?.value ?? job.applicationValue) && (
                 <Box mt={6} pt={6} borderTopWidth="1px" borderColor="input_border">
                   <Text fontWeight="700" fontSize="1rem" color="text_primary" mb={3}>
                     How to Apply
                   </Text>
-                  <a
-                    href={job.applicationType === "email" ? `mailto:${job.applicationValue}` : job.applicationValue}
-                    target={job.applicationType === "email" ? undefined : "_blank"}
-                    rel="noopener noreferrer"
-                  >
-                    <Button
-                      bg="#111D4A"
-                      color="white"
-                      borderRadius="8px"
-                      fontFamily="Outfit"
-                      fontWeight="600"
-                      px={8}
-                      py={5}
-                      _hover={{ bg: "#0D173B" }}
-                    >
-                      {job.applicationType === "email" ? "Apply via Email" : "Apply Now"}
-                    </Button>
-                  </a>
+                  {(() => {
+                    const appType = job.application?.type ?? job.applicationType;
+                    const appValue = job.application?.value ?? job.applicationValue;
+                    return (
+                      <a
+                        href={appType === "email" ? `mailto:${appValue}` : appValue}
+                        target={appType === "email" ? undefined : "_blank"}
+                        rel="noopener noreferrer"
+                      >
+                        <Button
+                          bg="#111D4A"
+                          color="white"
+                          borderRadius="8px"
+                          fontFamily="Outfit"
+                          fontWeight="600"
+                          px={8}
+                          py={5}
+                          _hover={{ bg: "#0D173B" }}
+                        >
+                          {appType === "email" ? "Apply via Email" : "Apply Now"}
+                        </Button>
+                      </a>
+                    );
+                  })()}
                 </Box>
               )}
             </Box>
