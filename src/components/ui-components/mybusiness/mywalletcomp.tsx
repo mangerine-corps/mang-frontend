@@ -135,7 +135,7 @@ const MyWalletComponent = () => {
             </Text>
             <HStack>
               {isLoading ? (
-                <Skeleton h={{ base: "2rem", md: "2.5rem", lg: "3.5rem" }} w="160px" borderRadius="md" startColor="whiteAlpha.300" endColor="whiteAlpha.600" />
+                <Skeleton h={{ base: "2rem", md: "2.5rem", lg: "3.5rem" }} w="160px" borderRadius="md" />
               ) : (
                 <Text
                   color="main_background"

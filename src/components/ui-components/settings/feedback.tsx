@@ -112,7 +112,7 @@ const Feedback = ({ onClick }: { onClick: () => void }) => {
               options={feedbackType}
               label="FeedBack "
               isMulti={false}
-              value={value}
+              value={value ? [value] : []}
               required={false}
               error={errors.feedbackType}
               onChange={onChange}

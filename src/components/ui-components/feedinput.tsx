@@ -31,6 +31,7 @@ import ImageLightbox from "./imagelightbox";
 const smily = "/icons/smily.svg";
 const tag = "/icons/tag.svg";
 const image = "/icons/img.svg";
+const locationIcon = "/icons/location.svg";
 const videoimg = <IoVideocamOutline />;
 
 type FeedInputProps = {
@@ -369,7 +370,7 @@ const addTag =(username:string)=>{
                   {showPicker && <EmojiPicker onEmojiClick={onEmojiClick} />}
                 </Box>
               </Box>
-              <Image src={location} alt="location" boxSize="22px" cursor="pointer" />
+              <Image src={locationIcon} alt="location" boxSize="22px" cursor="pointer" />
               <Image src={tag} alt="tag" boxSize="22px" cursor="pointer" />
             </HStack>
           </Box>

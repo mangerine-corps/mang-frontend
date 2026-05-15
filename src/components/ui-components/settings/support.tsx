@@ -243,7 +243,7 @@ const Support = ({ onClick }: { onClick: () => void }) => {
             options={reportType}
             label="Issue Type "
             isMulti={false}
-            value={value}
+            value={value ? [value] : []}
             required={true}
             error={errors.reportType}
             onChange={onChange}

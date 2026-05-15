@@ -415,7 +415,7 @@ const EditProfileModal = ({
                       width={"full"}
                     />
                     {errors.fullName && (
-                      <Field.ErrorText>{errors.fullName.message}</Field.ErrorText>
+                      <Field.ErrorText>{errors.fullName.message as string}</Field.ErrorText>
                     )}
                   </Field.Root>
                 )}
@@ -444,7 +444,7 @@ const EditProfileModal = ({
                       width={"full"}
                     />
                     {errors.occupation && (
-                      <Field.ErrorText>{errors.occupation.message}</Field.ErrorText>
+                      <Field.ErrorText>{errors.occupation.message as string}</Field.ErrorText>
                     )}
                   </Field.Root>
                 )}
@@ -473,7 +473,7 @@ const EditProfileModal = ({
                       width={"full"}
                     />
                     {errors.location && (
-                      <Field.ErrorText>{errors.location.message}</Field.ErrorText>
+                      <Field.ErrorText>{errors.location.message as string}</Field.ErrorText>
                     )}
                   </Field.Root>
                 )}
@@ -503,7 +503,7 @@ const EditProfileModal = ({
                         maxDate={new Date()}
                       />
                       {errors.dateOfBirth && (
-                        <Field.ErrorText>{errors.dateOfBirth.message}</Field.ErrorText>
+                        <Field.ErrorText>{errors.dateOfBirth.message as string}</Field.ErrorText>
                       )}
                     </Field.Root>
                   </Box>
@@ -533,7 +533,7 @@ const EditProfileModal = ({
                       placeholder="Tell us about you."
                     />
                     {errors.bio && (
-                      <Field.ErrorText>{errors.bio.message}</Field.ErrorText>
+                      <Field.ErrorText>{errors.bio.message as string}</Field.ErrorText>
                     )}
                   </Field.Root>
                 )}
