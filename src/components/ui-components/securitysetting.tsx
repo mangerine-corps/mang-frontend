@@ -614,7 +614,7 @@ const AuthAppTfa = ({
             {otpauthUrl && <QRCodeSVG value={otpauthUrl} size={140} />}
             <VStack alignItems="flex-start" gap={2} flex={1} minW="180px">
               <Text fontSize="0.875rem" color="grey.500">
-                Can't scan? Enter this key manually in your app:
+                Can&apos;t scan? Enter this key manually in your app:
               </Text>
               <HStack
                 bg="grey.50"
