@@ -12,6 +12,9 @@ import {
   Icon,
   Badge,
   Avatar,
+  Skeleton,
+  SkeletonCircle,
+  Stack,
 } from "@chakra-ui/react";
 import { useAuth } from "mangarine/state/hooks/user.hook";
 import { useGetFollowingQuery } from "mangarine/state/services/posts.service";
@@ -22,7 +25,7 @@ import { useGetFollowingQuery } from "mangarine/state/services/posts.service";
 const MemberList = ({ open, onOpenChange, data }) => {
   const {user} = useAuth()
   const targetUserId = user?.id
-    const { data:followingData, error , refetch} = useGetFollowingQuery(
+    const { data:followingData, error, refetch, isLoading: loadingFollowing } = useGetFollowingQuery(
       { targetUserId },
       {
         skip: !targetUserId,
@@ -81,7 +84,20 @@ const MemberList = ({ open, onOpenChange, data }) => {
               </HStack>
 
               <VStack gap={8}>
-                {data?.users.map((member, index) => (
+                {loadingFollowing
+                  ? Array.from({ length: 5 }).map((_, i) => (
+                      <HStack key={i} w="full" justify="space-between">
+                        <HStack gap={6}>
+                          <SkeletonCircle size="10" />
+                          <Stack gap={1}>
+                            <Skeleton h="16px" w="130px" rounded="md" />
+                            <Skeleton h="13px" w="90px" rounded="md" />
+                          </Stack>
+                        </HStack>
+                        <Skeleton h="32px" w="80px" rounded="md" />
+                      </HStack>
+                    ))
+                  : data?.users.map((member, index) => (
                   <HStack
                     key={index}
                     align="start"

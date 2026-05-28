@@ -53,6 +53,7 @@ export default function PaymentForm({
   const [message, setMessage] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState<"card" | "paypal">("card");
+  const [isCardReady, setIsCardReady] = useState(false);
   // Deprecated: success modal is replaced by /payment-success page
   const [isClient, setIsClient] = useState(false);
   const recordingFee = paymentDetails.hasRecording ? 5 : 0;
@@ -69,9 +70,17 @@ export default function PaymentForm({
     setIsClient(true);
   }, []);
 
+  useEffect(() => {
+    setMessage(null);
+    if (paymentMethod !== "card") {
+      setIsCardReady(false);
+    }
+  }, [paymentMethod, clientSecret]);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!stripe || !elements) return;
+    if (paymentMethod !== "card") return;
 
     setIsLoading(true);
 
@@ -88,6 +97,12 @@ export default function PaymentForm({
       : `${baseOrigin}/payment-success`;
 
     const cardElement = elements.getElement(CardElement);
+    if (!cardElement || !isCardReady) {
+      setMessage("Card details are still loading. Please wait a moment and try again.");
+      setIsLoading(false);
+      return;
+    }
+
     const { error } = await stripe.confirmCardPayment(clientSecret, {
       payment_method: { card: cardElement },
     });
@@ -287,6 +302,15 @@ export default function PaymentForm({
                   p={{ base: 4, lg: 5 }}
                 >
                   <CardElement
+                    onReady={() => setIsCardReady(true)}
+                    onChange={(event) => {
+                      if (event.error?.message) {
+                        setMessage(event.error.message);
+                        return;
+                      }
+
+                      setMessage(null);
+                    }}
                     options={{
                       style: {
                         base: {
@@ -323,7 +347,13 @@ export default function PaymentForm({
               color="white"
               type="submit"
               borderRadius="8px"
-              disabled={isLoading || paymentMethod === "paypal" || !stripe || !elements}
+              disabled={
+                isLoading ||
+                paymentMethod === "paypal" ||
+                !stripe ||
+                !elements ||
+                !isCardReady
+              }
               id="submit"
               py="12px"
               _hover={{ bg: "#111D4A" }}

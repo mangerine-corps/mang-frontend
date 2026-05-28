@@ -138,13 +138,11 @@ const Profile = () => {
 
   useEffect(() => {
     if (!isOwnProfile) return;
-    if (!isEmpty(currentWorkData)) {
-      const { data: worksData } = currentWorkData;
-      dispatch(setWorks({ works: worksData }));
-    } else if (!isEmpty(workData)) {
-      const { data: worksData } = workData;
-      dispatch(setWorks({ works: worksData }));
-    }
+    const raw = currentWorkData ?? workData;
+    if (!raw) return;
+    // Normalize: { data: [...] } or [...] directly
+    const worksArr = Array.isArray(raw) ? raw : Array.isArray(raw.data) ? raw.data : [];
+    dispatch(setWorks({ works: worksArr }));
   }, [workData, currentWorkData, dispatch, isOwnProfile]);
 
   useEffect(() => {
@@ -193,8 +191,16 @@ const Profile = () => {
     }
   }, [langData, currLangData, dispatch, isOwnProfile]);
 
+  // Normalize: API may return { data: [...] } or [...] directly (API is inconsistent across endpoints)
+  const normalizeWorks = (res: any): any[] => {
+    if (!res) return [];
+    if (Array.isArray(res)) return res;
+    if (Array.isArray(res.data)) return res.data;
+    return [];
+  };
+
   // When viewing another user's profile, derive display data directly from query results
-  const displayWorks = isOwnProfile ? works : (currentWorkData?.data || []);
+  const displayWorks = isOwnProfile ? works : normalizeWorks(currentWorkData ?? workData);
   const displaySkills = isOwnProfile ? skills : ((currentSkillData?.data ?? skillData?.data) || []);
   const displayEducations = isOwnProfile ? educations : ((eduCurrentData?.data ?? eduData?.data) || []);
   const displayExperiences = isOwnProfile ? experiences : ((expCurrData?.data ?? expData?.data) || []);

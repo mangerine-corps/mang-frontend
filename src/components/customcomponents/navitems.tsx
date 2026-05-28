@@ -27,19 +27,6 @@ export const NavLinks: NavLink[] = [
       dark: "/icons/navicons/darkhome.svg",
     },
   },
-  // {
-  //   label: "Groups",
-  //   href: "/groups",
-  //   icon: {
-  //     light: "/icons/navicons/commactive.svg",
-  //     dark: "/icons/navicons/darkinactiveom.svg",
-  //   },
-  //   iconActive: {
-  //     light: "/icons/navicons/lightcomm.svg",
-  //     dark: "/icons/navicons/darkactivecomm.svg",
-  //   },
-  // },
-
   {
     label: "Consultants",
     href: "/consultant",
@@ -50,18 +37,6 @@ export const NavLinks: NavLink[] = [
     iconActive: {
       light: "/icons/navicons/activeconsultant.svg",
       dark: "/icons/navicons/darkactiveconsult.svg",
-    },
-  },
-  {
-    label: "My Consultations",
-    href: "/consultation",
-    icon: {
-      light: "/icons/navicons/consult.svg",
-      dark: "/icons/navicons/darkconsult.svg",
-    },
-    iconActive: {
-      light: "/icons/navicons/activeconsult.svg",
-      dark: "/icons/navicons/darkactconsult.svg",
     },
   },
   {
@@ -77,15 +52,15 @@ export const NavLinks: NavLink[] = [
     },
   },
   {
-    label: "Jobs",
-    href: "/jobs",
+    label: "My Consultation",
+    href: "/consultation",
     icon: {
-      light: "/icons/navicons/jobs.svg",
-      dark: "/icons/navicons/jobs.svg",
+      light: "/icons/navicons/consult.svg",
+      dark: "/icons/navicons/darkconsult.svg",
     },
     iconActive: {
-      light: "/icons/navicons/jobsactive.svg",
-      dark: "/icons/navicons/jobsactive.svg",
+      light: "/icons/navicons/activeconsult.svg",
+      dark: "/icons/navicons/darkactconsult.svg",
     },
   },
   {
@@ -101,7 +76,19 @@ export const NavLinks: NavLink[] = [
     },
   },
   {
-    label: "Notification",
+    label: "Jobs",
+    href: "/jobs",
+    icon: {
+      light: "/icons/navicons/jobs.svg",
+      dark: "/icons/navicons/jobs.svg",
+    },
+    iconActive: {
+      light: "/icons/navicons/jobsactive.svg",
+      dark: "/icons/navicons/jobsactive.svg",
+    },
+  },
+  {
+    label: "Notifications",
     href: "/notification",
     icon: {
       light: "/icons/navicons/notiflight.svg",
@@ -126,18 +113,6 @@ export const UserLinks: NavLink[] = [
       dark: "/icons/navicons/darkhome.svg",
     },
   },
-  // {
-  //   label: "Groups",
-  //   href: "/groups",
-  //   icon: {
-  //     light: "/icons/navicons/commactive.svg",
-  //     dark: "/icons/navicons/darkinactiveom.svg",
-  //   },
-  //   iconActive: {
-  //     light: "/icons/navicons/lightcomm.svg",
-  //     dark: "/icons/navicons/darkactivecomm.svg",
-  //   },
-  // },
   {
     label: "Consultants",
     href: "/consultant",
@@ -148,18 +123,6 @@ export const UserLinks: NavLink[] = [
     iconActive: {
       light: "/icons/navicons/activeconsultant.svg",
       dark: "/icons/navicons/darkactiveconsult.svg",
-    },
-  },
-  {
-    label: "My Consultations",
-    href: "/consultation",
-    icon: {
-      light: "/icons/navicons/consult.svg",
-      dark: "/icons/navicons/darkconsult.svg",
-    },
-    iconActive: {
-      light: "/icons/navicons/activeconsult.svg",
-      dark: "/icons/navicons/darkactconsult.svg",
     },
   },
   {
@@ -176,15 +139,15 @@ export const UserLinks: NavLink[] = [
   },
 
   {
-    label: "Jobs",
-    href: "/jobs",
+    label: "My Consultation",
+    href: "/consultation",
     icon: {
-      light: "/icons/navicons/jobs.svg",
-      dark: "/icons/navicons/jobs.svg",
+      light: "/icons/navicons/consult.svg",
+      dark: "/icons/navicons/darkconsult.svg",
     },
     iconActive: {
-      light: "/icons/navicons/jobsactive.svg",
-      dark: "/icons/navicons/jobsactive.svg",
+      light: "/icons/navicons/activeconsult.svg",
+      dark: "/icons/navicons/darkactconsult.svg",
     },
   },
   {
@@ -200,7 +163,19 @@ export const UserLinks: NavLink[] = [
     },
   },
   {
-    label: "Notification",
+    label: "Jobs",
+    href: "/jobs",
+    icon: {
+      light: "/icons/navicons/jobs.svg",
+      dark: "/icons/navicons/jobs.svg",
+    },
+    iconActive: {
+      light: "/icons/navicons/jobsactive.svg",
+      dark: "/icons/navicons/jobsactive.svg",
+    },
+  },
+  {
+    label: "Notifications",
     href: "/notification",
     icon: {
       light: "/icons/navicons/notiflight.svg",

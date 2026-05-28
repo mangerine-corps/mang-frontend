@@ -14,6 +14,12 @@ import { useGetConsultantPricingOnDemandMutation } from "mangarine/state/service
 
 type PaymentMethod = 'stripe' | 'paystack' | 'paypal';
 
+const RequiredMark = () => (
+    <Text as="span" color="red.500" ml="1">
+        *
+    </Text>
+);
+
 const CustomDatePicker = ({onClick}) => {
     const router = useRouter()
     const [date, setDate] = useState<any>();
@@ -133,6 +139,16 @@ const CustomDatePicker = ({onClick}) => {
                         Book Consultation
                     </Text>
                 </Flex>
+                <Text
+                    fontSize="1.05rem"
+                    font="outfit"
+                    fontWeight="600"
+                    mb="2"
+                    color="text_primary"
+                >
+                    Select Date
+                    <RequiredMark />
+                </Text>
                 <Box mb={4}>
                     <BookingCalendarCard slots={slots} setSlots={setSlots} date={date} setDate={setDate}/>
                 </Box>
@@ -179,6 +195,7 @@ const CustomDatePicker = ({onClick}) => {
                     color="text_primary"
                 >
                     Message to Consultant
+                    <RequiredMark />
                 </Text>
                 <Textarea
                     placeholder="Enter your message to the consultant"

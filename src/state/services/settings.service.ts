@@ -224,6 +224,61 @@ export const settingsApi = createApi({
       invalidatesTags: ["Settings"],
     }),
 
+    // get login activities
+    getLoginActivities: builder.query<
+      {
+        activities: {
+          id: string;
+          ipAddress: string;
+          location: string;
+          device: string;
+          createdAt: string;
+        }[];
+        total: number;
+        page: number;
+        pages: number;
+      },
+      { page?: number; limit?: number }
+    >({
+      query: ({ page = 1, limit = 10 } = {}) => ({
+        url: "/login-activities",
+        method: "GET",
+        params: { page, limit },
+      }),
+      providesTags: ["Settings"],
+    }),
+
+    // get current 2FA status
+    get2FASettings: builder.query<{
+      enableEmail2FA: boolean;
+      enablePhone2FA: boolean;
+      enableApp2FA: boolean;
+    }, void>({
+      query: () => ({
+        url: "/2fa-settings",
+        method: "GET",
+      }),
+      providesTags: ["Settings"],
+    }),
+
+    // disable email 2FA
+    disableEmail2FA: builder.mutation({
+      query: () => ({
+        url: "/disable-email",
+        method: "POST",
+      }),
+      invalidatesTags: ["Settings"],
+    }),
+
+    // disable phone 2FA
+    disablePhone2FA: builder.mutation({
+      query: () => ({
+        url: "/disable-phone",
+        method: "POST",
+      }),
+      invalidatesTags: ["Settings"],
+    }),
+
     fetchCurrentUser: builder.query({
       query: () => "/current",
       providesTags: ["User"],
@@ -276,6 +331,10 @@ export const {
     useSetupApp2FAMutation,
     useUpdateTwoFactorAuthSettingsMutation,
     useDeactivateApp2FAMutation,
+    useGetLoginActivitiesQuery,
+    useGet2FASettingsQuery,
+    useDisableEmail2FAMutation,
+    useDisablePhone2FAMutation,
     useFetchCurrentUserQuery,
     useGetUserSettingsQuery,
     useGetGeneralSettingsQuery,

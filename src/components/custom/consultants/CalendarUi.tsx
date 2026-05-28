@@ -176,6 +176,13 @@ const formatDateToYYYYMMDD = (date) => {
     const day = String(d.getDate()).padStart(2, '0');
     return `${year}-${month}-${day}`;
 };
+
+const RequiredMark = () => (
+    <Text as="span" color="red.500" ml="1">
+        *
+    </Text>
+);
+
 type BookingProps = {
     date: any;
     setDate: any;
@@ -390,6 +397,7 @@ const BookingCalendarCard = ({ date, setDate, slots, setSlots, userId }: Booking
                         color="text_primary"
                     >
                         Select a time slot for {!isEmpty(selectedDay) && selectedDay.toDateString()}
+                        <RequiredMark />
                     </Heading>
                     {!isEmpty(availabilities.filter((availability: any) => availability.date === formatDateToYYYYMMDD(selectedDate))) ? (
                         <Flex wrap="wrap" gap={2}>

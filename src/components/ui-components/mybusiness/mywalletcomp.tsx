@@ -1,11 +1,15 @@
 import { Box, Button, Flex, HStack, Image, Skeleton, Stack, Text, VStack } from "@chakra-ui/react";
 import { useEffect, useMemo, useState } from "react";
+import { useRouter } from "next/router";
 import { WalletTable } from "./wallettable";
 import IncomeChart from "./incomechart";
 import { useGetTransactionMutation } from "mangarine/state/services/payment.service";
 
 const MyWalletComponent = () => {
-  const [transactions, setTransactions] = useState<boolean>(false);
+  const router = useRouter();
+  const { section } = router.query;
+
+  const [transactions, setTransactions] = useState<boolean>(section === "transactions" || section === "payments");
   const [income, setIncome] = useState<boolean>(false);
   const [balanceHidden, setBalanceHidden] = useState<boolean>(false);
   const [getTransaction, { data, isLoading, error }] = useGetTransactionMutation();

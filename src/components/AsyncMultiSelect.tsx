@@ -404,17 +404,15 @@ const AsyncMultiSelect: FC<FormValues> = ({
     option: (provided, state) => ({
       ...provided,
       fontSize: "1rem",
-
       fontWeight: "400",
       paddingLeft: 5,
       py: 0,
       noOfLines: 1,
+      bg: state.isSelected ? "primary.950" : "transparent",
+      color: state.isSelected ? "white" : "text_primary",
       _hover: {
-        bg: "primary.50",
-      },
-      color: "black",
-      _selected: {
-        bg: "transparent",
+        bg: state.isSelected ? "primary.800" : "primary.50",
+        color: state.isSelected ? "white" : "text_primary",
       },
     }),
     multiValue: (provided) => ({
@@ -428,11 +426,10 @@ const AsyncMultiSelect: FC<FormValues> = ({
       css: {
         fontFamily: "lato",
       },
-      // maxW: '50%'
     }),
     multiValueLabel: (provided) => ({
       ...provided,
-      color: "black",
+      color: "text_primary",
       fontSize: "1rem",
       fontWeight: "400",
     }),

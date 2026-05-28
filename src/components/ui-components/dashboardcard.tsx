@@ -107,12 +107,12 @@ const DashboardCard = () => {
         {
           icon: PaymentsIcon,
           label: "Payment History",
-          action: () => router.push(businessWalletPath),
+          action: () => router.push(`${businessWalletPath}&section=payments`),
         },
         {
           icon: TransactionHistoryIcon,
           label: "Transaction History",
-          action: () => router.push(businessWalletPath),
+          action: () => router.push(`${businessWalletPath}&section=transactions`),
         },
       ],
     },
@@ -126,7 +126,7 @@ const DashboardCard = () => {
         {
           icon: FiHeart,
           label: "Favorite Consultant",
-          action: () => router.push("/consultation"),
+          action: () => router.push("/consultant"),
         },
         {
           icon: ConsultationHistoryIcon,

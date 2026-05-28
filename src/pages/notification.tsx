@@ -1,4 +1,4 @@
-import { Box, Button, HStack, Badge, Spinner, Stack, Text, VStack, Pagination, ButtonGroup, IconButton } from "@chakra-ui/react";
+import { Box, Button, HStack, Badge, Stack, Text, VStack, Pagination, ButtonGroup, IconButton, Skeleton, SkeletonCircle } from "@chakra-ui/react";
 import AppLayout from "mangarine/layouts/AppLayout";
 import Biocard from "mangarine/components/ui-components/biocard";
 import DashboardCard from "mangarine/components/ui-components/dashboardcard";
@@ -13,7 +13,28 @@ import {
 import { LuChevronLeft, LuChevronRight } from "react-icons/lu";
 import { MdMarkEmailRead } from "react-icons/md";
 import { BiTrash } from "react-icons/bi";
-import { format } from "date-fns";
+import { format, parseISO } from "date-fns";
+
+const NotificationSkeletonRow = () => (
+  <HStack justify="space-between" bg="white" rounded="md" p={3} borderWidth="1px" align="start">
+    <HStack align="start" gap={3} flex={1}>
+      <SkeletonCircle size="10" />
+      <Stack gap={2} flex={1}>
+        <HStack>
+          <Skeleton h="4" w="140px" rounded="md" />
+          <Skeleton h="5" w="72px" rounded="md" />
+          <Skeleton h="5" w="96px" rounded="md" />
+        </HStack>
+        <Skeleton h="3" w="90%" rounded="md" />
+        <Skeleton h="3" w="72%" rounded="md" />
+      </Stack>
+    </HStack>
+    <HStack>
+      <Skeleton h="32px" w="32px" rounded="md" />
+      <Skeleton h="32px" w="32px" rounded="md" />
+    </HStack>
+  </HStack>
+);
 
 const Notification = () => {
   // Local pagination state
@@ -27,6 +48,18 @@ const Notification = () => {
   const items = useMemo(() => data?.data ?? [], [data]);
   const totalPages = data?.totalPages ?? 1;
   const totalItems = data?.total ?? 0;
+
+  const formatCreatedDate = (createdAt?: string) => {
+    if (!createdAt) {
+      return "";
+    }
+
+    try {
+      return format(parseISO(createdAt), "dd/MM/yyyy");
+    } catch {
+      return "";
+    }
+  };
 
   const onMarkAll = async () => {
     try { await markAllAsRead().unwrap(); refetch(); } catch { }
@@ -121,7 +154,11 @@ const Notification = () => {
             </HStack>
 
             {isLoading || isFetching ? (
-              <HStack justify="center" py={8}><Spinner size="sm" /><Text>Loading...</Text></HStack>
+              <Stack>
+                {Array.from({ length: 6 }).map((_, index) => (
+                  <NotificationSkeletonRow key={index} />
+                ))}
+              </Stack>
             ) : items.length === 0 ? (
               <Text py={8} textAlign="center">No notifications</Text>
             ) : (
@@ -131,7 +168,9 @@ const Notification = () => {
                     <Stack gap={1}>
                       <HStack>
                         <Text fontWeight="600">{n.title}</Text>
-                        <Badge px="1" colorScheme={n.status === 'UNREAD' || n.status === 'unread' ? 'blue' : 'gray'}>{format(n.created_at, 'dd/MM/yyyy')}</Badge>
+                        <Badge px="1" colorScheme={n.status === 'UNREAD' || n.status === 'unread' ? 'blue' : 'gray'}>
+                          {formatCreatedDate(n.createdAt)}
+                        </Badge>
                         {/* {n.priority && <Badge>{(n.priority || '').toString().toUpperCase()}</Badge>} */}
                         {n.type && <Badge px="1" variant="outline">{n.type}</Badge>}
                       </HStack>

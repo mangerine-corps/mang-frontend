@@ -91,7 +91,6 @@ const CommentInputWrapper: React.FC<CommentInputWrapperProps> = ({ postId }) => 
                   {showPicker && <EmojiPicker onEmojiClick={onEmojiClick} />}
                 </Box>
               </Box>
-              <FeedAction icon={tag} />
             </HStack>
 
             <Button

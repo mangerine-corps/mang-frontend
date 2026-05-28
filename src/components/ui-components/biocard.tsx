@@ -1,4 +1,4 @@
-import { Avatar, Box, HStack, Image, Progress, Text, VStack, Dialog, Button, IconButton } from "@chakra-ui/react";
+import { Avatar, Box, HStack, Image, Progress, Text, VStack, Dialog, Button, IconButton, Skeleton, SkeletonCircle, Stack } from "@chakra-ui/react";
 import { useAuth } from "mangarine/state/hooks/user.hook";
 import { useRouter } from "next/router";
 // import { InfoTip } from "@/components/ui/toggle-tip"
@@ -10,7 +10,7 @@ function Biocard() {
   const { user } = useAuth()
   const router = useRouter()
   const [showMissingModal, setShowMissingModal] = useState(false);
-  const { data: userInfo } = useGetUserInfoQuery(undefined);
+  const { data: userInfo, isLoading: loadingInfo } = useGetUserInfoQuery(undefined);
   const { data: missingFieldsResponse } = useGetMissingFieldsQuery(undefined);
   const { data: profileCompletionResponse } = useGetProfileCompletionQuery(undefined);
   const refreshedUser = (userInfo as any)?.data ?? userInfo;
@@ -45,7 +45,32 @@ function Biocard() {
     console.log(field, "path") ;
     router.push(path);
   };
-  console.log(user, "user")
+  if (loadingInfo && !user) {
+    return (
+      <VStack w="full" borderRadius="lg" border="1px solid" borderColor="border_background" bg="bg_box">
+        <Box w="full" h="120px" bg="grey.300" borderTopRadius="lg" position="relative">
+          <SkeletonCircle
+            size="20"
+            position="absolute"
+            bottom="-28px"
+            left="4"
+            border="4px solid white"
+          />
+        </Box>
+        <Box px="6" w="full" pt="12" pb="6">
+          <Stack gap={2}>
+            <Skeleton h="22px" w="60%" rounded="md" />
+            <Skeleton h="16px" w="40%" rounded="md" />
+            <Skeleton h="14px" w="80%" rounded="md" />
+            <Skeleton h="14px" w="70%" rounded="md" />
+            <Skeleton h="8px" w="full" rounded="full" mt={2} />
+            <Skeleton h="32px" w="full" rounded="md" mt={2} />
+          </Stack>
+        </Box>
+      </VStack>
+    );
+  }
+
   return (
     <VStack
       w="full"

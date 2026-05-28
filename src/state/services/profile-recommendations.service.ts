@@ -10,11 +10,13 @@ export const profileRecommendationsApi = createApi({
   tagTypes: ['ProfileRecommendations'],
   endpoints: (builder) => ({
     getProfileRecommendations: builder.query<ProfileRecommendationDto[], GetProfileRecommendationsDto>({
-      query: (params) => ({
+      query: (params = {}) => ({
         url: '/users/profile-recommendations',
         method: 'GET',
         params,
       }),
+      transformResponse: (response: { data: ProfileRecommendationDto[] } | ProfileRecommendationDto[]) =>
+        Array.isArray(response) ? response : response.data ?? [],
       providesTags: ['ProfileRecommendations'],
     }),
 

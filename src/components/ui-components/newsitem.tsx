@@ -493,7 +493,7 @@ const NewsItem: React.FC<NewsItemProps> = ({ post, isDetailPage = false }) => {
         </Box>
       )}
 
-      <HStack mt={4} w="full" justifyContent={"space-between"} alignItems={"center"}>
+      <HStack mt={4} w="full" justifyContent="space-between" alignItems="center" px={1} py={2} borderTopWidth="1px" borderColor="border_background">
         {/* Like Button */}
         <NewsAction
           icon={

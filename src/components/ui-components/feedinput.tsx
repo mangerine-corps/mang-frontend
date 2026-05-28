@@ -371,7 +371,6 @@ const addTag =(username:string)=>{
                 </Box>
               </Box>
               <Image src={locationIcon} alt="location" boxSize="22px" cursor="pointer" />
-              <Image src={tag} alt="tag" boxSize="22px" cursor="pointer" />
             </HStack>
           </Box>
         </Portal>
@@ -572,7 +571,6 @@ const addTag =(username:string)=>{
                         )}
                       </Box>
                     </Box>
-                    <FeedAction icon={tag} />
                   </HStack>
                   <VStack
                     w="full"

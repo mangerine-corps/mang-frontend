@@ -347,7 +347,7 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({ trigger }) 
               </HStack>
               <Box
                 as="button"
-                onClick={() => { setIsOpen(false); router.push('/notifications'); }}
+                onClick={() => { setIsOpen(false); router.push('/notification'); }}
                 _hover={{ opacity: 0.75 }}
               >
                 <Text

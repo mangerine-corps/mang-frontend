@@ -205,7 +205,7 @@ export const PostItems = () => {
             </HStack>
           </Box>
 
-          <HStack mt={4} justifyContent={"space-between"}>
+          <HStack mt={4} justifyContent="space-between" px={1} py={2} borderTopWidth="1px" borderColor="border_background">
             <NewsAction
               count={5}
               icon="/icons/thumb.svg"

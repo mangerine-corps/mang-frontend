@@ -7,7 +7,6 @@ import {
   LinkBox,
   LinkOverlay,
 } from "@chakra-ui/react";
-import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { NavLink } from "./navitems";
 import { outfit } from "mangarine/pages/_app";
@@ -21,7 +20,13 @@ interface Props {
 
 export const NavItem: React.FC<Props> = ({ link, isMobile }) => {
   const pathname = usePathname();
-  const isActive = pathname === link.href;
+  const normalizedHref = link.href.endsWith("/") && link.href !== "/" ? link.href.slice(0, -1) : link.href;
+  const normalizedPath = pathname.endsWith("/") && pathname !== "/" ? pathname.slice(0, -1) : pathname;
+  const isNotificationAlias = normalizedHref === "/notification" && normalizedPath === "/notifications";
+  const isActive =
+    isNotificationAlias ||
+    normalizedPath === normalizedHref ||
+    (normalizedHref !== "/home" && normalizedPath.startsWith(`${normalizedHref}/`));
   const { colorMode } = useColorMode();
   const [isClient, setIsClient] = useState(false);
 
@@ -34,49 +39,60 @@ export const NavItem: React.FC<Props> = ({ link, isMobile }) => {
       <LinkBox w={isMobile ? "full" : "auto"}>
         <LinkOverlay href={link.href}>
           <VStack
-            gap={0}
+            gap={isMobile ? 2 : 1}
             w={isMobile ? "full" : "auto"}
             bg={isMobile && isActive ? "#111D4A" : "transparent"}
-            px={isMobile ? 4 : 0}
-            py={isMobile ? 2 : 0}
+            minW={isMobile ? "full" : "78px"}
+            px={isMobile ? 4 : 2}
+            py={isMobile ? 2 : 1}
+            pb={isMobile ? 2 : 2}
             rounded={isMobile ? "md" : "none"}
             borderBottom={!isMobile && isActive ? "2px solid" : "2px solid transparent"}
-            borderColor={!isMobile && isActive ? "button_bg" : "transparent"}
-            color={isMobile && isActive ? "white" : isActive ? "button_bg" : "#494949"}
-            _hover={{ color: isMobile ? "white" : "text_primary", bg: isMobile ? "#111D4A" : "transparent", borderColor: "button_bg" }}
+            borderColor={!isMobile && isActive ? "#1D2A60" : "transparent"}
+            color={isMobile && isActive ? "white" : isActive ? "#1D2A60" : colorMode === "dark" ? "whiteAlpha.800" : "#4B4B52"}
+            _hover={{
+              color: isMobile ? "white" : "#1D2A60",
+              bg: isMobile ? "#111D4A" : "transparent",
+              borderColor: isMobile ? "transparent" : "#D9DDE8",
+            }}
             transition="all 0.2s"
             alignItems={isMobile ? "flex-start" : "center"}
             justifyContent={isMobile ? "flex-start" : "center"}
             flexDir={{ base: "row", md: "column", lg: "column", xl: "column" }}
           >
-            <Box filter={isMobile && isActive ? "brightness(0) invert(1)" : "none"}>
+            <Box
+              boxSize={isMobile ? "20px" : "22px"}
+              display="flex"
+              alignItems="center"
+              justifyContent="center"
+              filter={isMobile && isActive ? "brightness(0) invert(1)" : "none"}
+            >
               {!isClient ? (
-                // Show a default icon during SSR to prevent hydration mismatch
-                <Box boxSize={5}>
+                <Box boxSize="full">
                   <Image
                     alt={"nav icons"}
-                    maxH={5}
-                    maxW={5}
+                    h="full"
+                    w="full"
                     src={link.icon.light}
                   />
                 </Box>
               ) : colorMode === "dark" ? (
                 <>
                   {isActive ? (
-                    <Box boxSize={5}>
+                    <Box boxSize="full">
                       <Image
                         alt={"nav icons"}
-                        maxH={5}
-                        maxW={5}
+                        h="full"
+                        w="full"
                         src={link.iconActive.dark}
                       />
                     </Box>
                   ) : (
-                    <Box boxSize={5}>
+                    <Box boxSize="full">
                       <Image
                         alt={"nav icons"}
-                        maxH={5}
-                        maxW={5}
+                        h="full"
+                        w="full"
                         src={link.icon.dark}
                       />
                     </Box>
@@ -85,20 +101,20 @@ export const NavItem: React.FC<Props> = ({ link, isMobile }) => {
               ) : (
                 <>
                   {isActive ? (
-                    <Box boxSize={5}>
+                    <Box boxSize="full">
                       <Image
                         alt={"nav icons"}
-                        maxH={5}
-                        maxW={5}
+                        h="full"
+                        w="full"
                         src={link.iconActive.light}
                       />
                     </Box>
                   ) : (
-                    <Box boxSize={5}>
+                    <Box boxSize="full">
                       <Image
                         alt={"nav icons"}
-                        maxH={5}
-                        maxW={5}
+                        h="full"
+                        w="full"
                         src={link.icon.light}
                       />
                     </Box>
@@ -108,8 +124,11 @@ export const NavItem: React.FC<Props> = ({ link, isMobile }) => {
             </Box>
             <Text
               className={outfit.className}
-              fontSize={"0.688rem"}
-              fontWeight={isActive ? "600" : "normal"}
+              fontSize={isMobile ? "0.95rem" : "0.74rem"}
+              fontWeight={isActive ? "600" : "500"}
+              lineHeight="1.1"
+              textAlign="center"
+              whiteSpace="nowrap"
             >
               {link.label}
             </Text>

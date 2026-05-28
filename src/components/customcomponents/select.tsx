@@ -75,7 +75,7 @@ const CustomSelect = ({
         borderColor: !isEmpty(error) ? "error.100" : "primary.100",
       }}
       multiple={isMulti}
-      onValueChange={(e: any) => onChange(e.value)}
+      onValueChange={(e: any) => onChange(isMulti ? e.value : (e.value[0] ?? ""))}
       collection={collection}
       defaultValue={defaultValue}
       required={required}
@@ -117,13 +117,13 @@ const CustomSelect = ({
 
       <SelectContent
         zIndex={"max"}
-        color={"black"}
-        bg="white"
-        _hover={{ bg: "white" }}
+        color={"text_primary"}
+        bg="main_background"
       >
         {collection.items.map((movie: any) => (
           <SelectItem
-            _hover={{ bg: "primary.50" }}
+            _hover={{ bg: "primary.50", color: "text_primary" }}
+            _highlighted={{ bg: "primary.50", color: "text_primary" }}
             px={4}
             py={3}
             item={movie}

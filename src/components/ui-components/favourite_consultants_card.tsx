@@ -1,6 +1,6 @@
 "use client";
 import { useEffect } from "react";
-import { Text, VStack, Image, Flex, Box, HStack } from "@chakra-ui/react";
+import { Text, VStack, Image, Flex, Box, HStack, Skeleton, SkeletonCircle } from "@chakra-ui/react";
 import { useGetFavoriteConsultantsQuery } from "mangarine/state/services/consultant.service";
 import { safeProfilePic, imgErrorFallback } from "mangarine/lib/constants";
 import { isEmpty } from "es-toolkit/compat";
@@ -51,6 +51,23 @@ const FavouriteConsultantsComp = ({ title }: FavouriteConsultantsCompProps) => {
       >
       Favourite Consultant
       </Text>
+
+      {isLoading && (
+        <Flex flexDir="column" gap={4} w="full" px="6">
+          {Array.from({ length: 3 }).map((_, i) => (
+            <HStack key={i} w="full" justifyContent="space-between">
+              <HStack gap="8px">
+                <SkeletonCircle size="10" />
+                <Box>
+                  <Skeleton h="14px" w="100px" mb={1} rounded="md" />
+                  <Skeleton h="12px" w="70px" rounded="md" />
+                </Box>
+              </HStack>
+              <SkeletonCircle size="8" />
+            </HStack>
+          ))}
+        </Flex>
+      )}
 
       {!isLoading && isEmpty(data?.data?.favoriteConsultants) && (
         <Text px="6" fontSize="0.875rem" color="gray.400" fontFamily="Outfit" textAlign="left">

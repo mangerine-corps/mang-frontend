@@ -3,88 +3,103 @@
 import {
   Box,
   ButtonGroup,
-  Heading,
   IconButton,
   Pagination,
+  Skeleton,
   Stack,
   Table,
+  Text,
 } from "@chakra-ui/react";
+import { useState } from "react";
 import { LuChevronLeft, LuChevronRight } from "react-icons/lu";
+import { useGetLoginActivitiesQuery } from "mangarine/state/services/settings.service";
+
+const PAGE_SIZE = 10;
+
+const formatDate = (iso: string) =>
+  new Date(iso).toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" });
+
+const formatTime = (iso: string) =>
+  new Date(iso).toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" });
 
 export const PaginatedTable = () => {
+  const [page, setPage] = useState(1);
+  const { data, isLoading, isFetching } = useGetLoginActivitiesQuery({ page, limit: PAGE_SIZE });
+
+  const activities = data?.activities ?? [];
+  const total = data?.total ?? 0;
+
   return (
     <Stack width="full" gap="5" py="4">
       <Box overflowX="auto" w="full">
-      {/* <Heading size="xl">Products</Heading> */}
-      <Table.Root size="lg" variant="outline" minWidth="600">
-        <Table.Header>
-          <Table.Row>
-            <Table.ColumnHeader textAlign="center" p="4">
-              Date
-            </Table.ColumnHeader>
-            <Table.ColumnHeader textAlign="center" p="4">
-              Time
-            </Table.ColumnHeader>
-            <Table.ColumnHeader textAlign="center" p="4">
-              Location
-            </Table.ColumnHeader>
-            <Table.ColumnHeader textAlign="center" p="4">
-              Devices
-            </Table.ColumnHeader>
-          </Table.Row>
-        </Table.Header>
-        <Table.Body>
-          {items.map((item) => (
-            <Table.Row key={item.id}>
-              <Table.Cell p="4" color={"text_primary"} textAlign="center">
-                {item.name}
-              </Table.Cell>
-              <Table.Cell p="4" color={"text_primary"} textAlign="center">
-                {item.category}
-              </Table.Cell>
-              <Table.Cell p="4" color={"text_primary"} textAlign="center">
-                {item.category}
-              </Table.Cell>
-              <Table.Cell p="4" color={"text_primary"} textAlign="center">
-                {item.price}
-              </Table.Cell>
+        <Table.Root size="lg" variant="outline" minWidth="600">
+          <Table.Header>
+            <Table.Row>
+              <Table.ColumnHeader textAlign="center" p="4" color="text_primary">Date</Table.ColumnHeader>
+              <Table.ColumnHeader textAlign="center" p="4" color="text_primary">Time</Table.ColumnHeader>
+              <Table.ColumnHeader textAlign="center" p="4" color="text_primary">Location</Table.ColumnHeader>
+              <Table.ColumnHeader textAlign="center" p="4" color="text_primary">Device</Table.ColumnHeader>
             </Table.Row>
-          ))}
-        </Table.Body>
-      </Table.Root>
+          </Table.Header>
+          <Table.Body>
+            {isLoading || isFetching ? (
+              Array.from({ length: PAGE_SIZE }).map((_, i) => (
+                <Table.Row key={i}>
+                  {Array.from({ length: 4 }).map((_, j) => (
+                    <Table.Cell key={j} p="4" textAlign="center">
+                      <Skeleton h="18px" rounded="md" />
+                    </Table.Cell>
+                  ))}
+                </Table.Row>
+              ))
+            ) : activities.length === 0 ? (
+              <Table.Row>
+                <Table.Cell colSpan={4} textAlign="center" py={10}>
+                  <Text color="grey.500" fontSize="0.9rem">No login activity found.</Text>
+                </Table.Cell>
+              </Table.Row>
+            ) : (
+              activities.map((item) => (
+                <Table.Row key={item.id}>
+                  <Table.Cell p="4" color="text_primary" textAlign="center">{formatDate(item.createdAt)}</Table.Cell>
+                  <Table.Cell p="4" color="text_primary" textAlign="center">{formatTime(item.createdAt)}</Table.Cell>
+                  <Table.Cell p="4" color="text_primary" textAlign="center">{item.location}</Table.Cell>
+                  <Table.Cell p="4" color="text_primary" textAlign="center">{item.device}</Table.Cell>
+                </Table.Row>
+              ))
+            )}
+          </Table.Body>
+        </Table.Root>
       </Box>
 
-      <Pagination.Root count={items.length * 5} pageSize={5} page={1}>
-        <ButtonGroup variant="ghost" size="sm" wrap="wrap">
-          <Pagination.PrevTrigger asChild>
-            <IconButton>
-              <LuChevronLeft />
-            </IconButton>
-          </Pagination.PrevTrigger>
-
-          <Pagination.Items
-            render={(page) => (
-              <IconButton variant={{ base: "ghost", _selected: "outline" }}>
-                {page.value}
+      {total > PAGE_SIZE && (
+        <Pagination.Root
+          count={total}
+          pageSize={PAGE_SIZE}
+          page={page}
+          onPageChange={(e) => setPage(e.page)}
+        >
+          <ButtonGroup variant="ghost" size="sm" wrap="wrap">
+            <Pagination.PrevTrigger asChild>
+              <IconButton disabled={page === 1}>
+                <LuChevronLeft />
               </IconButton>
-            )}
-          />
-
-          <Pagination.NextTrigger asChild>
-            <IconButton>
-              <LuChevronRight />
-            </IconButton>
-          </Pagination.NextTrigger>
-        </ButtonGroup>
-      </Pagination.Root>
+            </Pagination.PrevTrigger>
+            <Pagination.Items
+              render={(p) => (
+                <IconButton variant={{ base: "ghost", _selected: "outline" }}>
+                  {p.value}
+                </IconButton>
+              )}
+            />
+            <Pagination.NextTrigger asChild>
+              <IconButton disabled={page === (data?.pages ?? 1)}>
+                <LuChevronRight />
+              </IconButton>
+            </Pagination.NextTrigger>
+          </ButtonGroup>
+        </Pagination.Root>
+      )}
     </Stack>
   );
 };
-
-const items = [
-  { id: 1, name: "Laptop", category: "Electronics", price: 999.99 },
-  { id: 2, name: "Coffee Maker", category: "Home Appliances", price: 49.99 },
-  { id: 3, name: "Desk Chair", category: "Furniture", price: 150.0 },
-  { id: 4, name: "Smartphone", category: "Electronics", price: 799.99 },
-  { id: 5, name: "Headphones", category: "Accessories", price: 199.99 },
-];

@@ -1,4 +1,4 @@
-import { Box, Flex, Text, HStack, Button, Image, Link } from "@chakra-ui/react";
+import { Box, Flex, Text, HStack, Button, Image, Link, Skeleton, SkeletonCircle, Stack } from "@chakra-ui/react";
 import { safeProfilePic, imgErrorFallback } from "mangarine/lib/constants";
 import { isEmpty } from "es-toolkit/compat";
 import { useAuth } from "mangarine/state/hooks/user.hook";
@@ -41,6 +41,45 @@ const Schedulecard
     //     })
     //   }
     //  }
+    if (isLoading) {
+      return (
+        <Box
+          w={{ base: "100%", sm: "90%", md: "100%" }}
+          maxW={{ base: "full", md: "340px", lg: "400px" }}
+          pb="12px"
+          borderRadius="lg"
+          boxShadow="sm"
+          bg="bg_box"
+          p="4"
+          rounded="15px"
+        >
+          <Skeleton h="24px" w="100px" mb={4} rounded="md" />
+          {Array.from({ length: 2 }).map((_, i) => (
+            <Stack key={i} mb={4} gap={3}>
+              <HStack justify="space-between">
+                <HStack>
+                  <SkeletonCircle size="14" />
+                  <Stack gap={1}>
+                    <Skeleton h="16px" w="120px" rounded="md" />
+                    <Skeleton h="13px" w="80px" rounded="md" />
+                  </Stack>
+                </HStack>
+                <HStack>
+                  <Skeleton h="44px" w="44px" rounded="md" />
+                  <Skeleton h="44px" w="44px" rounded="md" />
+                </HStack>
+              </HStack>
+              <Skeleton h="40px" w="full" rounded="md" />
+              <HStack gap={3}>
+                <Skeleton h="36px" flex={1} rounded="md" />
+                <Skeleton h="36px" flex={1} rounded="md" />
+              </HStack>
+            </Stack>
+          ))}
+        </Box>
+      );
+    }
+
     return (
       <Box
         w={{ base: "100%", sm: "90%", md: "100%" }} // full width on mobile, tighter on small screens

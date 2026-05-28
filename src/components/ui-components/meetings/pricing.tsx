@@ -1,4 +1,4 @@
-import { Box, Text, Button, VStack, HStack, Flex } from "@chakra-ui/react";
+import { Box, Text, Button, VStack, HStack, Flex, Skeleton, Stack } from "@chakra-ui/react";
 import * as Yup from "yup";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { Controller, useForm } from "react-hook-form";
@@ -23,7 +23,7 @@ const loginSchema = Yup.object().shape({
 
 const Pricing = () => {
   const [consultantPricing, { isLoading }] = useConsultantPricingMutation();
-  const { data, currentData, refetch } = useGetPricingQuery({})
+  const { data, currentData, refetch, isLoading: isFetchingPricing } = useGetPricingQuery({})
   const [pricing, setPricing] = useState<PricingDetails>()
   const {
     control,
@@ -84,6 +84,29 @@ const Pricing = () => {
       setPricing(pricing)
     }
   }, [data])
+
+  if (isFetchingPricing) {
+    return (
+      <Box bg="bg_box" borderRadius="12px" boxShadow="md" p={6} pb="24">
+        <Skeleton h="36px" w="220px" mb={6} rounded="md" />
+        <Stack gap={6}>
+          {Array.from({ length: 6 }).map((_, i) => (
+            <HStack key={i} justifyContent="space-between" alignItems="center">
+              <Stack gap={2} flex={1}>
+                <Skeleton h="18px" w="40%" rounded="md" />
+                <Skeleton h="14px" w="60%" rounded="md" />
+              </Stack>
+              <Skeleton h="44px" w="120px" rounded="md" />
+            </HStack>
+          ))}
+          <HStack justifyContent="flex-end" pt={8} gap={3}>
+            <Skeleton h="40px" w="100px" rounded="md" />
+            <Skeleton h="40px" w="100px" rounded="md" />
+          </HStack>
+        </Stack>
+      </Box>
+    );
+  }
 
   return (
     <Box bg="bg_box" borderRadius="12px" boxShadow="md" p={6} pb="24">

@@ -41,6 +41,7 @@ window.onload = function() {
       },
       "/onboarding/update-profile/pics": {
         "post": {
+          "description": "Upload a profile picture during onboarding",
           "operationId": "OnboardingController_uploadOnboardPics",
           "parameters": [],
           "requestBody": {
@@ -54,8 +55,8 @@ window.onload = function() {
             }
           },
           "responses": {
-            "201": {
-              "description": ""
+            "200": {
+              "description": "Profile picture uploaded successfully"
             }
           },
           "security": [
@@ -63,6 +64,7 @@ window.onload = function() {
               "bearer": []
             }
           ],
+          "summary": "Upload profile picture",
           "tags": [
             "onboarding"
           ]
@@ -70,6 +72,7 @@ window.onload = function() {
       },
       "/onboarding/update-profile/details": {
         "post": {
+          "description": "Update title, bio, and optionally upload resume and intro video",
           "operationId": "OnboardingController_createAboutDetails",
           "parameters": [],
           "requestBody": {
@@ -83,8 +86,8 @@ window.onload = function() {
             }
           },
           "responses": {
-            "201": {
-              "description": ""
+            "200": {
+              "description": "Profile details updated successfully"
             }
           },
           "security": [
@@ -92,6 +95,7 @@ window.onload = function() {
               "bearer": []
             }
           ],
+          "summary": "Update profile details",
           "tags": [
             "onboarding"
           ]
@@ -99,6 +103,7 @@ window.onload = function() {
       },
       "/onboarding/update-profile/resume": {
         "post": {
+          "description": "Upload a resume document (PDF, DOC, DOCX, or image)",
           "operationId": "OnboardingController_uploadResume",
           "parameters": [],
           "requestBody": {
@@ -112,8 +117,8 @@ window.onload = function() {
             }
           },
           "responses": {
-            "201": {
-              "description": ""
+            "200": {
+              "description": "Resume uploaded successfully"
             }
           },
           "security": [
@@ -121,6 +126,7 @@ window.onload = function() {
               "bearer": []
             }
           ],
+          "summary": "Upload resume",
           "tags": [
             "onboarding"
           ]
@@ -128,11 +134,11 @@ window.onload = function() {
       },
       "/onboarding/update-profile/video": {
         "post": {
+          "description": "Upload a profile intro video (MP4 or AVI)",
           "operationId": "OnboardingController_uploadProfileVido",
           "parameters": [],
           "requestBody": {
             "required": true,
-            "description": "Upload a profile video",
             "content": {
               "multipart/form-data": {
                 "schema": {
@@ -142,8 +148,8 @@ window.onload = function() {
             }
           },
           "responses": {
-            "201": {
-              "description": ""
+            "200": {
+              "description": "Profile video uploaded successfully"
             }
           },
           "security": [
@@ -151,6 +157,7 @@ window.onload = function() {
               "bearer": []
             }
           ],
+          "summary": "Upload intro video",
           "tags": [
             "onboarding"
           ]
@@ -158,6 +165,7 @@ window.onload = function() {
       },
       "/onboarding/update-profile/pricing": {
         "post": {
+          "description": "Set the user pricing plan (free or premium)",
           "operationId": "OnboardingController_setPricingPlan",
           "parameters": [],
           "requestBody": {
@@ -171,8 +179,8 @@ window.onload = function() {
             }
           },
           "responses": {
-            "201": {
-              "description": ""
+            "200": {
+              "description": "Pricing plan set successfully"
             }
           },
           "security": [
@@ -180,6 +188,7 @@ window.onload = function() {
               "bearer": []
             }
           ],
+          "summary": "Set pricing plan",
           "tags": [
             "onboarding"
           ]
@@ -2029,6 +2038,51 @@ window.onload = function() {
           ]
         }
       },
+      "/auth/verify-2fa": {
+        "post": {
+          "description": "Called after POST /auth/login returns `requires2FA: true`. Submit the challengeToken from that response together with the OTP (from email / SMS) or TOTP code (from authenticator app). On success returns the same token + user payload as a normal login.",
+          "operationId": "AuthController_verify2FA",
+          "parameters": [
+            {
+              "name": "app_token",
+              "in": "header",
+              "description": "App authorization header",
+              "schema": {
+                "type": "string"
+              }
+            }
+          ],
+          "requestBody": {
+            "required": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Verify2FADto"
+                }
+              }
+            }
+          },
+          "responses": {
+            "200": {
+              "description": "Login successful — full session token issued.",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/CreateResponse"
+                  }
+                }
+              }
+            },
+            "401": {
+              "description": "Invalid or expired challenge token / OTP."
+            }
+          },
+          "summary": "Complete 2FA login challenge",
+          "tags": [
+            "auth"
+          ]
+        }
+      },
       "/users/get": {
         "get": {
           "operationId": "UsersController_getUserInfo",
@@ -2278,7 +2332,7 @@ window.onload = function() {
               "bearer": []
             }
           ],
-          "summary": "updates the profile picture of the currently authenticated user",
+          "summary": "updates the profile banner of the currently authenticated user",
           "tags": [
             "users"
           ]
@@ -2335,7 +2389,64 @@ window.onload = function() {
               "bearer": []
             }
           ],
-          "summary": "updates the profile picture of the currently authenticated user",
+          "summary": "updates the profile video of the currently authenticated user",
+          "tags": [
+            "users"
+          ]
+        }
+      },
+      "/users/update/profile/resume": {
+        "post": {
+          "operationId": "UsersController_updateProfileResume",
+          "parameters": [
+            {
+              "name": "app_token",
+              "in": "header",
+              "description": "App authorization header",
+              "schema": {
+                "type": "string"
+              }
+            }
+          ],
+          "requestBody": {
+            "required": true,
+            "content": {
+              "multipart/form-data": {
+                "schema": {
+                  "$ref": "#/components/schemas/UpdateUserResumeDto"
+                }
+              }
+            }
+          },
+          "responses": {
+            "200": {
+              "description": "",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "allOf": [
+                      {
+                        "$ref": "#/components/schemas/GeneralResponse"
+                      },
+                      {
+                        "properties": {
+                          "data": {
+                            "$ref": "#/components/schemas/User"
+                          }
+                        }
+                      }
+                    ]
+                  }
+                }
+              }
+            }
+          },
+          "security": [
+            {
+              "bearer": []
+            }
+          ],
+          "summary": "updates the resume of the currently authenticated user",
           "tags": [
             "users"
           ]
@@ -2357,7 +2468,7 @@ window.onload = function() {
           "requestBody": {
             "required": true,
             "content": {
-              "application/json": {
+              "multipart/form-data": {
                 "schema": {
                   "$ref": "#/components/schemas/UpdateUserInfoDto"
                 }
@@ -2449,7 +2560,7 @@ window.onload = function() {
               "bearer": []
             }
           ],
-          "summary": "updates the info of the current user",
+          "summary": "updates the contact info of the current user",
           "tags": [
             "users"
           ]
@@ -2506,7 +2617,7 @@ window.onload = function() {
               "bearer": []
             }
           ],
-          "summary": "add new consultancy to use profile",
+          "summary": "add new consultancy to user profile",
           "tags": [
             "users"
           ]
@@ -2553,7 +2664,7 @@ window.onload = function() {
               "bearer": []
             }
           ],
-          "summary": "add new consultancy to use profile",
+          "summary": "get consultancies on user profile",
           "tags": [
             "users"
           ]
@@ -2673,7 +2784,7 @@ window.onload = function() {
               "bearer": []
             }
           ],
-          "summary": "add new consultancy to use profile",
+          "summary": "delete consultancy from user profile",
           "tags": [
             "users"
           ]
@@ -2730,7 +2841,7 @@ window.onload = function() {
               "bearer": []
             }
           ],
-          "summary": "add new language to use profile",
+          "summary": "add new language to user profile",
           "tags": [
             "users"
           ]
@@ -2785,7 +2896,7 @@ window.onload = function() {
               "bearer": []
             }
           ],
-          "summary": "add new language to use profile",
+          "summary": "delete language from user profile",
           "tags": [
             "users"
           ]
@@ -2926,7 +3037,7 @@ window.onload = function() {
               "bearer": []
             }
           ],
-          "summary": "get all users skills",
+          "summary": "get all user skills",
           "tags": [
             "users"
           ]
@@ -3151,7 +3262,7 @@ window.onload = function() {
               "bearer": []
             }
           ],
-          "summary": "UnFollow a user",
+          "summary": "Unfollow a user",
           "tags": [
             "users"
           ]
@@ -3247,7 +3358,7 @@ window.onload = function() {
               "bearer": []
             }
           ],
-          "summary": "deactvate a user",
+          "summary": "deactivate a user account",
           "tags": [
             "users"
           ]
@@ -3914,7 +4025,6 @@ window.onload = function() {
       },
       "/users/is-blocked/{userId}": {
         "get": {
-          "description": "Check if a specific user is blocked by the current user",
           "operationId": "UsersController_isUserBlocked",
           "parameters": [
             {
@@ -5823,6 +5933,56 @@ window.onload = function() {
           ]
         }
       },
+      "/posts/{postId}/not-interested": {
+        "post": {
+          "description": "Hides the post from the authenticated user's feed permanently. Calling it multiple times is safe (idempotent).",
+          "operationId": "PostsController_markNotInterested",
+          "parameters": [
+            {
+              "name": "postId",
+              "required": true,
+              "in": "path",
+              "description": "UUID of the post to hide",
+              "schema": {
+                "example": "123e4567-e89b-12d3-a456-426614174000",
+                "type": "string"
+              }
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "Post marked as not interested",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "example": {
+                      "message": "Post marked as not interested",
+                      "data": null,
+                      "status": "success",
+                      "code": 200
+                    }
+                  }
+                }
+              }
+            },
+            "401": {
+              "description": "Unauthorized - JWT token required"
+            },
+            "404": {
+              "description": "Post not found"
+            }
+          },
+          "security": [
+            {
+              "bearer": []
+            }
+          ],
+          "summary": "Mark a post as not interested",
+          "tags": [
+            "posts"
+          ]
+        }
+      },
       "/posts/trending": {
         "get": {
           "description": "Get trending posts using various algorithms with configurable time windows and filters",
@@ -7448,11 +7608,15 @@ window.onload = function() {
       },
       "/consultants": {
         "get": {
+          "description": "Returns all active consultants with pricing and availability set, excluding the caller.",
           "operationId": "ConsultantsController_findAll",
           "parameters": [],
           "responses": {
             "200": {
-              "description": ""
+              "description": "Consultants retrieved successfully."
+            },
+            "401": {
+              "description": "Unauthorized."
             }
           },
           "security": [
@@ -7460,6 +7624,398 @@ window.onload = function() {
               "bearer": []
             }
           ],
+          "summary": "List all consultants",
+          "tags": [
+            "consultants"
+          ]
+        }
+      },
+      "/consultants/dashboard/stats": {
+        "get": {
+          "description": "Returns total earnings, success rate, cancellation count/loss, and returning client rate.",
+          "operationId": "ConsultantsController_getDashboardStats",
+          "parameters": [],
+          "responses": {
+            "200": {
+              "description": "Stats retrieved.",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "example": {
+                      "totalEarnings": 1000000,
+                      "successRate": 85,
+                      "cancellations": {
+                        "count": 3,
+                        "loss": 200
+                      },
+                      "returningClientRate": 60
+                    }
+                  }
+                }
+              }
+            },
+            "401": {
+              "description": "Unauthorized."
+            }
+          },
+          "security": [
+            {
+              "bearer": []
+            }
+          ],
+          "summary": "Activity overview stats",
+          "tags": [
+            "consultants"
+          ]
+        }
+      },
+      "/consultants/dashboard/earnings": {
+        "get": {
+          "description": "Returns chart labels and data points for the selected period. Defaults to current month.",
+          "operationId": "ConsultantsController_getDashboardEarnings",
+          "parameters": [
+            {
+              "name": "period",
+              "required": false,
+              "in": "query",
+              "description": "Time period for the chart. Defaults to month.",
+              "schema": {
+                "enum": [
+                  "day",
+                  "week",
+                  "month",
+                  "year"
+                ],
+                "type": "string"
+              }
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "Earnings chart data retrieved.",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "example": {
+                      "labels": [
+                        "Jan 1",
+                        "Jan 2"
+                      ],
+                      "data": [
+                        1200,
+                        3400
+                      ]
+                    }
+                  }
+                }
+              }
+            },
+            "401": {
+              "description": "Unauthorized."
+            }
+          },
+          "security": [
+            {
+              "bearer": []
+            }
+          ],
+          "summary": "Earnings chart data",
+          "tags": [
+            "consultants"
+          ]
+        }
+      },
+      "/consultants/dashboard/consultations": {
+        "get": {
+          "description": "Returns monthly successful and cancelled consultation counts for the current year.",
+          "operationId": "ConsultantsController_getDashboardConsultations",
+          "parameters": [],
+          "responses": {
+            "200": {
+              "description": "Consultation overview retrieved.",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "example": {
+                      "months": [
+                        "Jan",
+                        "Feb"
+                      ],
+                      "successful": [
+                        28,
+                        30
+                      ],
+                      "canceled": [
+                        5,
+                        3
+                      ]
+                    }
+                  }
+                }
+              }
+            },
+            "401": {
+              "description": "Unauthorized."
+            }
+          },
+          "security": [
+            {
+              "bearer": []
+            }
+          ],
+          "summary": "Consultation overview chart",
+          "tags": [
+            "consultants"
+          ]
+        }
+      },
+      "/consultants/dashboard/gauge": {
+        "get": {
+          "description": "Returns total scheduled and completed consultation counts for the gauge widget.",
+          "operationId": "ConsultantsController_getDashboardGauge",
+          "parameters": [],
+          "responses": {
+            "200": {
+              "description": "Gauge data retrieved.",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "example": {
+                      "scheduled": 100,
+                      "completed": 72
+                    }
+                  }
+                }
+              }
+            },
+            "401": {
+              "description": "Unauthorized."
+            }
+          },
+          "security": [
+            {
+              "bearer": []
+            }
+          ],
+          "summary": "Consultation gauge",
+          "tags": [
+            "consultants"
+          ]
+        }
+      },
+      "/consultants/dashboard/history": {
+        "get": {
+          "description": "Paginated and filterable list of past consultations (COMPLETED, CANCELLED, EXPIRED) for the authenticated consultant.",
+          "operationId": "ConsultantsController_getDashboardHistory",
+          "parameters": [
+            {
+              "name": "status",
+              "required": false,
+              "in": "query",
+              "description": "Filter by appointment status. Returns all three if omitted.",
+              "schema": {
+                "enum": [
+                  "COMPLETED",
+                  "CANCELLED",
+                  "EXPIRED"
+                ],
+                "type": "string"
+              }
+            },
+            {
+              "name": "fromDate",
+              "required": false,
+              "in": "query",
+              "description": "Start of date range (YYYY-MM-DD, inclusive).",
+              "schema": {
+                "example": "2025-01-01",
+                "type": "string"
+              }
+            },
+            {
+              "name": "toDate",
+              "required": false,
+              "in": "query",
+              "description": "End of date range (YYYY-MM-DD, inclusive).",
+              "schema": {
+                "example": "2025-12-31",
+                "type": "string"
+              }
+            },
+            {
+              "name": "name",
+              "required": false,
+              "in": "query",
+              "description": "Partial match search on client full name.",
+              "schema": {
+                "example": "John",
+                "type": "string"
+              }
+            },
+            {
+              "name": "sortBy",
+              "required": false,
+              "in": "query",
+              "description": "Sort field. date = most recent first (default), name = A–Z by client, status = A–Z by status.",
+              "schema": {
+                "enum": [
+                  "date",
+                  "name",
+                  "status"
+                ],
+                "type": "string"
+              }
+            },
+            {
+              "name": "limit",
+              "required": false,
+              "in": "query",
+              "description": "Items per page. Defaults to 10.",
+              "schema": {
+                "example": 10,
+                "type": "number"
+              }
+            },
+            {
+              "name": "page",
+              "required": false,
+              "in": "query",
+              "description": "Page number. Defaults to 1.",
+              "schema": {
+                "example": 1,
+                "type": "number"
+              }
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "Consultation history retrieved.",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "example": {
+                      "history": [
+                        {
+                          "id": "uuid",
+                          "status": "COMPLETED",
+                          "videoOption": true,
+                          "endedAt": "2025-06-01T10:00:00.000Z",
+                          "createdAt": "2025-06-01T08:00:00.000Z",
+                          "user": {
+                            "id": "uuid",
+                            "fullName": "John Doe",
+                            "profilePics": "url",
+                            "email": "john@example.com"
+                          },
+                          "availability": {
+                            "id": "uuid",
+                            "date": "2025-06-01"
+                          },
+                          "timeslots": [
+                            {
+                              "id": "uuid",
+                              "startTime": "09:00 AM",
+                              "endTime": "10:00 AM",
+                              "duration": 60
+                            }
+                          ],
+                          "transaction": {
+                            "id": "uuid",
+                            "amount": "150.00",
+                            "currency": "USD",
+                            "status": "completed"
+                          }
+                        }
+                      ],
+                      "total": 42,
+                      "page": 1,
+                      "limit": 10,
+                      "totalPages": 5
+                    }
+                  }
+                }
+              }
+            },
+            "401": {
+              "description": "Unauthorized."
+            }
+          },
+          "security": [
+            {
+              "bearer": []
+            }
+          ],
+          "summary": "Consultation history",
+          "tags": [
+            "consultants"
+          ]
+        }
+      },
+      "/consultants/preferences": {
+        "get": {
+          "description": "Returns saved scheduling preferences. Creates defaults if none exist yet.",
+          "operationId": "ConsultantsController_getPreferences",
+          "parameters": [],
+          "responses": {
+            "200": {
+              "description": "Preferences retrieved.",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "example": {
+                      "advanceNotice": "24 Hours",
+                      "meetingBuffer": "1 Hour",
+                      "dailyLimit": 5
+                    }
+                  }
+                }
+              }
+            },
+            "401": {
+              "description": "Unauthorized."
+            }
+          },
+          "security": [
+            {
+              "bearer": []
+            }
+          ],
+          "summary": "Get consultant preferences",
+          "tags": [
+            "consultants"
+          ]
+        },
+        "post": {
+          "description": "Creates or updates scheduling preferences for the authenticated consultant.",
+          "operationId": "ConsultantsController_savePreferences",
+          "parameters": [],
+          "requestBody": {
+            "required": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConsultantPreferencesDto"
+                }
+              }
+            }
+          },
+          "responses": {
+            "200": {
+              "description": "Preferences saved."
+            },
+            "400": {
+              "description": "Validation error."
+            },
+            "401": {
+              "description": "Unauthorized."
+            }
+          },
+          "security": [
+            {
+              "bearer": []
+            }
+          ],
+          "summary": "Save consultant preferences",
           "tags": [
             "consultants"
           ]
@@ -7498,12 +8054,15 @@ window.onload = function() {
       },
       "/consultants/favorites": {
         "get": {
-          "description": "Retrieve all favorite consultants for the authenticated user",
+          "description": "Retrieve all favorite consultants for the authenticated user.",
           "operationId": "ConsultantsController_getFavoriteConsultants",
           "parameters": [],
           "responses": {
             "200": {
-              "description": "Favorite consultants retrieved successfully"
+              "description": "Favorite consultants retrieved successfully."
+            },
+            "401": {
+              "description": "Unauthorized."
             }
           },
           "security": [
@@ -7525,14 +8084,25 @@ window.onload = function() {
               "name": "id",
               "required": true,
               "in": "path",
+              "description": "UUID of the consultant",
               "schema": {
+                "example": "123e4567-e89b-12d3-a456-426614174000",
                 "type": "string"
               }
             }
           ],
           "responses": {
             "200": {
-              "description": ""
+              "description": "Consultant retrieved successfully."
+            },
+            "401": {
+              "description": "Unauthorized."
+            },
+            "403": {
+              "description": "Forbidden — caller has blocked this consultant."
+            },
+            "404": {
+              "description": "Consultant not found."
             }
           },
           "security": [
@@ -7540,6 +8110,7 @@ window.onload = function() {
               "bearer": []
             }
           ],
+          "summary": "Get consultant by ID",
           "tags": [
             "consultants"
           ]
@@ -7551,6 +8122,7 @@ window.onload = function() {
               "name": "id",
               "required": true,
               "in": "path",
+              "description": "Numeric ID of the consultant",
               "schema": {
                 "type": "string"
               }
@@ -7558,7 +8130,7 @@ window.onload = function() {
           ],
           "responses": {
             "200": {
-              "description": ""
+              "description": "Consultant removed."
             }
           },
           "security": [
@@ -7566,6 +8138,7 @@ window.onload = function() {
               "bearer": []
             }
           ],
+          "summary": "Delete consultant by ID",
           "tags": [
             "consultants"
           ]
@@ -7579,14 +8152,19 @@ window.onload = function() {
               "name": "id",
               "required": true,
               "in": "path",
+              "description": "UUID of the consultant",
               "schema": {
+                "example": "123e4567-e89b-12d3-a456-426614174000",
                 "type": "string"
               }
             }
           ],
           "responses": {
             "200": {
-              "description": ""
+              "description": "Posts retrieved successfully."
+            },
+            "404": {
+              "description": "Consultant not found."
             }
           },
           "security": [
@@ -7594,6 +8172,7 @@ window.onload = function() {
               "bearer": []
             }
           ],
+          "summary": "Get posts by consultant",
           "tags": [
             "consultants"
           ]
@@ -7601,7 +8180,7 @@ window.onload = function() {
       },
       "/consultants/favorite": {
         "post": {
-          "description": "Mark a consultant as favorite",
+          "description": "Mark a consultant as favorite.",
           "operationId": "ConsultantsController_favoriteConsultant",
           "parameters": [],
           "requestBody": {
@@ -7616,7 +8195,13 @@ window.onload = function() {
           },
           "responses": {
             "200": {
-              "description": "Consultant favorited successfully"
+              "description": "Consultant favorited successfully."
+            },
+            "400": {
+              "description": "Already favorited or invalid input."
+            },
+            "404": {
+              "description": "Consultant or user not found."
             }
           },
           "security": [
@@ -7632,11 +8217,18 @@ window.onload = function() {
       },
       "/consultants/pricing/get": {
         "get": {
+          "description": "Returns the authenticated consultant's pricing configuration.",
           "operationId": "ConsultantsController_getPricing",
           "parameters": [],
           "responses": {
             "200": {
-              "description": ""
+              "description": "Pricing retrieved."
+            },
+            "401": {
+              "description": "Unauthorized."
+            },
+            "404": {
+              "description": "Consultant not found."
             }
           },
           "security": [
@@ -7644,6 +8236,7 @@ window.onload = function() {
               "bearer": []
             }
           ],
+          "summary": "Get own pricing",
           "tags": [
             "consultants"
           ]
@@ -7651,14 +8244,14 @@ window.onload = function() {
       },
       "/consultants/{consultantId}/pricing": {
         "get": {
-          "description": "Retrieve pricing information for a specific consultant",
+          "description": "Retrieve pricing information for a specific consultant by their ID.",
           "operationId": "ConsultantsController_getConsultantPricing",
           "parameters": [
             {
               "name": "consultantId",
               "required": true,
               "in": "path",
-              "description": "The ID of the consultant",
+              "description": "UUID of the consultant",
               "schema": {
                 "example": "123e4567-e89b-12d3-a456-426614174000",
                 "type": "string"
@@ -7667,7 +8260,13 @@ window.onload = function() {
           ],
           "responses": {
             "200": {
-              "description": ""
+              "description": "Consultant pricing retrieved."
+            },
+            "401": {
+              "description": "Unauthorized."
+            },
+            "404": {
+              "description": "Consultant not found."
             }
           },
           "security": [
@@ -7675,7 +8274,7 @@ window.onload = function() {
               "bearer": []
             }
           ],
-          "summary": "Get consultant pricing information",
+          "summary": "Get pricing for a specific consultant",
           "tags": [
             "consultants"
           ]
@@ -7683,6 +8282,7 @@ window.onload = function() {
       },
       "/consultants/pricing": {
         "post": {
+          "description": "Creates pricing if none exists, otherwise updates it.",
           "operationId": "ConsultantsController_createOrUpdatePricing",
           "parameters": [],
           "requestBody": {
@@ -7696,8 +8296,14 @@ window.onload = function() {
             }
           },
           "responses": {
-            "201": {
-              "description": ""
+            "200": {
+              "description": "Pricing created or updated."
+            },
+            "400": {
+              "description": "Validation error."
+            },
+            "401": {
+              "description": "Unauthorized."
             }
           },
           "security": [
@@ -7705,6 +8311,7 @@ window.onload = function() {
               "bearer": []
             }
           ],
+          "summary": "Create or update own pricing",
           "tags": [
             "consultants"
           ]
@@ -7725,8 +8332,11 @@ window.onload = function() {
             }
           },
           "responses": {
-            "201": {
-              "description": ""
+            "200": {
+              "description": "Consultant unfavorited successfully."
+            },
+            "404": {
+              "description": "Favorite relationship not found."
             }
           },
           "security": [
@@ -7734,6 +8344,7 @@ window.onload = function() {
               "bearer": []
             }
           ],
+          "summary": "Unfavorite a consultant",
           "tags": [
             "consultants"
           ]
@@ -7741,7 +8352,7 @@ window.onload = function() {
       },
       "/consultants/verification": {
         "post": {
-          "description": "Upload ID type and front/back images for consultant verification",
+          "description": "Upload ID type and front/back images for consultant verification.",
           "operationId": "ConsultantsController_submitVerification",
           "parameters": [],
           "requestBody": {
@@ -7755,8 +8366,17 @@ window.onload = function() {
             }
           },
           "responses": {
+            "200": {
+              "description": "Existing verification updated successfully."
+            },
             "201": {
-              "description": "Verification submitted successfully"
+              "description": "Verification submitted successfully."
+            },
+            "401": {
+              "description": "Unauthorized."
+            },
+            "404": {
+              "description": "User not found."
             }
           },
           "security": [
@@ -8403,6 +9023,47 @@ window.onload = function() {
           ]
         }
       },
+      "/settings/message": {
+        "post": {
+          "description": "Submits a support message to the admin team. Messages are stored as issues and visible in the admin dashboard under Issues.",
+          "operationId": "SettingsController_sendMessage",
+          "parameters": [],
+          "requestBody": {
+            "required": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SendMessageDto"
+                }
+              }
+            }
+          },
+          "responses": {
+            "201": {
+              "description": "Support message sent successfully.",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/MessageSentResponse"
+                  }
+                }
+              }
+            },
+            "404": {
+              "description": "User not found."
+            }
+          },
+          "security": [
+            {
+              "bearer": []
+            }
+          ],
+          "summary": "Send a support message",
+          "tags": [
+            "settings"
+          ]
+        }
+      },
       "/settings/feedback": {
         "post": {
           "operationId": "SettingsController_createFeedback",
@@ -9026,6 +9687,134 @@ window.onload = function() {
             }
           ],
           "summary": "Update user general settings (language, time zone, theme)",
+          "tags": [
+            "settings"
+          ]
+        }
+      },
+      "/settings/login-activities": {
+        "get": {
+          "description": "Returns a paginated list of recent login events for the authenticated user, including date/time, IP address, derived location, and device/browser info.",
+          "operationId": "SettingsController_getLoginActivities",
+          "parameters": [
+            {
+              "name": "limit",
+              "required": false,
+              "in": "query",
+              "schema": {
+                "example": 20,
+                "type": "number"
+              }
+            },
+            {
+              "name": "page",
+              "required": false,
+              "in": "query",
+              "schema": {
+                "example": 1,
+                "type": "number"
+              }
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "Login activities retrieved successfully.",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/LoginActivitiesResponseDto"
+                  }
+                }
+              }
+            }
+          },
+          "security": [
+            {
+              "bearer": []
+            }
+          ],
+          "summary": "Get login activities",
+          "tags": [
+            "settings"
+          ]
+        }
+      },
+      "/settings/2fa-settings": {
+        "get": {
+          "operationId": "SettingsController_get2FASettings",
+          "parameters": [],
+          "responses": {
+            "200": {
+              "description": "2FA settings retrieved successfully.",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/TwoFAStatusResponseDto"
+                  }
+                }
+              }
+            }
+          },
+          "security": [
+            {
+              "bearer": []
+            }
+          ],
+          "summary": "Get current 2FA settings / status for the user",
+          "tags": [
+            "settings"
+          ]
+        }
+      },
+      "/settings/disable-email": {
+        "post": {
+          "operationId": "SettingsController_disableEmail2FA",
+          "parameters": [],
+          "responses": {
+            "200": {
+              "description": "Email 2FA disabled successfully.",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/GenericSuccessResponse"
+                  }
+                }
+              }
+            }
+          },
+          "security": [
+            {
+              "bearer": []
+            }
+          ],
+          "summary": "Disable email 2FA",
+          "tags": [
+            "settings"
+          ]
+        }
+      },
+      "/settings/disable-phone": {
+        "post": {
+          "operationId": "SettingsController_disablePhone2FA",
+          "parameters": [],
+          "responses": {
+            "200": {
+              "description": "Phone 2FA disabled successfully.",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "$ref": "#/components/schemas/GenericSuccessResponse"
+                  }
+                }
+              }
+            }
+          },
+          "security": [
+            {
+              "bearer": []
+            }
+          ],
+          "summary": "Disable phone 2FA",
           "tags": [
             "settings"
           ]
@@ -11483,6 +12272,158 @@ window.onload = function() {
           ]
         }
       },
+      "/ratings/consultant/{consultantId}": {
+        "get": {
+          "description": "Returns paginated reviews including the consultant reply if one exists.",
+          "operationId": "RatingsController_getReviews",
+          "parameters": [
+            {
+              "name": "consultantId",
+              "required": true,
+              "in": "path",
+              "description": "UUID of the consultant",
+              "schema": {
+                "example": "f553d145-1f7f-4ac0-a4fe-1bb04a0892f6",
+                "type": "string"
+              }
+            },
+            {
+              "name": "limit",
+              "required": false,
+              "in": "query",
+              "description": "Items per page. Defaults to 10.",
+              "schema": {
+                "type": "number"
+              }
+            },
+            {
+              "name": "page",
+              "required": false,
+              "in": "query",
+              "description": "Page number. Defaults to 1.",
+              "schema": {
+                "type": "number"
+              }
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "Reviews retrieved successfully."
+            },
+            "401": {
+              "description": "Unauthorized."
+            }
+          },
+          "security": [
+            {
+              "bearer": []
+            }
+          ],
+          "summary": "List reviews for a consultant (paginated)",
+          "tags": [
+            "ratings"
+          ]
+        }
+      },
+      "/ratings/{reviewId}/reply": {
+        "post": {
+          "description": "Consultant replies to a review left on their profile. Only one reply per review; subsequent calls update the existing reply.",
+          "operationId": "RatingsController_replyToReview",
+          "parameters": [
+            {
+              "name": "reviewId",
+              "required": true,
+              "in": "path",
+              "description": "UUID of the review to reply to",
+              "schema": {
+                "example": "f553d145-1f7f-4ac0-a4fe-1bb04a0892f6",
+                "type": "string"
+              }
+            }
+          ],
+          "requestBody": {
+            "required": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReplyDto"
+                }
+              }
+            }
+          },
+          "responses": {
+            "200": {
+              "description": "Existing reply updated."
+            },
+            "201": {
+              "description": "Reply submitted."
+            },
+            "401": {
+              "description": "Unauthorized."
+            },
+            "403": {
+              "description": "Forbidden — not your review to reply to."
+            },
+            "404": {
+              "description": "Review not found."
+            }
+          },
+          "security": [
+            {
+              "bearer": []
+            }
+          ],
+          "summary": "Reply to a review",
+          "tags": [
+            "ratings"
+          ]
+        }
+      },
+      "/ratings/consultant/{consultantId}/summary": {
+        "get": {
+          "description": "Returns total review count and average rating for a consultant.",
+          "operationId": "RatingsController_getReviewSummary",
+          "parameters": [
+            {
+              "name": "consultantId",
+              "required": true,
+              "in": "path",
+              "description": "UUID of the consultant",
+              "schema": {
+                "example": "f553d145-1f7f-4ac0-a4fe-1bb04a0892f6",
+                "type": "string"
+              }
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "Summary retrieved.",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "example": {
+                      "totalReviews": 521,
+                      "averageRating": 4
+                    }
+                  }
+                }
+              }
+            },
+            "401": {
+              "description": "Unauthorized."
+            }
+          },
+          "security": [
+            {
+              "bearer": []
+            }
+          ],
+          "summary": "Review summary stats",
+          "tags": [
+            "ratings"
+          ]
+        }
+      },
       "/ratings/consultants/{consultantId}": {
         "get": {
           "description": "Get all ratings and reviews for a specific consultant, including average score and individual feedback.",
@@ -11572,6 +12513,54 @@ window.onload = function() {
             }
           ],
           "summary": "Retrieve Consultant Ratings",
+          "tags": [
+            "ratings"
+          ]
+        }
+      },
+      "/ratings/consultant/{consultantId}/breakdown": {
+        "get": {
+          "description": "Returns count of ratings per star level (1–5) for use in bar/chart components.",
+          "operationId": "RatingsController_getRatingBreakdown",
+          "parameters": [
+            {
+              "name": "consultantId",
+              "required": true,
+              "in": "path",
+              "description": "UUID of the consultant",
+              "schema": {
+                "example": "f553d145-1f7f-4ac0-a4fe-1bb04a0892f6",
+                "type": "string"
+              }
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "Breakdown retrieved.",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "example": {
+                      "1": 20,
+                      "2": 15,
+                      "3": 10,
+                      "4": 5,
+                      "5": 3
+                    }
+                  }
+                }
+              }
+            },
+            "401": {
+              "description": "Unauthorized."
+            }
+          },
+          "security": [
+            {
+              "bearer": []
+            }
+          ],
+          "summary": "Rating breakdown by star",
           "tags": [
             "ratings"
           ]
@@ -12808,34 +13797,6 @@ window.onload = function() {
           ]
         }
       },
-      "/payment/paystack/webhook": {
-        "post": {
-          "description": "Receives and processes Paystack webhook events. Do not call manually — this is for Paystack only.",
-          "operationId": "PaystackController_handleWebhook",
-          "parameters": [
-            {
-              "name": "x-paystack-signature",
-              "required": true,
-              "in": "header",
-              "schema": {
-                "type": "string"
-              }
-            }
-          ],
-          "responses": {
-            "200": {
-              "description": "Webhook received and processed"
-            },
-            "400": {
-              "description": "Invalid signature or payload"
-            }
-          },
-          "summary": "Paystack webhook receiver",
-          "tags": [
-            "payment-paystack"
-          ]
-        }
-      },
       "/payment/paypal/create-order": {
         "post": {
           "description": "Calculates booking amount, blocks timeslots, and returns a PayPal approveUrl to redirect the user to for payment",
@@ -12906,25 +13867,6 @@ window.onload = function() {
             }
           ],
           "summary": "Capture an approved PayPal order",
-          "tags": [
-            "payment-paypal"
-          ]
-        }
-      },
-      "/payment/paypal/webhook": {
-        "post": {
-          "description": "Receives and processes PayPal webhook events. Do not call manually — this is for PayPal only.",
-          "operationId": "PaypalController_handleWebhook",
-          "parameters": [],
-          "responses": {
-            "200": {
-              "description": "Webhook received and processed"
-            },
-            "400": {
-              "description": "Invalid payload"
-            }
-          },
-          "summary": "PayPal webhook receiver",
           "tags": [
             "payment-paypal"
           ]
@@ -14081,6 +15023,2499 @@ window.onload = function() {
             "jobs"
           ]
         }
+      },
+      "/admin/auth/login": {
+        "post": {
+          "description": "Authenticates an admin user and returns a JWT token scoped exclusively for admin endpoints. This token cannot be used on regular user endpoints.",
+          "operationId": "AdminController_login",
+          "parameters": [
+            {
+              "name": "app_token",
+              "in": "header",
+              "description": "App authorization token",
+              "required": false,
+              "schema": {
+                "type": "string"
+              }
+            }
+          ],
+          "requestBody": {
+            "required": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminLoginDto"
+                }
+              }
+            }
+          },
+          "responses": {
+            "200": {
+              "description": "Login successful. Returns admin profile and bearer token."
+            },
+            "401": {
+              "description": "Invalid credentials or account inactive."
+            }
+          },
+          "summary": "Admin login",
+          "tags": [
+            "Admin"
+          ]
+        }
+      },
+      "/admin/auth/me": {
+        "get": {
+          "description": "Returns the authenticated admin's profile, assigned roles, and flattened list of permissions.",
+          "operationId": "AdminController_getMe",
+          "parameters": [
+            {
+              "name": "app_token",
+              "in": "header",
+              "description": "App authorization token",
+              "required": false,
+              "schema": {
+                "type": "string"
+              }
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "Admin profile with roles and permissions."
+            },
+            "401": {
+              "description": "Token missing, invalid, or expired."
+            }
+          },
+          "security": [
+            {
+              "bearer": []
+            }
+          ],
+          "summary": "Get current admin profile",
+          "tags": [
+            "Admin"
+          ]
+        }
+      },
+      "/admin/dashboard/stats": {
+        "get": {
+          "description": "Returns aggregated platform statistics: user counts, session counts, revenue totals, and content moderation counts — all broken down by this month vs. all time.",
+          "operationId": "AdminController_getDashboardStats",
+          "parameters": [
+            {
+              "name": "app_token",
+              "in": "header",
+              "description": "App authorization token",
+              "required": false,
+              "schema": {
+                "type": "string"
+              }
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "Dashboard stats",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "example": {
+                      "users": {
+                        "total": 1200,
+                        "active": 1100,
+                        "consultants": 300,
+                        "newThisMonth": 45
+                      },
+                      "sessions": {
+                        "total": 8400,
+                        "completed": 6000,
+                        "cancelled": 800,
+                        "upcoming": 1600,
+                        "thisMonth": 210
+                      },
+                      "revenue": {
+                        "total": "125000.00",
+                        "thisMonth": "9800.00"
+                      },
+                      "content": {
+                        "openIssues": 12,
+                        "pendingReports": 5,
+                        "jobListings": 88
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "403": {
+              "description": "Missing permission: dashboard.read"
+            }
+          },
+          "security": [
+            {
+              "bearer": []
+            }
+          ],
+          "summary": "Platform dashboard stats",
+          "tags": [
+            "Admin"
+          ]
+        }
+      },
+      "/admin/admins": {
+        "get": {
+          "description": "Returns a paginated list of admin accounts with their assigned roles.",
+          "operationId": "AdminController_getAdmins",
+          "parameters": [
+            {
+              "name": "app_token",
+              "in": "header",
+              "description": "App authorization token",
+              "required": false,
+              "schema": {
+                "type": "string"
+              }
+            },
+            {
+              "name": "page",
+              "required": false,
+              "in": "query",
+              "schema": {
+                "default": 1,
+                "type": "number"
+              }
+            },
+            {
+              "name": "limit",
+              "required": false,
+              "in": "query",
+              "schema": {
+                "default": 20,
+                "type": "number"
+              }
+            },
+            {
+              "name": "search",
+              "required": false,
+              "in": "query",
+              "schema": {
+                "type": "string"
+              }
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "Paginated list of admin users."
+            },
+            "403": {
+              "description": "Missing permission: admins.read"
+            }
+          },
+          "security": [
+            {
+              "bearer": []
+            }
+          ],
+          "summary": "List admin users",
+          "tags": [
+            "Admin"
+          ]
+        },
+        "post": {
+          "description": "Creates a new admin account. Optionally assign one or more roles by their IDs.",
+          "operationId": "AdminController_createAdmin",
+          "parameters": [
+            {
+              "name": "app_token",
+              "in": "header",
+              "description": "App authorization token",
+              "required": false,
+              "schema": {
+                "type": "string"
+              }
+            }
+          ],
+          "requestBody": {
+            "required": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreateAdminUserDto"
+                }
+              }
+            }
+          },
+          "responses": {
+            "201": {
+              "description": "Admin user created."
+            },
+            "403": {
+              "description": "Missing permission: admins.write"
+            },
+            "409": {
+              "description": "An admin with this email already exists."
+            }
+          },
+          "security": [
+            {
+              "bearer": []
+            }
+          ],
+          "summary": "Create an admin user",
+          "tags": [
+            "Admin"
+          ]
+        }
+      },
+      "/admin/admins/{id}": {
+        "patch": {
+          "description": "Update an admin's name, active status, or assigned roles.",
+          "operationId": "AdminController_updateAdmin",
+          "parameters": [
+            {
+              "name": "app_token",
+              "in": "header",
+              "description": "App authorization token",
+              "required": false,
+              "schema": {
+                "type": "string"
+              }
+            },
+            {
+              "name": "id",
+              "required": true,
+              "in": "path",
+              "description": "Admin user UUID",
+              "schema": {
+                "type": "string"
+              }
+            }
+          ],
+          "requestBody": {
+            "required": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UpdateAdminUserDto"
+                }
+              }
+            }
+          },
+          "responses": {
+            "200": {
+              "description": "Admin user updated."
+            },
+            "403": {
+              "description": "Missing permission: admins.write"
+            },
+            "404": {
+              "description": "Admin user not found."
+            }
+          },
+          "security": [
+            {
+              "bearer": []
+            }
+          ],
+          "summary": "Update an admin user",
+          "tags": [
+            "Admin"
+          ]
+        },
+        "delete": {
+          "description": "Permanently removes an admin account. This does not affect platform users.",
+          "operationId": "AdminController_deleteAdmin",
+          "parameters": [
+            {
+              "name": "app_token",
+              "in": "header",
+              "description": "App authorization token",
+              "required": false,
+              "schema": {
+                "type": "string"
+              }
+            },
+            {
+              "name": "id",
+              "required": true,
+              "in": "path",
+              "description": "Admin user UUID",
+              "schema": {
+                "type": "string"
+              }
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "Admin user deleted."
+            },
+            "403": {
+              "description": "Missing permission: admins.write"
+            },
+            "404": {
+              "description": "Admin user not found."
+            }
+          },
+          "security": [
+            {
+              "bearer": []
+            }
+          ],
+          "summary": "Delete an admin user",
+          "tags": [
+            "Admin"
+          ]
+        }
+      },
+      "/admin/roles": {
+        "get": {
+          "description": "Returns all roles with their associated permissions.",
+          "operationId": "AdminController_getRoles",
+          "parameters": [
+            {
+              "name": "app_token",
+              "in": "header",
+              "description": "App authorization token",
+              "required": false,
+              "schema": {
+                "type": "string"
+              }
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "List of roles with permissions."
+            },
+            "403": {
+              "description": "Missing permission: roles.read"
+            }
+          },
+          "security": [
+            {
+              "bearer": []
+            }
+          ],
+          "summary": "List all roles",
+          "tags": [
+            "Admin"
+          ]
+        },
+        "post": {
+          "description": "Creates a new role and optionally assigns permissions to it by permission UUID.",
+          "operationId": "AdminController_createRole",
+          "parameters": [
+            {
+              "name": "app_token",
+              "in": "header",
+              "description": "App authorization token",
+              "required": false,
+              "schema": {
+                "type": "string"
+              }
+            }
+          ],
+          "requestBody": {
+            "required": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreateRoleDto"
+                }
+              }
+            }
+          },
+          "responses": {
+            "201": {
+              "description": "Role created."
+            },
+            "403": {
+              "description": "Missing permission: roles.write"
+            },
+            "409": {
+              "description": "A role with this name already exists."
+            }
+          },
+          "security": [
+            {
+              "bearer": []
+            }
+          ],
+          "summary": "Create a role",
+          "tags": [
+            "Admin"
+          ]
+        }
+      },
+      "/admin/roles/{id}": {
+        "patch": {
+          "description": "Update a role's description or replace its full set of permissions.",
+          "operationId": "AdminController_updateRole",
+          "parameters": [
+            {
+              "name": "app_token",
+              "in": "header",
+              "description": "App authorization token",
+              "required": false,
+              "schema": {
+                "type": "string"
+              }
+            },
+            {
+              "name": "id",
+              "required": true,
+              "in": "path",
+              "description": "Role UUID",
+              "schema": {
+                "type": "string"
+              }
+            }
+          ],
+          "requestBody": {
+            "required": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UpdateRoleDto"
+                }
+              }
+            }
+          },
+          "responses": {
+            "200": {
+              "description": "Role updated."
+            },
+            "403": {
+              "description": "Missing permission: roles.write"
+            },
+            "404": {
+              "description": "Role not found."
+            }
+          },
+          "security": [
+            {
+              "bearer": []
+            }
+          ],
+          "summary": "Update a role",
+          "tags": [
+            "Admin"
+          ]
+        },
+        "delete": {
+          "description": "Removes a role. Admin users previously assigned only this role will lose those permissions.",
+          "operationId": "AdminController_deleteRole",
+          "parameters": [
+            {
+              "name": "app_token",
+              "in": "header",
+              "description": "App authorization token",
+              "required": false,
+              "schema": {
+                "type": "string"
+              }
+            },
+            {
+              "name": "id",
+              "required": true,
+              "in": "path",
+              "description": "Role UUID",
+              "schema": {
+                "type": "string"
+              }
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "Role deleted."
+            },
+            "403": {
+              "description": "Missing permission: roles.write"
+            },
+            "404": {
+              "description": "Role not found."
+            }
+          },
+          "security": [
+            {
+              "bearer": []
+            }
+          ],
+          "summary": "Delete a role",
+          "tags": [
+            "Admin"
+          ]
+        }
+      },
+      "/admin/permissions": {
+        "get": {
+          "description": "Returns the full catalogue of permission keys that can be assigned to roles.",
+          "operationId": "AdminController_getPermissions",
+          "parameters": [
+            {
+              "name": "app_token",
+              "in": "header",
+              "description": "App authorization token",
+              "required": false,
+              "schema": {
+                "type": "string"
+              }
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "All available permissions."
+            },
+            "403": {
+              "description": "Missing permission: roles.read"
+            }
+          },
+          "security": [
+            {
+              "bearer": []
+            }
+          ],
+          "summary": "List all available permissions",
+          "tags": [
+            "Admin"
+          ]
+        }
+      },
+      "/admin/seed": {
+        "post": {
+          "description": "Idempotently creates the built-in roles (super_admin, user_manager, session_manager, content_moderator) and their permissions. Safe to run multiple times.",
+          "operationId": "AdminController_seed",
+          "parameters": [
+            {
+              "name": "app_token",
+              "in": "header",
+              "description": "App authorization token",
+              "required": false,
+              "schema": {
+                "type": "string"
+              }
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "Roles and permissions seeded."
+            },
+            "403": {
+              "description": "Missing permission: roles.write"
+            }
+          },
+          "security": [
+            {
+              "bearer": []
+            }
+          ],
+          "summary": "Seed default roles and permissions",
+          "tags": [
+            "Admin"
+          ]
+        }
+      },
+      "/admin/users": {
+        "get": {
+          "description": "Returns a paginated, searchable list of all registered platform users.",
+          "operationId": "AdminController_getUsers",
+          "parameters": [
+            {
+              "name": "app_token",
+              "in": "header",
+              "description": "App authorization token",
+              "required": false,
+              "schema": {
+                "type": "string"
+              }
+            },
+            {
+              "name": "page",
+              "required": false,
+              "in": "query",
+              "schema": {
+                "default": 1,
+                "type": "number"
+              }
+            },
+            {
+              "name": "limit",
+              "required": false,
+              "in": "query",
+              "schema": {
+                "default": 20,
+                "type": "number"
+              }
+            },
+            {
+              "name": "search",
+              "required": false,
+              "in": "query",
+              "schema": {
+                "type": "string"
+              }
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "Paginated users list."
+            },
+            "403": {
+              "description": "Missing permission: users.read"
+            }
+          },
+          "security": [
+            {
+              "bearer": []
+            }
+          ],
+          "summary": "List platform users",
+          "tags": [
+            "Admin"
+          ]
+        }
+      },
+      "/admin/users/{id}": {
+        "get": {
+          "description": "Fetches a single platform user with their user type, interests, and pricing.",
+          "operationId": "AdminController_getUser",
+          "parameters": [
+            {
+              "name": "app_token",
+              "in": "header",
+              "description": "App authorization token",
+              "required": false,
+              "schema": {
+                "type": "string"
+              }
+            },
+            {
+              "name": "id",
+              "required": true,
+              "in": "path",
+              "description": "Platform user UUID",
+              "schema": {
+                "type": "string"
+              }
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "User details."
+            },
+            "403": {
+              "description": "Missing permission: users.read"
+            },
+            "404": {
+              "description": "User not found."
+            }
+          },
+          "security": [
+            {
+              "bearer": []
+            }
+          ],
+          "summary": "Get a platform user",
+          "tags": [
+            "Admin"
+          ]
+        },
+        "patch": {
+          "description": "Allows an admin to edit a user's name, email, active state, or consultant flag.",
+          "operationId": "AdminController_updateUser",
+          "parameters": [
+            {
+              "name": "app_token",
+              "in": "header",
+              "description": "App authorization token",
+              "required": false,
+              "schema": {
+                "type": "string"
+              }
+            },
+            {
+              "name": "id",
+              "required": true,
+              "in": "path",
+              "description": "Platform user UUID",
+              "schema": {
+                "type": "string"
+              }
+            }
+          ],
+          "requestBody": {
+            "required": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminUpdateUserDto"
+                }
+              }
+            }
+          },
+          "responses": {
+            "200": {
+              "description": "User updated."
+            },
+            "403": {
+              "description": "Missing permission: users.write"
+            },
+            "404": {
+              "description": "User not found."
+            }
+          },
+          "security": [
+            {
+              "bearer": []
+            }
+          ],
+          "summary": "Update a platform user",
+          "tags": [
+            "Admin"
+          ]
+        },
+        "delete": {
+          "description": "Permanently deletes a platform user and all their associated data.",
+          "operationId": "AdminController_deleteUser",
+          "parameters": [
+            {
+              "name": "app_token",
+              "in": "header",
+              "description": "App authorization token",
+              "required": false,
+              "schema": {
+                "type": "string"
+              }
+            },
+            {
+              "name": "id",
+              "required": true,
+              "in": "path",
+              "description": "Platform user UUID",
+              "schema": {
+                "type": "string"
+              }
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "User deleted."
+            },
+            "403": {
+              "description": "Missing permission: users.delete"
+            },
+            "404": {
+              "description": "User not found."
+            }
+          },
+          "security": [
+            {
+              "bearer": []
+            }
+          ],
+          "summary": "Delete a platform user",
+          "tags": [
+            "Admin"
+          ]
+        }
+      },
+      "/admin/users/{id}/suspend": {
+        "patch": {
+          "description": "Sets isActive=false on the user, preventing them from logging in. Reversible via the activate endpoint.",
+          "operationId": "AdminController_suspendUser",
+          "parameters": [
+            {
+              "name": "app_token",
+              "in": "header",
+              "description": "App authorization token",
+              "required": false,
+              "schema": {
+                "type": "string"
+              }
+            },
+            {
+              "name": "id",
+              "required": true,
+              "in": "path",
+              "description": "Platform user UUID",
+              "schema": {
+                "type": "string"
+              }
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "User suspended."
+            },
+            "403": {
+              "description": "Missing permission: users.suspend"
+            },
+            "404": {
+              "description": "User not found."
+            }
+          },
+          "security": [
+            {
+              "bearer": []
+            }
+          ],
+          "summary": "Suspend a platform user",
+          "tags": [
+            "Admin"
+          ]
+        }
+      },
+      "/admin/users/{id}/activate": {
+        "patch": {
+          "description": "Re-enables a previously suspended user account.",
+          "operationId": "AdminController_activateUser",
+          "parameters": [
+            {
+              "name": "app_token",
+              "in": "header",
+              "description": "App authorization token",
+              "required": false,
+              "schema": {
+                "type": "string"
+              }
+            },
+            {
+              "name": "id",
+              "required": true,
+              "in": "path",
+              "description": "Platform user UUID",
+              "schema": {
+                "type": "string"
+              }
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "User activated."
+            },
+            "403": {
+              "description": "Missing permission: users.suspend"
+            },
+            "404": {
+              "description": "User not found."
+            }
+          },
+          "security": [
+            {
+              "bearer": []
+            }
+          ],
+          "summary": "Activate a platform user",
+          "tags": [
+            "Admin"
+          ]
+        }
+      },
+      "/admin/consultants": {
+        "get": {
+          "description": "Returns a paginated, searchable list of all users with isConsultant=true.",
+          "operationId": "AdminController_getConsultants",
+          "parameters": [
+            {
+              "name": "app_token",
+              "in": "header",
+              "description": "App authorization token",
+              "required": false,
+              "schema": {
+                "type": "string"
+              }
+            },
+            {
+              "name": "page",
+              "required": false,
+              "in": "query",
+              "schema": {
+                "default": 1,
+                "type": "number"
+              }
+            },
+            {
+              "name": "limit",
+              "required": false,
+              "in": "query",
+              "schema": {
+                "default": 20,
+                "type": "number"
+              }
+            },
+            {
+              "name": "search",
+              "required": false,
+              "in": "query",
+              "schema": {
+                "type": "string"
+              }
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "Paginated consultants list."
+            },
+            "403": {
+              "description": "Missing permission: consultants.read"
+            }
+          },
+          "security": [
+            {
+              "bearer": []
+            }
+          ],
+          "summary": "List consultants",
+          "tags": [
+            "Admin"
+          ]
+        }
+      },
+      "/admin/consultants/{id}": {
+        "get": {
+          "description": "Returns a consultant's full profile including pricing and user type.",
+          "operationId": "AdminController_getConsultant",
+          "parameters": [
+            {
+              "name": "app_token",
+              "in": "header",
+              "description": "App authorization token",
+              "required": false,
+              "schema": {
+                "type": "string"
+              }
+            },
+            {
+              "name": "id",
+              "required": true,
+              "in": "path",
+              "description": "Platform user UUID (must be a consultant)",
+              "schema": {
+                "type": "string"
+              }
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "Consultant details."
+            },
+            "403": {
+              "description": "Missing permission: consultants.read"
+            },
+            "404": {
+              "description": "Consultant not found."
+            }
+          },
+          "security": [
+            {
+              "bearer": []
+            }
+          ],
+          "summary": "Get a consultant",
+          "tags": [
+            "Admin"
+          ]
+        },
+        "patch": {
+          "description": "Edits a consultant user's profile fields.",
+          "operationId": "AdminController_updateConsultant",
+          "parameters": [
+            {
+              "name": "app_token",
+              "in": "header",
+              "description": "App authorization token",
+              "required": false,
+              "schema": {
+                "type": "string"
+              }
+            },
+            {
+              "name": "id",
+              "required": true,
+              "in": "path",
+              "description": "Platform user UUID",
+              "schema": {
+                "type": "string"
+              }
+            }
+          ],
+          "requestBody": {
+            "required": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminUpdateUserDto"
+                }
+              }
+            }
+          },
+          "responses": {
+            "200": {
+              "description": "Consultant updated."
+            },
+            "403": {
+              "description": "Missing permission: consultants.write"
+            },
+            "404": {
+              "description": "Consultant not found."
+            }
+          },
+          "security": [
+            {
+              "bearer": []
+            }
+          ],
+          "summary": "Update a consultant",
+          "tags": [
+            "Admin"
+          ]
+        }
+      },
+      "/admin/consultants/{id}/suspend": {
+        "patch": {
+          "description": "Deactivates the consultant's account. They can no longer accept bookings.",
+          "operationId": "AdminController_suspendConsultant",
+          "parameters": [
+            {
+              "name": "app_token",
+              "in": "header",
+              "description": "App authorization token",
+              "required": false,
+              "schema": {
+                "type": "string"
+              }
+            },
+            {
+              "name": "id",
+              "required": true,
+              "in": "path",
+              "description": "Platform user UUID",
+              "schema": {
+                "type": "string"
+              }
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "Consultant suspended."
+            },
+            "403": {
+              "description": "Missing permission: consultants.suspend"
+            },
+            "404": {
+              "description": "Consultant not found."
+            }
+          },
+          "security": [
+            {
+              "bearer": []
+            }
+          ],
+          "summary": "Suspend a consultant",
+          "tags": [
+            "Admin"
+          ]
+        }
+      },
+      "/admin/consultants/{id}/activate": {
+        "patch": {
+          "description": "Re-enables a suspended consultant account.",
+          "operationId": "AdminController_activateConsultant",
+          "parameters": [
+            {
+              "name": "app_token",
+              "in": "header",
+              "description": "App authorization token",
+              "required": false,
+              "schema": {
+                "type": "string"
+              }
+            },
+            {
+              "name": "id",
+              "required": true,
+              "in": "path",
+              "description": "Platform user UUID",
+              "schema": {
+                "type": "string"
+              }
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "Consultant activated."
+            },
+            "403": {
+              "description": "Missing permission: consultants.suspend"
+            },
+            "404": {
+              "description": "Consultant not found."
+            }
+          },
+          "security": [
+            {
+              "bearer": []
+            }
+          ],
+          "summary": "Activate a consultant",
+          "tags": [
+            "Admin"
+          ]
+        }
+      },
+      "/admin/sessions/stats": {
+        "get": {
+          "description": "Returns total/upcoming/completed/cancelled session counts alongside user and consultant totals.",
+          "operationId": "AdminController_getStats",
+          "parameters": [
+            {
+              "name": "app_token",
+              "in": "header",
+              "description": "App authorization token",
+              "required": false,
+              "schema": {
+                "type": "string"
+              }
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "Session and user stats."
+            },
+            "403": {
+              "description": "Missing permission: sessions.read"
+            }
+          },
+          "security": [
+            {
+              "bearer": []
+            }
+          ],
+          "summary": "Session & user stats",
+          "tags": [
+            "Admin"
+          ]
+        }
+      },
+      "/admin/sessions": {
+        "get": {
+          "description": "Paginated list of all appointments. Filter by status or search by participant name.",
+          "operationId": "AdminController_getSessions",
+          "parameters": [
+            {
+              "name": "app_token",
+              "in": "header",
+              "description": "App authorization token",
+              "required": false,
+              "schema": {
+                "type": "string"
+              }
+            },
+            {
+              "name": "search",
+              "required": false,
+              "in": "query",
+              "description": "Search by user or consultant name",
+              "schema": {
+                "type": "string"
+              }
+            },
+            {
+              "name": "limit",
+              "required": false,
+              "in": "query",
+              "schema": {
+                "example": 20,
+                "type": "number"
+              }
+            },
+            {
+              "name": "page",
+              "required": false,
+              "in": "query",
+              "schema": {
+                "example": 1,
+                "type": "number"
+              }
+            },
+            {
+              "name": "status",
+              "required": false,
+              "in": "query",
+              "description": "Filter by appointment status",
+              "schema": {
+                "enum": [
+                  "UPCOMING",
+                  "CANCELLED",
+                  "RESCHEDULED",
+                  "COMPLETED",
+                  "EXPIRED"
+                ],
+                "type": "string"
+              }
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "Paginated sessions list."
+            },
+            "403": {
+              "description": "Missing permission: sessions.read"
+            }
+          },
+          "security": [
+            {
+              "bearer": []
+            }
+          ],
+          "summary": "List consultation sessions",
+          "tags": [
+            "Admin"
+          ]
+        }
+      },
+      "/admin/sessions/{id}": {
+        "get": {
+          "description": "Returns full appointment details including user, consultant, timeslots, and linked transaction.",
+          "operationId": "AdminController_getSession",
+          "parameters": [
+            {
+              "name": "app_token",
+              "in": "header",
+              "description": "App authorization token",
+              "required": false,
+              "schema": {
+                "type": "string"
+              }
+            },
+            {
+              "name": "id",
+              "required": true,
+              "in": "path",
+              "description": "Appointment UUID",
+              "schema": {
+                "type": "string"
+              }
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "Appointment details."
+            },
+            "403": {
+              "description": "Missing permission: sessions.read"
+            },
+            "404": {
+              "description": "Session not found."
+            }
+          },
+          "security": [
+            {
+              "bearer": []
+            }
+          ],
+          "summary": "Get a session",
+          "tags": [
+            "Admin"
+          ]
+        },
+        "patch": {
+          "description": "Update an appointment's status or cancellation reason.",
+          "operationId": "AdminController_updateSession",
+          "parameters": [
+            {
+              "name": "app_token",
+              "in": "header",
+              "description": "App authorization token",
+              "required": false,
+              "schema": {
+                "type": "string"
+              }
+            },
+            {
+              "name": "id",
+              "required": true,
+              "in": "path",
+              "description": "Appointment UUID",
+              "schema": {
+                "type": "string"
+              }
+            }
+          ],
+          "requestBody": {
+            "required": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AdminUpdateSessionDto"
+                }
+              }
+            }
+          },
+          "responses": {
+            "200": {
+              "description": "Session updated."
+            },
+            "403": {
+              "description": "Missing permission: sessions.write"
+            },
+            "404": {
+              "description": "Session not found."
+            }
+          },
+          "security": [
+            {
+              "bearer": []
+            }
+          ],
+          "summary": "Update a session",
+          "tags": [
+            "Admin"
+          ]
+        }
+      },
+      "/admin/sessions/{id}/cancel": {
+        "patch": {
+          "description": "Marks a session as CANCELLED, records the cancellation timestamp, and stores an optional admin reason.",
+          "operationId": "AdminController_cancelSession",
+          "parameters": [
+            {
+              "name": "app_token",
+              "in": "header",
+              "description": "App authorization token",
+              "required": false,
+              "schema": {
+                "type": "string"
+              }
+            },
+            {
+              "name": "id",
+              "required": true,
+              "in": "path",
+              "description": "Appointment UUID",
+              "schema": {
+                "type": "string"
+              }
+            }
+          ],
+          "requestBody": {
+            "required": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "reason": {
+                      "type": "string",
+                      "example": "Policy violation"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "responses": {
+            "200": {
+              "description": "Session cancelled."
+            },
+            "403": {
+              "description": "Missing permission: sessions.cancel"
+            },
+            "404": {
+              "description": "Session not found."
+            }
+          },
+          "security": [
+            {
+              "bearer": []
+            }
+          ],
+          "summary": "Cancel a session",
+          "tags": [
+            "Admin"
+          ]
+        }
+      },
+      "/admin/transactions": {
+        "get": {
+          "description": "Returns a paginated list of all platform transactions. Filter by status or search by consultant name/email.",
+          "operationId": "AdminController_getTransactions",
+          "parameters": [
+            {
+              "name": "app_token",
+              "in": "header",
+              "description": "App authorization token",
+              "required": false,
+              "schema": {
+                "type": "string"
+              }
+            },
+            {
+              "name": "search",
+              "required": false,
+              "in": "query",
+              "description": "Search by consultant name or email",
+              "schema": {
+                "type": "string"
+              }
+            },
+            {
+              "name": "limit",
+              "required": false,
+              "in": "query",
+              "schema": {
+                "example": 20,
+                "type": "number"
+              }
+            },
+            {
+              "name": "page",
+              "required": false,
+              "in": "query",
+              "schema": {
+                "example": 1,
+                "type": "number"
+              }
+            },
+            {
+              "name": "status",
+              "required": false,
+              "in": "query",
+              "description": "Filter by transaction status",
+              "schema": {
+                "enum": [
+                  "pending",
+                  "approved",
+                  "completed",
+                  "expired",
+                  "cancelled",
+                  "all"
+                ],
+                "type": "string"
+              }
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "Paginated transactions list with totals."
+            },
+            "403": {
+              "description": "Missing permission: transactions.read"
+            }
+          },
+          "security": [
+            {
+              "bearer": []
+            }
+          ],
+          "summary": "List transactions",
+          "tags": [
+            "Admin"
+          ]
+        }
+      },
+      "/admin/transactions/{id}": {
+        "get": {
+          "description": "Returns a single transaction with its linked consultant, payment, and appointment.",
+          "operationId": "AdminController_getTransaction",
+          "parameters": [
+            {
+              "name": "app_token",
+              "in": "header",
+              "description": "App authorization token",
+              "required": false,
+              "schema": {
+                "type": "string"
+              }
+            },
+            {
+              "name": "id",
+              "required": true,
+              "in": "path",
+              "description": "Transaction UUID",
+              "schema": {
+                "type": "string"
+              }
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "Transaction details."
+            },
+            "403": {
+              "description": "Missing permission: transactions.read"
+            },
+            "404": {
+              "description": "Transaction not found."
+            }
+          },
+          "security": [
+            {
+              "bearer": []
+            }
+          ],
+          "summary": "Get a transaction",
+          "tags": [
+            "Admin"
+          ]
+        }
+      },
+      "/admin/job-listings": {
+        "get": {
+          "description": "Returns a paginated list of all job listings. Filter by status (draft/published/closed) or search by title/country.",
+          "operationId": "AdminController_getJobListings",
+          "parameters": [
+            {
+              "name": "app_token",
+              "in": "header",
+              "description": "App authorization token",
+              "required": false,
+              "schema": {
+                "type": "string"
+              }
+            },
+            {
+              "name": "search",
+              "required": false,
+              "in": "query",
+              "description": "Search by job title or country",
+              "schema": {
+                "type": "string"
+              }
+            },
+            {
+              "name": "limit",
+              "required": false,
+              "in": "query",
+              "schema": {
+                "example": 20,
+                "type": "number"
+              }
+            },
+            {
+              "name": "page",
+              "required": false,
+              "in": "query",
+              "schema": {
+                "example": 1,
+                "type": "number"
+              }
+            },
+            {
+              "name": "status",
+              "required": false,
+              "in": "query",
+              "description": "Filter by job status",
+              "schema": {
+                "enum": [
+                  "draft",
+                  "published",
+                  "closed",
+                  "all"
+                ],
+                "type": "string"
+              }
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "Paginated job listings."
+            },
+            "403": {
+              "description": "Missing permission: jobs.read"
+            }
+          },
+          "security": [
+            {
+              "bearer": []
+            }
+          ],
+          "summary": "List job listings",
+          "tags": [
+            "Admin"
+          ]
+        }
+      },
+      "/admin/job-listings/{id}": {
+        "get": {
+          "description": "Returns a single job listing with its creator.",
+          "operationId": "AdminController_getJobListing",
+          "parameters": [
+            {
+              "name": "app_token",
+              "in": "header",
+              "description": "App authorization token",
+              "required": false,
+              "schema": {
+                "type": "string"
+              }
+            },
+            {
+              "name": "id",
+              "required": true,
+              "in": "path",
+              "description": "Job listing UUID",
+              "schema": {
+                "type": "string"
+              }
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "Job listing details."
+            },
+            "403": {
+              "description": "Missing permission: jobs.read"
+            },
+            "404": {
+              "description": "Job listing not found."
+            }
+          },
+          "security": [
+            {
+              "bearer": []
+            }
+          ],
+          "summary": "Get a job listing",
+          "tags": [
+            "Admin"
+          ]
+        },
+        "delete": {
+          "description": "Permanently removes a job listing from the platform.",
+          "operationId": "AdminController_deleteJobListing",
+          "parameters": [
+            {
+              "name": "app_token",
+              "in": "header",
+              "description": "App authorization token",
+              "required": false,
+              "schema": {
+                "type": "string"
+              }
+            },
+            {
+              "name": "id",
+              "required": true,
+              "in": "path",
+              "description": "Job listing UUID",
+              "schema": {
+                "type": "string"
+              }
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "Job listing deleted."
+            },
+            "403": {
+              "description": "Missing permission: jobs.delete"
+            },
+            "404": {
+              "description": "Job listing not found."
+            }
+          },
+          "security": [
+            {
+              "bearer": []
+            }
+          ],
+          "summary": "Delete a job listing",
+          "tags": [
+            "Admin"
+          ]
+        }
+      },
+      "/admin/reviews": {
+        "get": {
+          "description": "Returns a paginated list of all consultant reviews/ratings. Search by reviewer or consultant name.",
+          "operationId": "AdminController_getReviews",
+          "parameters": [
+            {
+              "name": "app_token",
+              "in": "header",
+              "description": "App authorization token",
+              "required": false,
+              "schema": {
+                "type": "string"
+              }
+            },
+            {
+              "name": "page",
+              "required": false,
+              "in": "query",
+              "schema": {
+                "default": 1,
+                "example": 1,
+                "type": "number"
+              }
+            },
+            {
+              "name": "limit",
+              "required": false,
+              "in": "query",
+              "schema": {
+                "default": 20,
+                "example": 20,
+                "type": "number"
+              }
+            },
+            {
+              "name": "search",
+              "required": false,
+              "in": "query",
+              "description": "Search by user or consultant name",
+              "schema": {
+                "type": "string"
+              }
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "Paginated reviews list."
+            },
+            "403": {
+              "description": "Missing permission: reviews.read"
+            }
+          },
+          "security": [
+            {
+              "bearer": []
+            }
+          ],
+          "summary": "List reviews",
+          "tags": [
+            "Admin"
+          ]
+        }
+      },
+      "/admin/reviews/{id}": {
+        "delete": {
+          "description": "Removes a review/rating from the platform (e.g. for policy violations).",
+          "operationId": "AdminController_deleteReview",
+          "parameters": [
+            {
+              "name": "app_token",
+              "in": "header",
+              "description": "App authorization token",
+              "required": false,
+              "schema": {
+                "type": "string"
+              }
+            },
+            {
+              "name": "id",
+              "required": true,
+              "in": "path",
+              "description": "Rating UUID",
+              "schema": {
+                "type": "string"
+              }
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "Review deleted."
+            },
+            "403": {
+              "description": "Missing permission: reviews.delete"
+            },
+            "404": {
+              "description": "Review not found."
+            }
+          },
+          "security": [
+            {
+              "bearer": []
+            }
+          ],
+          "summary": "Delete a review",
+          "tags": [
+            "Admin"
+          ]
+        }
+      },
+      "/admin/reports": {
+        "get": {
+          "description": "Returns all user-submitted post reports with reporter and post details.",
+          "operationId": "AdminController_getReports",
+          "parameters": [
+            {
+              "name": "app_token",
+              "in": "header",
+              "description": "App authorization token",
+              "required": false,
+              "schema": {
+                "type": "string"
+              }
+            },
+            {
+              "name": "page",
+              "required": false,
+              "in": "query",
+              "schema": {
+                "default": 1,
+                "example": 1,
+                "type": "number"
+              }
+            },
+            {
+              "name": "limit",
+              "required": false,
+              "in": "query",
+              "schema": {
+                "default": 20,
+                "example": 20,
+                "type": "number"
+              }
+            },
+            {
+              "name": "search",
+              "required": false,
+              "in": "query",
+              "schema": {
+                "type": "string"
+              }
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "Paginated reports list."
+            },
+            "403": {
+              "description": "Missing permission: reports.read"
+            }
+          },
+          "security": [
+            {
+              "bearer": []
+            }
+          ],
+          "summary": "List post reports",
+          "tags": [
+            "Admin"
+          ]
+        }
+      },
+      "/admin/issues": {
+        "get": {
+          "description": "Returns user-submitted support issues. Search by issue type.",
+          "operationId": "AdminController_getIssues",
+          "parameters": [
+            {
+              "name": "app_token",
+              "in": "header",
+              "description": "App authorization token",
+              "required": false,
+              "schema": {
+                "type": "string"
+              }
+            },
+            {
+              "name": "page",
+              "required": false,
+              "in": "query",
+              "schema": {
+                "default": 1,
+                "example": 1,
+                "type": "number"
+              }
+            },
+            {
+              "name": "limit",
+              "required": false,
+              "in": "query",
+              "schema": {
+                "default": 20,
+                "example": 20,
+                "type": "number"
+              }
+            },
+            {
+              "name": "search",
+              "required": false,
+              "in": "query",
+              "description": "Filter by issue type",
+              "schema": {
+                "type": "string"
+              }
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "Paginated issues list."
+            },
+            "403": {
+              "description": "Missing permission: issues.read"
+            }
+          },
+          "security": [
+            {
+              "bearer": []
+            }
+          ],
+          "summary": "List support issues",
+          "tags": [
+            "Admin"
+          ]
+        }
+      },
+      "/admin/feedback": {
+        "get": {
+          "description": "Returns all user-submitted feedback (bug reports, feature requests, general comments).",
+          "operationId": "AdminController_getFeedback",
+          "parameters": [
+            {
+              "name": "app_token",
+              "in": "header",
+              "description": "App authorization token",
+              "required": false,
+              "schema": {
+                "type": "string"
+              }
+            },
+            {
+              "name": "page",
+              "required": false,
+              "in": "query",
+              "schema": {
+                "default": 1,
+                "example": 1,
+                "type": "number"
+              }
+            },
+            {
+              "name": "limit",
+              "required": false,
+              "in": "query",
+              "schema": {
+                "default": 20,
+                "example": 20,
+                "type": "number"
+              }
+            },
+            {
+              "name": "search",
+              "required": false,
+              "in": "query",
+              "schema": {
+                "type": "string"
+              }
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "Paginated feedback list."
+            },
+            "403": {
+              "description": "Missing permission: feedback.read"
+            }
+          },
+          "security": [
+            {
+              "bearer": []
+            }
+          ],
+          "summary": "List user feedback",
+          "tags": [
+            "Admin"
+          ]
+        }
+      },
+      "/admin/verifications": {
+        "get": {
+          "description": "Returns paginated ID verification submissions from users applying to become consultants. Defaults to pending. Includes idType, ID document URLs, and applicant profile.",
+          "operationId": "AdminController_getVerifications",
+          "parameters": [
+            {
+              "name": "app_token",
+              "in": "header",
+              "description": "App authorization token",
+              "required": false,
+              "schema": {
+                "type": "string"
+              }
+            },
+            {
+              "name": "page",
+              "required": false,
+              "in": "query",
+              "schema": {
+                "default": 1,
+                "example": 1,
+                "type": "number"
+              }
+            },
+            {
+              "name": "limit",
+              "required": false,
+              "in": "query",
+              "schema": {
+                "default": 20,
+                "example": 20,
+                "type": "number"
+              }
+            },
+            {
+              "name": "search",
+              "required": false,
+              "in": "query",
+              "description": "Search by applicant name or email",
+              "schema": {
+                "type": "string"
+              }
+            },
+            {
+              "name": "status",
+              "required": false,
+              "in": "query",
+              "description": "Filter by verification status (default: pending)",
+              "schema": {
+                "enum": [
+                  "pending",
+                  "approved",
+                  "rejected",
+                  "all"
+                ],
+                "type": "string"
+              }
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "Paginated verifications list with ID document URLs."
+            },
+            "403": {
+              "description": "Missing permission: applications.read"
+            }
+          },
+          "security": [
+            {
+              "bearer": []
+            }
+          ],
+          "summary": "List consultant verification applications",
+          "tags": [
+            "Admin"
+          ]
+        }
+      },
+      "/admin/verifications/{id}": {
+        "get": {
+          "description": "Returns a single verification with the applicant's full profile and uploaded ID document URLs.",
+          "operationId": "AdminController_getVerification",
+          "parameters": [
+            {
+              "name": "app_token",
+              "in": "header",
+              "description": "App authorization token",
+              "required": false,
+              "schema": {
+                "type": "string"
+              }
+            },
+            {
+              "name": "id",
+              "required": true,
+              "in": "path",
+              "description": "ConsultantVerification UUID",
+              "schema": {
+                "type": "string"
+              }
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "Verification details with ID document images."
+            },
+            "403": {
+              "description": "Missing permission: applications.read"
+            },
+            "404": {
+              "description": "Verification not found."
+            }
+          },
+          "security": [
+            {
+              "bearer": []
+            }
+          ],
+          "summary": "Get a verification application",
+          "tags": [
+            "Admin"
+          ]
+        }
+      },
+      "/admin/verifications/{id}/approve": {
+        "patch": {
+          "description": "Marks the verification as approved and automatically promotes the user to consultant (sets isConsultant=true on their account).",
+          "operationId": "AdminController_approveVerification",
+          "parameters": [
+            {
+              "name": "app_token",
+              "in": "header",
+              "description": "App authorization token",
+              "required": false,
+              "schema": {
+                "type": "string"
+              }
+            },
+            {
+              "name": "id",
+              "required": true,
+              "in": "path",
+              "description": "ConsultantVerification UUID",
+              "schema": {
+                "type": "string"
+              }
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "Verification approved and user promoted to consultant."
+            },
+            "400": {
+              "description": "Verification has already been reviewed."
+            },
+            "403": {
+              "description": "Missing permission: applications.write"
+            },
+            "404": {
+              "description": "Verification not found."
+            }
+          },
+          "security": [
+            {
+              "bearer": []
+            }
+          ],
+          "summary": "Approve a consultant verification",
+          "tags": [
+            "Admin"
+          ]
+        }
+      },
+      "/admin/verifications/{id}/reject": {
+        "patch": {
+          "description": "Marks the verification as rejected with a mandatory reason. The user's consultant status remains unchanged. This is the \"Reject Application\" action shown in the admin UI.",
+          "operationId": "AdminController_rejectVerification",
+          "parameters": [
+            {
+              "name": "app_token",
+              "in": "header",
+              "description": "App authorization token",
+              "required": false,
+              "schema": {
+                "type": "string"
+              }
+            },
+            {
+              "name": "id",
+              "required": true,
+              "in": "path",
+              "description": "ConsultantVerification UUID",
+              "schema": {
+                "type": "string"
+              }
+            }
+          ],
+          "requestBody": {
+            "required": true,
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RejectApplicationDto"
+                }
+              }
+            }
+          },
+          "responses": {
+            "200": {
+              "description": "Verification rejected."
+            },
+            "400": {
+              "description": "Verification has already been reviewed."
+            },
+            "403": {
+              "description": "Missing permission: applications.write"
+            },
+            "404": {
+              "description": "Verification not found."
+            }
+          },
+          "security": [
+            {
+              "bearer": []
+            }
+          ],
+          "summary": "Reject a consultant verification",
+          "tags": [
+            "Admin"
+          ]
+        }
+      },
+      "/admin/posts": {
+        "get": {
+          "description": "Returns a paginated list of all platform posts. Search by content or creator name.",
+          "operationId": "AdminController_getPosts",
+          "parameters": [
+            {
+              "name": "app_token",
+              "in": "header",
+              "description": "App authorization token",
+              "required": false,
+              "schema": {
+                "type": "string"
+              }
+            },
+            {
+              "name": "page",
+              "required": false,
+              "in": "query",
+              "schema": {
+                "default": 1,
+                "example": 1,
+                "type": "number"
+              }
+            },
+            {
+              "name": "limit",
+              "required": false,
+              "in": "query",
+              "schema": {
+                "default": 20,
+                "example": 20,
+                "type": "number"
+              }
+            },
+            {
+              "name": "search",
+              "required": false,
+              "in": "query",
+              "description": "Search by post content or creator name",
+              "schema": {
+                "type": "string"
+              }
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "Paginated posts list."
+            },
+            "403": {
+              "description": "Missing permission: posts.read"
+            }
+          },
+          "security": [
+            {
+              "bearer": []
+            }
+          ],
+          "summary": "List all posts",
+          "tags": [
+            "Admin"
+          ]
+        }
+      },
+      "/admin/posts/{id}": {
+        "get": {
+          "description": "Returns a single post with its creator and any reports filed against it.",
+          "operationId": "AdminController_getPost",
+          "parameters": [
+            {
+              "name": "app_token",
+              "in": "header",
+              "description": "App authorization token",
+              "required": false,
+              "schema": {
+                "type": "string"
+              }
+            },
+            {
+              "name": "id",
+              "required": true,
+              "in": "path",
+              "description": "Post UUID",
+              "schema": {
+                "type": "string"
+              }
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "Post details with reports."
+            },
+            "403": {
+              "description": "Missing permission: posts.read"
+            },
+            "404": {
+              "description": "Post not found."
+            }
+          },
+          "security": [
+            {
+              "bearer": []
+            }
+          ],
+          "summary": "Get a post",
+          "tags": [
+            "Admin"
+          ]
+        },
+        "delete": {
+          "description": "Permanently removes a post from the platform. Use this for policy violations.",
+          "operationId": "AdminController_deletePost",
+          "parameters": [
+            {
+              "name": "app_token",
+              "in": "header",
+              "description": "App authorization token",
+              "required": false,
+              "schema": {
+                "type": "string"
+              }
+            },
+            {
+              "name": "id",
+              "required": true,
+              "in": "path",
+              "description": "Post UUID",
+              "schema": {
+                "type": "string"
+              }
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "Post deleted."
+            },
+            "403": {
+              "description": "Missing permission: posts.delete"
+            },
+            "404": {
+              "description": "Post not found."
+            }
+          },
+          "security": [
+            {
+              "bearer": []
+            }
+          ],
+          "summary": "Delete a post",
+          "tags": [
+            "Admin"
+          ]
+        }
+      },
+      "/admin/payouts": {
+        "get": {
+          "description": "Returns a paginated list of all consultant payouts. Filter by status (PENDING or PAID).",
+          "operationId": "AdminController_getPayouts",
+          "parameters": [
+            {
+              "name": "app_token",
+              "in": "header",
+              "description": "App authorization token",
+              "required": false,
+              "schema": {
+                "type": "string"
+              }
+            },
+            {
+              "name": "limit",
+              "required": false,
+              "in": "query",
+              "schema": {
+                "example": 20,
+                "type": "number"
+              }
+            },
+            {
+              "name": "page",
+              "required": false,
+              "in": "query",
+              "schema": {
+                "example": 1,
+                "type": "number"
+              }
+            },
+            {
+              "name": "status",
+              "required": false,
+              "in": "query",
+              "description": "Filter by payout status",
+              "schema": {
+                "enum": [
+                  "PENDING",
+                  "PAID",
+                  "all"
+                ],
+                "type": "string"
+              }
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "Paginated payouts list."
+            },
+            "403": {
+              "description": "Missing permission: payouts.read"
+            }
+          },
+          "security": [
+            {
+              "bearer": []
+            }
+          ],
+          "summary": "List payouts",
+          "tags": [
+            "Admin"
+          ]
+        }
+      },
+      "/admin/payouts/{id}": {
+        "get": {
+          "description": "Returns a single payout with its line items (individual payments included in the payout).",
+          "operationId": "AdminController_getPayout",
+          "parameters": [
+            {
+              "name": "app_token",
+              "in": "header",
+              "description": "App authorization token",
+              "required": false,
+              "schema": {
+                "type": "string"
+              }
+            },
+            {
+              "name": "id",
+              "required": true,
+              "in": "path",
+              "description": "Payout UUID",
+              "schema": {
+                "type": "string"
+              }
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "Payout details with items."
+            },
+            "403": {
+              "description": "Missing permission: payouts.read"
+            },
+            "404": {
+              "description": "Payout not found."
+            }
+          },
+          "security": [
+            {
+              "bearer": []
+            }
+          ],
+          "summary": "Get a payout",
+          "tags": [
+            "Admin"
+          ]
+        }
       }
     },
     "info": {
@@ -14132,17 +17567,17 @@ window.onload = function() {
               "type": "string"
             },
             "resume": {
-              "$ref": "#/components/schemas/MemoryStoredFile"
+              "type": "string",
+              "format": "binary"
             },
             "video": {
-              "$ref": "#/components/schemas/MemoryStoredFile"
+              "type": "string",
+              "format": "binary"
             }
           },
           "required": [
             "title",
-            "description",
-            "resume",
-            "video"
+            "description"
           ]
         },
         "resumeDto": {
@@ -14570,6 +18005,25 @@ window.onload = function() {
             "password"
           ]
         },
+        "Verify2FADto": {
+          "type": "object",
+          "properties": {
+            "challengeToken": {
+              "type": "string",
+              "description": "Short-lived challenge token returned by POST /auth/login when 2FA is required",
+              "example": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+            },
+            "otp": {
+              "type": "string",
+              "description": "OTP from email / SMS, or TOTP code from authenticator app",
+              "example": "482910"
+            }
+          },
+          "required": [
+            "challengeToken",
+            "otp"
+          ]
+        },
         "ReportUserDto": {
           "type": "object",
           "properties": {
@@ -14632,6 +18086,17 @@ window.onload = function() {
             "file"
           ]
         },
+        "UpdateUserResumeDto": {
+          "type": "object",
+          "properties": {
+            "file": {
+              "$ref": "#/components/schemas/MemoryStoredFile"
+            }
+          },
+          "required": [
+            "file"
+          ]
+        },
         "UpdateUserInfoDto": {
           "type": "object",
           "properties": {
@@ -14649,15 +18114,12 @@ window.onload = function() {
             },
             "bio": {
               "type": "string"
+            },
+            "resume": {
+              "type": "string",
+              "format": "binary"
             }
-          },
-          "required": [
-            "fullName",
-            "occupation",
-            "location",
-            "dateOfBirth",
-            "bio"
-          ]
+          }
         },
         "UpdateUserContactInfoDto": {
           "type": "object",
@@ -15522,6 +18984,31 @@ window.onload = function() {
           "type": "object",
           "properties": {}
         },
+        "ConsultantPreferencesDto": {
+          "type": "object",
+          "properties": {
+            "advanceNotice": {
+              "type": "string",
+              "example": "24 Hours",
+              "description": "Advance notice required for bookings"
+            },
+            "meetingBuffer": {
+              "type": "string",
+              "example": "1 Hour",
+              "description": "Buffer time between meetings"
+            },
+            "dailyLimit": {
+              "type": "number",
+              "example": 5,
+              "description": "Maximum consultations per day"
+            }
+          },
+          "required": [
+            "advanceNotice",
+            "meetingBuffer",
+            "dailyLimit"
+          ]
+        },
         "DashboardMetricsDto": {
           "type": "object",
           "properties": {
@@ -15896,9 +19383,69 @@ window.onload = function() {
             "message"
           ]
         },
+        "SendMessageDto": {
+          "type": "object",
+          "properties": {
+            "subject": {
+              "type": "string",
+              "description": "Subject / topic of the support message",
+              "maxLength": 100,
+              "example": "Unable to complete booking"
+            },
+            "messageBody": {
+              "type": "string",
+              "description": "Full message body describing the issue",
+              "maxLength": 1000,
+              "example": "I am trying to book a session but the payment keeps failing at checkout."
+            }
+          },
+          "required": [
+            "subject",
+            "messageBody"
+          ]
+        },
+        "MessageSentResponse": {
+          "type": "object",
+          "properties": {
+            "message": {
+              "type": "string",
+              "example": "Message sent successfully."
+            }
+          },
+          "required": [
+            "message"
+          ]
+        },
         "CreateFeedbackDto": {
           "type": "object",
-          "properties": {}
+          "properties": {
+            "feedbackType": {
+              "type": "string",
+              "enum": [
+                "bug",
+                "feature",
+                "general"
+              ],
+              "description": "Type of feedback being submitted",
+              "example": "general"
+            },
+            "comment": {
+              "type": "string",
+              "description": "Additional details or comments",
+              "example": "The app crashes when I try to book an appointment."
+            },
+            "rating": {
+              "type": "number",
+              "description": "Rating from 0 to 5",
+              "minimum": 0,
+              "maximum": 5,
+              "example": 4
+            }
+          },
+          "required": [
+            "feedbackType",
+            "rating"
+          ]
         },
         "FeedbackSentResponse": {
           "type": "object",
@@ -16309,6 +19856,89 @@ window.onload = function() {
             }
           }
         },
+        "LoginActivityItemDto": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "ipAddress": {
+              "type": "string",
+              "example": "41.58.135.1"
+            },
+            "location": {
+              "type": "string",
+              "example": "Lagos, Nigeria"
+            },
+            "device": {
+              "type": "string",
+              "example": "Chrome on Windows"
+            },
+            "createdAt": {
+              "format": "date-time",
+              "type": "string"
+            }
+          },
+          "required": [
+            "id",
+            "ipAddress",
+            "location",
+            "device",
+            "createdAt"
+          ]
+        },
+        "LoginActivitiesResponseDto": {
+          "type": "object",
+          "properties": {
+            "activities": {
+              "type": "array",
+              "items": {
+                "$ref": "#/components/schemas/LoginActivityItemDto"
+              }
+            },
+            "total": {
+              "type": "number",
+              "example": 42
+            },
+            "page": {
+              "type": "number",
+              "example": 1
+            },
+            "pages": {
+              "type": "number",
+              "example": 3
+            }
+          },
+          "required": [
+            "activities",
+            "total",
+            "page",
+            "pages"
+          ]
+        },
+        "TwoFAStatusResponseDto": {
+          "type": "object",
+          "properties": {
+            "enableEmail2FA": {
+              "type": "boolean",
+              "example": false
+            },
+            "enablePhone2FA": {
+              "type": "boolean",
+              "example": false
+            },
+            "enableApp2FA": {
+              "type": "boolean",
+              "example": false
+            }
+          },
+          "required": [
+            "enableEmail2FA",
+            "enablePhone2FA",
+            "enableApp2FA"
+          ]
+        },
         "Work": {
           "type": "object",
           "properties": {}
@@ -16332,8 +19962,7 @@ window.onload = function() {
           "required": [
             "title",
             "description",
-            "link",
-            "file"
+            "link"
           ]
         },
         "AddPostToWorkDto": {
@@ -16944,6 +20573,18 @@ window.onload = function() {
             "score"
           ]
         },
+        "ReplyDto": {
+          "type": "object",
+          "properties": {
+            "reply": {
+              "type": "string",
+              "example": "Thank you for your feedback!"
+            }
+          },
+          "required": [
+            "reply"
+          ]
+        },
         "SaveMessageDto": {
           "type": "object",
           "properties": {
@@ -17484,6 +21125,144 @@ window.onload = function() {
               "example": "https://cdn.example.com/resume.pdf"
             }
           }
+        },
+        "AdminLoginDto": {
+          "type": "object",
+          "properties": {
+            "email": {
+              "type": "string"
+            },
+            "password": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "email",
+            "password"
+          ]
+        },
+        "CreateAdminUserDto": {
+          "type": "object",
+          "properties": {
+            "fullName": {
+              "type": "string"
+            },
+            "email": {
+              "type": "string"
+            },
+            "password": {
+              "type": "string"
+            },
+            "roleIds": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          },
+          "required": [
+            "fullName",
+            "email",
+            "password"
+          ]
+        },
+        "UpdateAdminUserDto": {
+          "type": "object",
+          "properties": {
+            "fullName": {
+              "type": "string"
+            },
+            "isActive": {
+              "type": "boolean"
+            },
+            "roleIds": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "CreateRoleDto": {
+          "type": "object",
+          "properties": {
+            "name": {
+              "type": "string"
+            },
+            "description": {
+              "type": "string"
+            },
+            "permissionIds": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          },
+          "required": [
+            "name"
+          ]
+        },
+        "UpdateRoleDto": {
+          "type": "object",
+          "properties": {
+            "description": {
+              "type": "string"
+            },
+            "permissionIds": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "AdminUpdateUserDto": {
+          "type": "object",
+          "properties": {
+            "fullName": {
+              "type": "string"
+            },
+            "email": {
+              "type": "string"
+            },
+            "isActive": {
+              "type": "boolean"
+            },
+            "isConsultant": {
+              "type": "boolean"
+            }
+          }
+        },
+        "AdminUpdateSessionDto": {
+          "type": "object",
+          "properties": {
+            "status": {
+              "type": "string",
+              "enum": [
+                "UPCOMING",
+                "CANCELLED",
+                "RESCHEDULED",
+                "COMPLETED",
+                "EXPIRED"
+              ]
+            },
+            "cancellationReason": {
+              "type": "string"
+            }
+          }
+        },
+        "RejectApplicationDto": {
+          "type": "object",
+          "properties": {
+            "reason": {
+              "type": "string",
+              "description": "Reason for rejecting the consultant application"
+            }
+          },
+          "required": [
+            "reason"
+          ]
         }
       }
     }

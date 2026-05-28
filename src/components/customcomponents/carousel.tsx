@@ -21,7 +21,7 @@ export const images = [
   {
     bg: "/images/bg2Dark.svg",
     bg2: "/images/bg1Dark.svg",
-    image: "/images/onboard2.png",
+    image: "/images/onboard2.svg",
     imageDark: "/images/joinImageDark.svg",
 
     title: "Join the Community ",
@@ -32,7 +32,7 @@ export const images = [
   {
     bg: "/images/bgDark3.svg",
     bg2: "/images/bg1Dark.svg",
-    image: "/images/onboard3.png",
+    image: "/images/onboard3.svg",
     imageDark: "/images/liveImageDark.svg",
     title: "Go Live,",
     extra: " Get Discovered",

@@ -350,7 +350,7 @@ export const FloatingNotification: React.FC<FloatingNotificationProps> = ({
         break;
       default:
         // Navigate to notifications page
-        window.location.href = '/notifications';
+        window.location.href = '/notification';
     }
   };
 
@@ -484,7 +484,7 @@ export const FloatingNotification: React.FC<FloatingNotificationProps> = ({
                   <Button
                     size="sm"
                     variant="ghost"
-                    onClick={() => window.location.href = '/notifications'}
+                    onClick={() => window.location.href = '/notification'}
                   >
                     View All Notifications
                   </Button>
