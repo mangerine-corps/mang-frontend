@@ -103,7 +103,7 @@ const DashboardCard = () => {
   const menuSections: MenuSection[] = [
     {
       items: [
-        { icon: SavedIcon, label: "Saved Items", action: () => router.push("/home1?tab=saved") },
+        { icon: SavedIcon, label: "Saved Items", action: () => router.push("/saved") },
         {
           icon: PaymentsIcon,
           label: "Payment History",

@@ -7,9 +7,10 @@ import {
   Image,
   Input,
   Menu,
+  Skeleton,
+  SkeletonCircle,
   Text,
   VStack,
-  Spinner,
 } from "@chakra-ui/react";
 import { type ElementType, type SVGProps, useEffect, useState } from "react";
 import { NavItem } from "mangarine/components/customcomponents/navitemcomp";
@@ -237,10 +238,18 @@ const Header = () => {
                 overflowY="auto"
               >
                 {loading ? (
-                  <HStack w="full" justifyContent="center" py={4}>
-                    <Spinner />
-                    <Text>Searching...</Text>
-                  </HStack>
+                  <VStack alignItems="stretch" w="full" gap={3}>
+                    {[1, 2, 3, 4].map((i) => (
+                      <HStack key={i} p={3} rounded="12px" gap={4}>
+                        <SkeletonCircle size="6" flexShrink={0} />
+                        <VStack alignItems="flex-start" gap={1.5} flex={1}>
+                          <Skeleton h="3" w="45%" />
+                          <Skeleton h="2.5" w="30%" />
+                        </VStack>
+                        <SkeletonCircle size="10" flexShrink={0} />
+                      </HStack>
+                    ))}
+                  </VStack>
                 ) : error ? (
                   <VStack w="full" py={3}>
                     <Text color="red.400">{error}</Text>

@@ -7,7 +7,6 @@ import {
   Skeleton,
   SkeletonCircle,
   SkeletonText,
-  Spinner,
   Stack,
   Text,
   VStack,
@@ -478,9 +477,11 @@ function SearchPage() {
                 People
               </Text>
               {peopleLoading ? (
-                <HStack justifyContent="center" py={8}>
-                  <Spinner />
-                </HStack>
+                <VStack gap={2} align="stretch">
+                  <SkeletonCard />
+                  <SkeletonCard />
+                  <SkeletonCard />
+                </VStack>
               ) : people.length > 0 ? (
                 <VStack gap={2} align="stretch">
                   {people.map((p: any) => (
@@ -500,9 +501,11 @@ function SearchPage() {
                 Consultants
               </Text>
               {consultantsLoading ? (
-                <HStack justifyContent="center" py={8}>
-                  <Spinner />
-                </HStack>
+                <VStack gap={2} align="stretch">
+                  <SkeletonCard />
+                  <SkeletonCard />
+                  <SkeletonCard />
+                </VStack>
               ) : consultants.length > 0 ? (
                 <VStack gap={2} align="stretch">
                   {consultants.map((c: any) => (

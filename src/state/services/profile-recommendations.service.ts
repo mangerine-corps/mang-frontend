@@ -26,6 +26,8 @@ export const profileRecommendationsApi = createApi({
         method: 'GET',
         params: { limit },
       }),
+      transformResponse: (response: { data: ProfileRecommendationDto[] } | ProfileRecommendationDto[]) =>
+        Array.isArray(response) ? response : (response as any).data ?? [],
       providesTags: ['ProfileRecommendations'],
     }),
   }),

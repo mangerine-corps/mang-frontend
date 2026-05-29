@@ -202,6 +202,9 @@ function Biocard() {
               w="full"
               borderRadius="md"
               justifyContent="center"
+              transition="opacity 0.18s, transform 0.18s"
+              _hover={{ opacity: 0.85, transform: "translateY(-1px)" }}
+              _active={{ transform: "translateY(0px)" }}
               onClick={(e) => {
                 e.stopPropagation();
                 goToProfile();

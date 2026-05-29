@@ -99,8 +99,7 @@ const CommentInputWrapper: React.FC<CommentInputWrapperProps> = ({ postId }) => 
               px={5}
               onClick={handleCommentSubmit}
               bg={comment ? "#111D4A" : "transparent"}
-              borderWidth={comment ? "2px" : "1px"}
-              borderColor={comment ? "#FC731AF7" : "gray.300"}
+              borderWidth={0}
               color={comment ? "white" : "gray.400"}
               loading={isLoading}
               disabled={!comment.trim()}

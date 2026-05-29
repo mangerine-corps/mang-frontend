@@ -1,31 +1,48 @@
-import { Box, Button, Flex, HStack, Image, Spinner, Text, VStack } from "@chakra-ui/react";
-import { useState } from "react";
+import { Avatar, Box, Button, Flex, HStack, Skeleton, SkeletonCircle, Text, VStack } from "@chakra-ui/react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/router";
-import { useGetSuggestedSearchesQuery } from "mangarine/state/services/search.service";
-import { useFollowUserMutation } from "mangarine/state/services/posts.service";
+import { useGetTrendingProfilesQuery } from "mangarine/state/services/profile-recommendations.service";
+import { useFollowUserMutation, useUnfollowUserMutation } from "mangarine/state/services/posts.service";
+import { useGetFollowingListQuery } from "mangarine/state/services/profile.service";
+import { useAuth } from "mangarine/state/hooks/user.hook";
 
 const ProspectiveFollowing = () => {
-  const { data, isLoading } = useGetSuggestedSearchesQuery();
+  const { user } = useAuth();
+  const { data: trending, isLoading } = useGetTrendingProfilesQuery(6);
+  const { data: followingData } = useGetFollowingListQuery(
+    { profileId: user?.id, limit: 200 },
+    { skip: !user?.id }
+  );
   const router = useRouter();
   const [followUser] = useFollowUserMutation();
-  const [followed, setFollowed] = useState<Record<string, boolean>>({});
+  const [unfollowUser] = useUnfollowUserMutation();
+  const [followedIds, setFollowedIds] = useState<Set<string>>(new Set());
 
-  const users: any[] = Array.isArray((data as any)?.data)
-    ? (data as any).data.slice(0, 6)
-    : [];
-
-  const handleFollow = async (userId: string) => {
-    setFollowed((prev) => ({ ...prev, [userId]: true }));
-    try {
-      await followUser({ targetUserId: userId }).unwrap();
-    } catch {
-      setFollowed((prev) => ({ ...prev, [userId]: false }));
+  useEffect(() => {
+    const items: any[] = followingData?.data?.items ?? followingData?.data ?? [];
+    if (items.length > 0) {
+      setFollowedIds(new Set(items.map((u: any) => u.id)));
     }
+  }, [followingData]);
+
+  const users: any[] = Array.isArray(trending) ? trending : [];
+
+  const handleToggleFollow = async (userId: string) => {
+    const isFollowing = followedIds.has(userId);
+    try {
+      if (isFollowing) {
+        await unfollowUser({ targetUserId: userId }).unwrap();
+        setFollowedIds((prev) => { const s = new Set(prev); s.delete(userId); return s; });
+      } else {
+        await followUser({ targetUserId: userId }).unwrap();
+        setFollowedIds((prev) => new Set(prev).add(userId));
+      }
+    } catch (_) {}
   };
 
   return (
     <Box
-      w={{ base: "100%", md: "100%" }}
+      w="100%"
       display={{ base: "none", md: "flex" }}
       p={6}
       bg="bg_box"
@@ -35,9 +52,14 @@ const ProspectiveFollowing = () => {
       mt={4}
     >
       <Flex justify="space-between" align="center" mb={4}>
-        <Text fontSize="xl" fontWeight="700" color="text_primary" fontFamily="Outfit">
-          Prospective Following
-        </Text>
+        <Box>
+          <Text fontSize="xl" fontWeight="700" color="text_primary" fontFamily="Outfit">
+            Discover People
+          </Text>
+          <Text fontSize="0.75rem" color="grey.500" fontFamily="Outfit" mt={0.5}>
+            Trending on the platform
+          </Text>
+        </Box>
         {users.length > 0 && (
           <Text
             fontSize="sm"
@@ -46,7 +68,7 @@ const ProspectiveFollowing = () => {
             fontWeight="600"
             cursor="pointer"
             _hover={{ textDecoration: "underline" }}
-            onClick={() => router.push("/search?tab=people")}
+            onClick={() => router.push("/discover")}
           >
             See all
           </Text>
@@ -54,77 +76,83 @@ const ProspectiveFollowing = () => {
       </Flex>
 
       {isLoading ? (
-        <HStack justify="center" py={6}>
-          <Spinner size="sm" />
-          <Text fontSize="sm" color="gray.500" fontFamily="Outfit">Loading...</Text>
-        </HStack>
+        <VStack gap={4} align="stretch">
+          {[...Array(4)].map((_, i) => (
+            <Flex key={i} justify="space-between" align="center">
+              <HStack gap={3}>
+                <SkeletonCircle size="10" />
+                <VStack align="flex-start" gap={1.5}>
+                  <Skeleton h="3" w="110px" rounded="md" />
+                  <Skeleton h="2.5" w="70px" rounded="md" />
+                </VStack>
+              </HStack>
+              <Skeleton h="8" w="80px" rounded="md" />
+            </Flex>
+          ))}
+        </VStack>
       ) : users.length === 0 ? (
         <VStack py={4} gap={1}>
           <Text fontSize="sm" color="gray.400" fontFamily="Outfit" textAlign="center">
-            No suggestions available.
+            Nothing trending right now.
           </Text>
         </VStack>
       ) : (
         <VStack gap={4} align="stretch">
           {users.map((person: any) => {
-            const isFollowed = followed[person.id];
+            const isFollowing = followedIds.has(person.id);
             return (
               <Flex key={person.id} justify="space-between" align="center">
-                <HStack gap={3}>
-                  <Image
-                    src={person.profilePics || "/person.png"}
-                    alt={person.name || "User"}
-                    boxSize="40px"
-                    borderRadius="full"
-                    objectFit="cover"
-                  />
-                  <Box>
-                    <Text
-                      fontWeight="600"
-                      fontSize="0.875rem"
-                      color="text_primary"
-                      fontFamily="Outfit"
-                    >
-                      {person.name || "—"}
+                <HStack
+                  gap={3}
+                  flex={1}
+                  minW={0}
+                  cursor="pointer"
+                  onClick={() => router.push(`/profile?profileId=${person.id}`)}
+                >
+                  <Avatar.Root boxSize="40px" flexShrink={0}>
+                    <Avatar.Fallback name={person.fullName} />
+                    <Avatar.Image src={person.profilePics} />
+                  </Avatar.Root>
+                  <Box minW={0}>
+                    <Text fontWeight="600" fontSize="0.875rem" color="text_primary" fontFamily="Outfit" truncate>
+                      {person.fullName || "—"}
                     </Text>
-                    <Text fontSize="xs" color="grey.500" fontFamily="Outfit">
-                      {person.title || person.type || ""}
+                    <HStack gap={2}>
+                      {person.title ? (
+                        <Text fontSize="xs" color="grey.500" fontFamily="Outfit" truncate>
+                          {person.title}
+                        </Text>
+                      ) : null}
+                      {person.isConsultant ? (
+                        <Text fontSize="xs" color="blue.500" fontWeight="600" fontFamily="Outfit" flexShrink={0}>
+                          Consultant
+                        </Text>
+                      ) : null}
+                    </HStack>
+                    <Text fontSize="xs" color="grey.400" fontFamily="Outfit">
+                      {person.followerCount ?? 0} followers
                     </Text>
                   </Box>
                 </HStack>
 
-                {!isFollowed ? (
-                  <Button
-                    bg="#111D4A"
-                    color="white"
-                    size="sm"
-                    borderRadius="8px"
-                    fontFamily="Outfit"
-                    fontWeight="600"
-                    fontSize="0.8rem"
-                    px={4}
-                    h="32px"
-                    _hover={{ bg: "#111D4A" }}
-                    onClick={() => handleFollow(person.id)}
-                  >
-                    Follow +
-                  </Button>
-                ) : (
-                  <Button
-                    variant="outline"
-                    borderColor="gray.300"
-                    color="text_primary"
-                    size="sm"
-                    borderRadius="8px"
-                    fontFamily="Outfit"
-                    fontWeight="600"
-                    fontSize="0.8rem"
-                    px={4}
-                    h="32px"
-                  >
-                    Following
-                  </Button>
-                )}
+                <Button
+                  variant={isFollowing ? "outline" : "solid"}
+                  bg={isFollowing ? "transparent" : "#111D4A"}
+                  borderColor={isFollowing ? "gray.300" : "transparent"}
+                  color={isFollowing ? "text_primary" : "white"}
+                  size="sm"
+                  borderRadius="8px"
+                  fontFamily="Outfit"
+                  fontWeight="600"
+                  fontSize="0.8rem"
+                  px={4}
+                  h="32px"
+                  flexShrink={0}
+                  _hover={{ opacity: 0.85 }}
+                  onClick={() => handleToggleFollow(person.id)}
+                >
+                  {isFollowing ? "Following" : "Follow +"}
+                </Button>
               </Flex>
             );
           })}

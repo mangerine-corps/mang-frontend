@@ -2,29 +2,40 @@ import { Box, Text, HStack, VStack, Button, Image, Skeleton, SkeletonCircle } fr
 import { useState, useEffect } from "react";
 import { useRouter } from "next/router";
 import { useGetProfileRecommendationsQuery } from "mangarine/state/services/profile-recommendations.service";
-import { useFollowUserMutation } from "mangarine/state/services/posts.service";
+import { useFollowUserMutation, useUnfollowUserMutation } from "mangarine/state/services/posts.service";
+import { useGetFollowingListQuery } from "mangarine/state/services/profile.service";
+import { useAuth } from "mangarine/state/hooks/user.hook";
 
 const WhoToFollow = () => {
+  const { user } = useAuth();
   const { data: recommendations, isLoading } = useGetProfileRecommendationsQuery({});
+  const { data: followingData } = useGetFollowingListQuery(
+    { profileId: user?.id, limit: 200 },
+    { skip: !user?.id }
+  );
   const [followUser] = useFollowUserMutation();
+  const [unfollowUser] = useUnfollowUserMutation();
   const [followedIds, setFollowedIds] = useState<Set<string>>(new Set());
   const router = useRouter();
 
+  // Seed from the user's actual following list
   useEffect(() => {
-    if (recommendations) {
-      const alreadyFollowed = recommendations
-        .filter((p) => p.isFollowing)
-        .map((p) => p.id);
-      if (alreadyFollowed.length > 0) {
-        setFollowedIds((prev) => new Set([...prev, ...alreadyFollowed]));
-      }
+    const items: any[] = followingData?.data?.items ?? followingData?.data ?? [];
+    if (items.length > 0) {
+      setFollowedIds(new Set(items.map((u: any) => u.id)));
     }
-  }, [recommendations]);
+  }, [followingData]);
 
-  const handleFollow = async (userId: string) => {
+  const handleToggleFollow = async (userId: string) => {
+    const isFollowing = followedIds.has(userId);
     try {
-      await followUser({ targetUserId: userId }).unwrap();
-      setFollowedIds((prev) => new Set(prev).add(userId));
+      if (isFollowing) {
+        await unfollowUser({ targetUserId: userId }).unwrap();
+        setFollowedIds((prev) => { const s = new Set(prev); s.delete(userId); return s; });
+      } else {
+        await followUser({ targetUserId: userId }).unwrap();
+        setFollowedIds((prev) => new Set(prev).add(userId));
+      }
     } catch (_) {}
   };
 
@@ -62,54 +73,56 @@ const WhoToFollow = () => {
         </VStack>
       ) : (
         <VStack wordSpacing={8} align="stretch">
-          {(recommendations ?? []).map((person) => (
-            <HStack key={person.id} justify="space-between">
-              <HStack
-                cursor="pointer"
-                onClick={() => goToProfile(person.id)}
-                _hover={{ opacity: 0.8 }}
-                flex={1}
-                minW={0}
-              >
-                <Image
-                  src={person.profilePics || "/person.png"}
-                  alt="profile-img"
-                  rounded="full"
-                  boxSize="36px"
-                  objectFit="cover"
+          {(recommendations ?? []).map((person) => {
+            const isFollowing = followedIds.has(person.id);
+            return (
+              <HStack key={person.id} justify="space-between">
+                <HStack
+                  cursor="pointer"
+                  onClick={() => goToProfile(person.id)}
+                  _hover={{ opacity: 0.8 }}
+                  flex={1}
+                  minW={0}
+                >
+                  <Image
+                    src={person.profilePics || "/person.png"}
+                    alt="profile-img"
+                    rounded="full"
+                    boxSize="36px"
+                    objectFit="cover"
+                    flexShrink={0}
+                  />
+                  <Box display="flex" flexDir="column" alignItems="flex-start" justifyContent="flex-start" minW={0}>
+                    <Text fontWeight="semibold" color="text_primary" fontSize="1rem" truncate>
+                      {person.fullName}
+                    </Text>
+                    <Text color="gray.500" lineHeight="shorter" fontSize="0.875rem" truncate>
+                      {person.title ?? person.bio ?? ""}
+                    </Text>
+                  </Box>
+                </HStack>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  px="2"
+                  py="2"
+                  rounded="md"
+                  colorPalette={isFollowing ? "gray" : "blue"}
+                  onClick={() => handleToggleFollow(person.id)}
                   flexShrink={0}
-                />
-                <Box display="flex" flexDir="column" alignItems="flex-start" justifyContent="flex-start" minW={0}>
-                  <Text fontWeight="semibold" color="text_primary" fontSize="1rem" truncate>
-                    {person.fullName}
-                  </Text>
-                  <Text color="gray.500" lineHeight="shorter" fontSize="0.875rem" truncate>
-                    {person.title ?? person.bio ?? ""}
-                  </Text>
-                </Box>
+                >
+                  {isFollowing ? (
+                    <Text fontSize="0.875rem">Following</Text>
+                  ) : (
+                    <>
+                      <Image alt="add-follower-icon" src="/icons/plus.svg" />
+                      <Text fontSize="0.875rem">Follow</Text>
+                    </>
+                  )}
+                </Button>
               </HStack>
-              <Button
-                variant="outline"
-                size="sm"
-                px="2"
-                py="2"
-                rounded="md"
-                colorPalette={followedIds.has(person.id) ? "gray" : "blue"}
-                disabled={followedIds.has(person.id)}
-                onClick={() => handleFollow(person.id)}
-                flexShrink={0}
-              >
-                {followedIds.has(person.id) ? (
-                  <Text fontSize="0.875rem">Following</Text>
-                ) : (
-                  <>
-                    <Image alt="add-follower-icon" src="/icons/plus.svg" />
-                    <Text fontSize="0.875rem">Follow</Text>
-                  </>
-                )}
-              </Button>
-            </HStack>
-          ))}
+            );
+          })}
         </VStack>
       )}
 
@@ -120,7 +133,7 @@ const WhoToFollow = () => {
         color="blue.900"
         cursor="pointer"
         _hover={{ textDecoration: "underline" }}
-        onClick={() => router.push("/search?tab=people")}
+        onClick={() => router.push("/people")}
       >
         Show more
       </Text>

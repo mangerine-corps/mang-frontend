@@ -669,8 +669,7 @@ const addTag =(username:string)=>{
                       px={5}
                       onClick={submitPost}
                       bg={value ? "#111D4A" : "transparent"}
-                      borderWidth={value ? "2px" : "1px"}
-                      borderColor={value ? "#FC731AF7" : "gray.300"}
+                      borderWidth={0}
                       justifyContent="center"
                       alignItems="center"
                       loading={isLoading}

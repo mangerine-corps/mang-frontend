@@ -16,6 +16,10 @@ const FeedAction = ({ action, icon }: FeedActionProps) => {
       alignItems="center"
       aria-label="action_button"
       cursor="pointer"
+      borderRadius="full"
+      transition="background 0.18s"
+      _hover={{ bg: "rgba(17,29,74,0.08)" }}
+      _active={{ bg: "rgba(17,29,74,0.16)" }}
     >
       {isImage ? (
         <Image src={icon} alt="action_button" />
