@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { useRouter } from "next/router";
 import {
   Box,
   Button,
@@ -24,6 +25,7 @@ import { useGetFollowingQuery } from "mangarine/state/services/posts.service";
 
 const MemberList = ({ open, onOpenChange, data }) => {
   const {user} = useAuth()
+  const router = useRouter()
   const targetUserId = user?.id
     const { data:followingData, error, refetch, isLoading: loadingFollowing } = useGetFollowingQuery(
       { targetUserId },
@@ -104,17 +106,23 @@ const MemberList = ({ open, onOpenChange, data }) => {
                     w="full"
                     justify="space-between"
                   >
-                    <HStack gap={6} align="start">
+                    <HStack
+                      gap={6}
+                      align="start"
+                      cursor="pointer"
+                      _hover={{ opacity: 0.8 }}
+                      onClick={() => {
+                        const id = member.id;
+                        if (id) router.push(`/profile?profileId=${id}`);
+                      }}
+                    >
                       <Avatar.Root
-                        // transform="translateX(-150%)"
-
                         boxSize="40px"
                         rounded="full"
                       >
                         <Avatar.Fallback name={member.fullName} />
                         <Avatar.Image src={member.profilePics} />
                       </Avatar.Root>
-                      {/* <Image src={member.profilePics} alt={member.name} /> */}
                       <Box>
                         <HStack>
                           <Text

@@ -1,5 +1,6 @@
 "use client";
 import { useEffect } from "react";
+import { useRouter } from "next/router";
 import { Text, VStack, Image, Flex, Box, HStack, Skeleton, SkeletonCircle } from "@chakra-ui/react";
 import { useGetFavoriteConsultantsQuery } from "mangarine/state/services/consultant.service";
 import { safeProfilePic, imgErrorFallback } from "mangarine/lib/constants";
@@ -15,6 +16,7 @@ interface FavouriteConsultantsCompProps {
 const FavouriteConsultantsComp = ({ title }: FavouriteConsultantsCompProps) => {
   const { data, error, isLoading } = useGetFavoriteConsultantsQuery({});
   const dispatch = useDispatch();
+  const router = useRouter();
   // const favourite = useSelector(selectFavoriteConsultant); // ✅ get from store
 
   // Load API result into redux once
@@ -83,8 +85,16 @@ const FavouriteConsultantsComp = ({ title }: FavouriteConsultantsCompProps) => {
               alignItems={"center"}
               justifyContent={"space-between"}
             >
-              <Flex align="center" gap="8px">
-                {/* Circular Profile Image */}
+              <Flex
+                align="center"
+                gap="8px"
+                cursor="pointer"
+                _hover={{ opacity: 0.8 }}
+                onClick={() => {
+                  const id = item?.consultant?.id;
+                  if (id) router.push(`/profile?profileId=${id}`);
+                }}
+              >
                 <Box boxSize="40px" borderRadius="full" overflow="hidden" flexShrink={0}>
                   <Image
                     src={safeProfilePic(item?.consultant?.profilePics)}

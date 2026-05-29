@@ -38,6 +38,7 @@ import {
   useDeleteCommentMutation,
 } from "mangarine/state/services/posts.service";
 import { useEffect, useRef, useState } from "react";
+import { useRouter } from "next/router";
 import { FiThumbsUp } from "react-icons/fi";
 import { IoEllipsisVerticalOutline } from "react-icons/io5";
 import { useFollowUserMutation } from "mangarine/state/services/posts.service";
@@ -77,6 +78,7 @@ const CommentItem = ({
   const [addReplyToComment] = useReplyToCommentMutation();
   const [deleteComment] = useDeleteCommentMutation();
   const { user } = useAuth();
+  const router = useRouter();
   const [likeCommentApi] = useLikeCommentMutation();
   const [replies, setReplies] = useState<any[]>([]);
   const [report, setReport] = useState<boolean>(false);
@@ -313,16 +315,15 @@ const CommentItem = ({
     >
       <HStack justifyContent={"space-between"} alignItems={"flex-start"}>
         <HStack alignItems={"flex-start"}>
-          <Flex alignItems="center">
-            {/* <Image
-              src={
-                comment.author?.profilePics || "/assets/images/postmodal.svg"
-              }
-              alt="profile pictures"
-              boxSize="40px"
-              borderRadius="full"
-              //   name={comment.author?.fullName}
-            /> */}
+          <Flex
+            alignItems="center"
+            cursor="pointer"
+            onClick={() => {
+              const authorId = comment.author?.id;
+              if (authorId) router.push(`/profile?profileId=${authorId}`);
+            }}
+            _hover={{ opacity: 0.8 }}
+          >
             <Avatar.Root shadow={"lg"} w={8} h={8}>
               <Avatar.Fallback name={`${comment.author?.fullName}`} />
               <Avatar.Image src={comment.author?.profilePics} />
@@ -335,6 +336,12 @@ const CommentItem = ({
                 fontSize="sm"
                 color="text_primary"
                 fontWeight="semibold"
+                cursor="pointer"
+                _hover={{ textDecoration: "underline" }}
+                onClick={() => {
+                  const authorId = comment.author?.id;
+                  if (authorId) router.push(`/profile?profileId=${authorId}`);
+                }}
               >
                 {comment.author?.fullName}
               </Text>

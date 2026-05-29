@@ -103,7 +103,7 @@ const DashboardCard = () => {
   const menuSections: MenuSection[] = [
     {
       items: [
-        { icon: SavedIcon, label: "Saved Items" },
+        { icon: SavedIcon, label: "Saved Items", action: () => router.push("/home1?tab=saved") },
         {
           icon: PaymentsIcon,
           label: "Payment History",
@@ -179,6 +179,9 @@ const DashboardCard = () => {
                 px="10px"
                 py="7px"
                 textAlign="left"
+                transition="background 0.15s ease, opacity 0.15s ease"
+                _hover={item.action ? { bg: "input_border", opacity: 0.9 } : undefined}
+                _active={item.action ? { opacity: 0.7 } : undefined}
               >
                 <HStack gap={2}>
                   <Icon as={item.icon} boxSize={4} color="text_primary" />
