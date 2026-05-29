@@ -1,10 +1,12 @@
 import { Box, Button, Flex, HStack, Image, Spinner, Text, VStack } from "@chakra-ui/react";
 import { useState } from "react";
+import { useRouter } from "next/router";
 import { useGetSuggestedSearchesQuery } from "mangarine/state/services/search.service";
 import { useFollowUserMutation } from "mangarine/state/services/posts.service";
 
 const ProspectiveFollowing = () => {
   const { data, isLoading } = useGetSuggestedSearchesQuery();
+  const router = useRouter();
   const [followUser] = useFollowUserMutation();
   const [followed, setFollowed] = useState<Record<string, boolean>>({});
 
@@ -44,6 +46,7 @@ const ProspectiveFollowing = () => {
             fontWeight="600"
             cursor="pointer"
             _hover={{ textDecoration: "underline" }}
+            onClick={() => router.push("/search?tab=people")}
           >
             See all
           </Text>

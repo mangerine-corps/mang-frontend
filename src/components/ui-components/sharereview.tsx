@@ -45,7 +45,7 @@ const ShareReview = ({open, onOpenChange}) => {
                 >
                   Share Review
                 </Text>
-                <Image src="/icons/close.svg" alt="Close" cursor="pointer" />
+                <Image src="/icons/close.svg" alt="Close" cursor="pointer" onClick={onOpenChange} />
               </HStack>
 
               <Box

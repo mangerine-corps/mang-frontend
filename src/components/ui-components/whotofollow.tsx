@@ -120,6 +120,7 @@ const WhoToFollow = () => {
         color="blue.900"
         cursor="pointer"
         _hover={{ textDecoration: "underline" }}
+        onClick={() => router.push("/search?tab=people")}
       >
         Show more
       </Text>

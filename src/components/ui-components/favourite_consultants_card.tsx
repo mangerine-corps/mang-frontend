@@ -132,6 +132,8 @@ const FavouriteConsultantsComp = ({ title }: FavouriteConsultantsCompProps) => {
     cursor={"pointer"}
     mt={4}
     textAlign="center"
+    onClick={() => router.push("/consultant")}
+    _hover={{ textDecoration: "underline" }}
   >
     See all
   </Text>
