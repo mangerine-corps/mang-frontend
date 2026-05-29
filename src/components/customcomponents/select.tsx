@@ -25,12 +25,12 @@ type Props =  {
   id: string;
   label: string;
   placeholder: string;
-  value: string[];
+  value: string | string[];
   defaultValue?: string[];
   bg?: string;
   isMulti?: boolean;
   required: boolean;
-  onChange: (value: string) => void;
+  onChange: (value: string[]) => void;
   size?: ConditionalValue<"md" | "sm" | "lg" | "xs" | undefined>;
   options: Array<SelectOptions>;
   error?: Merge<FieldError, FieldError[]>;
@@ -54,17 +54,18 @@ const CustomSelect = ({
 
 }: Props) => {
   const collection = createListCollection({ items: options });
+  const normalizedValue = Array.isArray(value) ? value : (value ? [value] : []);
   return (
     <SelectRoot
       id={id}
       name={name}
-      value={value}
+      value={normalizedValue}
       // bg="red.800"
       color="text_primary"
       style={{
         borderColor: !isEmpty(error)
           ? "error.100"
-          : !isEmpty(value)
+          : normalizedValue.length > 0
             ? "text_primary"
             : "input_border",
       }}
@@ -75,7 +76,7 @@ const CustomSelect = ({
         borderColor: !isEmpty(error) ? "error.100" : "primary.100",
       }}
       multiple={isMulti}
-      onValueChange={(e: any) => onChange(isMulti ? e.value : (e.value[0] ?? ""))}
+      onValueChange={(e: any) => onChange(e.value)}
       collection={collection}
       defaultValue={defaultValue}
       required={required}
@@ -107,7 +108,7 @@ const CustomSelect = ({
         <SelectValueText
           px={3}
           rounded="lg"
-          color={!isEmpty(value) ? "text_primary" : "gray.200"}
+          color={normalizedValue.length > 0 ? "text_primary" : "gray.200"}
           _placeholder={{ color: "red.500" }}
           fontWeight="400"
           fontSize={"14px"}

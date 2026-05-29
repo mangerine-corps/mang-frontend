@@ -320,7 +320,7 @@ const EditConsultantProfileCard = ({
               )}
               {formattedDob && (
                 <HStack gap={1}>
-                  <Image src="/assets/images/dob.svg" alt="DOB" boxSize="13px" />
+                  <Image src="/icons/dob.svg" alt="DOB" boxSize="13px" />
                   <Text fontSize={{ base: "0.72rem", lg: "0.78rem" }} color="text_primary" fontFamily="Outfit">
                     {formattedDob}
                   </Text>

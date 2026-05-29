@@ -13,8 +13,6 @@ import CustomSelect from "../customcomponents/select";
 import { useProfile } from "mangarine/state/hooks/profile.hook";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { Controller, useForm } from "react-hook-form";
-import { useDispatch } from "react-redux";
-import { setLanguages } from "mangarine/state/reducers/profile.reducer";
 import { useMount } from "react-use";
 import { toaster } from "../ui/toaster";
 import TopRightDrawer from "../ui/top-right-drawer";
@@ -115,8 +113,6 @@ const LanguageItem = ({
   handleDeleted: (id: string) => void;
   onClose: any;
 }) => {
-  const dispatch = useDispatch();
-  console.log(language);
 
   const [addNewLanguage, { isLoading }] = useAddLanguageMutation();
   const [deleteLanguage] = useDeleteLanguageMutation();
@@ -160,27 +156,23 @@ const LanguageItem = ({
 
     addNewLanguage(rest)
       .unwrap()
-      .then((payload) => {
-        const { data } = payload;
-        dispatch(setLanguages({ language: data }));
-        console.log(data, "payload");
+      .then(() => {
         toaster.create({
           title: "Success",
           description: "Language added successfully",
           type: "success",
           closable: true,
         });
-        onClose()
+        onClose();
       })
       .catch((error) => {
         console.log(error);
         toaster.create({
-          title: "Success",
+          title: "Error",
           description: "Error adding language",
           type: "error",
           closable: true,
         });
-        onClose()
       });
     console.log("button clicked");
   };
