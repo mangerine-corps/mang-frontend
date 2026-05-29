@@ -14,10 +14,12 @@ import { BiChevronDown } from "react-icons/bi";
 import { IoClose } from "react-icons/io5";
 import FeedAction from "./feedaction";
 import EmojiPicker from "emoji-picker-react";
-import { useRef, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import { useClickAway } from "react-use";
 import { RiEditFill } from "react-icons/ri";
 import { MdDelete } from "react-icons/md";
+import ReactCrop, { type Crop, type PixelCrop, centerCrop, makeAspectCrop } from "react-image-crop";
+import "react-image-crop/dist/ReactCrop.css";
 import { useCreatePostMutation } from "mangarine/state/services/posts.service";
 import { useDispatch } from "react-redux";
 import { addPost } from "mangarine/state/reducers/post.reducer";
@@ -57,8 +59,13 @@ const FeedInput = ({ onCreated }: FeedInputProps) => {
   const [tags, setTags] = useState<string[]>([]);
   const [selectedVideo, setSelectedVideo] = useState<File | null>(null);
   const [videoPreview, setVideoPreview] = useState<string | null>(null);
-  const [, setEditingImageIndex] = useState<number | null>(null);
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
+  const [cropOpen, setCropOpen] = useState(false);
+  const [cropSrc, setCropSrc] = useState<string | null>(null);
+  const [cropIndex, setCropIndex] = useState<number | null>(null);
+  const [crop, setCrop] = useState<Crop>();
+  const [completedCrop, setCompletedCrop] = useState<PixelCrop | null>(null);
+  const cropImgRef = useRef<HTMLImageElement | null>(null);
 
   // const [, setIsPreviewMode] = useState(false);
   const dispatch = useDispatch();
@@ -112,11 +119,49 @@ const FeedInput = ({ onCreated }: FeedInputProps) => {
   };
 
   const handleEditImage = (index: number) => {
-    if (fileInputRef.current) {
-      fileInputRef.current.click();
-      // store the index of the image being edited in a state
-      setEditingImageIndex(index);
-    }
+    setCropSrc(imagePreview[index]);
+    setCropIndex(index);
+    setCrop(undefined);
+    setCompletedCrop(null);
+    setCropOpen(true);
+  };
+
+  const onCropImageLoad = useCallback((e: React.SyntheticEvent<HTMLImageElement>) => {
+    const { width, height } = e.currentTarget;
+    setCrop(centerCrop(makeAspectCrop({ unit: "%", width: 80 }, 1, width, height), width, height));
+  }, []);
+
+  const applyCrop = () => {
+    if (!completedCrop || !cropImgRef.current || cropIndex === null) return;
+    const img = cropImgRef.current;
+    const canvas = document.createElement("canvas");
+    const scaleX = img.naturalWidth / img.width;
+    const scaleY = img.naturalHeight / img.height;
+    canvas.width = completedCrop.width;
+    canvas.height = completedCrop.height;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+    ctx.drawImage(
+      img,
+      completedCrop.x * scaleX,
+      completedCrop.y * scaleY,
+      completedCrop.width * scaleX,
+      completedCrop.height * scaleY,
+      0, 0,
+      completedCrop.width,
+      completedCrop.height
+    );
+    canvas.toBlob((blob) => {
+      if (!blob) return;
+      const originalName = selectedImage[cropIndex]?.name ?? "image.jpg";
+      const file = new File([blob], originalName, { type: "image/jpeg" });
+      const previewUrl = URL.createObjectURL(blob);
+      setSelectedImage((prev) => { const a = [...prev]; a[cropIndex] = file; return a; });
+      setImagePreview((prev) => { const a = [...prev]; a[cropIndex] = previewUrl; return a; });
+      setCropOpen(false);
+      setCropSrc(null);
+      setCropIndex(null);
+    }, "image/jpeg", 0.95);
   };
 
   const handleRemoveImage = (index: number) => {
@@ -311,38 +356,40 @@ const addTag =(username:string)=>{
 
               {/* Image previews */}
               {imagePreview.length > 0 && (
-                <HStack pt={3} gap={2} flexWrap="wrap">
+                <Box display="grid" gridTemplateColumns="repeat(2, 1fr)" gap="8px" pt={3}>
                   {imagePreview.map((src, index) => (
-                    <Box key={index} position="relative" w="calc(50% - 4px)">
+                    <Box key={index} position="relative" borderRadius="10px" overflow="hidden">
                       <Image
                         src={src}
                         alt={`img-${index}`}
                         w="full"
-                        h="140px"
+                        h="130px"
                         objectFit="cover"
                         borderRadius="10px"
                       />
                       <Box
                         position="absolute" top="6px" left="6px"
                         w="24px" h="24px" borderRadius="4px"
-                        bg="rgba(0,0,0,0.4)" display="flex"
+                        bg="rgba(0,0,0,0.45)" display="flex"
                         alignItems="center" justifyContent="center"
-                        cursor="pointer" onClick={() => handleEditImage(index)}
+                        cursor="pointer"
+                        onClick={(e) => { e.stopPropagation(); handleEditImage(index); }}
                       >
                         <RiEditFill color="white" size={13} />
                       </Box>
                       <Box
                         position="absolute" top="6px" right="6px"
                         w="24px" h="24px" borderRadius="4px"
-                        bg="rgba(0,0,0,0.4)" display="flex"
+                        bg="rgba(0,0,0,0.45)" display="flex"
                         alignItems="center" justifyContent="center"
-                        cursor="pointer" onClick={() => handleRemoveImage(index)}
+                        cursor="pointer"
+                        onClick={(e) => { e.stopPropagation(); handleRemoveImage(index); }}
                       >
                         <IoClose color="white" size={13} />
                       </Box>
                     </Box>
                   ))}
-                </HStack>
+                </Box>
               )}
             </Box>
 
@@ -432,76 +479,52 @@ const addTag =(username:string)=>{
                   // isReadOnly // making it read-only since modal opens on click
                   w={"full"}
                 />
-                <HStack
-                  alignItems={"stretch"}
-                  borderTopWidth={1}
-                  paddingTop={4}
-                  spaceX={3}
-                >
-                  {imagePreview.map((src, index) => (
-                    <Box
-                      display={"flex"}
-                      h="full"
-                      key={index}
-                      position="relative"
-                      width={
-                        selectedImage.length > 1
-                          ? { base: "100%", md: "calc(25% - 8px)" }
-                          : "100%"
-                      }
-                      maxWidth={
-                        selectedImage.length > 1 ? "none" : "calc(100% - 16px)"
-                      }
-                    >
-                      <Image
-                        src={src}
-                        alt={`Selected Image ${index + 1}`}
-                        objectFit="contain"
-                        width="100%"
-                        height={selectedImage.length > 1 ? "auto" : "auto"}
-                        maxHeight={selectedImage.length > 1 ? "auto" : "auto"}
-                        borderRadius="md"
-                        cursor="pointer"
-                        onClick={() => setLightboxIndex(index)}
-                      />
-
-                      {/* edit image button */}
-                      <Box
-                        position="absolute"
-                        top="8px"
-                        left="8px"
-                        width="24px"
-                        height="24px"
-                        borderRadius="2px"
-                        bg="rgba(0, 0, 0, 0.3)"
-                        display="flex"
-                        justifyContent="center"
-                        alignItems="center"
-                        cursor="pointer"
-                        onClick={() => handleEditImage(index)}
-                      >
-                        <RiEditFill color="white" />
+                {imagePreview.length > 0 && (
+                  <Box
+                    display="grid"
+                    gridTemplateColumns="repeat(2, 1fr)"
+                    gap="8px"
+                    borderTopWidth={1}
+                    pt={4}
+                    w="full"
+                  >
+                    {imagePreview.map((src, index) => (
+                      <Box key={index} position="relative" borderRadius="10px" overflow="hidden">
+                        <Image
+                          src={src}
+                          alt={`Selected Image ${index + 1}`}
+                          objectFit="cover"
+                          w="full"
+                          h="130px"
+                          borderRadius="10px"
+                          cursor="pointer"
+                          onClick={() => setLightboxIndex(index)}
+                        />
+                        <Box
+                          position="absolute" top="6px" left="6px"
+                          w="24px" h="24px" borderRadius="4px"
+                          bg="rgba(0,0,0,0.45)" display="flex"
+                          alignItems="center" justifyContent="center"
+                          cursor="pointer"
+                          onClick={(e) => { e.stopPropagation(); handleEditImage(index); }}
+                        >
+                          <RiEditFill color="white" size={13} />
+                        </Box>
+                        <Box
+                          position="absolute" top="6px" right="6px"
+                          w="24px" h="24px" borderRadius="4px"
+                          bg="rgba(0,0,0,0.45)" display="flex"
+                          alignItems="center" justifyContent="center"
+                          cursor="pointer"
+                          onClick={(e) => { e.stopPropagation(); handleRemoveImage(index); }}
+                        >
+                          <IoClose color="white" size={13} />
+                        </Box>
                       </Box>
-
-                      {/* cancel image button */}
-                      <Box
-                        position="absolute"
-                        top="8px"
-                        right="8px"
-                        width="24px"
-                        height="24px"
-                        borderRadius="2px"
-                        bg="rgba(0, 0, 0, 0.3)"
-                        display="flex"
-                        justifyContent="center"
-                        alignItems="center"
-                        cursor="pointer"
-                        onClick={() => handleRemoveImage(index)}
-                      >
-                        <MdDelete color="red" />
-                      </Box>
-                    </Box>
-                  ))}
+                    ))}
+                  </Box>
+                )}
+                <HStack alignItems="stretch" pt={imagePreview.length > 0 ? 0 : 4}>
                   {videoPreview && (
                     <Box
                       display={"flex"}
@@ -693,6 +716,89 @@ const addTag =(username:string)=>{
         {/* <CreatePostModal isOpen={isModalOpen} onClose={closeModal} /> */}
       </HStack>
       <ImageLightbox images={imagePreview} initialIndex={lightboxIndex} onClose={() => setLightboxIndex(null)} />
+
+      {/* Crop modal */}
+      {cropOpen && cropSrc && (
+        <Portal>
+          <Box
+            position="fixed"
+            inset={0}
+            zIndex={1500}
+            bg="blackAlpha.800"
+            display="flex"
+            flexDirection="column"
+            alignItems="center"
+            justifyContent="center"
+            p={4}
+          >
+            <Box
+              bg="bg_box"
+              borderRadius="16px"
+              overflow="hidden"
+              maxW="560px"
+              w="full"
+              boxShadow="xl"
+            >
+              <HStack
+                px={4}
+                py={3}
+                borderBottomWidth="1px"
+                borderColor="input_border"
+                justifyContent="space-between"
+              >
+                <Text fontWeight="700" fontSize="1rem" color="text_primary">Crop Image</Text>
+                <Box
+                  cursor="pointer"
+                  onClick={() => { setCropOpen(false); setCropSrc(null); }}
+                  p={1}
+                >
+                  <IoClose size={20} color="currentColor" />
+                </Box>
+              </HStack>
+
+              <Box p={4} maxH="60vh" overflowY="auto" display="flex" alignItems="center" justifyContent="center">
+                <ReactCrop
+                  crop={crop}
+                  onChange={(c) => setCrop(c)}
+                  onComplete={(c) => setCompletedCrop(c)}
+                  minWidth={40}
+                  minHeight={40}
+                >
+                  <img
+                    ref={cropImgRef}
+                    src={cropSrc}
+                    alt="Crop preview"
+                    onLoad={onCropImageLoad}
+                    style={{ maxWidth: "100%", maxHeight: "50vh", display: "block" }}
+                  />
+                </ReactCrop>
+              </Box>
+
+              <HStack px={4} py={3} borderTopWidth="1px" borderColor="input_border" justifyContent="flex-end" gap={3}>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  borderRadius="8px"
+                  onClick={() => { setCropOpen(false); setCropSrc(null); }}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  bg="#111D4A"
+                  color="white"
+                  size="sm"
+                  borderRadius="8px"
+                  onClick={applyCrop}
+                  disabled={!completedCrop}
+                  _hover={{ bg: "#1a2a6c" }}
+                >
+                  Apply Crop
+                </Button>
+              </HStack>
+            </Box>
+          </Box>
+        </Portal>
+      )}
     </>
   );
 };
