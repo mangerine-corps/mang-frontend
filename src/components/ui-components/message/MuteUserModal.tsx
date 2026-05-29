@@ -128,7 +128,7 @@ export const MuteUserModal: React.FC<MuteUserModalProps> = ({
                                         label="Duration"
                                         value={[duration]}
                                         required={true}
-                                        onChange={(val: string) => setDuration(val)}
+                                        onChange={(val: string[]) => setDuration(val[0] ?? '24h')}
                                     />
                                     {duration === 'custom' && (
                                         <Input

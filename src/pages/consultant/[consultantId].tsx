@@ -258,7 +258,7 @@ const ConsultantProfile = () => {
     if (displayInfo?.followerCount != null && localFollowerCount === null) {
       setLocalFollowerCount(displayInfo.followerCount);
     }
-  }, [displayInfo?.followerCount]);
+  }, [displayInfo?.followerCount, localFollowerCount]);
 
   return (
     <AppLayout>
