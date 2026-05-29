@@ -29,32 +29,40 @@ export const NavItem: React.FC<Props> = ({ link, isMobile }) => {
     (normalizedHref !== "/home" && normalizedPath.startsWith(`${normalizedHref}/`));
   const { colorMode } = useColorMode();
   const [isClient, setIsClient] = useState(false);
+  const [isHovered, setIsHovered] = useState(false);
 
   useEffect(() => {
     setIsClient(true);
   }, []);
 
+  const showActive = isActive || isHovered;
+
+  const iconSrc = !isClient
+    ? link.icon.light
+    : colorMode === "dark"
+      ? showActive ? link.iconActive.dark : link.icon.dark
+      : showActive ? link.iconActive.light : link.icon.light;
+
   return (
     <>
-      <LinkBox w={isMobile ? "full" : "auto"}>
+      <LinkBox
+        w={isMobile ? "full" : "auto"}
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
+      >
         <LinkOverlay href={link.href}>
           <VStack
             gap={isMobile ? 2 : 1}
             w={isMobile ? "full" : "auto"}
-            bg={isMobile && isActive ? "#111D4A" : "transparent"}
+            bg={isMobile && showActive ? "#111D4A" : "transparent"}
             minW={isMobile ? "full" : "78px"}
             px={isMobile ? 4 : 2}
             py={isMobile ? 2 : 1}
             pb={isMobile ? 2 : 2}
             rounded={isMobile ? "md" : "none"}
             borderBottom={!isMobile && isActive ? "2px solid" : "2px solid transparent"}
-            borderColor={!isMobile && isActive ? "#1D2A60" : "transparent"}
-            color={isMobile && isActive ? "white" : isActive ? "#1D2A60" : colorMode === "dark" ? "whiteAlpha.800" : "#4B4B52"}
-            _hover={{
-              color: isMobile ? "white" : "#1D2A60",
-              bg: isMobile ? "#111D4A" : "transparent",
-              borderColor: isMobile ? "transparent" : "#D9DDE8",
-            }}
+            borderColor={!isMobile ? (isActive ? "#1D2A60" : isHovered ? "#D9DDE8" : "transparent") : "transparent"}
+            color={isMobile && showActive ? "white" : showActive ? "#1D2A60" : colorMode === "dark" ? "whiteAlpha.800" : "#4B4B52"}
             transition="all 0.2s"
             alignItems={isMobile ? "flex-start" : "center"}
             justifyContent={isMobile ? "flex-start" : "center"}
@@ -65,67 +73,16 @@ export const NavItem: React.FC<Props> = ({ link, isMobile }) => {
               display="flex"
               alignItems="center"
               justifyContent="center"
-              filter={isMobile && isActive ? "brightness(0) invert(1)" : "none"}
+              filter={isMobile && showActive ? "brightness(0) invert(1)" : "none"}
             >
-              {!isClient ? (
-                <Box boxSize="full">
-                  <Image
-                    alt={"nav icons"}
-                    h="full"
-                    w="full"
-                    src={link.icon.light}
-                  />
-                </Box>
-              ) : colorMode === "dark" ? (
-                <>
-                  {isActive ? (
-                    <Box boxSize="full">
-                      <Image
-                        alt={"nav icons"}
-                        h="full"
-                        w="full"
-                        src={link.iconActive.dark}
-                      />
-                    </Box>
-                  ) : (
-                    <Box boxSize="full">
-                      <Image
-                        alt={"nav icons"}
-                        h="full"
-                        w="full"
-                        src={link.icon.dark}
-                      />
-                    </Box>
-                  )}
-                </>
-              ) : (
-                <>
-                  {isActive ? (
-                    <Box boxSize="full">
-                      <Image
-                        alt={"nav icons"}
-                        h="full"
-                        w="full"
-                        src={link.iconActive.light}
-                      />
-                    </Box>
-                  ) : (
-                    <Box boxSize="full">
-                      <Image
-                        alt={"nav icons"}
-                        h="full"
-                        w="full"
-                        src={link.icon.light}
-                      />
-                    </Box>
-                  )}
-                </>
-              )}
+              <Box boxSize="full">
+                <Image alt="nav icon" h="full" w="full" src={iconSrc} />
+              </Box>
             </Box>
             <Text
               className={outfit.className}
               fontSize={isMobile ? "0.95rem" : "0.74rem"}
-              fontWeight={isActive ? "600" : "500"}
+              fontWeight={showActive ? "600" : "500"}
               lineHeight="1.1"
               textAlign="center"
               whiteSpace="nowrap"

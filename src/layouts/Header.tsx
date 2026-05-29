@@ -108,6 +108,7 @@ const Header = () => {
     return `${parts[0]} ${parts[parts.length - 1][0]}`;
   })();
 
+  const [notifHovered, setNotifHovered] = useState(false);
   const isNotificationRoute = router.pathname === "/notification" || router.pathname === "/notifications";
   const isDark = colorMode === "dark";
   const panelBg = isDark ? "bg_box" : "#FFFFFF";
@@ -296,64 +297,73 @@ const Header = () => {
             link.label === "Notifications" ? (
               <NotificationDropdown
                 key={link.href}
-                trigger={(onClick, unreadCount) => (
-                  <Box cursor="pointer" onClick={onClick} display="flex" alignItems="center">
-                    <VStack
-                      gap={1}
-                      minW="72px"
-                      px={2}
-                      pt={1}
-                      pb={2}
+                trigger={(onClick, unreadCount) => {
+                  const showNotifActive = isNotificationRoute || notifHovered;
+                  return (
+                    <Box
+                      cursor="pointer"
+                      onClick={onClick}
+                      display="flex"
                       alignItems="center"
-                      justifyContent="center"
-                      borderBottom="2px solid"
-                      borderColor={isNotificationRoute ? navActiveColor : "transparent"}
-                      color={isNotificationRoute ? navActiveColor : navIdleColor}
-                      _hover={{ color: navActiveColor, borderColor: "#D9DDE8" }}
-                      transition="color 0.15s, border-color 0.15s"
+                      onMouseEnter={() => setNotifHovered(true)}
+                      onMouseLeave={() => setNotifHovered(false)}
                     >
-                      <Box boxSize="22px" position="relative">
-                        <Image
-                          alt="notification"
-                          h="full"
-                          w="full"
-                          src={isDark
-                            ? isNotificationRoute ? link.iconActive.dark : link.icon.dark
-                            : isNotificationRoute ? link.iconActive.light : link.icon.light}
-                        />
-                        {unreadCount > 0 && (
-                          <Box
-                            position="absolute"
-                            top="-6px"
-                            right="-8px"
-                            bg="red.500"
-                            color="white"
-                            fontWeight="700"
-                            rounded="full"
-                            minW="16px"
-                            h="16px"
-                            px="4px"
-                            fontSize="9px"
-                            lineHeight="16px"
-                            textAlign="center"
-                            pointerEvents="none"
-                          >
-                            {unreadCount > 99 ? "99+" : unreadCount}
-                          </Box>
-                        )}
-                      </Box>
-                      <Text
-                        className={outfit.className}
-                        fontSize="0.72rem"
-                        fontWeight={isNotificationRoute ? "600" : "500"}
-                        lineHeight="1.1"
-                        whiteSpace="nowrap"
+                      <VStack
+                        gap={1}
+                        minW="72px"
+                        px={2}
+                        pt={1}
+                        pb={2}
+                        alignItems="center"
+                        justifyContent="center"
+                        borderBottom="2px solid"
+                        borderColor={isNotificationRoute ? navActiveColor : notifHovered ? "#D9DDE8" : "transparent"}
+                        color={showNotifActive ? navActiveColor : navIdleColor}
+                        transition="color 0.15s, border-color 0.15s"
                       >
-                        {link.label}
-                      </Text>
-                    </VStack>
-                  </Box>
-                )}
+                        <Box boxSize="22px" position="relative">
+                          <Image
+                            alt="notification"
+                            h="full"
+                            w="full"
+                            src={isDark
+                              ? showNotifActive ? link.iconActive.dark : link.icon.dark
+                              : showNotifActive ? link.iconActive.light : link.icon.light}
+                          />
+                          {unreadCount > 0 && (
+                            <Box
+                              position="absolute"
+                              top="-6px"
+                              right="-8px"
+                              bg="red.500"
+                              color="white"
+                              fontWeight="700"
+                              rounded="full"
+                              minW="16px"
+                              h="16px"
+                              px="4px"
+                              fontSize="9px"
+                              lineHeight="16px"
+                              textAlign="center"
+                              pointerEvents="none"
+                            >
+                              {unreadCount > 99 ? "99+" : unreadCount}
+                            </Box>
+                          )}
+                        </Box>
+                        <Text
+                          className={outfit.className}
+                          fontSize="0.72rem"
+                          fontWeight={showNotifActive ? "600" : "500"}
+                          lineHeight="1.1"
+                          whiteSpace="nowrap"
+                        >
+                          {link.label}
+                        </Text>
+                      </VStack>
+                    </Box>
+                  );
+                }}
               />
             ) : (
               <Box key={link.href} position="relative" display="flex" alignItems="center">
