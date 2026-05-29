@@ -1,6 +1,7 @@
 import { Box, HStack, Icon, SkeletonCircle, SkeletonText, Stack, Text, VStack } from "@chakra-ui/react";
 import { IoClose } from "react-icons/io5";
 import { PiSparkle } from "react-icons/pi";
+import { BsArrowUp } from "react-icons/bs";
 import AppLayout from "mangarine/layouts/AppLayout";
 import Biocard from "mangarine/components/ui-components/biocard";
 import DashboardCard from "mangarine/components/ui-components/dashboardcard";
@@ -20,9 +21,6 @@ import { useAuth } from "mangarine/state/hooks/user.hook";
 import { BiMenuAltRight } from "react-icons/bi";
 import MenuList from "mangarine/components/ui-components/mybusiness/modals/homerightmenu";
 import { usePostsPolling } from "mangarine/hooks/usePostsPolling";
-import TrendingCommunities from "mangarine/components/ui-components/trendingcommunities";
-import { useCommunity } from "mangarine/state/hooks/communities.hook";
-import TrendingEmptyState from "mangarine/components/ui-components/emptytrendingstate";
 import WhoToFollow from "mangarine/components/ui-components/whotofollow";
 
 const noScrollbar = {
@@ -32,7 +30,7 @@ const noScrollbar = {
 };
 
 const SkeletonPost = () => (
-  <Box padding="6" rounded="lg" bg="main_background" w="full">
+  <Box padding="6" rounded="lg" bg="bg_box" w="full">
     <SkeletonCircle size="10" />
     <SkeletonText mt="4" noOfLines={4} spaceY="4" py="2" />
   </Box>
@@ -46,24 +44,39 @@ function Home() {
   const [initialLoading, setInitialLoading] = useState(true);
   const [nextCursor, setNextCursor] = useState<string | undefined>(undefined);
   const [hasMore, setHasMore] = useState(true);
+  const [pendingNew, setPendingNew] = useState<Post[]>([]);
 
+  const feedTopRef = useRef<HTMLDivElement | null>(null);
   const sentinelRef = useRef<HTMLDivElement | null>(null);
   const { posts } = usePosts();
   const dispatch = useDispatch();
   const { user } = useAuth();
-  const { trending } = useCommunity();
   const isConsultant = user?.isConsultant;
 
-  const { data: pageData, currentData: pageCurrentData, isFetching: isFetchingPage, isError } =
+  const { data: pageData, currentData: pageCurrentData, isFetching: isFetchingPage, isError, refetch } =
     useGetPostsCursorQuery({ cursor, limit: 10 });
 
   const { items: polledItems } = usePostsPolling({ pageSize: 10, pollingInterval: 15000 });
 
-  const combinedPosts = useMemo(() => {
+  // Hold new polled posts in pending instead of silently prepending
+  useEffect(() => {
+    if (!polledItems?.length || initialLoading) return;
     const existingIds = new Set((posts || []).map((p: any) => p?.id));
-    const fresh = (polledItems || []).filter((p: any) => p && !existingIds.has(p.id));
-    return [...fresh, ...(posts || [])];
-  }, [polledItems, posts]);
+    const fresh = polledItems.filter((p: any) => p && !existingIds.has(p.id));
+    if (fresh.length > 0) {
+      setPendingNew((prev) => {
+        const prevIds = new Set(prev.map((p: any) => p.id));
+        return [...prev, ...fresh.filter((p: any) => !prevIds.has(p.id))];
+      });
+    }
+  }, [polledItems]);
+
+  const showPending = () => {
+    if (!pendingNew.length) return;
+    dispatch(setPosts({ posts: [...pendingNew, ...(posts || [])] }));
+    setPendingNew([]);
+    feedTopRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
 
   useEffect(() => {
     if (!user) return;
@@ -136,7 +149,43 @@ function Home() {
         </VStack>
 
         {/* Center feed */}
-        <Stack bg="bg_box" rounded="xl" px={4} pb={4} h={{ base: "auto", md: "full" }} w="full" overflowY={{ base: "auto", md: "auto" }} css={noScrollbar}>
+        <Stack bg="bg_box" rounded="xl" px={4} pb={4} h={{ base: "auto", md: "full" }} w="full" overflowY={{ base: "auto", md: "auto" }} css={noScrollbar} position="relative">
+          {/* Scroll anchor */}
+          <div ref={feedTopRef} />
+
+          {/* New posts pill */}
+          {pendingNew.length > 0 && (
+            <Box
+              position="sticky"
+              top={2}
+              zIndex={10}
+              display="flex"
+              justifyContent="center"
+              pointerEvents="none"
+            >
+              <HStack
+                bg="#111D4A"
+                color="white"
+                px={4}
+                py={2}
+                rounded="full"
+                gap={2}
+                cursor="pointer"
+                pointerEvents="auto"
+                boxShadow="md"
+                onClick={showPending}
+                _hover={{ bg: "#1a2a6c" }}
+                transition="background 0.15s"
+              >
+                <Icon fontSize="0.85rem"><BsArrowUp /></Icon>
+                <Text fontSize="0.8rem" fontWeight="600" fontFamily="Outfit">
+                  {pendingNew.length} new post{pendingNew.length > 1 ? "s" : ""}
+                </Text>
+              </HStack>
+            </Box>
+          )}
+
+          {/* Consultant banner */}
           {showConsultantBanner && !isConsultant && (
             <Box
               style={{ background: "linear-gradient(90deg, #D6DCF5 0%, #F7F8FD 100%)" }}
@@ -172,13 +221,19 @@ function Home() {
                   fontWeight="600"
                   color="#111D4A"
                   cursor="pointer"
+                  _hover={{ textDecoration: "underline" }}
+                  onClick={() => setOpenConsultant(true)}
                 >
                   Learn more →
                 </Text>
               </HStack>
             </Box>
           )}
-          <FeedInput />
+
+          <FeedInput onCreated={(post) => {
+            dispatch(setPosts({ posts: [post, ...(posts || [])] }));
+          }} />
+
           {initialLoading ? (
             <VStack css={noScrollbar}>
               <SkeletonPost />
@@ -186,15 +241,37 @@ function Home() {
               <SkeletonPost />
             </VStack>
           ) : isError ? (
-            <PostEmptyState />
+            <VStack py={6} gap={3}>
+              <PostEmptyState />
+              <Text
+                fontSize="0.875rem"
+                fontWeight="600"
+                color="#111D4A"
+                cursor="pointer"
+                _hover={{ textDecoration: "underline" }}
+                onClick={() => { setInitialLoading(true); refetch(); }}
+              >
+                Try again
+              </Text>
+            </VStack>
           ) : (
             <Stack css={noScrollbar}>
-              {!isEmpty(combinedPosts) && size(combinedPosts) > 0 ? (
+              {!isEmpty(posts) && size(posts) > 0 ? (
                 <>
-                  {combinedPosts.map((post: Post) => post && <NewsItem key={post?.id} post={post} />)}
+                  {(posts as Post[]).map((post: Post) => post && <NewsItem key={post?.id} post={post} />)}
                   {!hasMore && (
-                    <VStack py={6} opacity={0.7}>
-                      <Box fontSize="sm" color="gray.400">You&apos;re all caught up</Box>
+                    <VStack py={6} opacity={0.7} gap={2}>
+                      <Text fontSize="sm" color="gray.400">You&apos;re all caught up</Text>
+                      <Text
+                        fontSize="0.8rem"
+                        color="#111D4A"
+                        fontWeight="600"
+                        cursor="pointer"
+                        _hover={{ textDecoration: "underline" }}
+                        onClick={() => feedTopRef.current?.scrollIntoView({ behavior: "smooth" })}
+                      >
+                        Back to top ↑
+                      </Text>
                     </VStack>
                   )}
                 </>
@@ -227,9 +304,6 @@ function Home() {
           <Box w="full">
             <BookingCalendar />
           </Box>
-          {/* <Box display={{ base: "none", lg: "block" }} w="full">
-            {!isEmpty(trending) ? <TrendingCommunities /> : <TrendingEmptyState />}
-          </Box> */}
           <WhoToFollow />
         </VStack>
 

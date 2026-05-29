@@ -152,7 +152,6 @@ export const createStore = () =>
 
 export const store = createStore();
 registerAuthTokenResolver(() => extractAuthToken(store.getState()));
-let persistorStarted = false;
 let persistorReady = false;
 const persistReadyListeners = new Set<() => void>();
 
@@ -162,26 +161,23 @@ const notifyPersistReady = () => {
   persistReadyListeners.clear();
 };
 
-export const startPersistor = (onReady?: () => void) => {
-  if (typeof window === "undefined") {
-    return;
-  }
-
-  if (persistorReady) {
-    onReady?.();
-    return;
-  }
-
-  if (onReady) {
-    persistReadyListeners.add(onReady);
-  }
-
-  if (persistorStarted) {
-    return;
-  }
-
+// Start rehydration immediately at module load time (browser only).
+// This means rehydration begins as soon as the JS bundle executes,
+// not after React renders and useEffect fires — eliminating the blank frame.
+if (typeof window !== "undefined") {
   persistStore(store, undefined, notifyPersistReady);
-  persistorStarted = true;
+}
+
+export const isPersistorReady = () => persistorReady;
+
+export const onPersistorReady = (cb: () => void) => {
+  if (persistorReady) { cb(); return; }
+  persistReadyListeners.add(cb);
+};
+
+// Keep for backward compat — now a no-op since persistor auto-starts
+export const startPersistor = (onReady?: () => void) => {
+  onPersistorReady(onReady ?? (() => {}));
 };
 
 export type RootState = ReturnType<typeof reducers>;

@@ -1,4 +1,4 @@
-import { Box, Flex, Spinner, Center, VStack } from '@chakra-ui/react';
+import { Box, Flex, HStack, Skeleton, SkeletonCircle, VStack } from '@chakra-ui/react';
 import React, { FC, useEffect } from 'react'
 import Header from './Header';
 import { usePersistReady } from 'mangarine/components/ui/provider';
@@ -34,9 +34,83 @@ const AppLayout: FC<Props> = ({ children, subHeader }) => {
   // which was causing intermittent blank screens.
   if (!persistReady) {
     return (
-      <Center h="100vh" bg="main_background">
-        <Spinner size="lg" color="text_primary" />
-      </Center>
+      <VStack gap={0} h="100vh" alignItems="stretch" bg="main_background">
+        {/* Header skeleton */}
+        <HStack
+          h="88px"
+          px={{ base: 4, md: 5, lg: 6 }}
+          borderBottomWidth="1px"
+          borderColor="gray.100"
+          bg="white"
+          gap={6}
+          flexShrink={0}
+        >
+          <SkeletonCircle size="9" flexShrink={0} />
+          <Skeleton h="9" w="280px" rounded="xl" />
+          <Box flex={1} />
+          <HStack gap={6} display={{ base: "none", lg: "flex" }}>
+            {[80, 64, 80, 72].map((w, i) => (
+              <Skeleton key={i} h="10" w={`${w}px`} rounded="lg" />
+            ))}
+          </HStack>
+          <SkeletonCircle size="9" flexShrink={0} />
+        </HStack>
+
+        {/* Content skeleton — 3-column layout */}
+        <Flex
+          flex={1}
+          minH={0}
+          px={{ base: 3, md: 4, lg: 6, xl: 8 }}
+          py={4}
+          gap={4}
+          overflow="hidden"
+        >
+          {/* Left sidebar */}
+          <VStack
+            w="260px"
+            flexShrink={0}
+            gap={3}
+            display={{ base: "none", md: "flex" }}
+            align="stretch"
+          >
+            <Skeleton h="200px" rounded="xl" />
+            <Skeleton h="280px" rounded="xl" />
+          </VStack>
+
+          {/* Center feed */}
+          <VStack flex={1} gap={3} align="stretch" overflow="hidden">
+            <Skeleton h="80px" rounded="xl" />
+            {[1, 2, 3].map((i) => (
+              <Box key={i} bg="white" rounded="xl" p={5}>
+                <HStack gap={3} mb={4}>
+                  <SkeletonCircle size="10" flexShrink={0} />
+                  <VStack align="flex-start" gap={2} flex={1}>
+                    <Skeleton h="3" w="35%" />
+                    <Skeleton h="2.5" w="20%" />
+                  </VStack>
+                </HStack>
+                <Skeleton h="3" w="full" mb={2} />
+                <Skeleton h="3" w="90%" mb={2} />
+                <Skeleton h="3" w="75%" mb={4} />
+                <Skeleton h="160px" rounded="lg" />
+              </Box>
+            ))}
+          </VStack>
+
+          {/* Right sidebar */}
+          <VStack
+            w="260px"
+            flexShrink={0}
+            gap={3}
+            display={{ base: "none", lg: "flex" }}
+            align="stretch"
+          >
+            <Skeleton h="180px" rounded="xl" />
+            <Skeleton h="220px" rounded="xl" />
+            <Skeleton h="240px" rounded="xl" />
+          </VStack>
+        </Flex>
+      </VStack>
     );
   }
 
