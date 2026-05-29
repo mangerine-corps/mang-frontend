@@ -42,9 +42,9 @@ const contactme = "/assets/images/contactme.png";
 const dp = DEFAULT_AVATAR;
 const play = "/assets/images/play.svg";
 // const works3 = "/images/works3.png";
-const verified = "/assets/images/verified consultant.svg";
-const locale = "/assets/images/locale.svg";
-const dob = "/assets/images/dob.svg";
+const verified = "/icons/verified.svg";
+const locale = "/images/location.svg";
+const dob = "/icons/dob.svg";
 const edit = "/icons/edit.svg";
 
 const reviews = [

@@ -10,6 +10,7 @@ export interface ProfileRecommendationDto {
   languages?: string[];
   followerCount: number;
   followingCount: number;
+  isFollowing?: boolean;
   isConsultant?: boolean;
   recommendationScore: number;
   reason?: string;

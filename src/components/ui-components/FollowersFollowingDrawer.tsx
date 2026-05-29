@@ -1,5 +1,6 @@
 import { Avatar, Box, Button, HStack, Spinner, Text, VStack } from "@chakra-ui/react";
 import { useState } from "react";
+import { useRouter } from "next/router";
 import TopRightDrawer from "mangarine/components/ui/top-right-drawer";
 import { useGetFollowersListQuery, useGetFollowingListQuery } from "mangarine/state/services/profile.service";
 import { useFollowUserMutation } from "mangarine/state/services/posts.service";
@@ -12,20 +13,36 @@ interface Props {
   count?: number;
 }
 
-const FollowListItem = ({ item, defaultFollowing = false }: { item: any; defaultFollowing?: boolean }) => {
+const FollowListItem = ({ item, defaultFollowing = false, onNavigate }: { item: any; defaultFollowing?: boolean; onNavigate?: () => void }) => {
   const [localFollowing, setLocalFollowing] = useState<boolean>(item?.isFollowing ?? defaultFollowing);
   const [followUser, { isLoading }] = useFollowUserMutation();
+  const router = useRouter();
 
-  const handleFollow = () => {
+  const handleFollow = (e: React.MouseEvent) => {
+    e.stopPropagation();
     followUser({ targetUserId: item?.id ?? item?._id })
       .unwrap()
       .then((res) => setLocalFollowing(res.isFollowing))
       .catch(() => {});
   };
 
+  const goToProfile = () => {
+    const id = item?.id ?? item?._id;
+    if (!id) return;
+    onNavigate?.();
+    router.push(`/profile?profileId=${id}`);
+  };
+
   return (
     <HStack w="full" justifyContent="space-between" py={3}>
-      <HStack gap={3} flex={1} minW={0}>
+      <HStack
+        gap={3}
+        flex={1}
+        minW={0}
+        cursor="pointer"
+        onClick={goToProfile}
+        _hover={{ opacity: 0.8 }}
+      >
         <Avatar.Root boxSize="40px" flexShrink={0}>
           <Avatar.Fallback name={item?.fullName} />
           <Avatar.Image src={item?.profilePics} />
@@ -35,7 +52,7 @@ const FollowListItem = ({ item, defaultFollowing = false }: { item: any; default
             {item?.fullName}
           </Text>
           {item?.occupation && (
-            <Text fontSize="0.75rem" color="grey.500" lineClamp={1}>
+            <Text fontSize="0.75rem" color="gray.500" lineClamp={1}>
               {item?.occupation}
             </Text>
           )}
@@ -99,7 +116,7 @@ const FollowersFollowingDrawer = ({ open, onClose, type, profileId, count }: Pro
         <VStack w="full" gap={0}>
           {list.map((item, i) => (
             <Box key={item?.id ?? item?._id ?? i} w="full" borderBottomWidth="1px" borderColor="input_border">
-              <FollowListItem item={item} defaultFollowing={!isFollowers} />
+              <FollowListItem item={item} defaultFollowing={!isFollowers} onNavigate={onClose} />
             </Box>
           ))}
         </VStack>
