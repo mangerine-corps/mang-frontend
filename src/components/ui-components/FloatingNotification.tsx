@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useRouter } from 'next/router';
 import {
   Box,
   Text,
@@ -259,6 +260,7 @@ export const FloatingNotification: React.FC<FloatingNotificationProps> = ({
     hasError
   } = useNotifications();
 
+  const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
   const [recentNotifications, setRecentNotifications] = useState<NotificationData[]>([]);
   const [audio] = useState<HTMLAudioElement | null>(
@@ -334,23 +336,18 @@ export const FloatingNotification: React.FC<FloatingNotificationProps> = ({
   };
 
   const handleNotificationAction = (notification: NotificationData) => {
-    // Handle different notification types
     switch (notification.type) {
       case 'payment':
-        // Navigate to payment page
-        window.location.href = '/payments';
+        router.push('/consultation');
         break;
       case 'appointment':
-        // Navigate to appointments page
-        window.location.href = '/appointments';
+        router.push('/consultation');
         break;
       case 'message':
-        // Navigate to messages page
-        window.location.href = '/messages';
+        router.push('/message');
         break;
       default:
-        // Navigate to notifications page
-        window.location.href = '/notification';
+        router.push('/notification');
     }
   };
 
@@ -484,7 +481,7 @@ export const FloatingNotification: React.FC<FloatingNotificationProps> = ({
                   <Button
                     size="sm"
                     variant="ghost"
-                    onClick={() => window.location.href = '/notification'}
+                    onClick={() => router.push('/notification')}
                   >
                     View All Notifications
                   </Button>

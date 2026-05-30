@@ -1,7 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
 import { Box, Text, Image, Flex, Icon, Stack } from "@chakra-ui/react";
-import AppLayout from "mangarine/layouts/AppLayout";
 import AccountSetting from "mangarine/components/ui-components/accountsetting";
 import PrivacySetting from "mangarine/components/ui-components/privacysetting";
 import NotificationSetting from "mangarine/components/ui-components/notificationsetting";
@@ -128,9 +127,7 @@ const Settings = () => {
   };
 
   return (
-    <AppLayout>
-      {/* <CancelSubscriptionModal /> */}
-      <Box
+    <Box
         w="full"
         h="full"
         borderRight="1px"
@@ -301,8 +298,7 @@ const Settings = () => {
           }}
         />
       </Box>
-    </AppLayout>
-  );
+      );
 };
 
 export default Settings;

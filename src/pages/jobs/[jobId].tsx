@@ -9,7 +9,6 @@ import {
   Text,
   VStack,
 } from "@chakra-ui/react";
-import AppLayout from "mangarine/layouts/AppLayout";
 import Biocard from "mangarine/components/ui-components/biocard";
 import DashboardCard from "mangarine/components/ui-components/dashboardcard";
 import { useRouter } from "next/router";
@@ -74,8 +73,7 @@ const JobDetailPage = () => {
   const salary = formatSalary();
 
   return (
-    <AppLayout>
-      <Box
+          <Box
         display="flex"
         flexDir={{ base: "column", md: "row" }}
         gap={4}
@@ -286,8 +284,7 @@ const JobDetailPage = () => {
           )}
         </Box>
       </Box>
-    </AppLayout>
-  );
+      );
 };
 
 export default JobDetailPage;

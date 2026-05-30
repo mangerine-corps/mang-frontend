@@ -9,22 +9,21 @@ import {
 import system from "mangarine/theme"
 
 import { Provider } from "react-redux";
-import { isPersistorReady, onPersistorReady, store } from "mangarine/state/store";
+import { onPersistorReady, startPersistor, store } from "mangarine/state/store";
 
 const PersistReadyContext = createContext(false);
 
 export const usePersistReady = () => useContext(PersistReadyContext);
 
 export function Providers(props: ColorModeProviderProps) {
-  // Check synchronously — if rehydration finished before this component
-  // even mounts (fast devices), we skip the loading state entirely.
-  const [persistReady, setPersistReady] = useState(() => isPersistorReady());
+  // Always start false so server and client first renders match (avoids hydration mismatch).
+  // useEffect fires immediately after mount and resolves in the same tick if already ready.
+  const [persistReady, setPersistReady] = useState(false);
 
   useEffect(() => {
-    if (isPersistorReady()) {
-      setPersistReady(true);
-      return;
-    }
+    // startPersistor boots redux-persist (once, guarded).
+    // onPersistorReady fires the callback immediately if already done.
+    startPersistor();
     onPersistorReady(() => setPersistReady(true));
   }, []);
 

@@ -27,6 +27,7 @@ import { outfit } from "mangarine/pages/_app";
 
 import { yupResolver } from "@hookform/resolvers/yup";
 import { useRouter } from "next/router";
+import NextLink from "next/link";
 import { usePreSignupMutation, useGoogleAuthMutation } from "mangarine/state/services/auth.service";
 import { useDispatch } from "react-redux";
 import { setPreAuth, setCredentials } from "mangarine/state/reducers/auth.reducer";
@@ -571,13 +572,13 @@ const OnboardingOne = () => {
             </Text>
 
             <Link
+              asChild
               color="primary.500"
               fontWeight={"700"}
               fontSize={"0.875rem"}
               lineHeight={"100%"}
-              href="/auth/login"
             >
-              Login
+              <NextLink href="/auth/login">Login</NextLink>
             </Link>
           </HStack>
         </VStack>

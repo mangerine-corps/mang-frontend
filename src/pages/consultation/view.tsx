@@ -3,7 +3,6 @@ import { Box, Button, HStack, Text, VStack, Spinner, Flex } from '@chakra-ui/rea
 import { useCountdown, resolveStartTime } from 'mangarine/hooks/useCountdown';
 import { useTheme } from 'next-themes';
 import { useRouter } from 'next/router';
-import AppLayout from 'mangarine/layouts/AppLayout';
 import Biocard from 'mangarine/components/ui-components/biocard';
 import DashboardCard from 'mangarine/components/ui-components/dashboardcard';
 import ActivityEmptyState from 'mangarine/components/ui-components/emptystate';
@@ -147,8 +146,7 @@ export default function ConsultationViewPage() {
     };
 
     return (
-        <AppLayout>
-            <Box
+                    <Box
                 display={"flex"}
                 flexDir={{ base: "column", md: "row", lg: "row", xl: "row" }}
                 my={{ base: "0", md: "12px" }}
@@ -480,6 +478,5 @@ export default function ConsultationViewPage() {
                     <ActivityEmptyState />
                 </VStack>
             </Box>
-        </AppLayout>
-    );
+            );
 }

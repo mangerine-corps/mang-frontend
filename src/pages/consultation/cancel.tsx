@@ -3,7 +3,6 @@ import { Box, Button, Center, Container, Flex, Heading, HStack, Icon, Stack, Tex
 import { useTheme } from 'next-themes';
 import { useRouter } from 'next/router';
 import { AiFillEye, AiOutlineInfoCircle } from 'react-icons/ai';
-import AppLayout from 'mangarine/layouts/AppLayout';
 import Biocard from 'mangarine/components/ui-components/biocard';
 import DashboardCard from 'mangarine/components/ui-components/dashboardcard';
 import ActivityEmptyState from 'mangarine/components/ui-components/emptystate';
@@ -62,8 +61,7 @@ export default function CancelAppointment() {
     };
 
     return (
-        <AppLayout>
-            <Box
+                    <Box
                 display={"flex"}
                 flexDir={{ base: "column", md: "row", lg: "row", xl: "row" }}
                 my={{ base: "0", md: "12px" }}
@@ -394,6 +392,5 @@ export default function CancelAppointment() {
                     <ActivityEmptyState />
                 </VStack>
             </Box>
-        </AppLayout>
-    );
+            );
 }

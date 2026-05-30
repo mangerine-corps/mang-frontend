@@ -1,5 +1,4 @@
 import { Box, Button, Flex, Image, Input, Text, VStack, HStack, Skeleton, SkeletonText } from "@chakra-ui/react";
-import AppLayout from "mangarine/layouts/AppLayout";
 import { useRouter } from "next/router";
 import Biocard from "mangarine/components/ui-components/biocard";
 import DashboardCard from "mangarine/components/ui-components/dashboardcard";
@@ -67,8 +66,7 @@ const JobSearchPage = () => {
   const handleSearch = () => setSearchQuery(searchInput.trim());
 
   return (
-    <AppLayout>
-      <Box
+          <Box
         display="flex"
         flexDir={{ base: "column", md: "row" }}
         gap={4}
@@ -166,8 +164,7 @@ const JobSearchPage = () => {
           )}
         </Box>
       </Box>
-    </AppLayout>
-  );
+      );
 };
 
 export default JobSearchPage;

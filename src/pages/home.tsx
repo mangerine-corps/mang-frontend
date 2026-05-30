@@ -2,7 +2,6 @@ import { Box, HStack, Icon, SkeletonCircle, SkeletonText, Stack, Text, VStack } 
 import { IoClose } from "react-icons/io5";
 import { PiSparkle } from "react-icons/pi";
 import { BsArrowUp } from "react-icons/bs";
-import AppLayout from "mangarine/layouts/AppLayout";
 import Biocard from "mangarine/components/ui-components/biocard";
 import DashboardCard from "mangarine/components/ui-components/dashboardcard";
 import ActivityBox from "mangarine/components/ui-components/activitybox";
@@ -41,7 +40,6 @@ function Home() {
   const [showConsultantBanner, setShowConsultantBanner] = useState(true);
   const [showMenuList, setShowMenuList] = useState(false);
   const [cursor, setCursor] = useState<string | undefined>(undefined);
-  const [initialLoading, setInitialLoading] = useState(true);
   const [nextCursor, setNextCursor] = useState<string | undefined>(undefined);
   const [hasMore, setHasMore] = useState(true);
   const [pendingNew, setPendingNew] = useState<Post[]>([]);
@@ -56,11 +54,15 @@ function Home() {
   const { data: pageData, currentData: pageCurrentData, isFetching: isFetchingPage, isError, refetch } =
     useGetPostsCursorQuery({ cursor, limit: 10 });
 
+  // Show skeleton only when there's truly no data — not on every remount.
+  // RTK Query returns cached data immediately, so isInitialLoad is false on revisit.
+  const isInitialLoad = !pageData && !pageCurrentData && isFetchingPage;
+
   const { items: polledItems } = usePostsPolling({ pageSize: 10, pollingInterval: 15000 });
 
   // Hold new polled posts in pending instead of silently prepending
   useEffect(() => {
-    if (!polledItems?.length || initialLoading) return;
+    if (!polledItems?.length || isInitialLoad) return;
     const existingIds = new Set((posts || []).map((p: any) => p?.id));
     const fresh = polledItems.filter((p: any) => p && !existingIds.has(p.id));
     if (fresh.length > 0) {
@@ -99,13 +101,8 @@ function Home() {
     }
     setNextCursor(nc || undefined);
     setHasMore(!!hm);
-    setInitialLoading(false);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pageData, pageCurrentData]);
-
-  useEffect(() => {
-    if (isError) setInitialLoading(false);
-  }, [isError]);
 
   useEffect(() => {
     if (!sentinelRef.current) return;
@@ -123,8 +120,7 @@ function Home() {
   }, [hasMore, isFetchingPage, nextCursor]);
 
   return (
-    <AppLayout>
-      <>
+          <>
       <Box
         display="grid"
         gridTemplateColumns={{ base: "1fr", md: "1fr 2fr", lg: "1fr 2fr 1fr" }}
@@ -234,7 +230,7 @@ function Home() {
             dispatch(setPosts({ posts: [post, ...(posts || [])] }));
           }} />
 
-          {initialLoading ? (
+          {isInitialLoad ? (
             <VStack css={noScrollbar}>
               <SkeletonPost />
               <SkeletonPost />
@@ -249,7 +245,7 @@ function Home() {
                 color="#111D4A"
                 cursor="pointer"
                 _hover={{ textDecoration: "underline" }}
-                onClick={() => { setInitialLoading(true); refetch(); }}
+                onClick={() => refetch()}
               >
                 Try again
               </Text>
@@ -342,8 +338,7 @@ function Home() {
         onOpenChange={() => setOpenConsultant(false)}
       />
       </>
-    </AppLayout>
-  );
+      );
 }
 
 export default Home;

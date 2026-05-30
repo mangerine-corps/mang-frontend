@@ -6,7 +6,6 @@ import {
   Tooltip,
   VStack,
 } from "@chakra-ui/react";
-import AppLayout from "mangarine/layouts/AppLayout";
 import Biocard from "mangarine/components/ui-components/biocard";
 import DashboardCard from "mangarine/components/ui-components/dashboardcard";
 import ActivityBox from "mangarine/components/ui-components/activitybox";
@@ -134,9 +133,7 @@ function Home() {
   };
 
   return (
-    <AppLayout>
-      {/* Main responsive grid */}
-      <Box
+    <Box
         display="grid"
         gridTemplateColumns={{
           base: "1fr", // 1 col on mobile
@@ -404,8 +401,7 @@ function Home() {
           }}
         />
       </Box>
-    </AppLayout>
-  );
+      );
 }
 
 export default Home;

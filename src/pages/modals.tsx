@@ -1,5 +1,4 @@
 import { Box, HStack, VStack } from "@chakra-ui/react";
-import AppLayout from "mangarine/layouts/AppLayout";
 import ActivityOverview from "mangarine/components/ui-components/activityoverview";
 import EarningDashboard from "mangarine/components/ui-components/earningdashboard";
 import ConsultationOverview from "mangarine/components/ui-components/consultationoverview";
@@ -10,8 +9,7 @@ import ConsultationGauge from "mangarine/components/ui-components/consultationgu
 const Modals = () => {
  
   return (
-    <AppLayout>
-      <Box
+          <Box
         display={"flex"}
         flexDir={{ base: "column", md: "row", lg: "row", xl: "row" }}
         // alignItems={"center"}
@@ -99,8 +97,7 @@ const Modals = () => {
         </VStack>
       
       </Box>
-    </AppLayout>
-  );
+      );
 };
 
 export default Modals;

@@ -6,7 +6,6 @@ import DashboardCard from "mangarine/components/ui-components/dashboardcard";
 import FollowingLists from "mangarine/components/ui-components/follow-list";
 import NetworkingCard from "mangarine/components/ui-components/networking";
 import NewsItem from "mangarine/components/ui-components/newsitem";
-import AppLayout from "mangarine/layouts/AppLayout";
 
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
@@ -59,8 +58,7 @@ const PostPage = () => {
     const isConsultant = user?.isConsultant;
 
   return (
-    <AppLayout>
-      <Box
+          <Box
         display={"flex"}
         // bg="bg_box"
 
@@ -237,8 +235,7 @@ const PostPage = () => {
           </Stack>
         </VStack>
       </Box>
-    </AppLayout>
-  );
+      );
 };
 
 export default PostPage;

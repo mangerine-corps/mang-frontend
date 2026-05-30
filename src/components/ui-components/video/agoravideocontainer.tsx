@@ -43,7 +43,6 @@ import { formatSessionTime } from "mangarine/hooks/useCountdown";
 import { setCurrentConversation } from "mangarine/state/reducers/appointment.reducer";
 import { useDispatch } from "react-redux";
 import { useConsultationJoin } from "../../../hooks/useConsultationJoin";
-import AppLayout from "mangarine/layouts/AppLayout";
 import { Avatar, AvatarGroup, Box, Button, Flex, HStack, Icon, IconButton, Image, Input, Stack, Text, VStack, Menu, Portal, Dialog, CloseButton, Tooltip } from '@chakra-ui/react';
 import { useAuth } from "mangarine/state/hooks/user.hook";
 import { BiChevronLeft, BiChevronDown } from "react-icons/bi";
@@ -1862,7 +1861,6 @@ const VideoContainer = ({ consultationId }: { consultationId?: string }) => {
 
     return (
         <>
-            <AppLayout>
                 <Flex h="full" w="full" direction="row" borderRadius="16px" overflow="hidden" position="relative">
                     {/* ── Main call area ── */}
                     <Flex direction="column" flex={1} bg="white" position="relative" minW={0}>
@@ -2434,7 +2432,6 @@ const VideoContainer = ({ consultationId }: { consultationId?: string }) => {
                         </Box>
                     )}
                 </Flex>
-            </AppLayout>
 
             {/* ── Time Extension Request Modal ── */}
             <Dialog.Root

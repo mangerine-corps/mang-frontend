@@ -18,6 +18,7 @@ import { useAuth } from "mangarine/state/hooks/user.hook";
 import { useEffect, useState } from "react";
 import { isEmpty } from "es-toolkit/compat";
 import { useRouter } from "next/router";
+import NextLink from "next/link";
 import CustomButton from "mangarine/components/customcomponents/button";
 import GuestLayout from "mangarine/layouts/GuestLayout";
 
@@ -175,22 +176,22 @@ export default function Home() {
           </Text>
           <HStack>
             <Link
-              href="/privacypolicy"
+              asChild
               color="text_primary"
               fontSize={"10px"}
               textAlign={"center"}
               fontWeight={"500"}
             >
-              Terms of use &
+              <NextLink href="/privacypolicy">Terms of use &</NextLink>
             </Link>
             <Link
-              href="/privacypolicy"
+              asChild
               color="text_primary"
               fontSize={"10px"}
               textAlign={"center"}
               fontWeight={"500"}
             >
-              Privacy Policy.
+              <NextLink href="/privacypolicy">Privacy Policy.</NextLink>
             </Link>
           </HStack>
         </VStack>

@@ -1,5 +1,4 @@
 import { Box, Button, Flex, Image, Text, VStack, HStack, Badge, Skeleton, SkeletonText } from "@chakra-ui/react";
-import AppLayout from "mangarine/layouts/AppLayout";
 import { useRouter } from "next/router";
 import Biocard from "mangarine/components/ui-components/biocard";
 import DashboardCard from "mangarine/components/ui-components/dashboardcard";
@@ -74,8 +73,7 @@ const JobsPage = () => {
   const jobs: any[] = (data as any)?.data?.jobs ?? [];
 
   return (
-    <AppLayout>
-      <Box
+          <Box
         display="flex"
         flexDir={{ base: "column", md: "row" }}
         gap={4}
@@ -195,8 +193,7 @@ const JobsPage = () => {
           )}
         </Box>
       </Box>
-    </AppLayout>
-  );
+      );
 };
 
 export default JobsPage;

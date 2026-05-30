@@ -10,7 +10,6 @@ import EditMyWorksCard from "mangarine/components/ui-components/editmyworkscard"
 import ProfileActivitySection from "mangarine/components/ui-components/profileactivitysection";
 import EditSkillCard from "mangarine/components/ui-components/editskillscard";
 import StatusCard from "mangarine/components/ui-components/statscard";
-import AppLayout from "mangarine/layouts/AppLayout";
 import { useEffect } from "react";
 import { useRouter } from "next/router";
 import { useAuth } from "mangarine/state/hooks/user.hook";
@@ -208,8 +207,7 @@ const Profile = () => {
   const displayConsultings = isOwnProfile ? consultings : ((curConsultData?.data ?? consultData?.data) || []);
 
   return (
-    <AppLayout>
-      <Flex
+          <Flex
         // bg="main_background"
         h="full"
         p={{ base: "4", lg: "0" }}
@@ -409,8 +407,7 @@ const Profile = () => {
           </Box>
         </Stack>
       </Flex>
-    </AppLayout>
-  );
+      );
 };
 
 export default Profile;

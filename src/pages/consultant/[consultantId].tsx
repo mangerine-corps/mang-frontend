@@ -12,7 +12,6 @@ import EditLanguageCard from "mangarine/components/ui-components/editlanguage";
 import EditMyWorksCard from "mangarine/components/ui-components/editmyworkscard";
 import EditSkillCard from "mangarine/components/ui-components/editskillscard";
 import StatusCard from "mangarine/components/ui-components/statscard";
-import AppLayout from "mangarine/layouts/AppLayout";
 import BlockedConsultant from "mangarine/components/blockuser";
 import { useRouter } from "next/router";
 import { useEffect, useState } from "react";
@@ -261,8 +260,7 @@ const ConsultantProfile = () => {
   }, [displayInfo?.followerCount, localFollowerCount]);
 
   return (
-    <AppLayout>
-      <>
+          <>
         <Flex
           // bg="main_background"
           h="full"
@@ -666,8 +664,7 @@ const ConsultantProfile = () => {
           />
         )}
       </>
-    </AppLayout>
-  );
+      );
 };
 
 export default ConsultantProfile;

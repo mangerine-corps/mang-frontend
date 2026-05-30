@@ -1,12 +1,13 @@
 import { Box } from "@chakra-ui/react";
 import { Providers } from "mangarine/components/ui/provider";
 import { Toaster } from "mangarine/components/ui/toaster";
+import AppLayout from "mangarine/layouts/AppLayout";
+import { LayoutProvider } from "mangarine/layouts/LayoutContext";
 
 import "mangarine/styles/globals.css";
 import type { AppProps } from "next/app";
 import { Outfit } from "next/font/google";
 import { useRouter } from "next/router";
-import { useEffect, useState } from "react";
 import { PagesTopLoader } from 'nextjs-toploader/pages';
 import { GoogleOAuthProvider } from "@react-oauth/google";
 
@@ -15,54 +16,36 @@ export const outfit = Outfit({
   variable: "--font-outfit",
   subsets: ["latin"],
 });
+
+// Routes that render without the app shell (no header/sidebar).
+// "/" is exact-matched only — all other app paths start with "/" so startsWith would match everything.
+const AUTH_PREFIXES = ["/auth", "/privacypolicy", "/termsofservice"];
+const isAuthRoute = (pathname: string) =>
+  pathname === "/" || AUTH_PREFIXES.some((p) => pathname.startsWith(p));
+
 export default function App({ Component, pageProps }: AppProps) {
-
   const router = useRouter();
-  const [loading, setLoading] = useState(false);
+  const authRoute = isAuthRoute(router.pathname);
 
-  useEffect(() => {
-    const handleRouteChangeStart = () => {
-      setLoading(true);
-    };
-
-    const handleRouteChangeComplete = () => {
-      setLoading(false);
-    };
-
-    const handleRouteChangeError = () => {
-      setLoading(false);
-    };
-
-    router.events.on('routeChangeStart', handleRouteChangeStart);
-    router.events.on('routeChangeComplete', handleRouteChangeComplete);
-    router.events.on('routeChangeError', handleRouteChangeError);
-
-    // Clean up event listeners on component unmount
-    return () => {
-      router.events.off('routeChangeStart', handleRouteChangeStart);
-      router.events.off('routeChangeComplete', handleRouteChangeComplete);
-      router.events.off('routeChangeError', handleRouteChangeError);
-    };
-  }, [router.events]); // Re-run effect if router.events object changes
-
-  useEffect(() => {
-    console.log(loading, "loading");
-  }, [loading])
-   
   return (
-  <GoogleOAuthProvider clientId={process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID!}>
-    <Providers>
-      <Box
-        bg="bd_background"
-        h="100vh"
-        as="main"
-        className={`${outfit.className}`}
-      >
-        {loading && <PagesTopLoader />}
-        <Component {...pageProps} />
-        <Toaster />
-      </Box>
-    </Providers>
-      </GoogleOAuthProvider>
+    <GoogleOAuthProvider clientId={process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID!}>
+      <Providers>
+        <Box bg="bd_background" h="100vh" as="main" className={`${outfit.className}`}>
+          <PagesTopLoader color="#111D4A" height={3} />
+
+          {authRoute ? (
+            <Component {...pageProps} />
+          ) : (
+            <LayoutProvider>
+              <AppLayout>
+                <Component {...pageProps} />
+              </AppLayout>
+            </LayoutProvider>
+          )}
+
+          <Toaster />
+        </Box>
+      </Providers>
+    </GoogleOAuthProvider>
   );
 }

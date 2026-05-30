@@ -1,7 +1,6 @@
 import { Box, VStack } from "@chakra-ui/react";
 import Biocard from "mangarine/components/ui-components/biocard";
 import DashboardCard from "mangarine/components/ui-components/dashboardcard";
-import AppLayout from "mangarine/layouts/AppLayout";
 import ScheduledConsultation from "mangarine/components/ui-components/scheduledconsultation";
 import ProspectiveFollowing from "mangarine/components/ui-components/prospectivefollowing";
 import { useEffect } from "react";
@@ -20,8 +19,7 @@ const Consultation = () => {
     if (myConsultdata) dispatch(setConsultants(myConsultdata));
   }, [myConsultdata, dispatch]);
   return (
-    <AppLayout>
-      <>
+          <>
       <ConsultationReadyBanner />
       <Box
         display={"flex"}
@@ -122,8 +120,7 @@ const Consultation = () => {
         </VStack>
       </Box>
       </>
-    </AppLayout>
-  );
+      );
 };
 
 export default Consultation;

@@ -10,7 +10,6 @@ import {
 } from "@chakra-ui/react";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/router";
-import AppLayout from "mangarine/layouts/AppLayout";
 import { useGetProfileRecommendationsQuery } from "mangarine/state/services/profile-recommendations.service";
 import { useFollowUserMutation, useUnfollowUserMutation } from "mangarine/state/services/posts.service";
 import { useGetFollowingListQuery } from "mangarine/state/services/profile.service";
@@ -68,8 +67,7 @@ function PeoplePage() {
   };
 
   return (
-    <AppLayout>
-      <Box
+          <Box
         display="grid"
         gridTemplateColumns={{ base: "1fr", lg: "1fr 2fr" }}
         gap={4}
@@ -180,8 +178,7 @@ function PeoplePage() {
           )}
         </VStack>
       </Box>
-    </AppLayout>
-  );
+      );
 }
 
 export default PeoplePage;

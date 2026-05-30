@@ -5,6 +5,7 @@ import {
   Dialog,
   HStack,
   Icon,
+  Image,
   Input,
   Portal,
   Skeleton,
@@ -13,7 +14,6 @@ import {
   Text,
   VStack,
 } from "@chakra-ui/react";
-import AppLayout from "mangarine/layouts/AppLayout";
 import NewsItem from "mangarine/components/ui-components/newsitem";
 import {
   useGetBookmarksQuery,
@@ -57,8 +57,8 @@ function SavedPage() {
   const router = useRouter();
   const collectionId = router.query.collection as string | undefined;
 
-  const { data: bookmarksData, isFetching: bookmarksLoading } = useGetBookmarksQuery();
-  const { data: collectionsData, isFetching: collectionsLoading } = useGetCollectionQuery();
+  const { data: bookmarksData, isFetching: bookmarksLoading } = useGetBookmarksQuery(undefined);
+  const { data: collectionsData, isFetching: collectionsLoading } = useGetCollectionQuery(undefined);
   const { data: collectionPostsData, isFetching: collectionPostsLoading } = useGetCollectionPostQuery(
     collectionId,
     { skip: !collectionId }
@@ -91,7 +91,7 @@ function SavedPage() {
   };
 
   return (
-    <AppLayout>
+    <>
       {/* Create Collection Dialog */}
       <Dialog.Root
         open={showCreateDialog}
@@ -272,7 +272,7 @@ function SavedPage() {
                         justifyContent="center"
                       >
                         {firstThumb ? (
-                          <Box as="img" src={firstThumb} alt="" w="full" h="full" objectFit="cover" />
+                          <Image src={firstThumb} alt="" w="full" h="full" objectFit="cover" />
                         ) : (
                           <Icon color="grey.400" fontSize="0.9rem"><BsCollectionFill /></Icon>
                         )}
@@ -437,7 +437,7 @@ function SavedPage() {
           )}
         </VStack>
       </Box>
-    </AppLayout>
+    </>
   );
 }
 

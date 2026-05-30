@@ -1,5 +1,4 @@
 import { Box, HStack, VStack } from "@chakra-ui/react";
-import AppLayout from "mangarine/layouts/AppLayout";
 import SessionRecap from "mangarine/components/ui-components/sessionrecap";
 import ConsultantNote from "mangarine/components/ui-components/consultantnote";
 import YourNote from "mangarine/components/ui-components/yournote";
@@ -9,8 +8,7 @@ import ConsultationVideo from "mangarine/components/ui-components/consultationvi
 const ConsultationVideos = () => {
  
   return (
-    <AppLayout>
-      <Box
+          <Box
         display={"flex"}
         flexDir={{ base: "column", md: "row", lg: "row", xl: "row" }}
         // alignItems={"center"}
@@ -89,8 +87,7 @@ const ConsultationVideos = () => {
         </VStack>
       
       </Box>
-    </AppLayout>
-  );
+      );
 };
 
 export default ConsultationVideos;

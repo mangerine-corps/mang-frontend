@@ -13,7 +13,7 @@ import {
   VStack,
   Image,
 } from "@chakra-ui/react";
-import AppLayout from "mangarine/layouts/AppLayout";
+import { useSubHeader } from "mangarine/layouts/LayoutContext";
 import { useRouter } from "next/router";
 import React, { useEffect, useMemo, useState } from "react";
 import { useDispatch } from "react-redux";
@@ -451,14 +451,13 @@ const Index = () => {
     messages,
   ]);
 
-  const subHeader = (
+  useSubHeader(
     <Text py={1} fontSize="0.92rem" color="text_muted" fontWeight="500">
       Message
     </Text>
   );
 
   return (
-    <AppLayout subHeader={subHeader}>
       <DynamicAgoraChatProvider>
         <Box
           w="full"
@@ -586,7 +585,6 @@ const Index = () => {
 
         <CallModalManager />
       </DynamicAgoraChatProvider>
-    </AppLayout>
   );
 };
 

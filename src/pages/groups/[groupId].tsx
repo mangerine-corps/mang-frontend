@@ -29,7 +29,6 @@ import ReportGroup from "mangarine/components/ui-components/groups/reportgroup";
 import InviteFriend from "mangarine/components/ui-components/groups/invitefriend";
 import MemberList from "mangarine/components/ui-components/groups/memberlist";
 import Leavegroup from "mangarine/components/ui-components/groups/leavegroup";
-import AppLayout from "mangarine/layouts/AppLayout";
 import Rules from "mangarine/components/ui-components/rules";
 import TrendingCommunities from "mangarine/components/ui-components/trendingcommunities";
 import {
@@ -220,8 +219,7 @@ const SingleGroup = ({}) => {
   };
   // console.log(grp.users[0].profilePics, "grpPost");
   return (
-    <AppLayout>
-      <Box
+          <Box
         display={"flex"}
         h="full"
         // bg="red.900"
@@ -695,8 +693,7 @@ const SingleGroup = ({}) => {
           data={grp}
         />
       </Box>
-    </AppLayout>
-  );
+      );
 };
 
 export default SingleGroup;

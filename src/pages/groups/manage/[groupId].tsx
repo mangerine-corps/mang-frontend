@@ -10,7 +10,6 @@ import CreatePost from "mangarine/components/ui-components/createpost";
 import { useState } from "react";
 import { IoChevronBackOutline } from "react-icons/io5";
 import { useRouter } from "next/router";
-import AppLayout from "mangarine/layouts/AppLayout";
 import Rules from "mangarine/components/ui-components/rules";
 import TrendingCommunities from "mangarine/components/ui-components/trendingcommunities";
 
@@ -46,8 +45,7 @@ const ManageGroup = () => {
         return [];
     })();
     return (
-        <AppLayout>
-            <Box
+                    <Box
                 display={"flex"}
                 // bg="red.900"
                 flexDir={{ base: "column", md: "row", lg: "row", xl: "row" }}
@@ -220,8 +218,7 @@ const ManageGroup = () => {
                 </VStack>
             </Box>
 
-        </AppLayout>
-    );
+            );
 
 };
 

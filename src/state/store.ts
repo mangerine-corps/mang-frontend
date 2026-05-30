@@ -161,12 +161,7 @@ const notifyPersistReady = () => {
   persistReadyListeners.clear();
 };
 
-// Start rehydration immediately at module load time (browser only).
-// This means rehydration begins as soon as the JS bundle executes,
-// not after React renders and useEffect fires — eliminating the blank frame.
-if (typeof window !== "undefined") {
-  persistStore(store, undefined, notifyPersistReady);
-}
+let persistorStarted = false;
 
 export const isPersistorReady = () => persistorReady;
 
@@ -175,9 +170,12 @@ export const onPersistorReady = (cb: () => void) => {
   persistReadyListeners.add(cb);
 };
 
-// Keep for backward compat — now a no-op since persistor auto-starts
 export const startPersistor = (onReady?: () => void) => {
-  onPersistorReady(onReady ?? (() => {}));
+  if (typeof window === "undefined") return;
+  if (onReady) onPersistorReady(onReady);
+  if (persistorStarted) return;
+  persistorStarted = true;
+  persistStore(store, undefined, notifyPersistReady);
 };
 
 export type RootState = ReturnType<typeof reducers>;

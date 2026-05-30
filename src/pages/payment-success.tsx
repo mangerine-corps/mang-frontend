@@ -14,7 +14,6 @@ import {
 import { useTheme } from "next-themes";
 import { useRouter } from "next/router";
 import { AiFillCheckCircle, AiOutlineInfoCircle } from "react-icons/ai";
-import AppLayout from "mangarine/layouts/AppLayout";
 import Biocard from "mangarine/components/ui-components/biocard";
 import DashboardCard from "mangarine/components/ui-components/dashboardcard";
 import ActivityEmptyState from "mangarine/components/ui-components/emptystate";
@@ -135,8 +134,7 @@ export default function PaymentSuccessPage() {
   }, [appointment, amountText]);
 
   return (
-    <AppLayout>
-      <Box
+          <Box
         display={"flex"}
         // bg="red.900"
         flexDir={{ base: "column", md: "row", lg: "row", xl: "row" }}
@@ -305,6 +303,5 @@ export default function PaymentSuccessPage() {
           <ActivityEmptyState />
         </VStack>
       </Box>
-    </AppLayout>
-  );
+      );
 }

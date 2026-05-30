@@ -18,7 +18,6 @@ import GroupsTabs from "mangarine/components/ui-components/groupstabs";
 import Rules from "mangarine/components/ui-components/rules";
 import SuggestedCommunities from "mangarine/components/ui-components/suggestedcommunities";
 import TrendingCommunities from "mangarine/components/ui-components/trendingcommunities";
-import AppLayout from "mangarine/layouts/AppLayout";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
 
@@ -52,8 +51,7 @@ const Index = () => {
   };
 
   return (
-    <AppLayout>
-      <Box
+          <Box
         display="flex"
         flexDir={{ base: "column", md: "row" }}
         w="full"
@@ -223,8 +221,7 @@ const Index = () => {
           }}
         />
       </Box>
-    </AppLayout>
-  );
+      );
 };
 
 export default Index;

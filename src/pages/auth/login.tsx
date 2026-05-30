@@ -29,6 +29,7 @@ import Toast from "mangarine/components/ui-components/Error";
 import { BiSolidError } from "react-icons/bi";
 import { IoIosEye, IoIosEyeOff } from "react-icons/io";
 import { useGoogleLogin } from "@react-oauth/google";
+import NextLink from "next/link";
 import { jwtDecode } from "jwt-decode";
 import { toaster } from "mangarine/components/ui/toaster";
 
@@ -363,13 +364,13 @@ const loginUser = useGoogleLogin({
               </Text>
             </Checkbox>
             <Link
+              asChild
               color="text_primary"
               fontWeight={"400"}
               fontSize={"0.875rem"}
               lineHeight={"100%"}
-              href="/auth/forgot-password"
             >
-              Forgot Password?
+              <NextLink href="/auth/forgot-password">Forgot Password?</NextLink>
             </Link>
           </HStack>
           <CustomButton
@@ -532,13 +533,13 @@ const loginUser = useGoogleLogin({
             </Text>
 
             <Link
+              asChild
               color="primary.500"
               fontWeight={"700"}
               fontSize={"0.875rem"}
               lineHeight={"100%"}
-              href="/auth/onboarding/register"
             >
-              Sign Up
+              <NextLink href="/auth/onboarding/register">Sign Up</NextLink>
             </Link>
           </HStack>
         </VStack>

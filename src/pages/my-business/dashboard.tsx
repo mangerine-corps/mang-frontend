@@ -3,7 +3,6 @@
 import { useEffect } from "react";
 import { Center, Spinner } from "@chakra-ui/react";
 import { useRouter } from "next/router";
-import AppLayout from "mangarine/layouts/AppLayout";
 import MyBusinessWorkspace from "mangarine/components/ui-components/mybusiness/workspace";
 import { useAuth } from "mangarine/state/hooks/user.hook";
 
@@ -18,7 +17,7 @@ const MyBusinessDashboardPage = () => {
   }, [router, user]);
 
   return (
-    <AppLayout>
+    <>
       {user?.isConsultant ? (
         <MyBusinessWorkspace />
       ) : (
@@ -26,7 +25,7 @@ const MyBusinessDashboardPage = () => {
           <Spinner size="lg" color="text_primary" />
         </Center>
       )}
-    </AppLayout>
+    </>
   );
 };
 

@@ -33,6 +33,7 @@ import { useAuth } from "mangarine/state/hooks/user.hook";
 import { setPreAuth } from "mangarine/state/reducers/auth.reducer";
 import { FaMapMarkerAlt } from "react-icons/fa";
 import { useRouter } from "next/router";
+import NextLink from "next/link";
 import Toast from "mangarine/components/ui-components/Error";
 import { BiSolidError } from "react-icons/bi";
 import AsyncMultiSelect from "mangarine/components/AsyncMultiSelect";
@@ -330,13 +331,13 @@ const OnboardingTwo = () => {
             </Text>
 
             <Link
+              asChild
               color="primary.500"
               fontWeight={"700"}
               fontSize={"0.875rem"}
               lineHeight={"100%"}
-              href="/auth/login"
             >
-              Login
+              <NextLink href="/auth/login">Login</NextLink>
             </Link>
           </HStack>
 

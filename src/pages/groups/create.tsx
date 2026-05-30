@@ -12,7 +12,6 @@ import {
 import GroupPreview from "mangarine/components/ui-components/grouppreview";
 import GroupEmpty from "mangarine/components/ui-components/groupempty";
 import CustomButton from "mangarine/components/customcomponents/button";
-import AppLayout from "mangarine/layouts/AppLayout";
 import { useEffect, useState } from "react";
 import { Controller, useForm, useWatch } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
@@ -274,8 +273,7 @@ const CreateGroup = () => {
   });
 
   return (
-    <AppLayout>
-      <Flex
+          <Flex
         // bg="main_background"
         h="full"
         p={{ base: "4", lg: "0" }}
@@ -650,7 +648,6 @@ const CreateGroup = () => {
           )}
         </Flex>
       </Flex>
-    </AppLayout>
-  );
+      );
 };
 export default CreateGroup;

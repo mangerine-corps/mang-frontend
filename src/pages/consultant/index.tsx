@@ -12,7 +12,6 @@ import {
 } from "@chakra-ui/react";
 import Biocard from "mangarine/components/ui-components/biocard";
 import DashboardCard from "mangarine/components/ui-components/dashboardcard";
-import AppLayout from "mangarine/layouts/AppLayout";
 import GeneralFeed from "mangarine/components/ui-components/generalfeed";
 import ConsultantTabs from "mangarine/components/ui-components/consultanttab";
 
@@ -64,8 +63,7 @@ const Index = () => {
     router.push(`consultant/${consultantId}`);
   };
   return (
-    <AppLayout>
-      <Box
+          <Box
         display={"flex"}
         // bg="red.900"
         flexDir={{ base: "column", md: "row", lg: "row", xl: "row" }}
@@ -266,8 +264,7 @@ const Index = () => {
           <FavouriteConsultantsComp />
         </VStack>
       </Box>
-    </AppLayout>
-  );
+      );
 };
 
 export default Index;

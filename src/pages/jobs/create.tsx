@@ -1,5 +1,4 @@
 import { Box, Button, Flex, Text, Textarea, VStack, Input, HStack } from "@chakra-ui/react";
-import AppLayout from "mangarine/layouts/AppLayout";
 import Biocard from "mangarine/components/ui-components/biocard";
 import DashboardCard from "mangarine/components/ui-components/dashboardcard";
 import ActivityEmptyState from "mangarine/components/ui-components/emptystate";
@@ -144,8 +143,7 @@ const CreateJobPage = () => {
   };
 
   return (
-    <AppLayout>
-      <Box
+          <Box
         display="flex"
         flexDir={{ base: "column", md: "row" }}
         gap={4}
@@ -395,8 +393,7 @@ const CreateJobPage = () => {
           </Box>
         </Flex>
       </Box>
-    </AppLayout>
-  );
+      );
 };
 
 export default CreateJobPage;

@@ -11,7 +11,7 @@ import {
   Text,
   VStack,
 } from "@chakra-ui/react";
-import AppLayout from "mangarine/layouts/AppLayout";
+import { useSubHeader } from "mangarine/layouts/LayoutContext";
 import Biocard from "mangarine/components/ui-components/biocard";
 import DashboardCard from "mangarine/components/ui-components/dashboardcard";
 import ActivityBox from "mangarine/components/ui-components/activitybox";
@@ -350,8 +350,9 @@ function SearchPage() {
     </HStack>
   );
 
+  useSubHeader(filterBar);
+
   return (
-    <AppLayout subHeader={filterBar}>
       <Box
         display="grid"
         gridTemplateColumns={{ base: "1fr", md: "1fr 2fr", lg: "1fr 2fr 1fr" }}
@@ -538,7 +539,6 @@ function SearchPage() {
           <WhoToFollow />
         </VStack>
       </Box>
-    </AppLayout>
   );
 }
 

@@ -1,5 +1,4 @@
 import { Box, Button, HStack, Badge, Stack, Text, VStack, Pagination, ButtonGroup, IconButton, Skeleton, SkeletonCircle } from "@chakra-ui/react";
-import AppLayout from "mangarine/layouts/AppLayout";
 import Biocard from "mangarine/components/ui-components/biocard";
 import DashboardCard from "mangarine/components/ui-components/dashboardcard";
 import ActivityEmptyState from "mangarine/components/ui-components/emptystate";
@@ -74,8 +73,7 @@ const Notification = () => {
   };
 
   return (
-    <AppLayout>
-
+    
       <Box
         display={"flex"}
         // bg="red.900"
@@ -223,8 +221,7 @@ const Notification = () => {
           <ActivityEmptyState />
         </VStack>
       </Box>
-    </AppLayout>
-  );
+      );
 };
 
 export default Notification;
