@@ -1,57 +1,76 @@
 "use client";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import { Text, VStack, Image, Flex, Box, HStack, Skeleton, SkeletonCircle } from "@chakra-ui/react";
-import { useGetFavoriteConsultantsQuery } from "mangarine/state/services/consultant.service";
+import {
+  useGetFavoriteConsultantsQuery,
+  useUnfavoriteConsultantMutation,
+} from "mangarine/state/services/consultant.service";
 import { safeProfilePic, imgErrorFallback } from "mangarine/lib/constants";
 import { isEmpty } from "es-toolkit/compat";
 import { setFavoriteConsultant } from "mangarine/state/reducers/consultant.reducer";
-import { useDispatch, useSelector } from "react-redux";
-import { selectFavoriteConsultant } from "mangarine/state/reducers/consultant.reducer";
+import { useDispatch } from "react-redux";
+import { useAuth } from "mangarine/state/hooks/user.hook";
 
-interface FavouriteConsultantsCompProps {
-  title?: string;
-}
+const heart = "/icons/heart.svg";
+const aheart = "/icons/aheart.svg";
 
-const FavouriteConsultantsComp = ({ title }: FavouriteConsultantsCompProps) => {
-  const { data, error, isLoading } = useGetFavoriteConsultantsQuery({});
+const FavouriteConsultantsComp = () => {
+  const { data, error, isLoading, refetch } = useGetFavoriteConsultantsQuery({});
+  const [unfavoriteConsultant] = useUnfavoriteConsultantMutation();
   const dispatch = useDispatch();
   const router = useRouter();
-  // const favourite = useSelector(selectFavoriteConsultant); // ✅ get from store
+  const { user } = useAuth();
 
-  // Load API result into redux once
+  // Track which consultant IDs have been locally unfavourited (optimistic)
+  const [removedIds, setRemovedIds] = useState<Set<string>>(new Set());
+
   useEffect(() => {
     if (data?.data?.favoriteConsultants) {
       dispatch(setFavoriteConsultant(data?.data?.favoriteConsultants));
     }
   }, [data, dispatch]);
-//  console.log(data, "fav")
+
   if (error) {
     console.error("API Error fetching favorite consultants:", error);
   }
 
+  const handleUnfavourite = async (e: React.MouseEvent, consultantId: string) => {
+    e.stopPropagation();
+    // Optimistic remove
+    setRemovedIds((prev) => new Set(prev).add(consultantId));
+    try {
+      await unfavoriteConsultant({ consultantId, userId: user?.id }).unwrap();
+      refetch();
+    } catch {
+      // Revert on failure
+      setRemovedIds((prev) => { const s = new Set(prev); s.delete(consultantId); return s; });
+    }
+  };
+
+  const consultants = (data?.data?.favoriteConsultants ?? []).filter(
+    (item: any) => !removedIds.has(item?.consultant?.id)
+  );
+
   return (
     <VStack
-      w={{ base: "100%", sm: "90%", md: "100%" }} // full width on mobile, tighter on small screens
-      maxW={{ base: "full", md: "340px", lg: "400px" }}
-      mx="auto"
-      borderWidth={0.5}
-      borderColor={"bg_box"}
-      rounded={"15px"}
+      w="100%"
+      rounded="lg"
       py="6"
       bg="bg_box"
-      shadow={"sm"}
+      boxShadow="sm"
+      alignItems="flex-start"
     >
       <Text
-        textAlign={"left"}
+        textAlign="left"
         w="full"
-        px={"6"}
-        fontSize={"1.25rem"}
-        fontFamily={"Outfit"}
-        color={"text_primary"}
-        fontWeight={"600"}
+        px="6"
+        fontSize="1.25rem"
+        fontFamily="Outfit"
+        color="text_primary"
+        fontWeight="600"
       >
-      Favourite Consultant
+        Favourite Consultant
       </Text>
 
       {isLoading && (
@@ -71,75 +90,83 @@ const FavouriteConsultantsComp = ({ title }: FavouriteConsultantsCompProps) => {
         </Flex>
       )}
 
-      {!isLoading && isEmpty(data?.data?.favoriteConsultants) && (
+      {!isLoading && isEmpty(consultants) && (
         <Text px="6" fontSize="0.875rem" color="gray.400" fontFamily="Outfit" textAlign="left">
           You haven&apos;t added any consultants to your favourites yet. Tap the ♥ icon to save one!
         </Text>
       )}
-      <Flex flexDir={"column"} gap={4} w="full" py="2" px={"6"}>
-        {!isEmpty(data?.data?.favoriteConsultants) &&
-          data?.data?.favoriteConsultants.slice(0, 3).map((item, index) => (
+
+      <Flex flexDir="column" gap={4} w="full" py="2" px="6">
+        {consultants.slice(0, 3).map((item: any, index: number) => {
+          const consultantId = item?.consultant?.id;
+          return (
             <HStack
-              key={item.id || index}
+              key={consultantId || index}
               w="full"
-              alignItems={"center"}
-              justifyContent={"space-between"}
+              alignItems="center"
+              justifyContent="space-between"
             >
               <Flex
                 align="center"
                 gap="8px"
                 cursor="pointer"
+                flex={1}
+                minW={0}
                 _hover={{ opacity: 0.8 }}
                 onClick={() => {
-                  const id = item?.consultant?.id;
-                  if (id) router.push(`/profile?profileId=${id}`);
+                  if (consultantId) router.push(`/consultant/${consultantId}`);
                 }}
               >
                 <Box boxSize="40px" borderRadius="full" overflow="hidden" flexShrink={0}>
                   <Image
                     src={safeProfilePic(item?.consultant?.profilePics)}
                     onError={imgErrorFallback}
-                    alt="Consultant picture"
+                    alt={item?.consultant?.fullName ?? "Consultant"}
                     w="full"
                     h="full"
                     objectFit="cover"
                   />
                 </Box>
-                <Box>
-                  <Text fontSize="sm" fontWeight="bold" color="text_primary">
+                <Box minW={0}>
+                  <Text fontSize="sm" fontWeight="bold" color="text_primary" truncate>
                     {item?.consultant?.fullName}
                   </Text>
-                  <Text fontSize="xs" fontWeight="400" color="#999">
+                  <Text fontSize="xs" fontWeight="400" color="#999" truncate>
                     {item?.consultant?.businessName}
                   </Text>
                 </Box>
               </Flex>
+
+              {/* Filled heart — click to unfavourite */}
               <Image
-                src="/icons/aheart.svg"
-                alt="Heart"
-                boxSize="34px"
+                src={heart}
+                alt="Remove favourite"
+                boxSize="28px"
                 cursor="pointer"
+                flexShrink={0}
+                _hover={{ opacity: 0.7 }}
+                transition="opacity 0.15s"
+                onClick={(e) => handleUnfavourite(e, consultantId)}
               />
             </HStack>
-          ))}
+          );
+        })}
       </Flex>
-{
-  (data?.data?.favoriteConsultants?.length ?? 0) > 3 && (
-    <Text
-    fontSize={"sm"}
-    fontWeight={500}
-    color={"#FC731A"}
-    cursor={"pointer"}
-    mt={4}
-    textAlign="center"
-    onClick={() => router.push("/consultant")}
-    _hover={{ textDecoration: "underline" }}
-  >
-    See all
-  </Text>
-  )
-}
-   
+
+      {(data?.data?.favoriteConsultants?.length ?? 0) > 3 && (
+        <Text
+          fontSize="sm"
+          fontWeight={500}
+          color="#FC731A"
+          cursor="pointer"
+          mt={4}
+          textAlign="center"
+          onClick={() => router.push("/consultant")}
+          _hover={{ textDecoration: "underline" }}
+        >
+          See all
+        </Text>
+      )}
     </VStack>
   );
 };

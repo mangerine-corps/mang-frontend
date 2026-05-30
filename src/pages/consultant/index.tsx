@@ -145,7 +145,7 @@ const Index = () => {
             consultant={
               <SimpleGrid
                 alignItems={"stretch"}
-                columns={{ base: 1, sm: 2, md: 1, lg: 2 }}
+                columns={{ base: 2, sm: 2, md: 2, lg: 3 }}
                 gap={4}
               >
                 {/* render consultants data */}

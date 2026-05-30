@@ -1,6 +1,5 @@
 import {
   Box,
-  Drawer,
   HStack,
   Image,
   Skeleton,
@@ -8,54 +7,45 @@ import {
   Text,
   VStack,
 } from "@chakra-ui/react";
-import { isEmpty, size } from "es-toolkit/compat";
 import { useGetPostCommentsQuery } from "mangarine/state/services/posts.service";
 
-import { useEffect, useState } from "react";
+import { useMemo, useState } from "react";
 
 import CommentItem from "./commentitem";
 import CommentList from "./commentdrawer";
-
-// define types for post and comment
-// interface Comment {
-//   id: number;
-//   author: {
-//     fullName: string;
-//     profilePics: string | null;
-//     businessName: string | null;
-//   };
-//   comment: string;
-//   likeCount: number;
-//   replies?: Comment[];
-// }
 
 interface CommentSectionProps {
   post: any;
 }
 
 const CommentSection = ({ post }: CommentSectionProps) => {
-  // const { user } = useAuth();
+  const { data, isLoading } = useGetPostCommentsQuery({ postId: post.id });
+  const [deletedIds, setDeletedIds] = useState<Set<any>>(new Set());
+  const [showMore, setShowMore] = useState(false);
 
-  const { data, isLoading } = useGetPostCommentsQuery({
-    postId: post.id,
-  });
-  const [comments, setComments] = useState<any>([]);
-  const [showMore, setShowMore] = useState<boolean>(false);
   const handleCommentDeleted = (id: string | number) => {
-    setComments((prev) => (Array.isArray(prev) ? prev.filter((c: any) => c?.id !== id) : prev));
+    setDeletedIds((prev) => {
+      const next = new Set(prev);
+      next.add(id);
+      return next;
+    });
   };
-  useEffect(() => {
-    if (!isEmpty(data)) {
-      const { data: comments } = data;
-      setComments(comments);
-    }
-  }, [data]);
 
-  const hasComments = Array.isArray(comments) && size(comments) > 0;
-  const visibleComments =
-    Array.isArray(comments) && size(comments) > 2
-      ? comments.slice(0, 2)
-      : comments;
+  // Derive the comment list directly from RTK Query data — no local copy that can go stale.
+  // Handles both flat ({ data: [...] }) and nested ({ data: { data: [...] } }) API shapes.
+  const allComments: any[] = useMemo(() => {
+    if (!data) return [];
+    const raw = data?.data;
+    const list: any[] = Array.isArray(raw)
+      ? raw
+      : Array.isArray(raw?.data)
+      ? raw.data
+      : [];
+    return deletedIds.size > 0 ? list.filter((c: any) => !deletedIds.has(c?.id)) : list;
+  }, [data, deletedIds]);
+
+  const hasComments = allComments.length > 0;
+  const visibleComments = allComments.length > 2 ? allComments.slice(0, 2) : allComments;
 
   return (
     <VStack alignItems={"flex-start"} w="full" px="6">
@@ -112,11 +102,9 @@ const CommentSection = ({ post }: CommentSectionProps) => {
                   onDeleted={handleCommentDeleted}
                 />
               ))}
-              {size(comments) > 2 && (
+              {allComments.length > 2 && (
                 <Text
-                  onClick={() => {
-                    setShowMore(true);
-                  }}
+                  onClick={() => setShowMore(true)}
                   cursor="pointer"
                   fontFamily="Outfit"
                   fontSize="0.875rem"
@@ -163,7 +151,7 @@ const CommentSection = ({ post }: CommentSectionProps) => {
           )}
         </VStack>
       )}
-      <CommentList open={showMore} onOpenChange={()=>{setShowMore(false)}} data={comments} post={post}/>
+      <CommentList open={showMore} onOpenChange={() => setShowMore(false)} data={allComments} post={post} />
     </VStack>
   );
 };

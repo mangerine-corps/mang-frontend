@@ -52,8 +52,10 @@ const PaymentHistory = () => {
         p?.appointmentData?.date ||
         p?.paymentData?.created ||
         "";
+      // Stripe `created` is a Unix timestamp in seconds — multiply by 1000 for JS Date
+      const dateMs = typeof rawDate === "number" ? rawDate * 1000 : rawDate;
       const dateLabel = rawDate
-        ? new Date(rawDate).toLocaleDateString("en-US", {
+        ? new Date(dateMs).toLocaleDateString("en-US", {
             month: "2-digit",
             day: "2-digit",
             year: "numeric",

@@ -54,11 +54,11 @@ export const consultantsApi = createApi({
     }),
 
     // unfavorite a consultant (unlike action)
-    unfavoriteConsultant: builder.mutation({
-      query: (consultantId) => ({
+    unfavoriteConsultant: builder.mutation<any, { consultantId: string; userId: string }>({
+      query: ({ consultantId, userId }) => ({
         url: `/unfavorite`,
         method: "POST",
-        body: { consultantId },
+        body: { consultantId, userId },
       }),
       invalidatesTags: ["FavoriteConsultant", "Consultant"],
     }),

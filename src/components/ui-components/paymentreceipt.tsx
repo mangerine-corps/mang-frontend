@@ -39,8 +39,48 @@ const Row = ({ label, value }: { label: string; value: string }) => (
   </Flex>
 );
 
+type StatusKey = "completed" | "pending" | "failed" | "cancelled" | "expired" | "unknown";
+
+const statusConfig: Record<StatusKey, { icon: string; heading: string; subtext: string }> = {
+  completed: {
+    icon: "/icons/successful.svg",
+    heading: "Payment Successful!",
+    subtext: "Your payment has been successfully made",
+  },
+  pending: {
+    icon: "/icons/clock.svg",
+    heading: "Payment Pending",
+    subtext: "Your payment is awaiting processing",
+  },
+  failed: {
+    icon: "/icons/warning.svg",
+    heading: "Payment Failed",
+    subtext: "Your payment could not be processed",
+  },
+  cancelled: {
+    icon: "/icons/cancel.svg",
+    heading: "Payment Cancelled",
+    subtext: "Your payment has been cancelled",
+  },
+  expired: {
+    icon: "/icons/warning.svg",
+    heading: "Payment Expired",
+    subtext: "This payment has expired",
+  },
+  unknown: {
+    icon: "/icons/payment.svg",
+    heading: "Payment Receipt",
+    subtext: "Payment details",
+  },
+};
+
 const PaymentModal = ({ isOpen, onOpenChange, data }: PaymentModalProps) => {
   const raw = data?.raw ?? data ?? {};
+
+  const statusRaw = (data?.status ?? raw?.status ?? "").toString().toLowerCase() as StatusKey;
+  const status: StatusKey = statusConfig[statusRaw] ? statusRaw : "unknown";
+  const { icon, heading, subtext } = statusConfig[status];
+  const isCompleted = status === "completed";
 
   const receiptNumber = raw?.id ?? data?.id ?? "—";
   const dateOfIssue = formatDate(raw?.createdAt ?? raw?.created_at ?? data?.date ?? "");
@@ -59,7 +99,7 @@ const PaymentModal = ({ isOpen, onOpenChange, data }: PaymentModalProps) => {
   const paymentMethod =
     raw?.paymentData?.methodSummary?.type ??
     raw?.paymentData?.method ??
-    data?.method ??
+    (data?.method && data.method !== "—" ? data.method : undefined) ??
     "—";
   const transactionId =
     raw?.paymentData?.id ??
@@ -74,6 +114,16 @@ const PaymentModal = ({ isOpen, onOpenChange, data }: PaymentModalProps) => {
       : `#${receiptNumber}`;
 
   const handleDownload = () => {
+    const statusColorMap: Record<StatusKey, string> = {
+      completed: "#22c55e",
+      pending: "#ed8936",
+      failed: "#e53e3e",
+      cancelled: "#e53e3e",
+      expired: "#718096",
+      unknown: "#718096",
+    };
+    const badgeColor = statusColorMap[status];
+
     const html = `<!DOCTYPE html>
 <html>
 <head>
@@ -83,8 +133,8 @@ const PaymentModal = ({ isOpen, onOpenChange, data }: PaymentModalProps) => {
     * { box-sizing: border-box; margin: 0; padding: 0; }
     body { font-family: Arial, sans-serif; padding: 48px; max-width: 560px; margin: 0 auto; color: #1a202c; }
     .center { text-align: center; }
-    .check { width: 56px; height: 56px; background: #22c55e; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px; }
-    .check svg { width: 28px; height: 28px; fill: white; }
+    .badge { width: 56px; height: 56px; background: ${badgeColor}; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px; }
+    .badge svg { width: 28px; height: 28px; fill: white; }
     h1 { font-size: 22px; font-weight: 700; margin-bottom: 6px; }
     .subtitle { color: #718096; font-size: 14px; margin-bottom: 28px; }
     .section-title { font-size: 15px; font-weight: 700; margin-bottom: 14px; }
@@ -98,11 +148,14 @@ const PaymentModal = ({ isOpen, onOpenChange, data }: PaymentModalProps) => {
 </head>
 <body>
   <div class="center">
-    <div class="check">
-      <svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+    <div class="badge">
+      <svg viewBox="0 0 24 24">${isCompleted
+        ? '<path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>'
+        : '<path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/>'}
+      </svg>
     </div>
-    <h1>Payment Successful!</h1>
-    <p class="subtitle">Your payment has been successfully made</p>
+    <h1>${heading}</h1>
+    <p class="subtitle">${subtext}</p>
   </div>
   <p class="section-title">Payment Receipt</p>
   <div class="row"><span class="label">Receipt Number:</span><span class="value">${shortReceiptNumber}</span></div>
@@ -116,7 +169,7 @@ const PaymentModal = ({ isOpen, onOpenChange, data }: PaymentModalProps) => {
   <div class="row"><span class="label">Payment Method:</span><span class="value">${paymentMethod}</span></div>
   <div class="row"><span class="label">Transaction ID:</span><span class="value">${transactionId}</span></div>
   <hr class="divider" />
-  <div class="total-row"><span>Total Paid</span><span>${amountPaid}</span></div>
+  <div class="total-row"><span>${isCompleted ? "Total Paid" : "Total Amount"}</span><span>${amountPaid}</span></div>
 </body>
 </html>`;
 
@@ -145,14 +198,14 @@ const PaymentModal = ({ isOpen, onOpenChange, data }: PaymentModalProps) => {
             <Dialog.Body mt="10px" textAlign="center" w="full">
               <Box bg="bg_box" borderRadius="16px">
                 <Flex justify="center" mb={4}>
-                  <Image src="/icons/successful.svg" alt="Success" boxSize="56px" />
+                  <Image src={icon} alt={heading} boxSize="56px" />
                 </Flex>
 
                 <Text fontFamily="Outfit" color="text_primary" fontWeight="700" fontSize="1.5rem" mb={1}>
-                  Payment Successful!
+                  {heading}
                 </Text>
                 <Text fontFamily="Outfit" color="gray.500" fontSize="0.875rem" mb={6}>
-                  Your payment has been successfully made
+                  {subtext}
                 </Text>
 
                 {/* Payment Receipt */}
@@ -172,7 +225,7 @@ const PaymentModal = ({ isOpen, onOpenChange, data }: PaymentModalProps) => {
                     Payment Details
                   </Text>
                   <Row label="Consultant:" value={consultantName} />
-                  <Row label="Amount Paid:" value={amountPaid} />
+                  <Row label={isCompleted ? "Amount Paid:" : "Amount:"} value={amountPaid} />
                   <Row label="Date of Service:" value={dateOfService} />
                   <Row label="Discount Applied:" value={discount} />
                   <Row label="Payment Method:" value={paymentMethod} />
@@ -183,7 +236,7 @@ const PaymentModal = ({ isOpen, onOpenChange, data }: PaymentModalProps) => {
 
                 {/* Total */}
                 <Flex justify="space-between" w="full" mb={6}>
-                  <Text fontFamily="Outfit" color="text_primary" fontWeight="700" fontSize="1rem">Total Paid</Text>
+                  <Text fontFamily="Outfit" color="text_primary" fontWeight="700" fontSize="1rem">{isCompleted ? "Total Paid" : "Total Amount"}</Text>
                   <Text fontFamily="Outfit" color="text_primary" fontWeight="700" fontSize="1rem">{amountPaid}</Text>
                 </Flex>
 

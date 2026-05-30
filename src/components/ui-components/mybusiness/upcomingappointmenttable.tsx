@@ -257,7 +257,14 @@ const UpcomingAppointmentTable = ({ appointments, isLoading, onPageChange }: { a
         </Table.Header>
         <Table.Body w="full">
           {isLoading ? (
-            <Skeleton />
+            Array.from({ length: 5 }).map((_, i) => (
+              <Table.Row key={i}>
+                <Table.Cell p="4"><Skeleton h="4" /></Table.Cell>
+                <Table.Cell><Skeleton h="4" /></Table.Cell>
+                <Table.Cell><Skeleton h="4" w="20" /></Table.Cell>
+                <Table.Cell pr="6" textAlign="end"><Skeleton h="4" w="8" ml="auto" /></Table.Cell>
+              </Table.Row>
+            ))
           ) : (
             <>{
               isEmpty(upcoming) ? (

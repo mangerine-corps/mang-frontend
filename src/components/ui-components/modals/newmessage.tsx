@@ -75,7 +75,9 @@ const NewMessageDrawer = ({ open, onOpenChange }: Props) => {
 
     setSearch("");
     setSelectedConversationId(currentConversation?.id ? String(currentConversation.id) : "");
-  }, [currentConversation?.id, open]);
+    // Only seed the selection when the modal opens — not on every background conversation change
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open]);
 
   const handleStartConversation = () => {
     const selectedContact = contacts.find(
@@ -257,13 +259,13 @@ const NewMessageDrawer = ({ open, onOpenChange }: Props) => {
                 <Button
                   h="46px"
                   borderRadius="8px"
-                  bg={selectedConversationId ? "#8F96B0" : "#C9CEDD"}
+                  bg={selectedConversationId ? "#1C275D" : "#C9CEDD"}
                   color="white"
                   fontWeight="600"
                   onClick={handleStartConversation}
                   disabled={!selectedConversationId}
                   _hover={{
-                    bg: selectedConversationId ? "#7F879F" : "#C9CEDD",
+                    bg: selectedConversationId ? "#162255" : "#C9CEDD",
                   }}
                 >
                   Message

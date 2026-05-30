@@ -1,12 +1,12 @@
 "use client";
 import React, { useEffect, useState } from "react";
-import { Box, BoxProps, Image, Text, Flex } from "@chakra-ui/react";
-import { useConsultants } from "mangarine/state/hooks/consultant.hook";
+import { Avatar, Box, BoxProps, Flex, Image, Text } from "@chakra-ui/react";
 import { safeProfilePic, imgErrorFallback } from "mangarine/lib/constants";
 import { useFavoriteConsultantMutation, useUnfavoriteConsultantMutation } from "mangarine/state/services/consultant.service";
 import { useAuth } from "mangarine/state/hooks/user.hook";
 import { useDispatch } from "react-redux";
 import { addFavoriteConsultant } from "mangarine/state/reducers/consultant.reducer";
+
 const heart = "/icons/heart.svg";
 const aheart = "/icons/aheart.svg";
 const locale = "/icons/Location.svg";
@@ -19,7 +19,7 @@ interface GeneralFeedProps extends BoxProps {
   about: string;
   language: string;
   location: string;
-  id: any
+  id: any;
   isFavorited?: boolean;
   onClick?: () => void;
 }
@@ -35,140 +35,138 @@ const GeneralFeed: React.FC<GeneralFeedProps> = ({
   id,
   isFavorited,
   onClick,
-
   ...props
 }) => {
   const [isLiked, setIsLiked] = useState<boolean>(!!isFavorited);
-  const { selectedConsultant } = useConsultants();
-  const [favoriteConsultant, { data, error }] = useFavoriteConsultantMutation();
-   const [unfavoriteConsultant, { data:unfavData, error:unFavError }] = useUnfavoriteConsultantMutation();
-  const { user } = useAuth()
-  const dispatch = useDispatch()
- 
-  // Keep local state in sync with server-provided flag
+  const [favoriteConsultant] = useFavoriteConsultantMutation();
+  const [unfavoriteConsultant] = useUnfavoriteConsultantMutation();
+  const { user } = useAuth();
+  const dispatch = useDispatch();
+
   useEffect(() => {
     setIsLiked(!!isFavorited);
   }, [isFavorited]);
 
-const handleHeartClick = () => {
-  const consultantId = id;
-
-  if (!isLiked) {
-    // 🔹 Like consultant
-    const formdata = {
-      consultantId,
-      userId: user.id,
-    };
-
-    favoriteConsultant(formdata)
-      .unwrap()
-      .then((res) => {
-        setIsLiked(true);
-        const consultationId = res.data.consultationId
-        dispatch(addFavoriteConsultant(consultationId))
-        console.log(res, "res");
-      })
-      .catch((err) => {
-        console.log(err, "err");
-      });
-  } else {
-    // 🔹 Unlike consultant
-    unfavoriteConsultant({ consultantId, userId: user.id })
-      .unwrap()
-      .then((res) => {
-        setIsLiked(false);
-        console.log(res, "res");
-      })
-      .catch((err) => {
-        console.log(err, "err");
-      });
-  }
-};
-
+  const handleHeartClick = () => {
+    const consultantId = id;
+    if (!isLiked) {
+      favoriteConsultant({ consultantId, userId: user.id })
+        .unwrap()
+        .then((res) => {
+          setIsLiked(true);
+          dispatch(addFavoriteConsultant(res.data.consultationId));
+        })
+        .catch(() => {});
+    } else {
+      unfavoriteConsultant({ consultantId, userId: user.id })
+        .unwrap()
+        .then(() => setIsLiked(false))
+        .catch(() => {});
+    }
+  };
 
   return (
     <Box
       display="flex"
-      width="100%"
-      h={"full"}
-      padding="16px"
       flexDirection="column"
-      alignItems="flex-start"
+      alignItems="center"
       gap="8px"
+      p="16px"
+      h="260px"
+      overflow="hidden"
       onClick={onClick}
       cursor={onClick ? "pointer" : "default"}
       borderRadius="16px"
-      bg={"bg_box"}
+      bg="bg_box"
       boxShadow="0px 0px 4px 0px rgba(0, 0, 0, 0.10)"
       position="relative"
-      _hover={onClick ? { boxShadow: "0px 0px 8px 0px rgba(0, 0, 0, 0.18)" } : undefined}
-      transition="box-shadow 0.15s"
+      textAlign="center"
+      _hover={onClick ? { boxShadow: "0px 2px 12px 0px rgba(0,0,0,0.14)", transform: "translateY(-2px)" } : undefined}
+      transition="box-shadow 0.15s, transform 0.15s"
       {...props}
     >
-      <Image
-        src={safeProfilePic(imageSrc)}
-        onError={imgErrorFallback}
-        alt={imageAlt}
-        alignSelf="stretch"
-        w="100%"
-        onClick={onClick}
-        h="180px"
-        borderRadius="10px"
-        objectFit="cover"
-      />
+      {/* Circular avatar */}
+      <Avatar.Root boxSize="80px" flexShrink={0}>
+        <Avatar.Fallback name={name} />
+        <Avatar.Image
+          src={safeProfilePic(imageSrc)}
+          onError={imgErrorFallback}
+          alt={imageAlt}
+        />
+      </Avatar.Root>
 
-      {/* Name and Language Row */}
-      <Flex justifyContent="space-between" alignItems="center" width="100%" onClick={onClick}>
+      {/* Name */}
+      <Text
+        fontSize="0.9rem"
+        fontWeight="700"
+        color="text_primary"
+        lineClamp={1}
+        w="full"
+      >
+        {name}
+      </Text>
+
+      {/* Profession */}
+      {profession ? (
         <Text
-          textAlign="left"
-          fontSize="sm"
-          fontWeight="bold"
-          color="text_primary"
+          fontSize="0.75rem"
+          fontWeight="500"
+          color="grey.500"
+          lineClamp={1}
+          w="full"
+          mt="-6px"
         >
-          {name}
+          {profession}
         </Text>
-        <Text fontSize="xs" fontWeight="400" color="#999">
-          {language}
-        </Text>
-      </Flex>
+      ) : null}
 
-      <Text
-        textAlign="left"
-        fontSize="xs"
-        fontWeight={"400"}
-        color={"grey.500"}
-      >
-        {profession}
-      </Text>
-      <Text
-        lineClamp={2}
-        textAlign="left"
-        fontSize="xs"
-        fontWeight={"400"}
-        color={"grey.300"}
-      >
-        {about}
-      </Text>
-
-      <Flex align="center" justify="space-between" width="100%">
-        <Flex align="center" gap="2px">
-          <Image src={locale} alt="location" boxSize="16px" />
-          <Text
-            textAlign="left"
-            fontSize={"10px"}
-            fontWeight={"400"}
-            color={"#999"}
-          >
-            {location}
+      {/* Language tag */}
+      {language ? (
+        <Box
+          px={2}
+          py="2px"
+          borderRadius="full"
+          bg="main_background"
+          mt="-4px"
+        >
+          <Text fontSize="0.7rem" color="grey.400" fontWeight="400">
+            {language}
           </Text>
-        </Flex>
+        </Box>
+      ) : null}
+
+      {/* Bio */}
+      {about ? (
+        <Text
+          fontSize="0.72rem"
+          fontWeight="400"
+          color="grey.300"
+          lineClamp={2}
+          w="full"
+        >
+          {about}
+        </Text>
+      ) : null}
+
+      {/* Location + favourite */}
+      <Flex align="center" justify="space-between" width="100%" mt="auto">
+        {location ? (
+          <Flex align="center" gap="4px" minW={0} flex={1}>
+            <Image src={locale} alt="location" boxSize="13px" flexShrink={0} />
+            <Text fontSize="0.68rem" fontWeight="400" color="#999" truncate>
+              {location}
+            </Text>
+          </Flex>
+        ) : <Box flex={1} />}
         <Image
           src={isLiked ? heart : aheart}
-          alt="Heart"
-          boxSize="40px"
+          alt="favourite"
+          boxSize="22px"
           cursor="pointer"
-          onClick={() => {
-            handleHeartClick()
+          flexShrink={0}
+          onClick={(e) => {
+            e.stopPropagation();
+            handleHeartClick();
           }}
         />
       </Flex>
