@@ -95,12 +95,14 @@ const handleHeartClick = () => {
       flexDirection="column"
       alignItems="flex-start"
       gap="8px"
-      // onClick={onClick}
-      // onClick={() => router.push("./consultant-profile")}
+      onClick={onClick}
+      cursor={onClick ? "pointer" : "default"}
       borderRadius="16px"
       bg={"bg_box"}
       boxShadow="0px 0px 4px 0px rgba(0, 0, 0, 0.10)"
       position="relative"
+      _hover={onClick ? { boxShadow: "0px 0px 8px 0px rgba(0, 0, 0, 0.18)" } : undefined}
+      transition="box-shadow 0.15s"
       {...props}
     >
       <Image

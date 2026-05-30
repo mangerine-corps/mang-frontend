@@ -60,7 +60,7 @@ const Index = () => {
 
   const handleConsultantClick = (consultantId: string) => {
     dispatch(selectConsultant(consultantId));
-    router.push(`consultant/${consultantId}`);
+    router.push(`/consultant/${consultantId}`);
   };
   return (
           <Box
