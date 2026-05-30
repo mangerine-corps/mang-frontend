@@ -1,10 +1,10 @@
 import FeedbackOverviewcompTwo from "../../mybusiness/feedbackoverviewcomptwo";
-import MyAccount from "../../myaccount";
+import PaymentSetting from "../../paymentsetting";
 
 function MyAccounts({ page }: { page: string }) {
   return {
     ["feedback"]: <FeedbackOverviewcompTwo />,
-    ["payment"]: <MyAccount />,
+    ["payment"]: <PaymentSetting />,
   }[page];
 }
 

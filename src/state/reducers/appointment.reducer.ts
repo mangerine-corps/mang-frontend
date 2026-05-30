@@ -22,18 +22,27 @@ const slice = createSlice({
   } as unknown as BookmarkState,
   reducers: {
     setAppointments: (state, { payload: { appointments, pagination } }) => {
-      console.log(appointments, pagination);
       state.upcomingAppointments = {
         appointments,
         pagination,
       };
     },
     setConversations: (state, { payload: { conversations } }) => {
-      console.log(conversations,'inside state')
       state.conversations = conversations;
     },
     setCurrentConversation: (state, { payload: { conversation } }) => {
       state.currentConversation = conversation;
+    },
+    updateConversationLastMessage: (state, { payload: { conversationId, message } }) => {
+      const idx = state.conversations.findIndex(
+        (c: any) => String(c.id) === String(conversationId)
+      );
+      if (idx !== -1) {
+        // Direct Immer mutation — avoids draft-spread issues and does NOT touch
+        // currentConversation (changing that ref would trigger ChatProvider's
+        // useEffect([currentConversation]) which clears messages + re-fetches history)
+        state.conversations[idx].lastMessage = message;
+      }
     },
 
     setBookmarks: (state, { payload: { bookmarks } }) => {
@@ -47,6 +56,7 @@ export const {
   setBookmarks,
   setConversations,
   setCurrentConversation,
+  updateConversationLastMessage,
 } = slice.actions;
 
 export default slice.reducer;

@@ -349,8 +349,8 @@ const EditMyWorksCard = ({
           "&::-webkit-scrollbar": {
             display: "none",
           },
-          "-ms-overflow-style": "none" /* IE and Edge */,
-          "scrollbar-width": "none" /* Firefox */,
+          msOverflowStyle: "none",
+          scrollbarWidth: "none",
         }}
         scrollbar="hidden"
       >

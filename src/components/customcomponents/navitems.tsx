@@ -89,7 +89,7 @@ export const NavLinks: NavLink[] = [
   },
   {
     label: "Notifications",
-    href: "/notification",
+    href: "/notifications",
     icon: {
       light: "/icons/navicons/notiflight.svg",
       dark: "/icons/navicons/darkinactivenotif.svg",
@@ -176,7 +176,7 @@ export const UserLinks: NavLink[] = [
   },
   {
     label: "Notifications",
-    href: "/notification",
+    href: "/notifications",
     icon: {
       light: "/icons/navicons/notiflight.svg",
       dark: "/icons/navicons/darkinactivenotif.svg",

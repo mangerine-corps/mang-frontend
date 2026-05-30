@@ -31,6 +31,17 @@ import TopRightDrawer from "../ui/top-right-drawer";
 
 const phoneRegex = /^[0-9]{10,15}$/;
 
+const formatPhoneDisplay = (raw: string): string => {
+  if (!raw) return "-";
+  const digits = raw.replace(/\D/g, "");
+  if (!digits) return raw;
+  const withPlus = `+${digits}`;
+  // Group: +XXX XXXX XXXX XXXX (country code up to 3 digits, then groups of 4)
+  const match = withPlus.match(/^(\+\d{1,3})(\d{4})(\d{4})(\d{0,4})$/);
+  if (match) return [match[1], match[2], match[3], match[4]].filter(Boolean).join(" ");
+  return withPlus;
+};
+
 const contactSchema = Yup.object().shape({
   email: Yup.string().email("Enter a valid email address").optional(),
   mobileNumber: Yup.string()
@@ -64,7 +75,8 @@ const EditContactMeCard = ({
     () => ({
       email:
         (isEditable ? contact?.email : undefined) ??
-        info?.email ??
+        // Only expose another user's email when they've explicitly opted in
+        (info?.emailVisible ? info?.email : undefined) ??
         (isEditable ? user?.email : undefined) ??
         "",
       mobileNumber:
@@ -446,31 +458,35 @@ const EditContactMeCard = ({
         </VStack>
       </TopRightDrawer>
 
-      {/* Email section */}
-      <Text
-        textAlign={"left"}
-        w="full"
-        px={"4"}
-        lineHeight={"shorter"}
-        color={"text_primary"}
-        fontSize={"1rem"}
-        fontFamily={"Outfit"}
-        fontWeight={"500"}
-      >
-        Email Address
-      </Text>
-      <Text
-        textAlign={"left"}
-        w="full"
-        px={"4"}
-        lineHeight={"shorter"}
-        fontSize={"0.875rem"}
-        fontFamily={"Outfit"}
-        color={"grey.500"}
-        fontWeight={"400"}
-      >
-        {existingContact.email || "-"}
-      </Text>
+      {/* Email section — only visible to the profile owner or when user opted in */}
+      {(isEditable || existingContact.emailVisible) && (
+        <>
+          <Text
+            textAlign={"left"}
+            w="full"
+            px={"4"}
+            lineHeight={"shorter"}
+            color={"text_primary"}
+            fontSize={"1rem"}
+            fontFamily={"Outfit"}
+            fontWeight={"500"}
+          >
+            Email Address
+          </Text>
+          <Text
+            textAlign={"left"}
+            w="full"
+            px={"4"}
+            lineHeight={"shorter"}
+            fontSize={"0.875rem"}
+            fontFamily={"Outfit"}
+            color={"grey.500"}
+            fontWeight={"400"}
+          >
+            {existingContact.email || "-"}
+          </Text>
+        </>
+      )}
 
       {/* Phone number section */}
       <Text
@@ -495,7 +511,7 @@ const EditContactMeCard = ({
         color={"grey.500"}
         fontWeight={"400"}
       >
-        {existingContact.mobileNumber || "-"}
+        {formatPhoneDisplay(existingContact.mobileNumber)}
       </Text>
 
       <Text

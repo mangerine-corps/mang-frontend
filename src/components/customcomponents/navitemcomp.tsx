@@ -22,9 +22,7 @@ export const NavItem: React.FC<Props> = ({ link, isMobile }) => {
   const pathname = router.asPath.split("?")[0] || router.pathname || "/";
   const normalizedHref = link.href.endsWith("/") && link.href !== "/" ? link.href.slice(0, -1) : link.href;
   const normalizedPath = pathname.endsWith("/") && pathname !== "/" ? pathname.slice(0, -1) : pathname;
-  const isNotificationAlias = normalizedHref === "/notification" && normalizedPath === "/notifications";
   const isActive =
-    isNotificationAlias ||
     normalizedPath === normalizedHref ||
     (normalizedHref !== "/home" && normalizedPath.startsWith(`${normalizedHref}/`));
   const { colorMode } = useColorMode();

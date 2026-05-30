@@ -68,10 +68,10 @@ const IncomeChart: React.FC<IncomeChartProps> = ({ labels, datasets, totalEarned
       },
       y: {
         stacked: true,
-        min: 1000,
-        max: 5000,
+        min: 0,
+        suggestedMax: 1000,
         ticks: {
-          callback: (value: number | string) => `$${value}`,
+          callback: (value: number | string) => `$${Number(value).toLocaleString()}`,
         },
       },
     },

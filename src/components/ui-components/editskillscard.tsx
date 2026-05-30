@@ -60,19 +60,21 @@ const EditSkillCard = ({
                 {title}
               </Text>
             </HStack>
-            <Text
-              w="full"
-              px="4"
-              pb="2"
-              color="grey.500"
-              fontSize="0.875rem"
-              fontFamily="Outfit"
-            >
-              {isEditable ? "Tell people what you're great at" : "No skills have been added yet."}
-            </Text>
+            {(!skills || skills.length === 0) && (
+              <Text
+                w="full"
+                px="4"
+                pb="2"
+                color="grey.500"
+                fontSize="0.875rem"
+                fontFamily="Outfit"
+              >
+                {isEditable ? "Tell people what you're great at" : "No skills have been added yet."}
+              </Text>
+            )}
 
             {map(skills, (skill) => (
-              <VStack pl={4} w="full" alignItems={"flex-start"}>
+              <VStack key={skill.id ?? skill.name} pl={4} w="full" alignItems={"flex-start"}>
                 <Text
                   textAlign={"left"}
                   w="full"

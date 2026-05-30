@@ -122,10 +122,10 @@ const CustomInput = ({
           rounded="6px"
           css={{
             "&::-webkit-outer-spin-button, &::-webkit-inner-spin-button": {
-              "-webkit-appearance": "none",
+              WebkitAppearance: "none",
               margin: 0,
             },
-            "-moz-appearance": "textfield",
+            MozAppearance: "textfield",
           }}
           value={value}
           disabled={disabled}

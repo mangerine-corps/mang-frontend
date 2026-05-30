@@ -129,8 +129,7 @@ const Pricing = () => {
             Consultant Pricing Setting
           </Text>
           <Text font="outfit" fontSize="1rem" fontWeight="400" color="gray.500">
-            Brief description of the flexibility consultants have to set their
-            prices.
+            Set your session rates and package pricing. These rates appear on your public profile and are charged to clients when they book a consultation.
           </Text>
         </Box>
 

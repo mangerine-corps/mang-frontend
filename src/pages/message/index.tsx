@@ -53,6 +53,7 @@ import BlockConsultant from "mangarine/components/ui-components/modals/blockcons
 import { setMessages } from "mangarine/state/reducers/chat.reducer";
 import {
   formatConversationTime,
+  formatLastSeen,
   getConversationPreview,
   getConversationSubtitle,
   getConversationTimestamp,
@@ -222,7 +223,7 @@ export const ChatHeader = ({
           </HStack>
           <Text fontSize="0.8rem" color="text_muted">
             {lastActivity
-              ? `Last seen ${formatConversationTime(lastActivity)}`
+              ? formatLastSeen(lastActivity)
               : "Conversation details"}
           </Text>
         </VStack>

@@ -502,7 +502,7 @@ const AvailabilitySettings = () => {
                             color="white"
                             _hover={{ bg: "blue.800" }}
                         >
-                            Save & Post
+                            Save Availability
                         </Button>
                     </HStack>
                 </>

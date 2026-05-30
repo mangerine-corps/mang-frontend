@@ -102,3 +102,31 @@ export const formatConversationTime = (value?: string | Date) => {
 
   return format(parsedDate, "h:mma").toLowerCase();
 };
+
+export const formatLastSeen = (value?: string | Date): string => {
+  if (!value) return "";
+
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "";
+
+  const now = new Date();
+  const time = format(date, "h:mma").toLowerCase();
+
+  const isToday =
+    date.getFullYear() === now.getFullYear() &&
+    date.getMonth() === now.getMonth() &&
+    date.getDate() === now.getDate();
+
+  if (isToday) return `Last seen today at ${time}`;
+
+  const yesterday = new Date(now);
+  yesterday.setDate(now.getDate() - 1);
+  const isYesterday =
+    date.getFullYear() === yesterday.getFullYear() &&
+    date.getMonth() === yesterday.getMonth() &&
+    date.getDate() === yesterday.getDate();
+
+  if (isYesterday) return `Last seen yesterday at ${time}`;
+
+  return `Last seen ${format(date, "MMM d")} at ${time}`;
+};

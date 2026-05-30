@@ -170,7 +170,6 @@ const Notification = () => {
                           {formatCreatedDate(n.createdAt)}
                         </Badge>
                         {/* {n.priority && <Badge>{(n.priority || '').toString().toUpperCase()}</Badge>} */}
-                        {n.type && <Badge px="1" variant="outline">{n.type}</Badge>}
                       </HStack>
                       <Text fontSize="sm" color="gray.600">{n.message}</Text>
                     </Stack>

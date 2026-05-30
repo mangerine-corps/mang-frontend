@@ -168,7 +168,7 @@ const NewMessageDrawer = ({ open, onOpenChange }: Props) => {
                   <Input
                     value={search}
                     onChange={(event) => setSearch(event.target.value)}
-                    placeholder="Search messages"
+                    placeholder="Search contacts"
                     h="46px"
                     borderRadius="10px"
                     borderColor="#EEF0F4"

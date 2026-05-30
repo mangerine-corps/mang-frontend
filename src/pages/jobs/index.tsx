@@ -1,4 +1,5 @@
 import { Box, Button, Flex, Image, Text, VStack, HStack, Badge, Skeleton, SkeletonText } from "@chakra-ui/react";
+import React from "react";
 import { useRouter } from "next/router";
 import Biocard from "mangarine/components/ui-components/biocard";
 import DashboardCard from "mangarine/components/ui-components/dashboardcard";
@@ -16,7 +17,9 @@ const statusColor: Record<string, string> = {
   closed: "red",
 };
 
-const MyJobCard = ({ job, onView }: { job: any; onView: () => void }) => (
+const MyJobCard = ({ job, onView }: { job: any; onView: () => void }) => {
+  const [navigating, setNavigating] = React.useState(false);
+  return (
   <Box
     bg="bg_box"
     border="1px solid"
@@ -47,13 +50,15 @@ const MyJobCard = ({ job, onView }: { job: any; onView: () => void }) => (
         borderRadius="8px"
         px={5}
         _hover={{ bg: "#0D173B" }}
-        onClick={onView}
+        loading={navigating}
+        onClick={() => { setNavigating(true); onView(); }}
       >
         View Job
       </Button>
     </HStack>
   </Box>
-);
+  );
+};
 
 const MyJobCardSkeleton = () => (
   <Box bg="bg_box" border="1px solid" borderColor="input_border" borderRadius="12px" p={4} w="full">
@@ -71,6 +76,8 @@ const JobsPage = () => {
   const router = useRouter();
   const { data, isLoading } = useGetMyJobsQuery();
   const jobs: any[] = (data as any)?.data?.jobs ?? [];
+  const [navigatingCreate, setNavigatingCreate] = React.useState(false);
+  const [navigatingSearch, setNavigatingSearch] = React.useState(false);
 
   return (
           <Box
@@ -118,7 +125,8 @@ const JobsPage = () => {
                 size="sm"
                 px={5}
                 _hover={{ bg: "rgba(17,29,74,0.04)" }}
-                onClick={() => router.push("/jobs/search")}
+                loading={navigatingSearch}
+                onClick={() => { setNavigatingSearch(true); router.push("/jobs/search"); }}
               >
                 Search Job
               </Button>
@@ -131,7 +139,8 @@ const JobsPage = () => {
                 size="sm"
                 px={5}
                 _hover={{ bg: "#0D173B" }}
-                onClick={() => router.push("/jobs/create")}
+                loading={navigatingCreate}
+                onClick={() => { setNavigatingCreate(true); router.push("/jobs/create"); }}
               >
                 + Create Job
               </Button>
@@ -170,7 +179,8 @@ const JobsPage = () => {
                   fontWeight="600"
                   py={6}
                   _hover={{ bg: "#0D173B" }}
-                  onClick={() => router.push("/jobs/search")}
+                  loading={navigatingSearch}
+                  onClick={() => { setNavigatingSearch(true); router.push("/jobs/search"); }}
                 >
                   Search Job
                 </Button>
@@ -184,7 +194,8 @@ const JobsPage = () => {
                   fontWeight="600"
                   py={6}
                   _hover={{ bg: "rgba(17,29,74,0.04)" }}
-                  onClick={() => router.push("/jobs/create")}
+                  loading={navigatingCreate}
+                  onClick={() => { setNavigatingCreate(true); router.push("/jobs/create"); }}
                 >
                   Create Job
                 </Button>

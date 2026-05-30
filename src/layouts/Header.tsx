@@ -119,10 +119,11 @@ const Header = () => {
   const navActiveColor = "#1D2A60";
 
   const handleResultClick = (item: { id: string; type: "user" | "group"; name?: string }) => {
-    if (item.type === "user") router.push(`/profile?profileId=${item.id}`);
+    router.push(`/profile?profileId=${item.id}`);
+    setQuery("");
     setIsSearchOpen(false);
     setIsSearchFocused(false);
-    if (item.type === "user" && item.name) {
+    if (item.name) {
       saveRecentSearch({ query: item.name, type: "user", targetId: item.id }).catch(() => {});
     }
   };
@@ -216,7 +217,7 @@ const Header = () => {
             </InputGroup>
 
             {isSearchFocused && !hasQuery && (
-              <Box position="absolute" top="calc(100% + 8px)" left={0} right={0} zIndex="max">
+              <Box position="absolute" top="calc(100% + 8px)" left={0} right={0} zIndex="max" onMouseDown={(e) => e.preventDefault()}>
                 <FilterSearch onSelect={handleFilterSearchSelect} />
               </Box>
             )}
@@ -236,6 +237,7 @@ const Header = () => {
                 p={3}
                 maxH="60vh"
                 overflowY="auto"
+                onMouseDown={(e) => e.preventDefault()}
               >
                 {loading ? (
                   <VStack alignItems="stretch" w="full" gap={3}>

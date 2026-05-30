@@ -34,6 +34,7 @@ import {
 } from "mangarine/utils/sanitize";
 import { useDispatch } from "react-redux";
 import { addMessage } from "mangarine/state/reducers/chat.reducer";
+import { updateConversationLastMessage } from "mangarine/state/reducers/appointment.reducer";
 import FileUploadComponent from "./FileUploadComponent";
 import ChatList from "./chatlist";
 import MessageEmpty from "../messageempty";
@@ -42,6 +43,7 @@ import {
   getConversationTimestamp,
   hasConversationActivity,
 } from "./helpers";
+import { format, isToday, isYesterday, parseISO } from "date-fns";
 
 type Props = {
   onNewMessage: () => void;
@@ -153,6 +155,7 @@ const ChatPage = ({ onNewMessage }: Props) => {
 
     const message = generateMessageObject(messagePayload, userId);
     dispatch(addMessage({ message, userId, from: "frontend" }));
+    dispatch(updateConversationLastMessage({ conversationId: currentConversation.id, message }));
     setchatText("");
     setUploadedFiles([]);
 
@@ -289,7 +292,49 @@ const ChatPage = ({ onNewMessage }: Props) => {
           gap={4}
         >
           {!isEmpty(messages) ? (
-            messages.map((message) => <MessageCard message={message} key={message.id} />)
+            (() => {
+              const getDateLabel = (iso: string): string => {
+                try {
+                  const d = parseISO(iso);
+                  if (isToday(d)) return "Today";
+                  if (isYesterday(d)) return "Yesterday";
+                  return format(d, "MMMM d, yyyy");
+                } catch {
+                  return "";
+                }
+              };
+
+              const nodes: React.ReactNode[] = [];
+              let lastLabel = "";
+              messages.forEach((message) => {
+                const label = getDateLabel(message.createdAt ?? "");
+                if (label && label !== lastLabel) {
+                  lastLabel = label;
+                  nodes.push(
+                    <Box key={`sep-${label}`} display="flex" alignItems="center" gap={3} my={2}>
+                      <Box flex={1} h="1px" bg="border_background" />
+                      <Text
+                        fontSize="0.72rem"
+                        fontWeight="600"
+                        color="text_muted"
+                        whiteSpace="nowrap"
+                        px={2}
+                        py={0.5}
+                        bg="chat_surface"
+                        borderRadius="full"
+                        borderWidth="1px"
+                        borderColor="border_background"
+                      >
+                        {label}
+                      </Text>
+                      <Box flex={1} h="1px" bg="border_background" />
+                    </Box>
+                  );
+                }
+                nodes.push(<MessageCard message={message} key={message.id} />);
+              });
+              return nodes;
+            })()
           ) : (
             <Flex flex={1} align="center" justify="center" py={12}>
               <VStack gap={3} textAlign="center" maxW="340px">

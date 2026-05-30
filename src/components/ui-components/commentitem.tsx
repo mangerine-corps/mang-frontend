@@ -136,7 +136,6 @@ const CommentItem = ({
 
     if (!user || !user.id) {
       setErrorMessage("User is not authenticated.");
-      console.log(errorMessage, "error");
       return;
     }
 
@@ -203,7 +202,6 @@ const CommentItem = ({
     deleteComment(commentId)
       .unwrap()
       .then((res) => {
-        console.log(res);
         dispatch(deleteCommentOnPost({ commentId, postId }));
         toaster.create({
           description: "Comment deleted",
@@ -214,7 +212,7 @@ const CommentItem = ({
           if (typeof onDeleted === "function") onDeleted(commentId);
         } catch {}
       })
-      .catch((err) => console.log(err));
+      .catch(() => {});
   };
   const handleLikeComment = async (commentId: number) => {
     const userId = user?.id;
@@ -519,13 +517,20 @@ const CommentItem = ({
                   //   name={reply.author?.fullName || "Anonymous"}
                 />
                 <Box ml="8px">
-                  <Text
-                    fontWeight="md"
-                    fontSize={"0.875rem"}
-                    color="text_primary"
-                  >
-                    {reply.author?.fullName || "Anonymous"}
-                  </Text>
+                  <HStack gap={2} alignItems="center">
+                    <Text
+                      fontWeight="md"
+                      fontSize={"0.875rem"}
+                      color="text_primary"
+                    >
+                      {reply.author?.fullName || "Anonymous"}
+                    </Text>
+                    {reply.createdAt && (
+                      <Text fontSize="xs" color="grey.500">
+                        {timeAgo(reply.createdAt)}
+                      </Text>
+                    )}
+                  </HStack>
                   <Text fontSize="sm" fontWeight={"xs"} color="grey.600">
                     {reply.comment || "No comment content available"}
                   </Text>

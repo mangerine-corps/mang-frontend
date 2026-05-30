@@ -20,8 +20,7 @@ const slice = createSlice({
       state.messages = messages;
     },
     addMessage: (state, { payload: { message, userId, from } }) => {
-      console.log('Adding message:', { message, userId, from });
-      
+
       if (from === "frontend") {
         // Add message from frontend (user's own message)
         state.messages = !isEmpty(state.messages)

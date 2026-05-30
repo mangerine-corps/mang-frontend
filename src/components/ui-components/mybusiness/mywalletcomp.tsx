@@ -135,7 +135,7 @@ const MyWalletComponent = () => {
               fontWeight="400"
               lineHeight={"36px"}
             >
-              We Owe
+              Your Balance
             </Text>
             <HStack>
               {isLoading ? (

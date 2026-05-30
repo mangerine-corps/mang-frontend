@@ -26,9 +26,8 @@ const FavouriteConsultantsComp = () => {
   const [removedIds, setRemovedIds] = useState<Set<string>>(new Set());
 
   useEffect(() => {
-    if (data?.data?.favoriteConsultants) {
-      dispatch(setFavoriteConsultant(data?.data?.favoriteConsultants));
-    }
+    const list = Array.isArray(data?.data) ? data.data : data?.data?.favoriteConsultants;
+    if (list) dispatch(setFavoriteConsultant(list));
   }, [data, dispatch]);
 
   if (error) {
@@ -48,7 +47,11 @@ const FavouriteConsultantsComp = () => {
     }
   };
 
-  const consultants = (data?.data?.favoriteConsultants ?? []).filter(
+  const rawList: any[] = Array.isArray(data?.data)
+    ? data.data
+    : (data?.data?.favoriteConsultants ?? []);
+
+  const consultants = rawList.filter(
     (item: any) => !removedIds.has(item?.consultant?.id)
   );
 
@@ -153,7 +156,7 @@ const FavouriteConsultantsComp = () => {
         })}
       </Flex>
 
-      {(data?.data?.favoriteConsultants?.length ?? 0) > 3 && (
+      {rawList.length > 3 && (
         <Text
           fontSize="sm"
           fontWeight={500}

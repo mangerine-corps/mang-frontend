@@ -42,7 +42,6 @@ function Biocard() {
     };
 
     const path = map[field.toLowerCase()]
-    console.log(field, "path") ;
     router.push(path);
   };
   if (loadingInfo && !user) {

@@ -45,7 +45,7 @@ export function useSearch(initialLimit = 10) {
       const controller = new AbortController();
       controllerRef.current = controller;
 
-      const response = await apiClient.get<any>('/search/people', {
+      const response = await apiClient.get<any>('/search/all', {
         params: {
           query: debounced,
           limit: initialLimit,
@@ -53,19 +53,31 @@ export function useSearch(initialLimit = 10) {
         signal: controller.signal,
       });
 
-      const raw = response.data;
-      const items = raw?.data ?? raw?.results ?? [];
+      // /search/all returns { data: { posts, people, consultants, totalResults } }
+      const payload = response.data?.data ?? response.data ?? {};
+      const people: any[] = Array.isArray(payload.people) ? payload.people : [];
+      const consultants: any[] = Array.isArray(payload.consultants) ? payload.consultants : [];
+
+      // Merge people + consultants, deduplicate by id
+      const seen = new Set<string>();
+      const combined = [...people, ...consultants].filter((u) => {
+        const key = String(u.id);
+        if (seen.has(key)) return false;
+        seen.add(key);
+        return true;
+      });
+
       setData({
-        results: items.map((u: any) => ({
+        results: combined.map((u: any) => ({
           id: u.id,
-          type: (u.type as 'user' | 'group') ?? 'user',
+          type: 'user' as const,
           name: u.fullName ?? u.name ?? '',
           businessName: u.businessName ?? null,
           profilePics: u.profilePics ?? null,
           banner: u.profileBanner ?? u.banner ?? null,
         })),
-        total: raw?.pagination?.totalItems ?? items.length,
-        page: raw?.pagination?.currentPage ?? 1,
+        total: (payload.totalResults?.people ?? 0) + (payload.totalResults?.consultants ?? 0),
+        page: 1,
         limit: initialLimit,
       });
     } catch (err: any) {

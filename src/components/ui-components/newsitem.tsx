@@ -155,14 +155,13 @@ const NewsItem: React.FC<NewsItemProps> = ({ post, isDetailPage = false }) => {
     const formData = {
 
     }
-    reportComment(formData).unwrap().then((res) => { console.log(res) }).catch((err) => { console.log(err) })
+    reportComment(formData).unwrap().catch(() => {})
   }
 
 
   const handleFollow = () => toggleFollow();
   const toggleComment = () => {
     if (pathname.startsWith("/posts/")) {
-      console.log(post, "path", "cliking");
       setComment(true);
     } else if (pathname.startsWith("/home")) {
       router.push(`/posts/${post?.id}`);
@@ -178,7 +177,6 @@ const NewsItem: React.FC<NewsItemProps> = ({ post, isDetailPage = false }) => {
     try {
       const desired = !(post?.allowComments ?? true);
       await toggleAllowComments({ postId: post.id, allow: desired }).unwrap();
-      console.log(desired, "desired")
       dispatch(updateSinglePost({ postId: post.id, updates: { allowComments: desired } }));
       toaster.create({ description: desired ? 'Comments enabled' : 'Comments disabled', type: 'success', closable: true });
     } catch (e) {
@@ -622,6 +620,24 @@ const NewsItem: React.FC<NewsItemProps> = ({ post, isDetailPage = false }) => {
                       <Text>Twitter</Text>
                     </HStack>
                   </TwitterShareButton>
+                </Menu.Item>
+                <Menu.Item
+                  p={2}
+                  value="copy-link"
+                  onClick={() => {
+                    const url = `${window.location.origin}/posts/${post?.id}`;
+                    navigator.clipboard.writeText(url).then(() => {
+                      toaster.create({ description: "Link copied!", type: "success", duration: 2000 });
+                    }).catch(() => {});
+                  }}
+                >
+                  <HStack>
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                      <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                    </svg>
+                    <Text>Copy link</Text>
+                  </HStack>
                 </Menu.Item>
               </Menu.Content>
             </Menu.Positioner>
