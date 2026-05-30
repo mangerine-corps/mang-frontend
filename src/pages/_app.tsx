@@ -2,7 +2,6 @@ import { Box } from "@chakra-ui/react";
 import { Providers } from "mangarine/components/ui/provider";
 import { Toaster } from "mangarine/components/ui/toaster";
 import AppLayout from "mangarine/layouts/AppLayout";
-import { LayoutProvider } from "mangarine/layouts/LayoutContext";
 
 import "mangarine/styles/globals.css";
 import type { AppProps } from "next/app";
@@ -36,11 +35,9 @@ export default function App({ Component, pageProps }: AppProps) {
           {authRoute ? (
             <Component {...pageProps} />
           ) : (
-            <LayoutProvider>
-              <AppLayout>
-                <Component {...pageProps} />
-              </AppLayout>
-            </LayoutProvider>
+            <AppLayout>
+              <Component {...pageProps} />
+            </AppLayout>
           )}
 
           <Toaster />

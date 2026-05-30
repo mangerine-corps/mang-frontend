@@ -13,7 +13,6 @@ import {
   VStack,
   Image,
 } from "@chakra-ui/react";
-import { useSubHeader } from "mangarine/layouts/LayoutContext";
 import { useRouter } from "next/router";
 import React, { useEffect, useMemo, useState } from "react";
 import { useDispatch } from "react-redux";
@@ -450,12 +449,6 @@ const Index = () => {
     currentConversation,
     messages,
   ]);
-
-  useSubHeader(
-    <Text py={1} fontSize="0.92rem" color="text_muted" fontWeight="500">
-      Message
-    </Text>
-  );
 
   return (
       <DynamicAgoraChatProvider>

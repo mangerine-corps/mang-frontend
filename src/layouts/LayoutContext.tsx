@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState, ReactNode } from "react";
+import { createContext, useContext, useEffect, useRef, useState, ReactNode } from "react";
 
 interface LayoutContextValue {
   subHeader: ReactNode;
@@ -10,14 +10,19 @@ export const LayoutContext = createContext<LayoutContextValue>({
   setSubHeader: () => {},
 });
 
-export const useSubHeader = (node: ReactNode) => {
+// Takes an explicit deps array so callers control when the subHeader updates.
+// This avoids the infinite re-render loop caused by running the effect every
+// render with a new JSX object reference.
+export const useSubHeader = (node: ReactNode, deps: React.DependencyList = []) => {
   const { setSubHeader } = useContext(LayoutContext);
-  // Run on every render so dynamic subHeaders (e.g. filter state) stay in sync
+  const nodeRef = useRef(node);
+  nodeRef.current = node;
+
   useEffect(() => {
-    setSubHeader(node);
-  });
-  // Clear on unmount
-  useEffect(() => () => setSubHeader(null), []);
+    setSubHeader(nodeRef.current);
+    return () => setSubHeader(null);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, deps);
 };
 
 export const useLayoutContext = () => useContext(LayoutContext);

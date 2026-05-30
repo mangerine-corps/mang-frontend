@@ -6,11 +6,9 @@ import { useAuth } from 'mangarine/state/hooks/user.hook';
 import { isEmpty } from 'es-toolkit/compat';
 import { useRouter } from 'next/router';
 import { SSENotificationProvider } from 'mangarine/contexts/SSENotificationContext';
-import { useLayoutContext } from './LayoutContext';
 
 type Props = {
   children: React.ReactElement;
-  subHeader?: React.ReactNode;
 }
 
 const ContentSkeleton = () => (
@@ -45,12 +43,10 @@ const ContentSkeleton = () => (
   </Flex>
 );
 
-const AppLayout: FC<Props> = ({ children, subHeader: subHeaderProp }) => {
+const AppLayout: FC<Props> = ({ children }) => {
   const { token, user } = useAuth()
   const persistReady = usePersistReady()
   const router = useRouter()
-  const { subHeader: subHeaderCtx } = useLayoutContext();
-  const subHeader = subHeaderProp ?? subHeaderCtx;
 
   useEffect(() => {
     if (!persistReady) return;
@@ -59,8 +55,6 @@ const AppLayout: FC<Props> = ({ children, subHeader: subHeaderProp }) => {
     }
   }, [persistReady, token, router])
 
-  // Always render the real Header so it never flashes or disappears.
-  // Only the content area shows a skeleton while the Redux store rehydrates.
   return (
     <SSENotificationProvider
       userId={user?.id}
@@ -69,20 +63,7 @@ const AppLayout: FC<Props> = ({ children, subHeader: subHeaderProp }) => {
       <VStack gap={0} h={{ base: "auto", md: "100vh" }} minH={{ base: "100vh", md: "unset" }} alignItems="stretch">
         <Header />
 
-        {subHeader ? (
-          <Box
-            w="full"
-            bg="main_background"
-            px={{ base: "12px", md: "16px", lg: "18px", xl: "32px" }}
-            borderBottomWidth="1px"
-            borderColor="input_border"
-            mb={{ base: "12px", md: "16px" }}
-          >
-            {subHeader}
-          </Box>
-        ) : (
-          <Box mb={{ base: "12px", md: "16px" }} />
-        )}
+        <Box mb={{ base: "12px", md: "16px" }} />
 
         {!persistReady ? (
           <ContentSkeleton />
