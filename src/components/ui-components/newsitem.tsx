@@ -35,7 +35,7 @@ import { Post, updateSinglePost, deletePost as removeFromFeed } from "mangarine/
 import NewsAction from "./newsaction";
 import AddToCollection from "./addtocollection";
 import { BiShareAlt } from "react-icons/bi";
-import { FiEye, FiThumbsUp, FiThumbsDown } from "react-icons/fi";
+import { FiEye, FiThumbsUp } from "react-icons/fi";
 import {
   FacebookShareButton,
   WhatsappShareButton,

@@ -14,7 +14,12 @@ import {
 import { useState } from "react";
 import EditConsultDrawer from "./editconsultantprofiledrawer";
 import { BiSolidEditAlt } from "react-icons/bi";
-import { IoEllipsisVerticalOutline, IoShareSocialOutline } from "react-icons/io5";
+import { IoEllipsisVerticalOutline } from "react-icons/io5";
+import {
+  FacebookShareButton, FacebookIcon,
+  WhatsappShareButton, WhatsappIcon,
+  TwitterShareButton, TwitterIcon,
+} from "react-share";
 import { MdNotifications } from "react-icons/md";
 import { useRouter } from "next/router";
 import BlockConsultant from "./modals/blockconsultant";
@@ -206,17 +211,68 @@ const EditConsultantProfileCard = ({
                 >
                   <Image src="/icons/notification-bell.svg" alt="Notifications" boxSize="18px" />
                 </Button>
-                <Button
-                  size="sm"
-                  h="32px"
-                  px={2}
-                  variant="plain"
-                  bg="bg_box"
-                  boxShadow="0px 0px 8px 0px #0000001A"
-                  onClick={handleCopyLink}
-                >
-                  <IoShareSocialOutline size={16} />
-                </Button>
+                <Menu.Root>
+                  <Menu.Trigger asChild>
+                    <Button size="sm" h="32px" px={2} variant="plain" bg="bg_box" boxShadow="0px 0px 8px 0px #0000001A">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/>
+                        <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
+                      </svg>
+                    </Button>
+                  </Menu.Trigger>
+                  <Portal>
+                    <Menu.Positioner>
+                      <Menu.Content
+                        bg="bg_box"
+                        borderWidth="1px"
+                        borderColor="border_background"
+                        rounded="2xl"
+                        boxShadow="0 8px 32px rgba(0,0,0,0.12)"
+                        p={4}
+                        minW="260px"
+                      >
+                        <Text fontFamily="Outfit" fontWeight="600" fontSize="0.95rem" color="text_primary" mb={4} textAlign="center">
+                          Share profile
+                        </Text>
+                        <HStack justify="center" gap={6} mb={5}>
+                          <FacebookShareButton url={`${typeof window !== "undefined" ? window.location.origin : ""}/profile/${info?.id}`}>
+                            <VStack gap={1} cursor="pointer" _hover={{ opacity: 0.8 }} transition="opacity 0.15s">
+                              <FacebookIcon size={44} round />
+                              <Text fontFamily="Outfit" fontSize="0.68rem" color="text_primary" fontWeight="500">Facebook</Text>
+                            </VStack>
+                          </FacebookShareButton>
+                          <WhatsappShareButton url={`${typeof window !== "undefined" ? window.location.origin : ""}/profile/${info?.id}`} title={`${info?.fullName} on Mangerine`}>
+                            <VStack gap={1} cursor="pointer" _hover={{ opacity: 0.8 }} transition="opacity 0.15s">
+                              <WhatsappIcon size={44} round />
+                              <Text fontFamily="Outfit" fontSize="0.68rem" color="text_primary" fontWeight="500">WhatsApp</Text>
+                            </VStack>
+                          </WhatsappShareButton>
+                          <TwitterShareButton url={`${typeof window !== "undefined" ? window.location.origin : ""}/profile/${info?.id}`} title={`${info?.fullName} on Mangerine`}>
+                            <VStack gap={1} cursor="pointer" _hover={{ opacity: 0.8 }} transition="opacity 0.15s">
+                              <TwitterIcon size={44} round />
+                              <Text fontFamily="Outfit" fontSize="0.68rem" color="text_primary" fontWeight="500">Twitter</Text>
+                            </VStack>
+                          </TwitterShareButton>
+                        </HStack>
+                        <Box borderWidth="1px" borderColor="border_background" rounded="xl" px={3} py={2} bg="main_background">
+                          <HStack gap={2}>
+                            <Text flex={1} fontFamily="Outfit" fontSize="0.78rem" color="text_primary" truncate opacity={0.7}>
+                              {typeof window !== "undefined" ? `${window.location.origin}/profile/${info?.id}` : `/profile/${info?.id}`}
+                            </Text>
+                            <Button
+                              size="xs" bg="#111D4A" color="white" borderRadius="8px"
+                              fontFamily="Outfit" fontWeight="600" fontSize="0.75rem" px={3} flexShrink={0}
+                              _hover={{ bg: "#0D173B" }}
+                              onClick={handleCopyLink}
+                            >
+                              Copy
+                            </Button>
+                          </HStack>
+                        </Box>
+                      </Menu.Content>
+                    </Menu.Positioner>
+                  </Portal>
+                </Menu.Root>
                 <Menu.Root>
                   <Menu.Trigger asChild>
                     <Button variant="plain" size="sm" h="32px" px={2} bg="bg_box" boxShadow="0px 0px 8px 0px #0000001A">

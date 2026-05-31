@@ -351,19 +351,20 @@ const Header = () => {
                           {unreadCount > 0 && (
                             <Box
                               position="absolute"
-                              top="-6px"
-                              right="-8px"
-                              bg="red.500"
+                              top="-7px"
+                              right="-9px"
+                              bg="#E53E3E"
                               color="white"
-                              fontWeight="700"
+                              fontWeight="800"
                               rounded="full"
-                              minW="16px"
-                              h="16px"
+                              minW="18px"
+                              h="18px"
                               px="4px"
-                              fontSize="9px"
-                              lineHeight="16px"
+                              fontSize="10px"
+                              lineHeight="18px"
                               textAlign="center"
                               pointerEvents="none"
+                              boxShadow="0 0 0 2px white"
                             >
                               {unreadCount > 99 ? "99+" : unreadCount}
                             </Box>
@@ -390,19 +391,20 @@ const Header = () => {
                 {link.href === "/message" && (unreadMsgs?.totalUnreadMessages ?? 0) > 0 && (
                   <Box
                     position="absolute"
-                    top="0"
-                    right="8px"
-                    bg="red.500"
+                    top="-4px"
+                    right="6px"
+                    bg="#E53E3E"
                     color="white"
-                    fontWeight="700"
+                    fontWeight="800"
                     rounded="full"
-                    minW="16px"
-                    h="16px"
+                    minW="18px"
+                    h="18px"
                     px="4px"
-                    fontSize="9px"
-                    lineHeight="16px"
+                    fontSize="10px"
+                    lineHeight="18px"
                     textAlign="center"
                     pointerEvents="none"
+                    boxShadow="0 0 0 2px white"
                   >
                     {(unreadMsgs?.totalUnreadMessages ?? 0) > 99 ? "99+" : unreadMsgs?.totalUnreadMessages}
                   </Box>

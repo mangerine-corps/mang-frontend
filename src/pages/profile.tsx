@@ -1,4 +1,4 @@
-import { Box, Flex, HStack, Icon, Stack, Text } from "@chakra-ui/react";
+import { Box, Flex, HStack, Icon, Skeleton, SkeletonCircle, Stack, Text, VStack } from "@chakra-ui/react";
 import { LuArrowLeft } from "react-icons/lu";
 import EditConsultantProfileCard from "mangarine/components/ui-components/editconsultantprofile";
 import EditContactMeCard from "mangarine/components/ui-components/editcontactme";
@@ -24,6 +24,7 @@ import {
   useGetUserInfoQuery,
 } from "mangarine/state/services/profile.service";
 import { useDispatch } from "react-redux";
+import Head from "next/head";
 import { isEmpty } from "es-toolkit/compat";
 import {
   setConsulting,
@@ -218,7 +219,28 @@ const Profile = () => {
     "&::-webkit-scrollbar-thumb": { background: "transparent", borderRadius: "0px", height: "0px", width: 0 },
   };
 
+  const ogTitle = displayUser?.fullName ? `${displayUser.fullName} — Mangerine` : "Mangerine";
+  const ogDescription = displayUser?.bio || (displayUser?.businessName ?? displayUser?.title ?? "View profile on Mangerine");
+  const ogImage = displayUser?.profilePics || DEFAULT_AVATAR;
+  const ogUrl = typeof window !== "undefined"
+    ? `${window.location.origin}/profile/${profileId ?? displayUser?.id ?? ""}`
+    : `/profile/${profileId ?? ""}`;
+
   return (
+    <>
+    <Head>
+      <title>{ogTitle}</title>
+      <meta name="description" content={ogDescription} />
+      <meta property="og:type" content="profile" />
+      <meta property="og:title" content={ogTitle} />
+      <meta property="og:description" content={ogDescription} />
+      <meta property="og:image" content={ogImage} />
+      <meta property="og:url" content={ogUrl} />
+      <meta name="twitter:card" content="summary_large_image" />
+      <meta name="twitter:title" content={ogTitle} />
+      <meta name="twitter:description" content={ogDescription} />
+      <meta name="twitter:image" content={ogImage} />
+    </Head>
     <Box
       display="grid"
       gridTemplateColumns={{ base: "1fr", lg: "3fr 2fr" }}
@@ -253,13 +275,38 @@ const Profile = () => {
           </HStack>
 
           <Box w="full">
-            <EditConsultantProfileCard
-              checkmarkSrc={verified}
-              locationSrc={locale}
-              dobSrc={dob}
-              info={displayUser}
-              editable={isOwnProfile}
-            />
+            {!displayUser ? (
+              <Box bg="bg_box" borderRadius="2xl" overflow="hidden">
+                <Skeleton h={{ base: "130px", lg: "180px" }} w="full" />
+                <Box px={6} pt={2} pb={4}>
+                  <Flex justify="space-between" align="flex-end" mb={3}>
+                    <SkeletonCircle size="20" mt="-10" border="3px solid white" />
+                    <HStack gap={2}>
+                      <Skeleton h="32px" w="32px" rounded="lg" />
+                      <Skeleton h="32px" w="32px" rounded="lg" />
+                      <Skeleton h="32px" w="32px" rounded="lg" />
+                    </HStack>
+                  </Flex>
+                  <VStack align="flex-start" gap={2}>
+                    <Skeleton h="5" w="40%" rounded="md" />
+                    <Skeleton h="3.5" w="55%" rounded="md" />
+                    <Skeleton h="3" w="70%" rounded="md" />
+                    <HStack gap={3} mt={1}>
+                      <Skeleton h="3" w="24" rounded="md" />
+                      <Skeleton h="3" w="20" rounded="md" />
+                    </HStack>
+                  </VStack>
+                </Box>
+              </Box>
+            ) : (
+              <EditConsultantProfileCard
+                checkmarkSrc={verified}
+                locationSrc={locale}
+                dobSrc={dob}
+                info={displayUser}
+                editable={isOwnProfile}
+              />
+            )}
           </Box>
 
 
@@ -359,6 +406,7 @@ const Profile = () => {
           </Box>
         </Stack>
     </Box>
+    </>
   );
 };
 

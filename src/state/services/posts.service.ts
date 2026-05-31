@@ -7,7 +7,7 @@ export const postsApi = createApi({
   baseQuery: axiosBaseQuery({
     baseUrl: `${process.env.API_BASE_URL}/`,
   }),
-  tagTypes: ["Post", "User", "comments", "replies", "group"], // tags for cache invalidation
+  tagTypes: ["Post", "User", "comments", "replies", "group", "userInfo"], // tags for cache invalidation
   endpoints: (builder) => ({
     getPosts: builder.query({
       query: () => "/posts",
@@ -244,7 +244,7 @@ export const postsApi = createApi({
           message: response?.message ?? raw?.message,
         };
       },
-      invalidatesTags: ["User"],
+      invalidatesTags: ["User", "userInfo"],
     }),
 
     // Legacy param-based endpoints (fallback for older backends)
@@ -306,7 +306,7 @@ export const postsApi = createApi({
           message: response?.message ?? raw?.message,
         };
       },
-      invalidatesTags: ["User"],
+      invalidatesTags: ["User", "userInfo"],
     }),
     getFollowing: builder.query({
       query: ({targetUserId}) => ({
