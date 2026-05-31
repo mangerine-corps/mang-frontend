@@ -30,7 +30,7 @@ const FollowListItem = ({ item, defaultFollowing = false, onNavigate }: { item: 
     const id = item?.id ?? item?._id;
     if (!id) return;
     onNavigate?.();
-    router.push(`/profile?profileId=${id}`);
+    router.push(`/profile/${id}`);
   };
 
   return (

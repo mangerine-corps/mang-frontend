@@ -301,7 +301,7 @@ function SearchPage() {
   };
 
   const navigateToProfile = (id: string) => {
-    router.push(`/profile?profileId=${id}`);
+    router.push(`/profile/${id}`);
   };
 
   const filterBar = (

@@ -212,48 +212,31 @@ const Profile = () => {
   const displayLanguages = isOwnProfile ? languages : ((currLangData?.data ?? langData?.data) || []);
   const displayConsultings = isOwnProfile ? consultings : ((curConsultData?.data ?? consultData?.data) || []);
 
+  const noScrollbar = {
+    "&::-webkit-scrollbar": { width: "0px", height: "0px" },
+    "&::-webkit-scrollbar-track": { width: "0px", background: "transparent", height: "0px" },
+    "&::-webkit-scrollbar-thumb": { background: "transparent", borderRadius: "0px", height: "0px", width: 0 },
+  };
+
   return (
-          <Flex
-        // bg="main_background"
-        h="full"
-        p={{ base: "4", lg: "0" }}
-        columnGap={"4"}
-        // mt={{ base: "4rem" }}
-        flex="4"
-        flexDirection={{ base: "column", lg: "row" }}
-        overflowX="hidden"
-        justifyContent={{ base: "space-between" }}
-        scrollbar={"hidden"}
+    <Box
+      display="grid"
+      gridTemplateColumns={{ base: "1fr", lg: "3fr 2fr" }}
+      gap={4}
+      w="full"
+      h={{ base: "auto", lg: "full" }}
+      alignItems="start"
+      overflowX="hidden"
+      css={noScrollbar}
+    >
+      {/* Left — main profile content */}
+      <Flex
+        flexDir="column"
+        h={{ base: "auto", lg: "full" }}
+        overflowY={{ base: "visible", lg: "auto" }}
+        rounded="xl"
+        css={noScrollbar}
       >
-        <Flex
-          flexDir="column"
-          flex={4}
-          // h="full"
-          overflowY={{ base: "none", lg: "auto" }}
-          //  overflowY={{base:"scroll", md:"scroll"}}
-          css={{
-            "&::-webkit-scrollbar": {
-              width: "0px",
-
-              height: "0px",
-            },
-            "&::-webkit-scrollbar-track": {
-              width: "0px",
-              background: "transparent",
-
-              height: "0px",
-            },
-            "&::-webkit-scrollbar-thumb": {
-              background: "transparent",
-              borderRadius: "0px",
-              maxHeight: "0px",
-              height: "0px",
-              width: 0,
-            },
-          }}
-          rounded={"xl"}
-          // overflowX="hidden"
-        >
           <HStack
             mb={3}
             cursor="pointer"
@@ -319,51 +302,14 @@ const Profile = () => {
           </Box>
         </Flex>
 
-        <Stack
-          flexDir={"column"}
-          overflowY={{ base: "none", md: "none", lg: "auto" }}
-          flex="1.5"
-          css={{
-            "&::-webkit-scrollbar": {
-              width: "0px",
-              height: "0px",
-            },
-            "&::-webkit-scrollbar-track": {
-              width: "0px",
-              background: "transparent",
-              height: "0px",
-            },
-            "&::-webkit-scrollbar-thumb": {
-              background: "transparent",
-              borderRadius: "0px",
-              maxHeight: "0px",
-              height: "0px",
-              width: 0,
-            },
-          }}
-        >
-          <Box
-            overflowY="auto"
-            flex="1"
-            css={{
-              "&::-webkit-scrollbar": {
-                width: "0px",
-                height: "0px",
-              },
-              "&::-webkit-scrollbar-track": {
-                width: "0px",
-                background: "transparent",
-                height: "0px",
-              },
-              "&::-webkit-scrollbar-thumb": {
-                background: "transparent",
-                borderRadius: "0px",
-                maxHeight: "0px",
-                height: "0px",
-                width: 0,
-              },
-            }}
-          >
+      {/* Right — supplementary profile cards */}
+      <Stack
+        flexDir="column"
+        h={{ base: "auto", lg: "full" }}
+        overflowY={{ base: "visible", lg: "auto" }}
+        css={noScrollbar}
+      >
+          <Box overflowY="auto" css={noScrollbar}>
             <EditIntroductionVideoCard
               title={"Introduction Video"}
               imageSrc={contactme}
@@ -412,8 +358,8 @@ const Profile = () => {
             </Box>
           </Box>
         </Stack>
-      </Flex>
-      );
+    </Box>
+  );
 };
 
 export default Profile;

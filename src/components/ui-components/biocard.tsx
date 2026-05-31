@@ -1,4 +1,4 @@
-import { Avatar, Box, HStack, Image, Progress, Text, VStack, Dialog, Button, IconButton, Skeleton, SkeletonCircle, Stack } from "@chakra-ui/react";
+import { Avatar, Box, Flex, HStack, Image, Progress, Text, VStack, Dialog, Button, IconButton, Skeleton, SkeletonCircle, Stack } from "@chakra-ui/react";
 import { useAuth } from "mangarine/state/hooks/user.hook";
 import { useRouter } from "next/router";
 // import { InfoTip } from "@/components/ui/toggle-tip"
@@ -128,51 +128,53 @@ function Biocard() {
         pb={{ base: "6", md: "6" }}
         justifyContent="flex-start"
       >
-        <VStack justifyContent="flex-start" alignItems={"flex-start"}>
-          <Text fontWeight="bold" fontSize="lg" color="text_primary">
+        <VStack align="flex-start" w="full" gap={3}>
+          {/* 1 — Name */}
+          <Text fontWeight="bold" fontSize="lg" color="text_primary" lineHeight="1.3">
             {user?.fullName}
           </Text>
 
-          <Text fontSize="sm" color="text_primary">
-            {user?.profession}
-          </Text>
+          {/* 2 — Role */}
+          {user?.profession ? (
+            <Text fontSize="sm" color="text_primary" mt="-1">
+              {user.profession}
+            </Text>
+          ) : null}
 
-          <HStack justifyContent="flex-start" alignItems={"flex-start"}>
-            <HStack alignItems={"center"}>
-              <Image alt="location" src="/images/location.svg" />
-              <Text color="text_primary" fontSize="sm">
-                {user?.location}
-              </Text>
-            </HStack>
-            <HStack wordSpacing={1}>
-              <Image alt="user img" src="/images/usertag.svg" />
-              <Text color="text_primary" fontSize="sm">
-                {" "}
-                Born{" "}
-                {new Date(user?.dateOfBirth).toLocaleDateString("en-US", {
-                  day: "numeric",
-                  month: "long",
-                  // hour12: true,
-                })}
-              </Text>
-            </HStack>
-          </HStack>
+          {/* 3 — Location / Date of Birth */}
+          <Flex flexWrap="wrap" gap={2} align="center">
+            {user?.location ? (
+              <HStack gap={1} minW={0} flexShrink={1}>
+                <Image alt="location" src="/images/location.svg" flexShrink={0} />
+                <Text color="text_primary" fontSize="sm" truncate maxW="130px">
+                  {user.location}
+                </Text>
+              </HStack>
+            ) : null}
+            {user?.dateOfBirth ? (
+              <HStack gap={1} flexShrink={0}>
+                <Image alt="birthday" src="/images/usertag.svg" flexShrink={0} />
+                <Text color="text_primary" fontSize="sm" whiteSpace="nowrap">
+                  Born{" "}
+                  {new Date(user.dateOfBirth).toLocaleDateString("en-US", {
+                    day: "numeric",
+                    month: "short",
+                  })}
+                </Text>
+              </HStack>
+            ) : null}
+          </Flex>
 
-          <Text
-            fontSize="0.875rem"
-            color="text_primary"
-            textAlign="start"
-            pt="2"
-          >
-            {user?.bio}
-          </Text>
-        </VStack>
-        {
-          <VStack alignItems="flex-start" w="full" gap="1">
-            <Progress.Root
-              value={profileCompletionPercent}
-              w="full"
-            >
+          {/* 4 — Bio */}
+          {user?.bio ? (
+            <Text fontSize="0.875rem" color="text_primary" textAlign="start" lineClamp={3}>
+              {user.bio}
+            </Text>
+          ) : null}
+
+          {/* 5 — Profile completion bar + button */}
+          <VStack align="flex-start" w="full" gap={1}>
+            <Progress.Root value={profileCompletionPercent} w="full">
               <Progress.Track w="full">
                 <Progress.Range bg="#00A991" />
               </Progress.Track>
@@ -197,7 +199,6 @@ function Biocard() {
               bg="button_bg"
               color="button_text"
               size="sm"
-              mt="2"
               w="full"
               borderRadius="md"
               justifyContent="center"
@@ -212,7 +213,7 @@ function Biocard() {
               Complete your profile
             </Button>
           </VStack>
-        }
+        </VStack>
         {showMissingModal && (
           <Dialog.Root
             open={showMissingModal}

@@ -128,25 +128,24 @@ const Settings = () => {
 
   return (
     <Box
-        w="full"
-        h="full"
+      w="full"
+      h="full"
+      borderRight="1px"
+      borderBottom="1px"
+      borderLeft="1px"
+      overflow="hidden"
+      display="flex"
+      pos="relative"
+    >
+      <Box
+        flex={1.5}
         borderRight="1px"
-        borderBottom="1px"
-        borderLeft="1px"
-        spaceX={{ base: "0", md: "0", lg: "3" }}
-        overflow="hidden"
-        display="flex"
-        pos={"relative"}
+        h="full"
+        borderColor="gray.200"
+        display={{ base: "none", md: "none", lg: "flex", xl: "flex" }}
+        flexDirection="column"
+        minW={0}
       >
-        <Box
-          flex={1.5}
-          borderRight="1px"
-          h="full"
-          minH="90vh"
-          borderColor="gray.200"
-          display={{ base: "none", md: "none", lg: "flex", xl: "flex" }}
-          flexDirection="column"
-        >
           <Box>
             <CustomInput
               label=""
@@ -190,7 +189,8 @@ const Settings = () => {
                 mx="auto"
                 align="center"
                 justify="space-between"
-                p="6"
+                px={{ lg: "4", xl: "6" }}
+                py={{ lg: "3", xl: "4" }}
                 roundedTopLeft={activeTab === item.id ? "lg" : "none"}
                 roundedBottomLeft={activeTab === item.id ? "lg" : "none"}
                 borderLeftWidth={activeTab === item.id ? "4px" : "0px"}
@@ -205,8 +205,8 @@ const Settings = () => {
                 _hover={{ backgroundColor: "bg_box" }}
                 onClick={() => setActiveTab(item.id)}
                 cursor="pointer"
-                pb={4}
-                mb={4}
+                pb={{ lg: "3", xl: "4" }}
+                mb={{ lg: "2", xl: "4" }}
                 borderBottom="1px solid"
                 borderBottomColor="border_but"
               >
@@ -215,19 +215,24 @@ const Settings = () => {
                     display="flex"
                     alignItems="center"
                     justifyContent="center"
-                    boxSize="10"
+                    boxSize={{ lg: "8", xl: "10" }}
                     borderRadius="full"
                     bg={item.iconCircleBg}
                     flexShrink={0}
-                    marginRight={4}
+                    marginRight={{ lg: "3", xl: "4" }}
                   >
                     <Image
                       src={item.icon}
                       alt={item.text}
-                      boxSize="5"
+                      boxSize={{ lg: "4", xl: "5" }}
                     />
                   </Box>
-                  <Text fontSize="1.5rem" fontFamily="Outfit" fontWeight="500">{item.text}</Text>
+                  <Text
+                    fontSize={{ lg: "1rem", xl: "1.2rem" }}
+                    fontFamily="Outfit"
+                    fontWeight="500"
+                    truncate
+                  >{item.text}</Text>
                 </Flex>
                 <Image src={item.iconBg} alt="arrow" />
               </Flex>
@@ -290,15 +295,13 @@ const Settings = () => {
         >
           {renderContent()}
         </Box>
-        <MenuList
-          action={handleMobileTabChange}
-          open={showMenuList}
-          onOpenChange={() => {
-            setShowMenuList(false);
-          }}
-        />
-      </Box>
-      );
+      <MenuList
+        action={handleMobileTabChange}
+        open={showMenuList}
+        onOpenChange={() => setShowMenuList(false)}
+      />
+    </Box>
+  );
 };
 
 export default Settings;

@@ -121,7 +121,7 @@ const DashboardCard = () => {
         {
           icon: ScheduledIcon,
           label: "Scheduled Consultants",
-          action: () => router.push("/consultation"),
+          action: () => router.push("/consultation?tab=upcoming"),
         },
         {
           icon: FiHeart,
@@ -131,7 +131,7 @@ const DashboardCard = () => {
         {
           icon: ConsultationHistoryIcon,
           label: "Consultation History",
-          action: () => router.push("/consultation"),
+          action: () => router.push("/consultation?tab=history"),
         },
       ],
     },

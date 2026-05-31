@@ -72,15 +72,23 @@ const AppLayout: FC<Props> = ({ children }) => {
             flex={1}
             minH={0}
             w="full"
-            px={{ base: "12px", md: "16px", lg: "18px", xl: "32px" }}
             overflow={{ base: "visible", md: "hidden" }}
+            justify="center"
             css={{
               "&::-webkit-scrollbar": { width: "0px", height: "0px" },
               "&::-webkit-scrollbar-track": { width: "0px", background: "transparent", height: "0px" },
               "&::-webkit-scrollbar-thumb": { background: "transparent", borderRadius: "0px", maxHeight: "0px", height: "0px", width: 0 },
             }}
           >
-            {children}
+            <Flex
+              flex={1}
+              minH={0}
+              w="full"
+              maxW="1400px"
+              px={{ base: "10px", md: "16px", lg: "20px", xl: "24px" }}
+            >
+              {children}
+            </Flex>
           </Flex>
         )}
       </VStack>

@@ -127,7 +127,7 @@ function DiscoverPage() {
                     flex={1}
                     minW={0}
                     cursor="pointer"
-                    onClick={() => router.push(`/profile?profileId=${person.id}`)}
+                    onClick={() => router.push(`/profile/${person.id}`)}
                     _hover={{ opacity: 0.8 }}
                     align="flex-start"
                   >

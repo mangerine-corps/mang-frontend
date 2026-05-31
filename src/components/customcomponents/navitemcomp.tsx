@@ -48,8 +48,8 @@ export const NavItem: React.FC<Props> = ({ link, isMobile }) => {
         gap={isMobile ? 2 : 1}
         w={isMobile ? "full" : "auto"}
         bg={isMobile && showActive ? "#111D4A" : "transparent"}
-        minW={isMobile ? "full" : "78px"}
-        px={isMobile ? 4 : 2}
+        minW={isMobile ? "full" : { lg: "54px", xl: "72px" }}
+        px={isMobile ? 4 : { lg: 1, xl: 2 }}
         py={isMobile ? 2 : 1}
         pb={isMobile ? 2 : 2}
         rounded={isMobile ? "md" : "none"}
@@ -77,7 +77,7 @@ export const NavItem: React.FC<Props> = ({ link, isMobile }) => {
         </Box>
         <Text
           className={outfit.className}
-          fontSize={isMobile ? "0.95rem" : "0.74rem"}
+          fontSize={isMobile ? "0.95rem" : { lg: "0.6rem", xl: "0.72rem" }}
           fontWeight={showActive ? "600" : "500"}
           lineHeight="1.1"
           textAlign="center"

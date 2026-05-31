@@ -119,7 +119,7 @@ const Header = () => {
   const navActiveColor = "#1D2A60";
 
   const handleResultClick = (item: { id: string; type: "user" | "group"; name?: string }) => {
-    router.push(`/profile?profileId=${item.id}`);
+    router.push(`/profile/${item.id}`);
     setQuery("");
     setIsSearchOpen(false);
     setIsSearchFocused(false);
@@ -129,7 +129,7 @@ const Header = () => {
   };
 
   const handleFilterSearchSelect = (item: { id: string; name: string; type: "user" | "consultant" }) => {
-    router.push(`/profile?profileId=${item.id}`);
+    router.push(`/profile/${item.id}`);
     setIsSearchFocused(false);
   };
 
@@ -144,18 +144,25 @@ const Header = () => {
       position="sticky"
       top={0}
       alignItems="center"
-      px={{ base: 4, md: 5, lg: 6 }}
-      pt={{ base: 2, lg: 3 }}
+      justify="center"
       h={{ base: "80px", lg: "88px" }}
-      gap={0}
       overflow="visible"
     >
+      <Flex
+        w="full"
+        maxW="1400px"
+        px={{ base: 4, md: 5, lg: 6 }}
+        pt={{ base: 2, lg: 3 }}
+        h="full"
+        alignItems="center"
+        gap={0}
+      >
         {/* Logo + Search */}
         <HStack
           flexShrink={0}
-          w={{ base: "auto", lg: "420px", xl: "500px" }}
-          gap={{ base: 3, lg: 4 }}
-          mr={{ lg: 6, xl: 8 }}
+          w={{ base: "auto", lg: "220px", xl: "480px" }}
+          gap={{ base: 3, lg: 3 }}
+          mr={{ lg: 3, xl: 8 }}
         >
           <Box
             as="button"
@@ -300,7 +307,7 @@ const Header = () => {
           flex={1}
           justifyContent="flex-end"
           alignItems="center"
-          gap={{ lg: 3, xl: 4 }}
+          gap={{ lg: 1, xl: 4 }}
           display={{ base: "none", lg: "flex" }}
           overflow="visible"
         >
@@ -321,8 +328,8 @@ const Header = () => {
                     >
                       <VStack
                         gap={1}
-                        minW="72px"
-                        px={2}
+                        minW={{ lg: "auto", xl: "72px" }}
+                        px={{ lg: 1.5, xl: 2 }}
                         pt={1}
                         pb={2}
                         alignItems="center"
@@ -364,10 +371,11 @@ const Header = () => {
                         </Box>
                         <Text
                           className={outfit.className}
-                          fontSize="0.72rem"
+                          fontSize={{ lg: "0.6rem", xl: "0.72rem" }}
                           fontWeight={showNotifActive ? "600" : "500"}
                           lineHeight="1.1"
                           whiteSpace="nowrap"
+                          textAlign="center"
                         >
                           {link.label}
                         </Text>
@@ -489,7 +497,8 @@ const Header = () => {
         <Box display={{ base: "flex", lg: "none" }} ml="auto">
           <MobileDrawer />
         </Box>
-      <SideBar open={show} onOpenChange={() => setShow(false)} />
+        <SideBar open={show} onOpenChange={() => setShow(false)} />
+      </Flex>
     </Flex>
   );
 };

@@ -20,6 +20,7 @@ const PAGE_TITLES: Record<string, string> = {
   "/people": "People",
   "/search": "Search",
   "/profile": "My Profile",
+  "/profile/[profileId]": "Profile",
   "/saved": "Saved",
   "/notification": "Notifications",
   "/notifications": "Notifications",
@@ -89,7 +90,7 @@ export default function App({ Component, pageProps }: AppProps) {
       </Head>
     <GoogleOAuthProvider clientId={process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID!}>
       <Providers>
-        <Box bg="bd_background" h="100vh" as="main" className={`${outfit.className}`}>
+        <Box bg="bd_background" h="100vh" as="main" overflowX="hidden" className={`${outfit.className}`}>
           <PagesTopLoader color="#111D4A" height={3} />
 
           {authRoute ? (

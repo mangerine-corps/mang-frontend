@@ -221,7 +221,7 @@ const NewsItem: React.FC<NewsItemProps> = ({ post, isDetailPage = false }) => {
                 if (!creatorId || creatorId === user?.id) {
                   router.push("/profile");
                 } else {
-                  router.push(`/profile?profileId=${creatorId}`);
+                  router.push(`/profile/${creatorId}`);
                 }
               }}
               mb={1}
@@ -514,27 +514,7 @@ const NewsItem: React.FC<NewsItemProps> = ({ post, isDetailPage = false }) => {
           isDisabled={isLikeLoading}
         />
 
-        {/* Unlike Button */}
-        <NewsAction
-          icon={
-            <Icon
-              size={"md"}
-              color={isUnliked ? "red.500" : "gray.400"}
-              transition="all 0.2s ease-in-out"
-              _hover={{
-                transform: "scale(1.1)",
-                color: isUnliked ? "red.600" : "gray.400",
-              }}
-              opacity={isLikeLoading ? 0.6 : 1}
-            >
-              <FiThumbsDown />
-            </Icon>
-          }
-          count={unlikeCount || 0}
-          desc="Dislikes"
-          action={handleUnlikeClick}
-          isDisabled={isLikeLoading}
-        />
+        {/* Dislike removed */}
 
         <NewsAction
           icon={
@@ -570,10 +550,10 @@ const NewsItem: React.FC<NewsItemProps> = ({ post, isDetailPage = false }) => {
 
         <Menu.Root>
           <Menu.Trigger asChild>
-            <Button bg="transparent" border={"none"} size="sm">
+            <Button bg="transparent" border="none" size="sm" p={0}>
               <NewsAction
                 icon={
-                  <Icon size={"lg"} color={"gray.400"}>
+                  <Icon size="md" color="gray.400">
                     <BiShareAlt />
                   </Icon>
                 }
@@ -584,61 +564,93 @@ const NewsItem: React.FC<NewsItemProps> = ({ post, isDetailPage = false }) => {
           </Menu.Trigger>
           <Portal>
             <Menu.Positioner>
-              <Menu.Content>
-                <Menu.Item p={2} value="new-txt">
-                  <FacebookShareButton
-                    url={"https://google.com"}
-                    className="Demo__some-network__share-button"
-                  >
-                    <HStack>
-                      <FacebookIcon size={24} round />
-                      <Text>Facebook</Text>
-                    </HStack>
-                  </FacebookShareButton>
-                </Menu.Item>
-                <Menu.Item p={2} value="new-file">
-                  <WhatsappShareButton
-                    url={"https://gmail.com"}
-                    title={"test title"}
-                    separator=":: "
-                    className="Demo__some-network__share-button"
-                  >
-                    <HStack>
-                      <WhatsappIcon size={24} round />
-                      <Text>Whatsapp</Text>
-                    </HStack>
-                  </WhatsappShareButton>
-                </Menu.Item>
-                <Menu.Item p={2} value="new-win">
-                  <TwitterShareButton
-                    url={"https://gmail.com"}
-                    title={"test title"}
-                    className="Demo__some-network__share-button"
-                  >
-                    <HStack>
-                      <TwitterIcon size={24} round />
-                      <Text>Twitter</Text>
-                    </HStack>
-                  </TwitterShareButton>
-                </Menu.Item>
-                <Menu.Item
-                  p={2}
-                  value="copy-link"
-                  onClick={() => {
-                    const url = `${window.location.origin}/posts/${post?.id}`;
-                    navigator.clipboard.writeText(url).then(() => {
-                      toaster.create({ description: "Link copied!", type: "success", duration: 2000 });
-                    }).catch(() => {});
-                  }}
+              <Menu.Content
+                bg="bg_box"
+                borderWidth="1px"
+                borderColor="border_background"
+                rounded="2xl"
+                boxShadow="0 8px 32px rgba(0,0,0,0.12)"
+                p={4}
+                minW="260px"
+              >
+                {/* Header */}
+                <Text
+                  fontFamily="Outfit"
+                  fontWeight="600"
+                  fontSize="0.95rem"
+                  color="text_primary"
+                  mb={4}
+                  textAlign="center"
                 >
-                  <HStack>
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                      <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                    </svg>
-                    <Text>Copy link</Text>
+                  Share post
+                </Text>
+
+                {/* Platform icons */}
+                <HStack justify="center" gap={6} mb={5}>
+                  <FacebookShareButton url={`${typeof window !== "undefined" ? window.location.origin : ""}/posts/${post?.id}`}>
+                    <VStack gap={1} cursor="pointer" _hover={{ opacity: 0.8 }} transition="opacity 0.15s">
+                      <FacebookIcon size={44} round />
+                      <Text fontFamily="Outfit" fontSize="0.68rem" color="text_primary" fontWeight="500">Facebook</Text>
+                    </VStack>
+                  </FacebookShareButton>
+
+                  <WhatsappShareButton url={`${typeof window !== "undefined" ? window.location.origin : ""}/posts/${post?.id}`} title={post?.content?.slice(0, 80) ?? ""}>
+                    <VStack gap={1} cursor="pointer" _hover={{ opacity: 0.8 }} transition="opacity 0.15s">
+                      <WhatsappIcon size={44} round />
+                      <Text fontFamily="Outfit" fontSize="0.68rem" color="text_primary" fontWeight="500">WhatsApp</Text>
+                    </VStack>
+                  </WhatsappShareButton>
+
+                  <TwitterShareButton url={`${typeof window !== "undefined" ? window.location.origin : ""}/posts/${post?.id}`} title={post?.content?.slice(0, 80) ?? ""}>
+                    <VStack gap={1} cursor="pointer" _hover={{ opacity: 0.8 }} transition="opacity 0.15s">
+                      <TwitterIcon size={44} round />
+                      <Text fontFamily="Outfit" fontSize="0.68rem" color="text_primary" fontWeight="500">Twitter</Text>
+                    </VStack>
+                  </TwitterShareButton>
+                </HStack>
+
+                {/* Copy link row */}
+                <Box
+                  borderWidth="1px"
+                  borderColor="border_background"
+                  rounded="xl"
+                  px={3}
+                  py={2}
+                  bg="main_background"
+                >
+                  <HStack gap={2}>
+                    <Text
+                      flex={1}
+                      fontFamily="Outfit"
+                      fontSize="0.78rem"
+                      color="text_primary"
+                      truncate
+                      opacity={0.7}
+                    >
+                      {typeof window !== "undefined" ? `${window.location.origin}/posts/${post?.id}` : `/posts/${post?.id}`}
+                    </Text>
+                    <Button
+                      size="xs"
+                      bg="#111D4A"
+                      color="white"
+                      borderRadius="8px"
+                      fontFamily="Outfit"
+                      fontWeight="600"
+                      fontSize="0.75rem"
+                      px={3}
+                      flexShrink={0}
+                      _hover={{ bg: "#0D173B" }}
+                      onClick={() => {
+                        const url = `${window.location.origin}/posts/${post?.id}`;
+                        navigator.clipboard.writeText(url).then(() => {
+                          toaster.create({ description: "Link copied!", type: "success", duration: 2000 });
+                        }).catch(() => {});
+                      }}
+                    >
+                      Copy
+                    </Button>
                   </HStack>
-                </Menu.Item>
+                </Box>
               </Menu.Content>
             </Menu.Positioner>
           </Portal>

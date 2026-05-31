@@ -51,9 +51,9 @@ const ProspectiveFollowing = () => {
       flexDirection="column"
       mt={4}
     >
-      <Flex justify="space-between" align="center" mb={4}>
+      <Flex justify="space-between" align="flex-end" mb={4}>
         <Box>
-          <Text fontSize="xl" fontWeight="700" color="text_primary" fontFamily="Outfit">
+          <Text fontSize="lg" fontWeight="700" color="text_primary" fontFamily="Outfit">
             Discover People
           </Text>
           <Text fontSize="0.75rem" color="grey.500" fontFamily="Outfit" mt={0.5}>
@@ -62,11 +62,13 @@ const ProspectiveFollowing = () => {
         </Box>
         {users.length > 0 && (
           <Text
-            fontSize="sm"
+            fontSize="0.8rem"
             color="text_primary"
             fontFamily="Outfit"
             fontWeight="600"
             cursor="pointer"
+            flexShrink={0}
+            mb="1px"
             _hover={{ textDecoration: "underline" }}
             onClick={() => router.push("/discover")}
           >
@@ -97,39 +99,31 @@ const ProspectiveFollowing = () => {
           </Text>
         </VStack>
       ) : (
-        <VStack gap={4} align="stretch">
+        <VStack gap={3} align="stretch">
           {users.map((person: any) => {
             const isFollowing = followedIds.has(person.id);
             return (
-              <Flex key={person.id} justify="space-between" align="center">
+              <HStack key={person.id} w="full" gap={2} align="center">
                 <HStack
-                  gap={3}
+                  gap={2}
                   flex={1}
                   minW={0}
+                  overflow="hidden"
                   cursor="pointer"
-                  onClick={() => router.push(`/profile?profileId=${person.id}`)}
+                  onClick={() => router.push(`/profile/${person.id}`)}
                 >
-                  <Avatar.Root boxSize="40px" flexShrink={0}>
+                  <Avatar.Root boxSize="36px" flexShrink={0}>
                     <Avatar.Fallback name={person.fullName} />
                     <Avatar.Image src={person.profilePics} />
                   </Avatar.Root>
-                  <Box minW={0}>
-                    <Text fontWeight="600" fontSize="0.875rem" color="text_primary" fontFamily="Outfit" truncate>
+                  <Box minW={0} flex={1} overflow="hidden">
+                    <Text fontWeight="600" fontSize="0.82rem" color="text_primary" fontFamily="Outfit" truncate>
                       {person.fullName || "—"}
                     </Text>
-                    <HStack gap={2}>
-                      {person.title ? (
-                        <Text fontSize="xs" color="grey.500" fontFamily="Outfit" truncate>
-                          {person.title}
-                        </Text>
-                      ) : null}
-                      {person.isConsultant ? (
-                        <Text fontSize="xs" color="blue.500" fontWeight="600" fontFamily="Outfit" flexShrink={0}>
-                          Consultant
-                        </Text>
-                      ) : null}
-                    </HStack>
-                    <Text fontSize="xs" color="grey.400" fontFamily="Outfit">
+                    <Text fontSize="0.72rem" color="grey.500" fontFamily="Outfit" truncate>
+                      {person.title ?? (person.isConsultant ? "Consultant" : "")}
+                    </Text>
+                    <Text fontSize="0.7rem" color="grey.400" fontFamily="Outfit">
                       {person.followerCount ?? 0} followers
                     </Text>
                   </Box>
@@ -140,20 +134,21 @@ const ProspectiveFollowing = () => {
                   bg={isFollowing ? "transparent" : "#111D4A"}
                   borderColor={isFollowing ? "gray.300" : "transparent"}
                   color={isFollowing ? "text_primary" : "white"}
-                  size="sm"
+                  size="xs"
                   borderRadius="8px"
                   fontFamily="Outfit"
                   fontWeight="600"
-                  fontSize="0.8rem"
-                  px={4}
-                  h="32px"
+                  fontSize="0.75rem"
+                  px={3}
+                  h="28px"
                   flexShrink={0}
+                  minW="60px"
                   _hover={{ opacity: 0.85 }}
                   onClick={() => handleToggleFollow(person.id)}
                 >
                   {isFollowing ? "Following" : "Follow +"}
                 </Button>
-              </Flex>
+              </HStack>
             );
           })}
         </VStack>

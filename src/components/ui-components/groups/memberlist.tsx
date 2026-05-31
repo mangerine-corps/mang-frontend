@@ -113,7 +113,7 @@ const MemberList = ({ open, onOpenChange, data }) => {
                       _hover={{ opacity: 0.8 }}
                       onClick={() => {
                         const id = member.id;
-                        if (id) router.push(`/profile?profileId=${id}`);
+                        if (id) router.push(`/profile/${id}`);
                       }}
                     >
                       <Avatar.Root

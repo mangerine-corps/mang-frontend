@@ -80,34 +80,31 @@ const JobsPage = () => {
   const [navigatingSearch, setNavigatingSearch] = React.useState(false);
 
   return (
-          <Box
-        display="flex"
-        flexDir={{ base: "column", md: "row" }}
-        gap={4}
+    <Box
+      display="grid"
+      gridTemplateColumns={{ base: "1fr", md: "1fr 2fr" }}
+      gap={4}
+      w="full"
+      h={{ base: "auto", md: "full" }}
+      alignItems="start"
+      css={noScrollbar}
+    >
+      {/* Left sidebar */}
+      <VStack
+        display={{ base: "none", md: "flex" }}
+        alignItems="stretch"
+        spaceY={2}
         w="full"
         h="full"
-        minH={0}
-        overflow="hidden"
-        p={4}
+        overflowY="auto"
         css={noScrollbar}
       >
-        {/* Left sidebar */}
-        <VStack
-          display={{ base: "none", md: "flex" }}
-          alignItems="stretch"
-          spaceY={2}
-          w={{ md: "25%" }}
-          flexShrink={0}
-          h="full"
-          overflowY="auto"
-          css={noScrollbar}
-        >
-          <Biocard />
-          <DashboardCard />
-        </VStack>
+        <Biocard />
+        <DashboardCard />
+      </VStack>
 
-        {/* Main content */}
-        <Box flex={1} h="full" minH={0} overflowY="auto" css={noScrollbar}>
+      {/* Main content */}
+      <Box h={{ base: "auto", md: "full" }} w="full" overflowY="auto" css={noScrollbar}>
 
           {/* Header */}
           <HStack justify="space-between" mb={4}>
@@ -202,9 +199,9 @@ const JobsPage = () => {
               </VStack>
             </Flex>
           )}
-        </Box>
       </Box>
-      );
+    </Box>
+  );
 };
 
 export default JobsPage;

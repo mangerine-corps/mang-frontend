@@ -40,7 +40,7 @@ const WhoToFollow = () => {
   };
 
   const goToProfile = (userId: string) => {
-    router.push(`/profile?profileId=${userId}`);
+    router.push(`/profile/${userId}`);
   };
 
   return (
@@ -72,17 +72,19 @@ const WhoToFollow = () => {
           ))}
         </VStack>
       ) : (
-        <VStack wordSpacing={8} align="stretch">
+        <VStack gap={4} align="stretch">
           {(recommendations ?? []).map((person) => {
             const isFollowing = followedIds.has(person.id);
             return (
-              <HStack key={person.id} justify="space-between">
+              <HStack key={person.id} w="full" gap={2} align="center">
                 <HStack
                   cursor="pointer"
                   onClick={() => goToProfile(person.id)}
                   _hover={{ opacity: 0.8 }}
                   flex={1}
                   minW={0}
+                  gap={2}
+                  overflow="hidden"
                 >
                   <Image
                     src={person.profilePics || "/person.png"}
@@ -92,31 +94,29 @@ const WhoToFollow = () => {
                     objectFit="cover"
                     flexShrink={0}
                   />
-                  <Box display="flex" flexDir="column" alignItems="flex-start" justifyContent="flex-start" minW={0}>
-                    <Text fontWeight="semibold" color="text_primary" fontSize="1rem" truncate>
+                  <Box minW={0} flex={1} overflow="hidden">
+                    <Text fontWeight="semibold" color="text_primary" fontSize="0.875rem" truncate>
                       {person.fullName}
                     </Text>
-                    <Text color="gray.500" lineHeight="shorter" fontSize="0.875rem" truncate>
+                    <Text color="gray.500" lineHeight="shorter" fontSize="0.75rem" truncate>
                       {person.title ?? person.bio ?? ""}
                     </Text>
                   </Box>
                 </HStack>
                 <Button
                   variant="outline"
-                  size="sm"
-                  px="2"
-                  py="2"
+                  size="xs"
+                  px={2}
                   rounded="md"
                   colorPalette={isFollowing ? "gray" : "blue"}
                   onClick={() => handleToggleFollow(person.id)}
                   flexShrink={0}
+                  minW="60px"
                 >
-                  {isFollowing ? (
-                    <Text fontSize="0.875rem">Following</Text>
-                  ) : (
+                  {isFollowing ? "Following" : (
                     <>
                       <Image alt="add-follower-icon" src="/icons/plus.svg" />
-                      <Text fontSize="0.875rem">Follow</Text>
+                      Follow
                     </>
                   )}
                 </Button>

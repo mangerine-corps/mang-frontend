@@ -117,7 +117,7 @@ const FavouriteConsultantsComp = () => {
                 minW={0}
                 _hover={{ opacity: 0.8 }}
                 onClick={() => {
-                  if (consultantId) router.push(`/consultant/${consultantId}`);
+                  if (consultantId) router.push(`/profile/${consultantId}`);
                 }}
               >
                 <Box boxSize="40px" borderRadius="full" overflow="hidden" flexShrink={0}>

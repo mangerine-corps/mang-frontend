@@ -11,6 +11,7 @@ import {
 } from "@chakra-ui/react";
 import { useEffect, useState } from "react";
 import dynamic from "next/dynamic";
+import { useRouter } from "next/router";
 import ConsultationHistory from "./consultationhistory";
 import PaymentHistory from "./paymenthistory";
 import EmptyConsultationVideo from "./emptyconsultationvideo";
@@ -26,6 +27,7 @@ const Upcoming_appointments = dynamic(
 
 const ConsultationPage = () => {
   const { user } = useAuth();
+  const router = useRouter();
   const isConsultant = user?.isConsultant === true;
 
   const [activeTab, setActiveTab] = useState("history");
@@ -33,12 +35,18 @@ const ConsultationPage = () => {
   // fallback: 'md' ensures SSR renders the same value as a desktop client, avoiding hydration mismatch
   const isMobile = useBreakpointValue({ base: true, md: false }, { fallback: "md" }) ?? false;
 
-  // Sync default tab once the user object is available
+  // Honour ?tab= query param from DashboardCard navigation links
   useEffect(() => {
+    const tabParam = router.query.tab as string | undefined;
+    if (tabParam) {
+      setActiveTab(tabParam);
+      return;
+    }
+    // Default tab based on user role
     if (user) {
       setActiveTab(user.isConsultant === true ? "upcoming" : "history");
     }
-  }, [user?.isConsultant]);
+  }, [user?.isConsultant, router.query.tab]);
 
   const tabs = isConsultant
     ? [

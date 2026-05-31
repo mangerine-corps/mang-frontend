@@ -318,7 +318,7 @@ const CommentItem = ({
             cursor="pointer"
             onClick={() => {
               const authorId = comment.author?.id;
-              if (authorId) router.push(`/profile?profileId=${authorId}`);
+              if (authorId) router.push(`/profile/${authorId}`);
             }}
             _hover={{ opacity: 0.8 }}
           >
@@ -338,7 +338,7 @@ const CommentItem = ({
                 _hover={{ textDecoration: "underline" }}
                 onClick={() => {
                   const authorId = comment.author?.id;
-                  if (authorId) router.push(`/profile?profileId=${authorId}`);
+                  if (authorId) router.push(`/profile/${authorId}`);
                 }}
               >
                 {comment.author?.fullName}

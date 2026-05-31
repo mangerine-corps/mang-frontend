@@ -68,11 +68,11 @@ const GeneralFeed: React.FC<GeneralFeedProps> = ({
   return (
     <Box
       display="flex"
-      flexDirection="column"
-      alignItems="center"
-      gap="8px"
-      p="16px"
-      h="260px"
+      flexDirection={{ base: "row", sm: "column" }}
+      alignItems={{ base: "center", sm: "center" }}
+      gap={{ base: "12px", sm: "8px" }}
+      p={{ base: "12px", sm: "16px" }}
+      h={{ base: "auto", sm: "260px" }}
       overflow="hidden"
       onClick={onClick}
       cursor={onClick ? "pointer" : "default"}
@@ -80,13 +80,13 @@ const GeneralFeed: React.FC<GeneralFeedProps> = ({
       bg="bg_box"
       boxShadow="0px 0px 4px 0px rgba(0, 0, 0, 0.10)"
       position="relative"
-      textAlign="center"
+      textAlign={{ base: "left", sm: "center" }}
       _hover={onClick ? { boxShadow: "0px 2px 12px 0px rgba(0,0,0,0.14)", transform: "translateY(-2px)" } : undefined}
       transition="box-shadow 0.15s, transform 0.15s"
       {...props}
     >
       {/* Circular avatar */}
-      <Avatar.Root boxSize="80px" flexShrink={0}>
+      <Avatar.Root boxSize={{ base: "52px", sm: "80px" }} flexShrink={0}>
         <Avatar.Fallback name={name} />
         <Avatar.Image
           src={safeProfilePic(imageSrc)}
@@ -95,80 +95,89 @@ const GeneralFeed: React.FC<GeneralFeedProps> = ({
         />
       </Avatar.Root>
 
-      {/* Name */}
-      <Text
-        fontSize="0.9rem"
-        fontWeight="700"
-        color="text_primary"
-        lineClamp={1}
-        w="full"
+      {/* Info block */}
+      <Flex
+        direction="column"
+        flex={1}
+        minW={0}
+        gap={{ base: "2px", sm: "6px" }}
+        align={{ base: "flex-start", sm: "center" }}
       >
-        {name}
-      </Text>
-
-      {/* Profession */}
-      {profession ? (
+        {/* Name */}
         <Text
-          fontSize="0.75rem"
-          fontWeight="500"
-          color="grey.500"
+          fontSize={{ base: "0.875rem", sm: "0.9rem" }}
+          fontWeight="700"
+          color="text_primary"
           lineClamp={1}
           w="full"
-          mt="-6px"
         >
-          {profession}
+          {name}
         </Text>
-      ) : null}
 
-      {/* Language tag */}
-      {language ? (
-        <Box
-          px={2}
-          py="2px"
-          borderRadius="full"
-          bg="main_background"
-          mt="-4px"
-        >
-          <Text fontSize="0.7rem" color="grey.400" fontWeight="400">
-            {language}
+        {/* Profession */}
+        {profession ? (
+          <Text
+            fontSize="0.75rem"
+            fontWeight="500"
+            color="grey.500"
+            lineClamp={1}
+            w="full"
+          >
+            {profession}
           </Text>
-        </Box>
-      ) : null}
+        ) : null}
 
-      {/* Bio */}
-      {about ? (
-        <Text
-          fontSize="0.72rem"
-          fontWeight="400"
-          color="grey.300"
-          lineClamp={2}
-          w="full"
-        >
-          {about}
-        </Text>
-      ) : null}
-
-      {/* Location + favourite */}
-      <Flex align="center" justify="space-between" width="100%" mt="auto">
-        {location ? (
-          <Flex align="center" gap="4px" minW={0} flex={1}>
-            <Image src={locale} alt="location" boxSize="13px" flexShrink={0} />
-            <Text fontSize="0.68rem" fontWeight="400" color="#999" truncate>
-              {location}
+        {/* Language tag — hide on mobile to save space */}
+        {language ? (
+          <Box
+            px={2}
+            py="2px"
+            borderRadius="full"
+            bg="main_background"
+            display={{ base: "none", sm: "inline-flex" }}
+          >
+            <Text fontSize="0.7rem" color="grey.400" fontWeight="400">
+              {language}
             </Text>
-          </Flex>
-        ) : <Box flex={1} />}
-        <Image
-          src={isLiked ? heart : aheart}
-          alt="favourite"
-          boxSize="22px"
-          cursor="pointer"
-          flexShrink={0}
-          onClick={(e) => {
-            e.stopPropagation();
-            handleHeartClick();
-          }}
-        />
+          </Box>
+        ) : null}
+
+        {/* Bio — hide on mobile */}
+        {about ? (
+          <Text
+            fontSize="0.72rem"
+            fontWeight="400"
+            color="grey.300"
+            lineClamp={2}
+            w="full"
+            display={{ base: "none", sm: "block" }}
+          >
+            {about}
+          </Text>
+        ) : null}
+
+        {/* Location + favourite */}
+        <Flex align="center" justify="space-between" width="100%" mt={{ base: "2px", sm: "auto" }}>
+          {location ? (
+            <Flex align="center" gap="4px" minW={0} flex={1}>
+              <Image src={locale} alt="location" boxSize="13px" flexShrink={0} />
+              <Text fontSize="0.68rem" fontWeight="400" color="#999" truncate>
+                {location}
+              </Text>
+            </Flex>
+          ) : <Box flex={1} />}
+          <Image
+            src={isLiked ? heart : aheart}
+            alt="favourite"
+            boxSize="22px"
+            cursor="pointer"
+            flexShrink={0}
+            onClick={(e) => {
+              e.stopPropagation();
+              handleHeartClick();
+            }}
+          />
+        </Flex>
       </Flex>
     </Box>
   );

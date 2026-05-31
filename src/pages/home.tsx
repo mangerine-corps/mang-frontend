@@ -286,7 +286,7 @@ function Home() {
 
         {/* Right sidebar */}
         <VStack
-          display={{ base: "none", md: "flex" }}
+          display={{ base: "none", lg: "flex" }}
           alignItems="stretch"
           w="full"
           spaceY={2}

@@ -256,9 +256,10 @@ const BookingCalendar = () => {
             <Text
               fontFamily="Outfit"
               fontWeight="500"
-              fontSize="0.875rem"
+              fontSize="0.8rem"
               color="text_primary"
               textAlign="center"
+              whiteSpace="nowrap"
             >
               {buildRangeLabel(visibleDays)}
             </Text>

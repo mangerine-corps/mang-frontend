@@ -1,6 +1,7 @@
 import {
   Box,
   EmptyState,
+  Flex,
   HStack,
   Icon,
   Input,
@@ -89,100 +90,64 @@ const Index = () => {
 
   const handleConsultantClick = (consultantId: string) => {
     dispatch(selectConsultant(consultantId));
-    router.push(`/consultant/${consultantId}`);
+    router.push(`/profile/${consultantId}`);
   };
+  const noScrollbar = {
+    "&::-webkit-scrollbar": { width: "0px", height: "0px" },
+    "&::-webkit-scrollbar-track": { width: "0px", background: "transparent", height: "0px" },
+    "&::-webkit-scrollbar-thumb": { background: "transparent", borderRadius: "0px", height: "0px", width: 0 },
+  };
+
   return (
-          <Box
-        display={"flex"}
-        // bg="red.900"
-        flexDir={{ base: "column", md: "row", lg: "row", xl: "row" }}
-        // alignItems={"center"}
-        my={{ base: "0", md: "12px" }}
-        justifyContent={"space-between"}
-        w={{ base: "98%", md: "96%", lg: "96%", xl: "full" }}
-        mx="auto"
-        pos="relative"
-        overflowY={"scroll"}
-        // spaceY={{ base: "4", md: "0" }}
-        css={{
-          "&::-webkit-scrollbar": {
-            width: "0px",
-
-            height: "0px",
-          },
-          "&::-webkit-scrollbar-track": {
-            width: "0px",
-            background: "transparent",
-
-            height: "0px",
-          },
-          "&::-webkit-scrollbar-thumb": {
-            background: "transparent",
-            borderRadius: "0px",
-            maxHeight: "0px",
-            height: "0px",
-            width: 0,
-          },
-        }}
+    <Box
+      display="grid"
+      gridTemplateColumns={{ base: "1fr", md: "1fr 2fr", lg: "1fr 2fr 1fr" }}
+      gap={4}
+      w="full"
+      h={{ base: "auto", md: "full" }}
+      alignItems="start"
+      css={noScrollbar}
+    >
+      {/* Left sidebar */}
+      <VStack
+        display={{ base: "none", md: "flex" }}
+        alignItems="stretch"
+        w="full"
+        spaceY={2}
+        h="full"
+        overflowY="auto"
+        css={noScrollbar}
       >
-        <VStack
-          w={{ base: "100%", md: "25%" }}
-          h={{ base: "auto", md: "100vh" }}
-          overflowY="auto"
-          // py={4}
-          display={{ base: "none", md: "flex" }}
-          spaceY={2}
-        >
-          <Biocard />
+        <Biocard />
+        <DashboardCard />
+      </VStack>
 
-          <DashboardCard />
-
-          {/* <ConsultationDetailsBox /> */}
-          {/* <PaymentBox /> */}
-          {/* <PaymentCard /> */}
-        </VStack>
-        <Box
-          mx={{ base: "0", md: 4, lg: 4, xl: 4 }}
-          flex={1}
-          h="full"
-          // bg="main_background"
-          overflowY={{ base: "scroll", md: "scroll" }}
-          css={{
-            "&::-webkit-scrollbar": {
-              width: "0px",
-
-              height: "0px",
-            },
-            "&::-webkit-scrollbar-track": {
-              width: "0px",
-              background: "transparent",
-
-              height: "0px",
-            },
-            "&::-webkit-scrollbar-thumb": {
-              background: "transparent",
-              borderRadius: "0px",
-              maxHeight: "0px",
-              height: "0px",
-              width: 0,
-            },
-          }}
-          rounded={"xl"}
-          overflowX="hidden"
-        >
+      {/* Center content */}
+      <Box
+        h={{ base: "auto", md: "full" }}
+        w="full"
+        overflowY="auto"
+        overflowX="hidden"
+        rounded="xl"
+        css={noScrollbar}
+      >
           <ConsultantTabs
             consultant={
               <VStack align="stretch" gap={4}>
-                {/* Search + Sort controls */}
-                <HStack gap={3} flexWrap="wrap">
+                {/* Search + Sort controls — commented out
+                <Flex
+                  direction={{ base: "column", sm: "row" }}
+                  gap={2}
+                  align={{ base: "stretch", sm: "center" }}
+                >
                   <InputGroup
                     flex={1}
-                    minW="200px"
                     startElement={
-                      <Icon color="gray.400" boxSize={4}>
+                      <Icon color="gray.400" boxSize="18px">
                         <LuSearch />
                       </Icon>
                     }
+                    startElementProps={{ ps: "3" }}
                   >
                     <Input
                       placeholder="Search by name, specialty or location…"
@@ -191,7 +156,7 @@ const Index = () => {
                       bg="bg_box"
                       borderColor="border_background"
                       rounded="10px"
-                      h="40px"
+                      size="md"
                       fontSize="0.875rem"
                       color="text_primary"
                       _placeholder={{ color: "text_muted" }}
@@ -200,10 +165,10 @@ const Index = () => {
                   </InputGroup>
 
                   <HStack gap={2} flexShrink={0}>
-                    <Icon color="text_muted" boxSize={4}>
+                    <Icon color="text_muted" boxSize={4} display={{ base: "none", sm: "flex" }}>
                       <LuSlidersHorizontal />
                     </Icon>
-                    <NativeSelect.Root w="160px" size="sm">
+                    <NativeSelect.Root w={{ base: "full", sm: "160px" }} size="sm">
                       <NativeSelect.Field
                         value={sortBy}
                         onChange={(e) => setSortBy(e.target.value)}
@@ -212,6 +177,7 @@ const Index = () => {
                         color="text_primary"
                         rounded="10px"
                         fontSize="0.875rem"
+                        px={3}
                       >
                         <option value="name-az">Name (A – Z)</option>
                         <option value="name-za">Name (Z – A)</option>
@@ -219,12 +185,13 @@ const Index = () => {
                       </NativeSelect.Field>
                     </NativeSelect.Root>
                   </HStack>
-                </HStack>
+                </Flex>
+                */}
 
                 <SimpleGrid
-                  alignItems={"stretch"}
-                  columns={{ base: 2, sm: 2, md: 2, lg: 3 }}
-                  gap={4}
+                  alignItems="stretch"
+                  columns={{ base: 1, sm: 2, md: 2, lg: 3 }}
+                  gap={{ base: 3, sm: 4 }}
                 >
                 {/* render consultants data */}
                 {isLoading ? (
@@ -331,23 +298,23 @@ const Index = () => {
             }
             specified={""}
           />
-        </Box>
-        <VStack
-          w={{ base: "100%", md: "25%" }}
-          h={{ base: "auto", md: "full" }}
-          overflowY={{ base: "visible", md: "auto" }}
-          display={{ base: "none", md: "flex" }}
-          spaceY={2}
-          pos={{ base: "relative", md: "sticky" }}
-          top={{ base: "unset", md: 0 }}
-          alignSelf="flex-start"
-        >
-          <ScheduledConsultation />
-
-          <FavouriteConsultantsComp />
-        </VStack>
       </Box>
-      );
+
+      {/* Right sidebar */}
+      <VStack
+        display={{ base: "none", lg: "flex" }}
+        alignItems="stretch"
+        w="full"
+        spaceY={2}
+        h="full"
+        overflowY="auto"
+        css={noScrollbar}
+      >
+        <ScheduledConsultation />
+        <FavouriteConsultantsComp />
+      </VStack>
+    </Box>
+  );
 };
 
 export default Index;

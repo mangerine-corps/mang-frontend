@@ -50,178 +50,119 @@ const Index = () => {
     setShowMenuList(false);
   };
 
+  const noScrollbar = {
+    "&::-webkit-scrollbar": { width: "0px", height: "0px" },
+    "&::-webkit-scrollbar-track": { width: "0px", background: "transparent", height: "0px" },
+    "&::-webkit-scrollbar-thumb": { background: "transparent", borderRadius: "0px", height: "0px", width: 0 },
+  };
+
   return (
-          <Box
-        display="flex"
-        flexDir={{ base: "column", md: "row" }}
+    <Box
+      display="grid"
+      gridTemplateColumns={{ base: "1fr", md: "1fr 2fr", lg: "1fr 2fr 1fr" }}
+      gap={4}
+      w="full"
+      h={{ base: "auto", md: "full" }}
+      alignItems="start"
+      pos="relative"
+      css={noScrollbar}
+    >
+      {/* Left sidebar */}
+      <VStack
+        display={{ base: "none", md: "flex" }}
+        alignItems="stretch"
         w="full"
+        spaceY={2}
         h="full"
-        overflow="hidden" // prevent parent from scrolling
+        overflowY="auto"
+        css={noScrollbar}
       >
-        {/* LEFT COLUMN */}
-        <VStack
-          w={{ base: "100%", md: "25%" }}
-          h={{ base: "auto", md: "full" }}
-          overflowY="auto"
-          // py={4}
-          display={{ base: "none", md: "flex" }}
-          spaceY={2}
-        >
-          <Biocard />
-          <DashboardCard />
-        </VStack>
+        <Biocard />
+        <DashboardCard />
+      </VStack>
 
-        {/* CENTER COLUMN */}
-        <VStack
-          mx={{ base: "0", md: 4, lg: 4, xl: 4 }}
-          flex={1}
-          h="full"
-          // bg="main_background"
-          overflowY={{ base: "scroll", md: "scroll" }}
-          css={{
-            "&::-webkit-scrollbar": {
-              width: "0px",
-
-              height: "0px",
-            },
-            "&::-webkit-scrollbar-track": {
-              width: "0px",
-              background: "transparent",
-
-              height: "0px",
-            },
-            "&::-webkit-scrollbar-thumb": {
-              background: "transparent",
-              borderRadius: "0px",
-              maxHeight: "0px",
-              height: "0px",
-              width: 0,
-            },
-          }}
-          rounded={"xl"}
-          overflowX="hidden"
-        >
-          <GroupsTabs
-            Groups={
-              <GroupComponent
-                onClickPost={() => {
-                  setShowPost(true);
-                }}
-              />
-            }
-            specified={
-              <VStack align="start" w="full" mt="4">
-                <Text fontSize="1rem" fontWeight="600">
-                  Groups Created
-                </Text>
-                <CreatedGroup />
-                {/* CreatedGroup goes here */}
-                <Text
-                  fontSize={"1rem"}
-                  color="text_primary"
-                  pt="6"
-                  pb="1"
-                  fontWeight={"600"}
-                >
-                  {" "}
-                  Groups Joined{" "}
-                </Text>{" "}
-                <JoinedGroup />
-              </VStack>
-            }
-          />
-        </VStack>
-        <Stack
-          as="button"
-          cursor={"pointer"}
-          onClick={() => {
-            setShowMenuList(true);
-          }}
-          display={{
-            base: "flex",
-            md: "flex",
-            lg: "none",
-            xl: "none",
-          }}
-          pos="absolute"
-          right="0"
-          top={"80"}
-          bg="main_background"
-          p="2"
-          zIndex={1000}
-          roundedLeft="100%"
-          color="text_primary"
-          h="10"
-          alignItems={"center"}
-          justifyContent="center"
-          w="8"
-          borderWidth="2px"
-          borderColor="button_border"
-        >
-          <BiMenuAltRight />
-        </Stack>
-        {/* RIGHT COLUMN */}
-        <VStack
-          w={{ base: "100%", md: "25%" }}
-          h={{ base: "auto", md: "100vh" }}
-          overflowY={{ base: "visible", md: "auto" }}
-          display={{ base: "none", md: "flex" }}
-          spaceY={2}
-          pos={{ base: "relative", md: "sticky" }}
-          top={{ base: "unset", md: 0 }}
-          alignSelf="flex-start"
-          css={{
-            "&::-webkit-scrollbar": {
-              width: "0px",
-
-              height: "0px",
-            },
-            "&::-webkit-scrollbar-track": {
-              width: "0px",
-              background: "transparent",
-
-              height: "0px",
-            },
-            "&::-webkit-scrollbar-thumb": {
-              background: "transparent",
-              borderRadius: "0px",
-              maxHeight: "0px",
-              height: "0px",
-              width: 0,
-            },
-          }}
-        >
-          <Button
-            w="full"
-            bg="button_bg"
-            onClick={() => router.push("/groups/create")}
-          >
-            <Text color="button_text" fontWeight="600">
-              Create Group
-            </Text>
-          </Button>
-
-          {!isEmpty(recommended) && !showPost ? (
-            <SuggestedCommunities />
-          ) : (
-            showPost && <Rules rules="" />
-          )}
-          {!isEmpty(trending) ? (
-            <TrendingCommunities />
-          ) : (
-            <TrendingEmptyState />
-          )}
-        </VStack>
-        <MenuList
-          showPost={showPost}
-          action={handleMobileTabChange}
-          open={showMenuList}
-          onOpenChange={() => {
-            setShowMenuList(false);
-          }}
+      {/* Center content */}
+      <VStack
+        h={{ base: "auto", md: "full" }}
+        w="full"
+        overflowY="auto"
+        overflowX="hidden"
+        rounded="xl"
+        align="stretch"
+        css={noScrollbar}
+      >
+        <GroupsTabs
+          Groups={
+            <GroupComponent
+              onClickPost={() => setShowPost(true)}
+            />
+          }
+          specified={
+            <VStack align="start" w="full" mt="4">
+              <Text fontSize="1rem" fontWeight="600">Groups Created</Text>
+              <CreatedGroup />
+              <Text fontSize="1rem" color="text_primary" pt="6" pb="1" fontWeight="600">
+                Groups Joined
+              </Text>
+              <JoinedGroup />
+            </VStack>
+          }
         />
-      </Box>
-      );
+      </VStack>
+
+      {/* Mobile right-menu trigger */}
+      <Stack
+        as="button"
+        cursor="pointer"
+        onClick={() => setShowMenuList(true)}
+        display={{ base: "flex", md: "flex", lg: "none" }}
+        pos="absolute"
+        right="0"
+        top="80"
+        bg="main_background"
+        p="2"
+        zIndex={1000}
+        roundedLeft="100%"
+        color="text_primary"
+        h="10"
+        w="8"
+        alignItems="center"
+        justifyContent="center"
+        borderWidth="2px"
+        borderColor="button_border"
+      >
+        <BiMenuAltRight />
+      </Stack>
+
+      {/* Right sidebar */}
+      <VStack
+        display={{ base: "none", lg: "flex" }}
+        alignItems="stretch"
+        w="full"
+        spaceY={2}
+        h="full"
+        overflowY="auto"
+        css={noScrollbar}
+      >
+        <Button w="full" bg="button_bg" onClick={() => router.push("/groups/create")}>
+          <Text color="button_text" fontWeight="600">Create Group</Text>
+        </Button>
+        {!isEmpty(recommended) && !showPost ? (
+          <SuggestedCommunities />
+        ) : (
+          showPost && <Rules rules="" />
+        )}
+        {!isEmpty(trending) ? <TrendingCommunities /> : <TrendingEmptyState />}
+      </VStack>
+
+      <MenuList
+        showPost={showPost}
+        action={handleMobileTabChange}
+        open={showMenuList}
+        onOpenChange={() => setShowMenuList(false)}
+      />
+    </Box>
+  );
 };
 
 export default Index;
@@ -255,7 +196,7 @@ const JoinedGroup = () => {
   return (
     <HStack
       overflowX={"scroll"}
-      w={{ base: "100%", lg: "700px" }}
+      w="full"
       mx={{ base: "", md: "-0.5", lg: "-0.5", xl: "-0.5  " }}
       css={{
         "&::-webkit-scrollbar": {
@@ -390,7 +331,7 @@ const CreatedGroup = ({}) => {
   return (
     <HStack
       overflowX={"scroll"}
-      w="700px"
+      w="full"
       css={{
         "&::-webkit-scrollbar": {
           width: "0px",
