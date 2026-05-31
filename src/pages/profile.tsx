@@ -72,7 +72,13 @@ const Profile = () => {
   const router = useRouter();
   const { profileId } = (router.query as { profileId?: string }) || {};
 
-  // };
+  // Redirect legacy /profile?profileId=UUID → /profile/UUID
+  useEffect(() => {
+    if (profileId && !router.asPath.startsWith(`/profile/${profileId}`)) {
+      router.replace(`/profile/${profileId}`);
+    }
+  }, [profileId, router]);
+
   const { user } = useAuth();
   const { works, skills, educations, experiences, languages, consultings ,contact} =
     useProfile();

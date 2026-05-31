@@ -1,6 +1,5 @@
 
 import { Box, HStack, Text, VStack } from "@chakra-ui/react";
-import { map } from "lodash";
 import { useState } from "react";
 import SkillsModal from "./skillsmodal";
 import Loader from "./profile/loader";
@@ -73,8 +72,8 @@ const EditSkillCard = ({
               </Text>
             )}
 
-            {map(skills, (skill) => (
-              <VStack key={skill.id ?? skill.name} pl={4} w="full" alignItems={"flex-start"}>
+            {(Array.isArray(skills) ? skills : []).map((skill: any, index: number) => (
+              <VStack key={skill.id ?? skill.name ?? index} pl={4} w="full" alignItems={"flex-start"}>
                 <Text
                   textAlign={"left"}
                   w="full"

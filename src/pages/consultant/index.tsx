@@ -2,6 +2,10 @@ import {
   Box,
   EmptyState,
   HStack,
+  Icon,
+  Input,
+  InputGroup,
+  NativeSelect,
   SimpleGrid,
   Skeleton,
   SkeletonCircle,
@@ -10,6 +14,7 @@ import {
   Text,
   VStack,
 } from "@chakra-ui/react";
+import { LuSearch, LuSlidersHorizontal } from "react-icons/lu";
 import Biocard from "mangarine/components/ui-components/biocard";
 import DashboardCard from "mangarine/components/ui-components/dashboardcard";
 import GeneralFeed from "mangarine/components/ui-components/generalfeed";
@@ -49,6 +54,8 @@ const Index = () => {
   } = useGetConsultantsQuery(undefined);
   const myConsultdata = consultantData?.data?.consultants;
   const [consultants, setLConsultants] = useState([]);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [sortBy, setSortBy] = useState("name-az");
 
   useEffect(() => {
     if (consultantData) {
@@ -57,6 +64,28 @@ const Index = () => {
       dispatch(setConsultants(data.consultants));
     }
   }, [consultantData, dispatch]);
+
+  const filteredConsultants = (() => {
+    let list: any[] = Array.isArray(consultants) ? consultants : [];
+    if (searchQuery.trim()) {
+      const q = searchQuery.trim().toLowerCase();
+      list = list.filter((c: any) =>
+        [c.fullName, c.businessName, c.bio, c.location]
+          .filter(Boolean)
+          .some((field: string) => field.toLowerCase().includes(q))
+      );
+    }
+    switch (sortBy) {
+      case "name-az":
+        return [...list].sort((a, b) => (a.fullName ?? "").localeCompare(b.fullName ?? ""));
+      case "name-za":
+        return [...list].sort((a, b) => (b.fullName ?? "").localeCompare(a.fullName ?? ""));
+      case "followers":
+        return [...list].sort((a, b) => (b.followerCount ?? 0) - (a.followerCount ?? 0));
+      default:
+        return list;
+    }
+  })();
 
   const handleConsultantClick = (consultantId: string) => {
     dispatch(selectConsultant(consultantId));
@@ -143,11 +172,60 @@ const Index = () => {
         >
           <ConsultantTabs
             consultant={
-              <SimpleGrid
-                alignItems={"stretch"}
-                columns={{ base: 2, sm: 2, md: 2, lg: 3 }}
-                gap={4}
-              >
+              <VStack align="stretch" gap={4}>
+                {/* Search + Sort controls */}
+                <HStack gap={3} flexWrap="wrap">
+                  <InputGroup
+                    flex={1}
+                    minW="200px"
+                    startElement={
+                      <Icon color="gray.400" boxSize={4}>
+                        <LuSearch />
+                      </Icon>
+                    }
+                  >
+                    <Input
+                      placeholder="Search by name, specialty or location…"
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      bg="bg_box"
+                      borderColor="border_background"
+                      rounded="10px"
+                      h="40px"
+                      fontSize="0.875rem"
+                      color="text_primary"
+                      _placeholder={{ color: "text_muted" }}
+                      _focusVisible={{ borderColor: "#1C275D", boxShadow: "none" }}
+                    />
+                  </InputGroup>
+
+                  <HStack gap={2} flexShrink={0}>
+                    <Icon color="text_muted" boxSize={4}>
+                      <LuSlidersHorizontal />
+                    </Icon>
+                    <NativeSelect.Root w="160px" size="sm">
+                      <NativeSelect.Field
+                        value={sortBy}
+                        onChange={(e) => setSortBy(e.target.value)}
+                        bg="bg_box"
+                        borderColor="border_background"
+                        color="text_primary"
+                        rounded="10px"
+                        fontSize="0.875rem"
+                      >
+                        <option value="name-az">Name (A – Z)</option>
+                        <option value="name-za">Name (Z – A)</option>
+                        <option value="followers">Most Followers</option>
+                      </NativeSelect.Field>
+                    </NativeSelect.Root>
+                  </HStack>
+                </HStack>
+
+                <SimpleGrid
+                  alignItems={"stretch"}
+                  columns={{ base: 2, sm: 2, md: 2, lg: 3 }}
+                  gap={4}
+                >
                 {/* render consultants data */}
                 {isLoading ? (
                   // <Box>
@@ -221,8 +299,8 @@ const Index = () => {
                   <Box>
                     Oops!! Error fetching consultants. Please try again later.
                   </Box>
-                ) : Array.isArray(consultants) && consultants.length > 0 ? (
-                  consultants.map((consultant: any) => (
+                ) : filteredConsultants.length > 0 ? (
+                  filteredConsultants.map((consultant: any) => (
                     <Box key={consultant.id} cursor="pointer" h={"full"}>
                       <GeneralFeed
                         imageSrc={consultant.profilePics}
@@ -242,9 +320,14 @@ const Index = () => {
                     </Box>
                   ))
                 ) : (
-                  <Box>No consultants available to display</Box>
+                  <Box gridColumn="1 / -1" py={10} textAlign="center">
+                    <Text color="text_muted" fontSize="0.9rem">
+                      {searchQuery.trim() ? `No consultants found for "${searchQuery}"` : "No consultants available"}
+                    </Text>
+                  </Box>
                 )}
               </SimpleGrid>
+              </VStack>
             }
             specified={""}
           />
