@@ -116,17 +116,17 @@ const Profile = () => {
     isLoading: consultingLoading,
   } = useGetConsultingServicesQuery({ profileId });
 
-  // fetch target user info only when viewing another profile
+  // Fetch fresh profile data — for own profile pass undefined so the API hits /users/get/
   const {
     data: profileInfoRawData,
     currentData: profileInfoCurrentData,
-  } = useGetUserInfoQuery({ profileId }, { skip: !profileId });
+  } = useGetUserInfoQuery({ profileId });
 
   // API may return { data: {...} } or the object directly — normalise both shapes
   const unwrapUserInfo = (res: any) => res?.data ?? res;
-  // Use currentData to avoid showing stale own-profile data while the new query loads
-  const otherUserData = profileId ? unwrapUserInfo(profileInfoCurrentData ?? profileInfoRawData) : undefined;
-  const displayUser = profileId ? otherUserData : user;
+  const freshUserData = unwrapUserInfo(profileInfoCurrentData ?? profileInfoRawData);
+  // Merge fresh data (for up-to-date follower/following counts) with Redux user as fallback
+  const displayUser = profileId ? freshUserData : (freshUserData ?? user);
   const isOwnProfile = !profileId || profileId === user?.id;
 
   useEffect(() => {}, [user]);

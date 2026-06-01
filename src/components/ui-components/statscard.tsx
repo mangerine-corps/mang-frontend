@@ -1,5 +1,5 @@
 import { FC, useState } from 'react';
-import { Box, Text } from '@chakra-ui/react';
+import { Box, HStack, Text } from '@chakra-ui/react';
 import { useFollowUserMutation } from 'mangarine/state/services/posts.service';
 import { useAuth } from 'mangarine/state/hooks/user.hook';
 import { toaster } from '../ui/toaster';
@@ -86,39 +86,40 @@ const StatusCard: FC<StatsProps> = ({ data, followers, following }) => {
 
   return (
     <>
-      <Box
-        display="flex"
-        padding="8px"
-        alignItems="center"
-        gap="8px"
+      <HStack
+        px="3"
+        py="2"
+        gap="4"
         borderRadius="6px"
         background="main_background"
         boxShadow="0px 0px 4px 0px rgba(0, 0, 0, 0.10)"
-        w={{ base: "full", md: "fit-content" }}
-        justifyContent={{ base: "space-around", md: "flex-start" }}
+        flexWrap="nowrap"
+        flexShrink={0}
       >
         <Text
           cursor="pointer"
           fontSize="0.875rem"
           fontWeight="500"
-          pr="2"
+          whiteSpace="nowrap"
           onClick={() => setDrawerType("followers")}
         >
-          <Text as="span" color="grey.500" pr="1">{followers}</Text>
+          <Text as="span" color="grey.500" mr="1">{followers}</Text>
           <Text as="span" color="text_primary" fontWeight="600">Followers</Text>
         </Text>
+
+        <Text color="grey.300" userSelect="none">|</Text>
 
         <Text
           cursor="pointer"
           fontSize="0.875rem"
           fontWeight="500"
-          pr="2"
+          whiteSpace="nowrap"
           onClick={() => setDrawerType("following")}
         >
-          <Text as="span" color="grey.500" pr="1">{following}</Text>
+          <Text as="span" color="grey.500" mr="1">{following}</Text>
           <Text as="span" color="text_primary" fontWeight="600">Following</Text>
         </Text>
-      </Box>
+      </HStack>
 
       {drawerType && profileId && (
         <FollowersFollowingDrawer

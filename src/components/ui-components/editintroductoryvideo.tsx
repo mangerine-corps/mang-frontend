@@ -68,9 +68,8 @@ const EditIntroductionVideoCard = ({
       </HStack>
       <EditIntroVideoModal
         open={open}
-        onOpenChange={() => {
-          setOpen(false);
-        }}
+        onOpenChange={() => setOpen(false)}
+        currentVideoLink={videoLink}
       />
 
       <Box w="full" px="4">

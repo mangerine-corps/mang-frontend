@@ -5,6 +5,7 @@ import {
   HStack,
   Icon,
   Image,
+  NativeSelect,
   Text,
   VStack,
 } from "@chakra-ui/react";
@@ -28,6 +29,54 @@ import { useDispatch } from "react-redux";
 import { setCurrentEdu } from "mangarine/state/reducers/profile.reducer";
 import { toaster } from "../ui/toaster";
 import TopRightDrawer from "../ui/top-right-drawer";
+
+const MONTHS = [
+  "January", "February", "March", "April", "May", "June",
+  "July", "August", "September", "October", "November", "December",
+];
+
+const currentYear = new Date().getFullYear();
+const YEARS = Array.from({ length: currentYear - 1949 }, (_, i) => String(currentYear - i));
+
+const SelectField = ({
+  label,
+  required,
+  options,
+  placeholder,
+  value,
+  onChange,
+}: {
+  label: string;
+  required?: boolean;
+  options: string[];
+  placeholder: string;
+  value: string;
+  onChange: (v: string) => void;
+}) => (
+  <VStack alignItems="flex-start" gap={1} w="full">
+    <Text fontSize="0.75rem" color="text_primary" fontWeight="400">
+      {label}{required && <Text as="span" color="red.500"> *</Text>}
+    </Text>
+    <NativeSelect.Root size="md" w="full">
+      <NativeSelect.Field
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        color={value ? "text_primary" : "gray.400"}
+        borderColor="input_border"
+        borderRadius="8px"
+        pl={4}
+        _focus={{ borderColor: "primary.300", boxShadow: "none" }}
+        h="48px"
+      >
+        <option value="" disabled>{placeholder}</option>
+        {options.map((opt) => (
+          <option key={opt} value={opt}>{opt}</option>
+        ))}
+      </NativeSelect.Field>
+      <NativeSelect.Indicator />
+    </NativeSelect.Root>
+  </VStack>
+);
 
 const createDraftEducation = () => ({
   id: `draft-education-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
@@ -246,118 +295,75 @@ useEffect(() => {
           )}
         />
       </Box>
-      <HStack pb="2" w="full">
-        <Field.Root id="location" my={2}>
+      {/* Start Date */}
+      <VStack pb="2" w="full" alignItems="flex-start" gap={1}>
+        <Text fontSize="0.75rem" color="text_primary" fontWeight="400">
+          Start Date <Text as="span" color="red.500">*</Text>
+        </Text>
+        <HStack w="full" gap={3}>
+          <Controller
+            name="start_month"
+            control={control}
+            render={({ field: { onChange, value } }) => (
+              <SelectField
+                label=""
+                options={MONTHS}
+                placeholder="Month"
+                value={value}
+                onChange={onChange}
+              />
+            )}
+          />
+          <Controller
+            name="start_year"
+            control={control}
+            render={({ field: { onChange, value } }) => (
+              <SelectField
+                label=""
+                options={YEARS}
+                placeholder="Year"
+                value={value}
+                onChange={onChange}
+              />
+            )}
+          />
+        </HStack>
+      </VStack>
 
-
-          <HStack w="full">
-            <Controller
-              name="start_month"
-              control={control}
-              render={({ field: { onChange, value } }) => (
-                <CustomInput
-                  label="Start Month"
-                  placeholder="Start Month"
-                  id="start_date"
-                  required={true}
-                  name="start_date"
-                  value={value}
-                  size="md"
-                  onChange={onChange}
-                  //   error={{}}
-                  hasRightIcon={false}
-                  type={"text"}
-                  rightIcon={
-                    <Icon mr={"4"}>
-                      <Image src="/icons/mailIcon.svg" alt="mail-icon" />
-                    </Icon>
-                  }
-                />
-              )}
-            />
-            <Controller
-              name="start_year"
-              control={control}
-              render={({ field: { onChange, value } }) => (
-                <CustomInput
-                  label="Start year"
-                  placeholder="start year"
-                  id="end_date"
-                  required={true}
-                  name="end_date"
-                  value={value}
-                  size="md"
-                  onChange={onChange}
-                  //   error={{}}
-                  hasRightIcon={false}
-                  type={"text"}
-                  rightIcon={
-                    <Icon mr={"4"}>
-                      <Image src="/icons/mailIcon.svg" alt="mail-icon" />
-                    </Icon>
-                  }
-                />
-              )}
-            />
-          </HStack>
-        </Field.Root>
-      </HStack>
-      <HStack pb="2" w="full">
-        <Field.Root id="location" my={2}>
-
-
-          <HStack w="full">
-            <Controller
-              name="end_month"
-              control={control}
-              render={({ field: { onChange, value } }) => (
-                <CustomInput
-                  label="End Month"
-                  placeholder="End Month"
-                  id="start_date"
-                  required={true}
-                  name="start_date"
-                  value={value}
-                  size="md"
-                  onChange={onChange}
-                  //   error={{}}
-                  hasRightIcon={false}
-                  type={"text"}
-                  rightIcon={
-                    <Icon mr={"4"}>
-                      <Image src="/icons/mailIcon.svg" alt="mail-icon" />
-                    </Icon>
-                  }
-                />
-              )}
-            />
-            <Controller
-              name="end_year"
-              control={control}
-              render={({ field: { onChange, value } }) => (
-                <CustomInput
-                  label="End Year"
-                  placeholder="End Year"
-                  id="end_date"
-                  required={true}
-                  name="end_date"
-                  value={value}
-                  size="md"
-                  onChange={onChange}
-                  //   error={{}}
-                  hasRightIcon={false}
-                  type={"text"}
-                  rightIcon={
-                    <Icon mr={"4"}>
-                      <Image src="/icons/mailIcon.svg" alt="mail-icon" />
-                    </Icon>
-                  }
-                />
-              )}
-            />
-          </HStack>
-        </Field.Root>
-      </HStack>
+      {/* End Date */}
+      <VStack pb="2" w="full" alignItems="flex-start" gap={1}>
+        <Text fontSize="0.75rem" color="text_primary" fontWeight="400">
+          End Date <Text as="span" color="red.500">*</Text>
+        </Text>
+        <HStack w="full" gap={3}>
+          <Controller
+            name="end_month"
+            control={control}
+            render={({ field: { onChange, value } }) => (
+              <SelectField
+                label=""
+                options={MONTHS}
+                placeholder="Month"
+                value={value}
+                onChange={onChange}
+              />
+            )}
+          />
+          <Controller
+            name="end_year"
+            control={control}
+            render={({ field: { onChange, value } }) => (
+              <SelectField
+                label=""
+                options={YEARS}
+                placeholder="Year"
+                value={value}
+                onChange={onChange}
+              />
+            )}
+          />
+        </HStack>
+      </VStack>
       <Box pb={8} w="full">
         <HStack alignItems={"center"}>
           <Controller

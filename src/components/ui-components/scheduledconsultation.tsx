@@ -1,16 +1,35 @@
-import { Box, Flex, Text, HStack, Button, Image, Spinner, VStack } from "@chakra-ui/react";
-import { useState } from "react";
+import { Box, Flex, Text, HStack, Button, Image, Spinner, VStack, Badge } from "@chakra-ui/react";
+import { useState, useEffect } from "react";
 import { useGetUpcomingConsultationQuery } from "mangarine/state/services/apointment.service";
-import { format } from "date-fns";
+import { format, isAfter, subMinutes, isBefore, addMinutes } from "date-fns";
 import { useRouter } from "next/router";
 import AreyouCancellingModal from "./modals/areyoucancelling";
 import { safeProfilePic, imgErrorFallback } from "mangarine/lib/constants";
 import RescheduleConsultation from "./modals/rescheduleconsultation";
 
+// Returns true when we are within 10 min before start or before end
+const isJoinable = (item: any): boolean => {
+  const startRaw = item.scheduledDateTimeStart ?? item.scheduledDate;
+  const endRaw = item.scheduledDateTimeEnd;
+  if (!startRaw) return false;
+  const now = new Date();
+  const start = new Date(startRaw);
+  const canJoinFrom = subMinutes(start, 10);
+  const canJoinUntil = endRaw ? addMinutes(new Date(endRaw), 5) : addMinutes(start, 65);
+  return isAfter(now, canJoinFrom) && isBefore(now, canJoinUntil);
+};
+
 const ScheduledConsultation = () => {
   const [cancelId, setCancelId] = useState<string | null>(null);
   const [rescheduleId, setRescheduleId] = useState<string | null>(null);
+  const [, setTick] = useState(0);
   const router = useRouter();
+
+  // Re-render every 30 s so joinable state updates automatically
+  useEffect(() => {
+    const timer = setInterval(() => setTick((t) => t + 1), 30_000);
+    return () => clearInterval(timer);
+  }, []);
 
   const { data, isLoading } = useGetUpcomingConsultationQuery({});
 
@@ -140,32 +159,60 @@ const ScheduledConsultation = () => {
               </Flex>
 
               {/* Buttons */}
-              <Flex mt={3} gap={3}>
-                <Button
-                  variant="outline"
-                  borderColor="gray.300"
-                  color="button_bg"
-                  flex={1}
-                  borderRadius={8}
-                  fontSize="0.875rem"
-                  fontFamily="Outfit"
-                  onClick={() => setCancelId(item.id)}
-                >
-                  Cancel
-                </Button>
-                <Button
-                  bg="bt_schedule"
-                  color="white"
-                  flex={1}
-                  borderRadius={8}
-                  fontSize="0.875rem"
-                  fontFamily="Outfit"
-                  _hover={{ bg: "bt_schedule_hover" }}
-                  onClick={() => setRescheduleId(item.id)}
-                >
-                  Reschedule
-                </Button>
-              </Flex>
+              {isJoinable(item) ? (
+                <Flex mt={3} gap={3} direction="column">
+                  <Badge
+                    colorPalette="green"
+                    variant="subtle"
+                    borderRadius="full"
+                    px={3}
+                    py={1}
+                    fontSize="0.75rem"
+                    w="fit-content"
+                  >
+                    ● Live now
+                  </Badge>
+                  <Button
+                    bg="#111D4A"
+                    color="white"
+                    w="full"
+                    borderRadius={8}
+                    fontSize="0.875rem"
+                    fontFamily="Outfit"
+                    _hover={{ opacity: 0.85 }}
+                    onClick={() => router.push(`/message/videoconsultation?consultationId=${item.id}`)}
+                  >
+                    Join Consultation
+                  </Button>
+                </Flex>
+              ) : (
+                <Flex mt={3} gap={3}>
+                  <Button
+                    variant="outline"
+                    borderColor="gray.300"
+                    color="button_bg"
+                    flex={1}
+                    borderRadius={8}
+                    fontSize="0.875rem"
+                    fontFamily="Outfit"
+                    onClick={() => setCancelId(item.id)}
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    bg="bt_schedule"
+                    color="white"
+                    flex={1}
+                    borderRadius={8}
+                    fontSize="0.875rem"
+                    fontFamily="Outfit"
+                    _hover={{ bg: "bt_schedule_hover" }}
+                    onClick={() => setRescheduleId(item.id)}
+                  >
+                    Reschedule
+                  </Button>
+                </Flex>
+              )}
             </Box>
           );
         })

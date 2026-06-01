@@ -156,16 +156,16 @@ const FavouriteConsultantsComp = () => {
         })}
       </Flex>
 
-      {rawList.length > 3 && (
+      {rawList.length > 0 && (
         <Text
           fontSize="sm"
           fontWeight={500}
           color="#FC731A"
           cursor="pointer"
-          mt={4}
-          textAlign="center"
-          onClick={() => router.push("/consultant")}
+          px="6"
+          mt={2}
           _hover={{ textDecoration: "underline" }}
+          onClick={() => router.push("/saved")}
         >
           See all
         </Text>

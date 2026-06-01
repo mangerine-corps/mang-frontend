@@ -12,9 +12,8 @@ import { useEffect, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { HiMiniPlus } from "react-icons/hi2";
-import moment from "moment";
 import * as Yup from "yup";
-import { isEmpty, isEqual, map } from "es-toolkit/compat";
+import { isEqual, map } from "es-toolkit/compat";
 
 import {
   useAddSkillMutation,
@@ -25,7 +24,6 @@ import CustomInput from "../customcomponents/Input";
 import { toaster } from "../ui/toaster";
 import TopRightDrawer from "../ui/top-right-drawer";
 
-// ------------------ Validation Schema ------------------ //
 const skillsSchema = Yup.object().shape({
   name: Yup.string().required("Skill name is required"),
   skills: Yup.array()
@@ -38,9 +36,10 @@ interface SkillObj {
   id: string;
   name: string;
   skills: string[];
+  _new?: boolean;
 }
 
-// ------------------ Input With Pills ------------------ //
+// ---------- Input that adds pills on Enter ----------
 const InputWithPills = ({
   value,
   onChange,
@@ -73,42 +72,32 @@ const InputWithPills = ({
           value={inputValue}
           onChange={(e) => setInputValue(e.target.value)}
           onKeyDown={handleKeyDown}
-          color={"text_primary"}
-          _placeholder={{
-            color: "gray.150",
-            fontSize: "14px",
-          }}
+          color="text_primary"
+          _placeholder={{ color: "gray.150", fontSize: "14px" }}
         />
       </InputGroup>
     </VStack>
   );
 };
 
-// ------------------ Single Skill Item ------------------ //
+// ---------- Single skill item ----------
 const SkillItem = ({
   skill,
   onClose,
+  onRemove,
 }: {
   skill: SkillObj;
   onClose: () => void;
+  onRemove: () => void;
 }) => {
   const [skills, setSkills] = useState<string[]>(skill.skills);
-  const [isDisabled, setIsDisabled] = useState(true);
   const [addNewSkill, { isLoading }] = useAddSkillMutation();
   const [deleteSkill, { isLoading: deleteLoading }] = useDeleteSkillMutation();
-  const { skills: profileSkills } = useProfile();
 
-  const { control, getValues, formState } = useForm({
+  const { control, getValues } = useForm({
     resolver: yupResolver(skillsSchema),
     defaultValues: { name: skill.name, skills: skill.skills },
   });
-
-  // Enable Save button only if something changed
-  useEffect(() => {
-    setIsDisabled(
-      skill.name === getValues("name") && isEqual(skill.skills, skills)
-    );
-  }, [skills, skill, getValues]);
 
   const handleSave = () => {
     const values = getValues();
@@ -127,13 +116,15 @@ const SkillItem = ({
       .catch(console.error);
   };
 
-  const handleDelete = (item) => {
-    console.log(item, "delee");
-    const id = item.id;
-    deleteSkill(id)
+  const handleDelete = () => {
+    // New unsaved form — just remove it
+    if (skill._new) {
+      onRemove();
+      return;
+    }
+    deleteSkill(skill.id)
       .unwrap()
       .then((res) => {
-        console.log(res, "res");
         toaster.create({
           title: "Success!",
           description: res.message,
@@ -141,11 +132,9 @@ const SkillItem = ({
           duration: 9000,
           closable: true,
         });
-          setSkills((prev) => prev.filter((skill)=> skill !==item.name));
         onClose();
       })
       .catch((err) => {
-        console.log(err);
         toaster.create({
           title: "Error!",
           description: err?.message || "Failed to delete skill",
@@ -153,9 +142,7 @@ const SkillItem = ({
           duration: 9000,
           closable: true,
         });
-        onClose();
       });
-
   };
 
   const handleRemovePill = (index: number) => {
@@ -193,41 +180,48 @@ const SkillItem = ({
       />
 
       {/* Pills */}
-      <HStack wrap="wrap" w="full" bg="primary.150" p={2} rounded="lg">
-        {skills.map((s, idx) => (
-          <Tag.Root
-            borderColor={"text_primary"} borderWidth={0.5} key={idx} p={2} rounded="full">
-            <Tag.Label>{s}</Tag.Label>
-            <Tag.CloseTrigger onClick={() => handleRemovePill(idx)} />
-          </Tag.Root>
-        ))}
-      </HStack>
+      {skills.length > 0 && (
+        <HStack wrap="wrap" w="full" bg="primary.150" p={2} rounded="lg">
+          {skills.map((s, idx) => (
+            <Tag.Root
+              borderColor="text_primary"
+              borderWidth={0.5}
+              key={idx}
+              p={2}
+              rounded="full"
+            >
+              <Tag.Label>{s}</Tag.Label>
+              <Tag.CloseTrigger onClick={() => handleRemovePill(idx)} />
+            </Tag.Root>
+          ))}
+        </HStack>
+      )}
 
-      {/* Save Button */}
-      <HStack w="full" justify="flex-end">
+      {/* Buttons */}
+      <HStack w="full" gap={4} pt={2}>
         <Button
-          w="45%"
+          flex={1}
           rounded="6px"
-          bg="primary.300"
-          color="white"
-          // disabled={isDisabled || !formState.isValid}
+          bg="transparent"
+          borderWidth="1px"
+          borderColor="primary.300"
+          color="primary.300"
           loading={deleteLoading}
-          onClick={() => {
-            handleDelete(skill);
-          }}
+          onClick={handleDelete}
+          h="44px"
         >
           Delete Skill
         </Button>
         <Button
-          w="45%"
+          flex={1}
           rounded="6px"
           bg="#111D4A"
           borderColor="#111D4A"
           color="white"
           _hover={{ bg: "#111D4A" }}
-          // disabled={isDisabled || !formState.isValid}
           loading={isLoading}
           onClick={handleSave}
+          h="44px"
         >
           Save Skill
         </Button>
@@ -236,7 +230,7 @@ const SkillItem = ({
   );
 };
 
-// ------------------ Skills Modal ------------------ //
+// ---------- Modal ----------
 const SkillsModal = ({
   open,
   onOpenChange,
@@ -245,23 +239,32 @@ const SkillsModal = ({
   onOpenChange: () => void;
 }) => {
   const { skills } = useProfile();
-  const emptySkill = (): SkillObj => ({ id: moment().unix().toString(), name: "", skills: [] });
 
-  const [localSkills, setLocalSkills] = useState<SkillObj[]>(
-    skills?.length ? skills : [emptySkill()]
-  );
+  const makeNew = (): SkillObj => ({
+    id: Date.now().toString(),
+    name: "",
+    skills: [],
+    _new: true,
+  });
+
+  const [localSkills, setLocalSkills] = useState<SkillObj[]>([]);
 
   useEffect(() => {
-    setLocalSkills(skills?.length ? skills : [emptySkill()]);
-  }, [skills]);
+    if (open) {
+      setLocalSkills(
+        skills?.length
+          ? skills.map((s: any) => ({ ...s, _new: false }))
+          : [makeNew()]
+      );
+    }
+  }, [open, skills]);
 
-  const handleAddSkillBlock = () => {
-    const newSkill: SkillObj = {
-      id: moment().unix().toString(),
-      name: "",
-      skills: [],
-    };
-    setLocalSkills((prev) => [...prev, newSkill]);
+  const handleAdd = () => {
+    setLocalSkills((prev) => [...prev, makeNew()]);
+  };
+
+  const handleRemove = (id: string) => {
+    setLocalSkills((prev) => prev.filter((s) => s.id !== id));
   };
 
   return (
@@ -272,15 +275,15 @@ const SkillsModal = ({
       headerAction={
         <Box
           as="button"
-          border={0.5}
-          rounded={4}
+          borderWidth="1px"
+          borderColor="input_border"
+          rounded="6px"
           p={2}
-          borderColor="gray.150"
-          shadow="md"
           color="text_primary"
-          onClick={handleAddSkillBlock}
+          _hover={{ bg: "bg_box" }}
+          onClick={handleAdd}
         >
-          <HiMiniPlus />
+          <HiMiniPlus size={16} />
         </Box>
       }
       bodyProps={{
@@ -295,10 +298,10 @@ const SkillsModal = ({
             key={skill.id}
             skill={skill}
             onClose={onOpenChange}
+            onRemove={() => handleRemove(skill.id)}
           />
         ))}
       </VStack>
-
     </TopRightDrawer>
   );
 };

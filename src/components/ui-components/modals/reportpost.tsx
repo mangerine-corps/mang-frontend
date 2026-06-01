@@ -161,84 +161,60 @@ const ReportPost = ({ onOpenChange, isOpen, postId, userId }: props) => {
                       {
                         id: 1,
                         label: "Inappropriate Content",
-                        description:
-                          "Content that is violent, sexually explicit, or otherwise inappropriate.",
+                        description: "Content that is violent, sexually explicit, or otherwise inappropriate.",
                       },
                       {
                         id: 2,
                         label: "Harassment or Bullying",
-                        description:
-                          "Behavior that targets and intimidates another user.",
+                        description: "Behavior that targets and intimidates another user.",
                       },
                       {
                         id: 3,
                         label: "Spam or Scam",
-                        description:
-                          "Posts or messages that are misleading or fraudulent.",
+                        description: "Posts or messages that are misleading or fraudulent.",
                       },
                       {
                         id: 4,
                         label: "Fake Account",
-                        description:
-                          "An account impersonating someone else or providing false information.",
+                        description: "An account impersonating someone else or providing false information.",
                       },
                       {
                         id: 5,
                         label: "Hate Speech or Offensive Language",
-                        description:
-                          "Content that promotes hate or uses offensive language.",
+                        description: "Content that promotes hate or uses offensive language.",
+                      },
+                      {
+                        id: 6,
+                        label: "Other",
+                        description: "Any other issue not covered above.",
                       },
                     ].map((item) => (
                       <RadioGroup.Item key={item.id} value={item.label}>
                         <RadioGroup.ItemHiddenInput />
                         <RadioGroup.ItemIndicator />
                         <RadioGroup.ItemText color={"text_primary"}>
-                          <HStack>
-                            {item.label} {item.description}
-                          </HStack>
+                          <VStack alignItems="flex-start" gap={0}>
+                            <Text fontWeight="500" color="text_primary">{item.label}</Text>
+                            <Text fontSize="0.8rem" color="grey.300" fontWeight="400">{item.description}</Text>
+                          </VStack>
                         </RadioGroup.ItemText>
-                        <RadioGroup.ItemText
-                          color={"grey.300"}
-                        ></RadioGroup.ItemText>
                       </RadioGroup.Item>
                     ))}
                   </VStack>
                 </RadioGroup.Root>
               </VStack>
 
-              <Text
-                textAlign={"left"}
-                w="full"
-                // px={"6"}
-                fontSize={"1rem"}
-                fontFamily={"Outfit"}
-                color={"text_primary"}
-                fontWeight={"400"}
-                my="2"
-              >
-                Other
-              </Text>
-              <Text
-                textAlign={"left"}
-                w="full"
-                // px={"6"}
-                fontSize={"1rem"}
-                fontFamily={"Outfit"}
-                color={"grey.300"}
-                fontWeight={"400"}
-                mb="2"
-              >
-                Any other issue not covered above
-              </Text>
-              <Textarea
-                placeholder="Any other issue not covered above"
-                // minH="100px"
-                mb="6"
-                color="text_primary"
-                p={3}
-                h="6lh"
-                onChange={(e) => setReport(e.target.value)}
-              />
+              {value === "Other" && (
+                <Textarea
+                  placeholder="Please describe the issue…"
+                  mb="6"
+                  mt="4"
+                  color="text_primary"
+                  p={3}
+                  h="6lh"
+                  onChange={(e) => setReport(e.target.value)}
+                />
+              )}
               </>
               )}
             </Dialog.Body>

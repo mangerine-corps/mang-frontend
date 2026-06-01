@@ -1,4 +1,4 @@
-import { Box, Button, HStack, Text, VStack } from "@chakra-ui/react";
+import { Box, Button, HStack, NativeSelect, Text, VStack } from "@chakra-ui/react";
 import { useEffect, useState } from "react";
 
 import * as Yup from "yup";
@@ -18,6 +18,42 @@ import CustomInput from "../customcomponents/Input";
 import CustomSelect from "../customcomponents/select";
 import { toaster } from "../ui/toaster";
 import TopRightDrawer from "../ui/top-right-drawer";
+
+const MONTHS = [
+  "January","February","March","April","May","June",
+  "July","August","September","October","November","December",
+];
+const currentYear = new Date().getFullYear();
+const YEARS = Array.from({ length: currentYear - 1949 }, (_, i) => String(currentYear - i));
+
+const MonthYearSelect = ({
+  value,
+  onChange,
+  placeholder,
+}: {
+  value: string;
+  onChange: (v: string) => void;
+  placeholder: "Month" | "Year";
+}) => (
+  <NativeSelect.Root size="md" w="full">
+    <NativeSelect.Field
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+      color={value ? "text_primary" : "gray.400"}
+      borderColor="input_border"
+      borderRadius="8px"
+      pl={4}
+      h="48px"
+      _focus={{ borderColor: "primary.300", boxShadow: "none" }}
+    >
+      <option value="" disabled>{placeholder}</option>
+      {(placeholder === "Month" ? MONTHS : YEARS).map((opt) => (
+        <option key={opt} value={opt}>{opt}</option>
+      ))}
+    </NativeSelect.Field>
+    <NativeSelect.Indicator />
+  </NativeSelect.Root>
+);
 
 const createDraftExperience = () => ({
   id: `draft-experience-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
@@ -290,91 +326,52 @@ const ExperienceItem = ({
         />
       </Box>
 
-      <HStack pb="2" w="full">
-        <HStack w="full">
+      {/* Start Date */}
+      <VStack pb="2" w="full" alignItems="flex-start" gap={1}>
+        <Text fontSize="0.75rem" color="text_primary" fontWeight="400">
+          Start Date <Text as="span" color="red.500">*</Text>
+        </Text>
+        <HStack w="full" gap={3}>
           <Controller
             name="start_month"
             control={control}
             render={({ field: { onChange, value } }) => (
-              <CustomInput
-                label="Start Month"
-                placeholder="Start Month"
-                id="start_month"
-                required={true}
-                name="start_month"
-                value={value}
-                size="md"
-                onChange={onChange}
-                error={errors.start_month}
-                hasRightIcon={false}
-                type={"text"}
-              />
+              <MonthYearSelect value={value} onChange={onChange} placeholder="Month" />
             )}
           />
           <Controller
             name="start_year"
             control={control}
             render={({ field: { onChange, value } }) => (
-              <CustomInput
-                label="Start Year"
-                placeholder="Start Year"
-                id="start_year"
-                required={true}
-                name="start_year"
-                value={value}
-                size="md"
-                onChange={onChange}
-                error={errors.start_year}
-                hasRightIcon={false}
-                type={"text"}
-              />
+              <MonthYearSelect value={value} onChange={onChange} placeholder="Year" />
             )}
           />
         </HStack>
-      </HStack>
+      </VStack>
+
+      {/* End Date */}
       {!isCurrent && (
-        <HStack pb="2" w="full">
-          <HStack w="full">
+        <VStack pb="2" w="full" alignItems="flex-start" gap={1}>
+          <Text fontSize="0.75rem" color="text_primary" fontWeight="400">
+            End Date <Text as="span" color="red.500">*</Text>
+          </Text>
+          <HStack w="full" gap={3}>
             <Controller
               name="end_month"
               control={control}
               render={({ field: { onChange, value } }) => (
-                <CustomInput
-                  label="End Month"
-                  placeholder="End Month"
-                  id="end_month"
-                  required={true}
-                  name="end_month"
-                  value={value}
-                  size="md"
-                  onChange={onChange}
-                  error={errors.end_month}
-                  hasRightIcon={false}
-                  type={"text"}
-                />
+                <MonthYearSelect value={value} onChange={onChange} placeholder="Month" />
               )}
             />
             <Controller
               name="end_year"
               control={control}
               render={({ field: { onChange, value } }) => (
-                <CustomInput
-                  label="End Year"
-                  placeholder="End Year"
-                  id="end_year"
-                  required={true}
-                  name="end_year"
-                  value={value}
-                  size="md"
-                  onChange={onChange}
-                  error={errors.end_year}
-                  hasRightIcon={false}
-                  type={"text"}
-                />
+                <MonthYearSelect value={value} onChange={onChange} placeholder="Year" />
               )}
             />
           </HStack>
-        </HStack>
+        </VStack>
       )}
       <Box pb={8} w="full">
         <HStack alignItems={"center"}>

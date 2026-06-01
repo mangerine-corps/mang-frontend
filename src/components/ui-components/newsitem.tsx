@@ -252,7 +252,7 @@ const NewsItem: React.FC<NewsItemProps> = ({ post, isDetailPage = false }) => {
           </VStack>
         </HStack>
 
-        <Menu.Root>
+        <Menu.Root positioning={{ placement: "bottom-end" }}>
           <Menu.Trigger asChild>
             <Button variant="ghost" size="sm">
               <Stack
@@ -272,70 +272,97 @@ const NewsItem: React.FC<NewsItemProps> = ({ post, isDetailPage = false }) => {
           </Menu.Trigger>
           <Portal>
             <Menu.Positioner>
-              <Menu.Content bg="bg_box" rounded={"md"} shadow={"lg"}>
+              <Menu.Content
+                bg="bg_box"
+                rounded="xl"
+                shadow="lg"
+                minW="220px"
+                py={2}
+                borderWidth="1px"
+                borderColor="gray.100"
+                overflow="hidden"
+              >
                 {post?.creator?.id === user?.id ? (
                   <>
                     <Menu.Item
-                      p={2}
+                      px={4}
+                      py={3}
                       value="toggle-comments"
                       onClick={handleToggleComments}
+                      cursor="pointer"
+                      _hover={{ bg: "bg_hover" }}
                     >
-                      {(post?.allowComments ?? true)
-                        ? "Disable comments"
-                        : "Enable comments"}
+                      <Text fontSize="0.875rem" fontWeight="500" color="text_primary">
+                        {(post?.allowComments ?? true) ? "Disable comments" : "Enable comments"}
+                      </Text>
                     </Menu.Item>
                     <Menu.Item
-                      p={2}
+                      px={4}
+                      py={3}
                       value="delete"
-                      onClick={() => {
-                        setDeletePost(true);
-                      }}
+                      cursor="pointer"
+                      _hover={{ bg: "red.50" }}
+                      onClick={() => setDeletePost(true)}
                     >
-                      Delete Post
+                      <Text fontSize="0.875rem" fontWeight="500" color="red.500">
+                        Delete Post
+                      </Text>
                     </Menu.Item>
                   </>
                 ) : (
                   <>
                     <Menu.Item
                       onClick={handleFollow}
-                      p={2}
+                      px={4}
+                      py={3}
                       value={isFollowing ? "unfollow" : "follow"}
+                      cursor="pointer"
+                      _hover={{ bg: "bg_hover" }}
                     >
-                      <HStack gap={2}>
+                      <HStack gap={3}>
                         <svg width="16" height="20" viewBox="0 0 16 20" fill="none" xmlns="http://www.w3.org/2000/svg">
                           <path d="M0.75 16.8615C0.75 14.4484 2.44732 12.393 4.75404 12.0127L4.96182 11.9784C6.80892 11.6739 8.69108 11.6739 10.5382 11.9784L10.746 12.0127C13.0527 12.393 14.75 14.4484 14.75 16.8615C14.75 17.9045 13.9315 18.75 12.9219 18.75H2.57813C1.56848 18.75 0.75 17.9045 0.75 16.8615Z" stroke="#6D6D6D" strokeWidth="1.5"/>
                           <path d="M11.8334 4.6875C11.8334 6.86212 10.0052 8.625 7.75002 8.625C5.49486 8.625 3.66669 6.86212 3.66669 4.6875C3.66669 2.51288 5.49486 0.75 7.75002 0.75C10.0052 0.75 11.8334 2.51288 11.8334 4.6875Z" stroke="#6D6D6D" strokeWidth="1.5"/>
                         </svg>
-                        <Text>{isFollowing ? "Unfollow" : `Follow ${post?.creator?.fullName}`}</Text>
+                        <Text fontSize="0.875rem" fontWeight="500" color="text_primary">
+                          {isFollowing ? "Unfollow" : `Follow ${post?.creator?.fullName}`}
+                        </Text>
                       </HStack>
                     </Menu.Item>
 
+                    <Box px={4}><Box h="1px" bg="gray.100" /></Box>
+
                     <Menu.Item
-                      cursor={"pointer"}
+                      cursor="pointer"
                       onClick={() => setReport(true)}
-                      p={2}
+                      px={4}
+                      py={3}
                       value="report"
+                      _hover={{ bg: "bg_hover" }}
                     >
-                      <HStack gap={2}>
+                      <HStack gap={3}>
                         <svg width="16" height="20" viewBox="0 0 16 20" fill="none" xmlns="http://www.w3.org/2000/svg">
                           <path d="M13.342 7.46269C13.202 7.1821 13.202 6.84738 13.342 6.56579L15.895 1.45007C16.05 1.13941 16.033 0.770617 15.851 0.474996C15.669 0.180378 15.347 0 15 0H5C2.243 0 0 2.24772 0 5.01052V18.9979C0 19.5521 0.448 20 1 20C1.552 20 2 19.5521 2 18.9979V14.0295H15C15.347 14.0295 15.668 13.8491 15.851 13.5535C16.034 13.2579 16.05 12.8891 15.895 12.5784L13.342 7.46269ZM2 12.0252V5.01052C2 3.35304 3.346 2.00421 5 2.00421H13.382L11.553 5.66986C11.133 6.51163 11.133 7.51783 11.553 8.35959L13.382 12.0252H2Z" fill="#6D6D6D"/>
                         </svg>
-                        <Text>Report this post</Text>
+                        <Text fontSize="0.875rem" fontWeight="500" color="text_primary">
+                          Report this post
+                        </Text>
                       </HStack>
                     </Menu.Item>
 
                     <Menu.Item
-                      p={2}
+                      px={4}
+                      py={3}
                       value="not-interested"
                       cursor="pointer"
+                      _hover={{ bg: "bg_hover" }}
                       onClick={() => {
                         markNotInterested(post?.id)
                           .unwrap()
                           .then(() => {
                             dispatch(removeFromFeed(post?.id));
                             toaster.create({
-                              title: "Post hidden",
-                              description: "You won't see this post in your feed anymore.",
+                              description: "This post won't be on your feed again.",
                               type: "success",
                               duration: 3000,
                               closable: true,
@@ -352,12 +379,14 @@ const NewsItem: React.FC<NewsItemProps> = ({ post, isDetailPage = false }) => {
                           });
                       }}
                     >
-                      <HStack gap={2}>
+                      <HStack gap={3}>
                         <svg width="17" height="17" viewBox="0 0 17 17" fill="none" xmlns="http://www.w3.org/2000/svg">
                           <rect x="1" y="1" width="15" height="15" rx="7.5" stroke="#6D6D6D" strokeWidth="2"/>
                           <line x1="3.29289" y1="14.2929" x2="14.2929" y2="3.29289" stroke="#6D6D6D" strokeWidth="2"/>
                         </svg>
-                        <Text>Not interested</Text>
+                        <Text fontSize="0.875rem" fontWeight="500" color="text_primary">
+                          Not interested
+                        </Text>
                       </HStack>
                     </Menu.Item>
                   </>
@@ -384,11 +413,6 @@ const NewsItem: React.FC<NewsItemProps> = ({ post, isDetailPage = false }) => {
           {post?.content}
         </Text>
 
-        {!isDetailPage && post?.content.length > 100 ? (
-          <Text fontSize={"12px"} color="#FC731A" cursor={"pointer"} mt={1}>
-            Read more
-          </Text>
-        ) : null}
 
         {size(post?.images) > 0 && (() => {
           const imgs = post.images;
@@ -548,7 +572,7 @@ const NewsItem: React.FC<NewsItemProps> = ({ post, isDetailPage = false }) => {
           action={() => {}}
         />
 
-        <Menu.Root>
+        <Menu.Root positioning={{ placement: "bottom-end" }}>
           <Menu.Trigger asChild>
             <Button bg="transparent" border="none" size="sm" p={0}>
               <NewsAction

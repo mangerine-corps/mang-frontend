@@ -42,14 +42,17 @@ const ConsultationPage = () => {
       setActiveTab(tabParam);
       return;
     }
-    // Default tab based on user role
+    // Default to history for everyone — shows bookings they made as a client
     if (user) {
-      setActiveTab(user.isConsultant === true ? "upcoming" : "history");
+      setActiveTab("history");
     }
   }, [user?.isConsultant, router.query.tab]);
 
+  // All users see "Consultation History" — their own bookings with other consultants.
+  // Consultants additionally see "Upcoming Consultations" (their incoming appointments as a consultant).
   const tabs = isConsultant
     ? [
+        { label: "Consultation History", value: "history" },
         { label: "Upcoming Consultations", value: "upcoming" },
         { label: "Payment History", value: "payment" },
         { label: "Consultation Videos", value: "videos" },

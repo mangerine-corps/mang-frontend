@@ -4,8 +4,6 @@ import { Avatar, Box, BoxProps, Flex, Image, Text } from "@chakra-ui/react";
 import { safeProfilePic, imgErrorFallback } from "mangarine/lib/constants";
 import { useFavoriteConsultantMutation, useUnfavoriteConsultantMutation } from "mangarine/state/services/consultant.service";
 import { useAuth } from "mangarine/state/hooks/user.hook";
-import { useDispatch } from "react-redux";
-import { addFavoriteConsultant } from "mangarine/state/reducers/consultant.reducer";
 
 const heart = "/icons/heart.svg";
 const aheart = "/icons/aheart.svg";
@@ -41,7 +39,6 @@ const GeneralFeed: React.FC<GeneralFeedProps> = ({
   const [favoriteConsultant] = useFavoriteConsultantMutation();
   const [unfavoriteConsultant] = useUnfavoriteConsultantMutation();
   const { user } = useAuth();
-  const dispatch = useDispatch();
 
   useEffect(() => {
     setIsLiked(!!isFavorited);
@@ -52,10 +49,7 @@ const GeneralFeed: React.FC<GeneralFeedProps> = ({
     if (!isLiked) {
       favoriteConsultant({ consultantId, userId: user.id })
         .unwrap()
-        .then((res) => {
-          setIsLiked(true);
-          dispatch(addFavoriteConsultant(res.data.consultationId));
-        })
+        .then(() => setIsLiked(true))
         .catch(() => {});
     } else {
       unfavoriteConsultant({ consultantId, userId: user.id })

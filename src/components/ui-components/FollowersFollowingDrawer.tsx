@@ -1,5 +1,5 @@
 import { Avatar, Box, Button, HStack, Spinner, Text, VStack } from "@chakra-ui/react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import TopRightDrawer from "mangarine/components/ui/top-right-drawer";
 import { useGetFollowersListQuery, useGetFollowingListQuery } from "mangarine/state/services/profile.service";
@@ -13,10 +13,28 @@ interface Props {
   count?: number;
 }
 
-const FollowListItem = ({ item, defaultFollowing = false, onNavigate }: { item: any; defaultFollowing?: boolean; onNavigate?: () => void }) => {
-  const [localFollowing, setLocalFollowing] = useState<boolean>(item?.isFollowing ?? defaultFollowing);
+const normalizeList = (data: any): any[] => {
+  const arr = data?.data ?? data;
+  return Array.isArray(arr) ? arr : [];
+};
+
+const FollowListItem = ({
+  item,
+  isFollowingInitial,
+  onNavigate,
+}: {
+  item: any;
+  isFollowingInitial: boolean;
+  onNavigate?: () => void;
+}) => {
+  const [localFollowing, setLocalFollowing] = useState<boolean>(isFollowingInitial);
   const [followUser, { isLoading }] = useFollowUserMutation();
   const router = useRouter();
+
+  // Sync with parent when the following list refreshes after a mutation
+  useEffect(() => {
+    setLocalFollowing(isFollowingInitial);
+  }, [isFollowingInitial]);
 
   const handleFollow = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -80,18 +98,25 @@ const FollowListItem = ({ item, defaultFollowing = false, onNavigate }: { item: 
 const FollowersFollowingDrawer = ({ open, onClose, type, profileId, count }: Props) => {
   const isFollowers = type === "followers";
 
+  // Always fetch both lists so we can cross-reference follow state
   const { data: followersData, isFetching: loadingFollowers } = useGetFollowersListQuery(
     { profileId },
-    { skip: !open || !isFollowers || !profileId }
+    { skip: !open || !profileId }
   );
   const { data: followingData, isFetching: loadingFollowing } = useGetFollowingListQuery(
     { profileId },
-    { skip: !open || isFollowers || !profileId }
+    { skip: !open || !profileId }
   );
 
-  const list: any[] = isFollowers
-    ? (followersData?.data ?? followersData ?? [])
-    : (followingData?.data ?? followingData ?? []);
+  const followersList = normalizeList(followersData);
+  const followingList = normalizeList(followingData);
+
+  // Build a set of IDs the current user is following for O(1) lookup
+  const followingIds = new Set<string>(
+    followingList.map((u: any) => u?.id ?? u?._id).filter(Boolean)
+  );
+
+  const list = isFollowers ? followersList : followingList;
   const isLoading = isFollowers ? loadingFollowers : loadingFollowing;
 
   const title = `${isFollowers ? "Followers" : "Following"}${count !== undefined ? ` (${count})` : ""}`;
@@ -114,11 +139,23 @@ const FollowersFollowingDrawer = ({ open, onClose, type, profileId, count }: Pro
         </VStack>
       ) : (
         <VStack w="full" gap={0}>
-          {list.map((item, i) => (
-            <Box key={item?.id ?? item?._id ?? i} w="full" borderBottomWidth="1px" borderColor="input_border">
-              <FollowListItem item={item} defaultFollowing={!isFollowers} onNavigate={onClose} />
-            </Box>
-          ))}
+          {list.map((item, i) => {
+            const id = item?.id ?? item?._id;
+            // For followers: check if we're actually following them back
+            // For following: we're always following them
+            const isFollowingInitial = isFollowers
+              ? followingIds.has(id)
+              : true;
+            return (
+              <Box key={id ?? i} w="full" borderBottomWidth="1px" borderColor="input_border">
+                <FollowListItem
+                  item={item}
+                  isFollowingInitial={isFollowingInitial}
+                  onNavigate={onClose}
+                />
+              </Box>
+            );
+          })}
         </VStack>
       )}
     </TopRightDrawer>
