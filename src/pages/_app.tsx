@@ -47,6 +47,7 @@ const PAGE_TITLES: Record<string, string> = {
   "/my-business": "My Business",
   "/my-business/dashboard": "Business Dashboard",
   "/payment-success": "Payment Successful",
+  "/consultant-learn-more": "Become a Consultant",
   "/privacypolicy": "Privacy Policy",
   "/termsofservice": "Terms of Service",
   "/auth/login": "Sign In",

@@ -2,11 +2,13 @@ import {
   CloseButton,
   Dialog,
   HStack,
+  Link,
   Portal,
   Text,
   VStack,
 } from "@chakra-ui/react";
 import CustomButton from "mangarine/components/customcomponents/button";
+import NextLink from "next/link";
 import { useRouter } from "next/router";
 
 type props = {
@@ -95,9 +97,6 @@ const BecomeAConsultantModal = ({ onOpenChange, isOpen }: props) => {
                     🔹 Reach users looking for your expertise
                   </Text>
                   <Text
-                    //   textAlign={"center"}
-
-                    // px={"6"}
                     fontSize={"0.875rem"}
                     fontFamily={"Outfit"}
                     color={"text_primary"}
@@ -106,6 +105,16 @@ const BecomeAConsultantModal = ({ onOpenChange, isOpen }: props) => {
                     🔹 Get paid for your time and insight
                   </Text>
                 </VStack>
+                <Link
+                  asChild
+                  color="blue.400"
+                  fontSize={"0.875rem"}
+                  fontWeight={"500"}
+                  w="full"
+                  textDecoration="underline"
+                >
+                  <NextLink href="/consultant-learn-more">Learn More</NextLink>
+                </Link>
               </VStack>
             </Dialog.Body>
             <Dialog.Footer mx="auto" w="100%" py={4}>
