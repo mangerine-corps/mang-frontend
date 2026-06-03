@@ -9,7 +9,7 @@ import { useAuth } from "mangarine/state/hooks/user.hook";
 const WhoToFollow = () => {
   const { user } = useAuth();
   const { data: recommendations, isLoading } = useGetProfileRecommendationsQuery({});
-  const { data: followingData } = useGetFollowingListQuery(
+  const { data: followingData, refetch } = useGetFollowingListQuery(
     { profileId: user?.id, limit: 200 },
     { skip: !user?.id }
   );

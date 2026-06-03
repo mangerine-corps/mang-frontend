@@ -29,23 +29,32 @@ const FilterSearch = ({ onSelect }: FilterSearchProps) => {
 
   useEffect(() => {
     const items: any[] = followingData?.data?.items ?? followingData?.data ?? [];
-    if (items.length > 0) {
-      setFollowedIds(new Set(items.map((u: any) => u.id)));
-    }
+    setFollowedIds(new Set(items.map((u: any) => u.id)));
   }, [followingData]);
 
   const handleToggleFollow = async (e: React.MouseEvent, userId: string) => {
     e.stopPropagation();
     const isFollowing = followedIds.has(userId);
+    // optimistic update
+    setFollowedIds((prev) => {
+      const s = new Set(prev);
+      isFollowing ? s.delete(userId) : s.add(userId);
+      return s;
+    });
     try {
       if (isFollowing) {
         await unfollowUser({ targetUserId: userId }).unwrap();
-        setFollowedIds((prev) => { const s = new Set(prev); s.delete(userId); return s; });
       } else {
         await followUser({ targetUserId: userId }).unwrap();
-        setFollowedIds((prev) => new Set(prev).add(userId));
       }
-    } catch (_) {}
+    } catch (_) {
+      // revert on failure
+      setFollowedIds((prev) => {
+        const s = new Set(prev);
+        isFollowing ? s.add(userId) : s.delete(userId);
+        return s;
+      });
+    }
   };
 
   const recentSearches: any[] = (recentData?.data ?? []).slice(0, 3);
