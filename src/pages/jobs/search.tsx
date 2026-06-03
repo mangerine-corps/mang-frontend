@@ -206,7 +206,6 @@ const JobSearchPage = () => {
             </Flex>
           )}
         </Box>
-      </Box>
       );
 };
 
