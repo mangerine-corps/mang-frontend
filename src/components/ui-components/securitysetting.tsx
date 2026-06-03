@@ -700,18 +700,20 @@ const AuthAppTfa = ({
 const SecuritySetting = () => {
   const { data: twoFAStatus, isLoading } = useGet2FASettingsQuery();
 
-  const enableEmail2FA = twoFAStatus?.enableEmail2FA ?? false;
-  const enablePhone2FA = twoFAStatus?.enablePhone2FA ?? false;
-  const enableApp2FA = twoFAStatus?.enableApp2FA ?? false;
+  const settings = (twoFAStatus as any)?.data?.settings ?? {};
+  const enableEmail2FA = settings.enableEmail2FA ?? false;
+  const enablePhone2FA = settings.enablePhone2FA ?? false;
+  const enableApp2FA = settings.enableApp2FA ?? false;
 
   return (
+    <Flex direction="column" h="full" w="full" className={outfit.className}>
     <Box
       w="full"
+      h="full"
       p={{ base: 4, sm: 6, md: 8, lg: 10, xl: 12 }}
       borderRadius="lg"
       boxShadow="lg"
       bg="bg_box"
-      mt={{ base: 4, md: 8, lg: 0 }}
       className={outfit.className}
     >
       <Text fontSize={{ base: "1rem", md: "1.5rem" }} fontWeight="600" color="text_primary">
@@ -740,6 +742,7 @@ const SecuritySetting = () => {
         <PaginatedTable />
       </Box>
     </Box>
+    </Flex>
   );
 };
 

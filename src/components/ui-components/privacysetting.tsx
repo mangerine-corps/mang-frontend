@@ -1,4 +1,4 @@
-import { Box, Flex, RadioGroup, Switch, Text, VStack, HStack, Button, Spinner } from "@chakra-ui/react";
+import { Box, Flex, RadioGroup, Switch, Text, VStack, HStack, Spinner } from "@chakra-ui/react";
 import { useEffect, useMemo, useState } from "react";
 type MessagingPreference = 'everyone' | 'followers' | 'communityMembers' | 'noOne';
 import { useGetUserSettingsQuery, useUpdateUserSettingsMutation } from "mangarine/state/services/settings.service";
@@ -23,72 +23,70 @@ const PrivacySetting = () => {
     }
   }, [server]);
 
- const onSave = async () => {
-   try {
-     const res = await updateUserSettings({
-       messagingPreference,
-       showOnlineStatus,
-       appearInSearchResults,
-       allowSearchEngines,
-     }).unwrap();
+  const saveSettings = async (overrides: Partial<{
+    messagingPreference: MessagingPreference;
+    showOnlineStatus: boolean;
+    appearInSearchResults: boolean;
+    allowSearchEngines: boolean;
+  }> = {}) => {
+    try {
+      const res = await updateUserSettings({
+        messagingPreference,
+        showOnlineStatus,
+        appearInSearchResults,
+        allowSearchEngines,
+        ...overrides,
+      }).unwrap();
 
-     toaster.create({
-       type: "success",
-       title: "Settings Saved",
-       description:
-         res?.message || "Your preferences have been updated successfully.",
-       closable: true,
-     });
+      toaster.create({
+        type: "success",
+        title: "Saved",
+        description: res?.message || "Your preferences have been updated.",
+        closable: true,
+      });
 
-     refetch();
-   } catch (err: any) {
-     toaster.create({
-       type: "error",
-       title: "Failed to Save",
-       description:
-         err?.message || "Something went wrong while saving your settings.",
-       closable: true,
-     });
-   }
- };
+      refetch();
+    } catch (err: any) {
+      toaster.create({
+        type: "error",
+        title: "Failed to Save",
+        description: err?.message || "Something went wrong while saving your settings.",
+        closable: true,
+      });
+    }
+  };
 
   return (
     <Flex
       direction="column"
       align="flex-start"
       justify="flex-start"
-      minH="full"
+      h="full"
       w="full"
-      overflowY={{ base: "auto", md: "flex", lg: "flex" }}
-      maxH={{ base: "full", md: "flex", lg: "flex" }}
+      overflowY="auto"
     >
       <Box
-        //w={{ base: "95%", md: "280px", lg: "340px", xl: "340px" }}
-
         borderRadius="lg"
         boxShadow="lg"
         bg="main_background"
         p={8}
         w="full"
-        //px={6}
-        //py={6}
-        // marginLeft={40}
-        mt={0}
       >
         <HStack justify="space-between" mb={4}>
-          <Text fontSize={{ base: "lg", md: "xl",lg: '1.5rem' }} fontWeight="600">Privacy Settings</Text>
+          <Text fontSize={{ base: "lg", md: "xl", lg: "1.5rem" }} fontWeight="600">Privacy Settings</Text>
+          {saving && <Spinner size="sm" />}
         </HStack>
         {(isLoading || isFetching) && (
           <HStack py={4}><Spinner size="sm" /><Text>Loading...</Text></HStack>
         )}
-        {/* Phone Section */}
-        <Box mt={{ base: 4, md: 8, lg: 0, xl: "flex" }}>
+
+        <Box>
           <Text
             font="outfit"
             fontSize={{ base: "1rem", md: "1.5rem", lg: "1.3rem" }}
             fontWeight="600"
             color="text_primary"
-            lineHeight={{ base: "20px", sm: "24px", md: "28px", lg: "32px", xl: "36px", }}
+            lineHeight={{ base: "20px", sm: "24px", md: "28px", lg: "32px", xl: "36px" }}
             mb={4}
           >
             Messaging
@@ -98,19 +96,18 @@ const PrivacySetting = () => {
             fontSize={{ base: "1rem", sm: "1.1rem", md: "1.25rem" }}
             w="400"
             color="text_primary"
-            lineHeight={{ base: "20px", sm: "24px", md: "28px", lg: "32px", xl: "36px", }}
+            lineHeight={{ base: "20px", sm: "24px", md: "28px", lg: "32px", xl: "36px" }}
           >
             Who can message me?
           </Text>
-          <VStack
-            w="full"
-            alignItems={"flex-start"}
-            justifyContent={"flex-start"}
-            my="4"
-          >
+          <VStack w="full" alignItems="flex-start" justifyContent="flex-start" my="4">
             <RadioGroup.Root
               value={messagingPreference as any}
-              onValueChange={(e) => setMessagingPreference(e.value as MessagingPreference)}
+              onValueChange={(e) => {
+                const val = e.value as MessagingPreference;
+                setMessagingPreference(val);
+                saveSettings({ messagingPreference: val });
+              }}
               w="full"
             >
               <VStack w="full" gapY={7}>
@@ -124,15 +121,13 @@ const PrivacySetting = () => {
                     key={item.id}
                     value={item.value}
                     w="full"
-                    alignItems={"flex-start"}
-                    justifyContent={"space-between"}
-
-                  // bg="red.900"
+                    alignItems="flex-start"
+                    justifyContent="space-between"
                   >
                     <RadioGroup.ItemText
-                      color={"text_primary"}
+                      color="text_primary"
                       fontSize={{ base: "1rem", sm: "1.1rem", md: "1.1rem" }}
-                      fontWeight={"400"}
+                      fontWeight="400"
                       gap={2}
                     >
                       {item.label}
@@ -149,32 +144,30 @@ const PrivacySetting = () => {
         <Box my={12}>
           <Text
             font="outfit"
-            fontSize={{ base: "1rem", md: "1.3rem", }}
+            fontSize={{ base: "1rem", md: "1.3rem" }}
             fontWeight="600"
             color="text_primary"
-            lineHeight={{ base: "20px", sm: "24px", md: "28px", lg: "32px", xl: "36px", }}
+            lineHeight={{ base: "20px", sm: "24px", md: "28px", lg: "32px", xl: "36px" }}
             mb={4}
           >
             Profile Visibility
           </Text>
-
-          <VStack
-            w="full"
-            alignItems={"flex-start"}
-            justifyContent={"flex-start"}
-            my="4"
-          >
+          <VStack w="full" alignItems="flex-start" justifyContent="flex-start" my="4">
             <Switch.Root
               w="full"
-              alignItems={"flex-start"}
-              justifyContent={"space-between"}
+              alignItems="flex-start"
+              justifyContent="space-between"
               checked={showOnlineStatus}
-              onCheckedChange={(e) => setShowOnlineStatus(!!(e as any).checked)}
+              onCheckedChange={(e) => {
+                const val = !!(e as any).checked;
+                setShowOnlineStatus(val);
+                saveSettings({ showOnlineStatus: val });
+              }}
             >
               <Switch.Label
-                color={"text_primary"}
+                color="text_primary"
                 fontSize={{ base: "1rem", sm: "1.1rem", md: "1.1rem" }}
-                fontWeight={"400"}
+                fontWeight="400"
               >
                 Show online status
               </Switch.Label>
@@ -183,6 +176,7 @@ const PrivacySetting = () => {
             </Switch.Root>
           </VStack>
         </Box>
+
         <Box my={12}>
           <Text
             font="outfit"
@@ -194,25 +188,22 @@ const PrivacySetting = () => {
           >
             Search Visibility
           </Text>
-
-          <VStack
-            w="full"
-            alignItems={"flex-start"}
-            justifyContent={"flex-start"}
-            my="4"
-            gapY={6}
-          >
+          <VStack w="full" alignItems="flex-start" justifyContent="flex-start" my="4" gapY={6}>
             <Switch.Root
               w="full"
-              alignItems={"flex-start"}
-              justifyContent={"space-between"}
+              alignItems="flex-start"
+              justifyContent="space-between"
               checked={appearInSearchResults}
-              onCheckedChange={(e) => setAppearInSearchResults(!!(e as any).checked)}
+              onCheckedChange={(e) => {
+                const val = !!(e as any).checked;
+                setAppearInSearchResults(val);
+                saveSettings({ appearInSearchResults: val });
+              }}
             >
               <Switch.Label
-                color={"text_primary"}
+                color="text_primary"
                 fontSize={{ base: "1rem", sm: "1.1rem", md: "1.1rem" }}
-                fontWeight={"400"}
+                fontWeight="400"
               >
                 Appear in search results
               </Switch.Label>
@@ -222,15 +213,19 @@ const PrivacySetting = () => {
 
             <Switch.Root
               w="full"
-              alignItems={"flex-start"}
-              justifyContent={"space-between"}
+              alignItems="flex-start"
+              justifyContent="space-between"
               checked={allowSearchEngines}
-              onCheckedChange={(e) => setAllowSearchEngines(!!(e as any).checked)}
+              onCheckedChange={(e) => {
+                const val = !!(e as any).checked;
+                setAllowSearchEngines(val);
+                saveSettings({ allowSearchEngines: val });
+              }}
             >
               <Switch.Label
-                color={"text_primary"}
+                color="text_primary"
                 fontSize={{ base: "1rem", sm: "1.1rem", md: "1.1rem" }}
-                fontWeight={"400"}
+                fontWeight="400"
               >
                 Allow search engines to link to my profile
               </Switch.Label>
@@ -239,10 +234,7 @@ const PrivacySetting = () => {
             </Switch.Root>
           </VStack>
         </Box>
-
-        <Button size="sm" px={4} colorScheme="blue" onClick={onSave} loading={saving}>Save Changes</Button>
       </Box>
-
     </Flex>
   );
 }

@@ -1,10 +1,13 @@
-import { Box, Button, Flex, Image, Input, Text, VStack, HStack, Skeleton, SkeletonText } from "@chakra-ui/react";
+import { Badge, Box, Button, Flex, Image, Input, Text, VStack, HStack, Skeleton, SkeletonText } from "@chakra-ui/react";
 import { useRouter } from "next/router";
 import Biocard from "mangarine/components/ui-components/biocard";
 import DashboardCard from "mangarine/components/ui-components/dashboardcard";
-import { useGetJobsQuery } from "mangarine/state/services/jobs.service";
+import { useGetJobsQuery, useSaveJobMutation, useUnsaveJobMutation } from "mangarine/state/services/jobs.service";
 import { useState } from "react";
 import { BiSearch } from "react-icons/bi";
+import { FiBookmark } from "react-icons/fi";
+import { FaBookmark } from "react-icons/fa";
+import { toaster } from "mangarine/components/ui/toaster";
 
 const noScrollbar = {
   "&::-webkit-scrollbar": { width: "0px", height: "0px" },
@@ -12,56 +15,125 @@ const noScrollbar = {
   "&::-webkit-scrollbar-thumb": { background: "transparent", borderRadius: "0px", height: "0px", width: 0 },
 };
 
-const JobCard = ({ job, onView }: { job: any; onView: () => void }) => (
-  <Box
-    bg="bg_box"
-    border="1px solid"
-    borderColor="input_border"
-    borderRadius="12px"
-    p={4}
-    w="full"
-  >
-    <Text fontWeight="700" fontSize="1rem" color="text_primary" mb={0.5}>
-      {job.title}
-    </Text>
-    <Text fontSize="0.875rem" color="gray.500" mb={2}>
-      {job.companyName ?? "Company"} • {job.location?.city}{job.location?.country ? `, ${job.location.country}` : ""}
-    </Text>
-    <Text fontSize="0.875rem" color="gray.500" mb={3} lineClamp={2}>
-      {job.description}
-    </Text>
-    <Button
-      variant="outline"
+const JobCard = ({ job, onView }: { job: any; onView: () => void }) => {
+  const [saveJob, { isLoading: isSaving }] = useSaveJobMutation();
+  const [unsaveJob, { isLoading: isUnsaving }] = useUnsaveJobMutation();
+  const [saved, setSaved] = useState<boolean>(job?.isSaved ?? false);
+
+  const handleSaveToggle = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    try {
+      if (saved) {
+        await unsaveJob(job.id).unwrap();
+        setSaved(false);
+        toaster.create({ description: "Job removed from saved.", type: "info" });
+      } else {
+        await saveJob(job.id).unwrap();
+        setSaved(true);
+        toaster.create({ description: "Job saved.", type: "success" });
+      }
+    } catch {
+      toaster.create({ description: "Something went wrong.", type: "error" });
+    }
+  };
+
+  const tags = [job.workplaceType, job.jobType, job.experienceLevel].filter(Boolean);
+
+  return (
+    <Box
+      bg="bg_box"
+      border="1px solid"
       borderColor="input_border"
-      color="text_primary"
-      borderRadius="8px"
-      size="sm"
-      px={5}
-      _hover={{ bg: "gray.50" }}
+      borderRadius="12px"
+      p={4}
+      w="full"
+      cursor="pointer"
       onClick={onView}
+      _hover={{ borderColor: "gray.300" }}
+      transition="border-color 0.15s"
     >
-      View Job
-    </Button>
-  </Box>
-);
+      <HStack justify="space-between" align="flex-start" mb={2}>
+        <VStack align="flex-start" gap={0} flex={1} minW={0}>
+          <Text fontWeight="700" fontSize="1rem" color="text_primary" lineClamp={1}>
+            {job.title}
+          </Text>
+          <Text fontSize="0.8rem" color="gray.500">
+            {job.companyName || null}{job.companyName ? " • " : ""}{[job.location?.city, job.location?.country].filter(Boolean).join(", ")}
+          </Text>
+        </VStack>
+        <Button
+          size="sm"
+          variant="ghost"
+          color={saved ? "button_bg" : "gray.400"}
+          loading={isSaving || isUnsaving}
+          onClick={handleSaveToggle}
+          px={2}
+          flexShrink={0}
+        >
+          {saved ? <FaBookmark /> : <FiBookmark />}
+        </Button>
+      </HStack>
+
+      <Text fontSize="0.875rem" color="gray.500" mb={3} lineClamp={2}>
+        {job.description}
+      </Text>
+
+      <HStack justify="space-between" align="center" flexWrap="wrap" gap={2}>
+        <HStack gap={2} flexWrap="wrap">
+          {tags.map((tag: string) => (
+            <Badge key={tag} variant="subtle" colorPalette="gray" borderRadius="full" px={2} fontSize="0.75rem" textTransform="capitalize">
+              {tag.replace(/-/g, " ")}
+            </Badge>
+          ))}
+          {job.salaryRange?.from && (
+            <Badge variant="subtle" colorPalette="green" borderRadius="full" px={2} fontSize="0.75rem">
+              {job.salaryRange.currency} {Number(job.salaryRange.from).toLocaleString()}
+              {job.salaryRange.to ? ` – ${Number(job.salaryRange.to).toLocaleString()}` : "+"}
+            </Badge>
+          )}
+        </HStack>
+        <Button
+          variant="outline"
+          borderColor="input_border"
+          color="text_primary"
+          borderRadius="8px"
+          size="sm"
+          px={5}
+          flexShrink={0}
+          _hover={{ bg: "gray.50" }}
+          onClick={(e) => { e.stopPropagation(); onView(); }}
+        >
+          View Job
+        </Button>
+      </HStack>
+    </Box>
+  );
+};
 
 const JobCardSkeleton = () => (
   <Box bg="bg_box" border="1px solid" borderColor="input_border" borderRadius="12px" p={4} w="full">
-    <Skeleton h="16px" w="40%" mb={2} />
-    <Skeleton h="14px" w="30%" mb={3} />
+    <Skeleton h="16px" w="40%" mb={1} />
+    <Skeleton h="13px" w="30%" mb={3} />
     <SkeletonText noOfLines={2} mb={3} />
-    <Skeleton h="32px" w="80px" borderRadius="8px" />
+    <HStack justify="space-between">
+      <HStack gap={2}>
+        <Skeleton h="22px" w="60px" borderRadius="full" />
+        <Skeleton h="22px" w="70px" borderRadius="full" />
+      </HStack>
+      <Skeleton h="32px" w="80px" borderRadius="8px" />
+    </HStack>
   </Box>
 );
 
 const JobSearchPage = () => {
   const router = useRouter();
   const [searchInput, setSearchInput] = useState("");
-  const [searchQuery, setSearchQuery] = useState("");
+  const [searchQuery, setSearchQuery] = useState<string | null>(null);
 
-  const { data, isLoading } = useGetJobsQuery(searchQuery ? { search: searchQuery } : {});
-  const jobs: any[] = (data as any)?.data?.jobs ?? (data as any)?.data?.items ?? [];
-  const total: number = (data as any)?.data?.pagination?.total ?? (data as any)?.data?.total ?? jobs.length;
+  const { currentData, isLoading, isFetching } = useGetJobsQuery(searchQuery !== null ? { search: searchQuery || undefined } : undefined);
+  const jobs: any[] = (currentData as any)?.data?.jobs ?? (currentData as any)?.data?.items ?? [];
+  const total: number = (currentData as any)?.data?.pagination?.total ?? (currentData as any)?.data?.total ?? jobs.length;
+  const isSearching = isLoading || isFetching;
 
   const handleSearch = () => setSearchQuery(searchInput.trim());
 
@@ -71,10 +143,9 @@ const JobSearchPage = () => {
         flexDir={{ base: "column", md: "row" }}
         gap={4}
         w="full"
-        h="full"
+        h={{ base: "auto", md: "full" }}
         minH={0}
-        overflow="hidden"
-        p={4}
+        overflow={{ base: "visible", md: "hidden" }}
         css={noScrollbar}
       >
         {/* Left sidebar */}
@@ -93,7 +164,7 @@ const JobSearchPage = () => {
         </VStack>
 
         {/* Main content */}
-        <Box flex={1} h="full" minH={0} overflowY="auto" css={noScrollbar}>
+        <Box flex={1} h={{ base: "auto", md: "full" }} minH={0} overflowY={{ base: "visible", md: "auto" }} css={noScrollbar}>
           {/* Search banner */}
           <Box bg="#FFF4EC" borderRadius="16px" p={{ base: 5, md: 8 }} mb={4}>
             <Text fontFamily="Outfit" fontWeight="700" fontSize={{ base: "1.25rem", md: "1.5rem" }} color="text_primary" mb={1}>
@@ -122,12 +193,12 @@ const JobSearchPage = () => {
               />
               <Button
                 size="sm"
-                bg="#111D4A"
-                color="white"
+                bg="button_bg"
+                color="button_text"
                 borderRadius="6px"
                 px={4}
                 flexShrink={0}
-                _hover={{ bg: "#0D173B" }}
+                _hover={{ bg: "button_bg", opacity: 0.9 }}
                 onClick={handleSearch}
               >
                 Search
@@ -136,7 +207,7 @@ const JobSearchPage = () => {
           </Box>
 
           {/* Results */}
-          {isLoading ? (
+          {isSearching ? (
             <VStack gap={3} align="stretch">
               {[1, 2, 3, 4].map((i) => <JobCardSkeleton key={i} />)}
             </VStack>

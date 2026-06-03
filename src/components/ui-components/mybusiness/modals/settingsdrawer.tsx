@@ -1,293 +1,140 @@
-"use client";;
-import { Box, Drawer, Flex, HStack, Image, Stack, Text, VStack } from "@chakra-ui/react";
-import { useState } from "react";
-
-import { useRouter } from "next/router";
-
-import { meetingItems, meetingType } from "mangarine/utils/business";
-
-
-const MenuList = ({
-  open,
-  onOpenChange,
-  action,
-
-}: {
-  open: boolean;
-  onOpenChange: () => void;
-  action: (item: any) => void;
- 
-}) => {
-  const [search] = useState("");
-  const [activeTab, setActiveTab] = useState("dashboard");
-  const [Open, setOpen] = useState<boolean>(false);
-  const [showMenuList, setShowMenuList] = useState<boolean>(false);
-  const [activePage, setActivePage] = useState("availability_settings");
-  const [feedbackActivePage, setfeedbackActivePage] = useState("feedback");
-
-  const router = useRouter();
-  const { tab = "wallet" } = router.query;
+"use client";
+import { Box, Drawer, Flex, HStack, Image, Stack, Text } from "@chakra-ui/react";
 
 const menuData = [
   {
     id: "account",
     text: "Account Setting",
     icon: "/icons/account1.svg",
-    href: "/accountsetting",
     iconBg: "/icons/right.svg",
+    iconCircleBg: "rgba(54, 56, 83, 0.12)",
   },
   {
     id: "privacy",
     text: "Privacy Setting",
     icon: "/icons/privacy.svg",
-    href: "/",
     iconBg: "/icons/right.svg",
+    iconCircleBg: "rgba(252, 115, 26, 0.12)",
   },
   {
     id: "notification",
     text: "Notification Setting",
     icon: "/icons/notification.svg",
-    href: "/notification",
     iconBg: "/icons/right.svg",
+    iconCircleBg: "rgba(13, 188, 157, 0.12)",
   },
-  {
-    id: "payment",
-    text: "Payment Setting",
-    icon: "/icons/payment1.svg",
-    href: "/payment",
-    iconBg: "/icons/right.svg",
-  },
+  // {
+  //   id: "payment",
+  //   text: "Payment Setting",
+  //   icon: "/icons/payment1.svg",
+  //   iconBg: "/icons/right.svg",
+  //   iconCircleBg: "rgba(247, 26, 252, 0.12)",
+  // },
   {
     id: "security",
     text: "Security Setting",
     icon: "/icons/security.svg",
-    href: "/security",
     iconBg: "/icons/right.svg",
+    iconCircleBg: "rgba(24, 25, 35, 0.10)",
   },
   {
     id: "general",
     text: "General Setting",
     icon: "/icons/general.svg",
-    href: "/general",
     iconBg: "/icons/right.svg",
+    iconCircleBg: "rgba(252, 216, 26, 0.15)",
   },
   {
     id: "help",
     text: "Help & Support",
     icon: "/icons/support.svg",
-    href: "/support",
     iconBg: "/icons/right.svg",
+    iconCircleBg: "rgba(25, 118, 210, 0.12)",
   },
   {
     id: "legal",
     text: "Legal Setting",
     icon: "/icons/legal.svg",
-    href: "",
     iconBg: "/icons/right.svg",
+    iconCircleBg: "rgba(48, 188, 13, 0.12)",
   },
 ];
+
+const MenuList = ({
+  open,
+  onOpenChange,
+  action,
+  activeTab,
+}: {
+  open: boolean;
+  onOpenChange: () => void;
+  action: (item: any) => void;
+  activeTab: string;
+}) => {
   return (
-    <Drawer.Root
-      size={"md"}
-      open={open}
-      onOpenChange={onOpenChange}
-      placement={"start"}
-    >
+    <Drawer.Root size="sm" open={open} onOpenChange={onOpenChange} placement="start">
       <Drawer.Backdrop />
-      <Drawer.Trigger></Drawer.Trigger>
       <Drawer.Positioner>
         <Drawer.Content
           bg="bg_box"
-          p="3"
-          // display={{ base: "flex", md: "flex", lg: "flex", xl: "none" }}
           css={{
-            "&::-webkit-scrollbar": {
-              width: "0px",
-              height: "0px",
-            },
-            "&::-webkit-scrollbar-track": {
-              width: "0px",
-              background: "transparent",
-              height: "0px",
-            },
-            "&::-webkit-scrollbar-thumb": {
-              background: "transparent",
-              borderRadius: "0px",
-              maxHeight: "0px",
-              height: "0px",
-              width: 0,
-            },
+            "&::-webkit-scrollbar": { width: "0px", height: "0px" },
+            "&::-webkit-scrollbar-track": { width: "0px", background: "transparent" },
+            "&::-webkit-scrollbar-thumb": { background: "transparent" },
           }}
         >
-          <Drawer.Header>
+          <Drawer.Header borderBottomWidth="1px" borderBottomColor="border_but">
             <Drawer.Title>
-              <HStack pt={6} gap={3}></HStack>-
+              <Text fontFamily="Outfit" fontWeight="700" fontSize="1.2rem" color="text_primary">
+                Settings
+              </Text>
             </Drawer.Title>
           </Drawer.Header>
-          <Drawer.Body w="100%">
-            {menuData.map((item, index: number) => (
-              <VStack
-                key={index}
-                alignItems={"flex-start"}
-                justifyContent={"flex-start"}
-                // bg="red.700"
+
+          <Drawer.Body px={2} py={4}>
+            {menuData.map((item) => (
+              <Flex
+                key={item.id}
+                align="center"
+                justify="space-between"
+                px={4}
+                py={3}
+                mb={1}
+                borderRadius="lg"
+                borderLeftWidth={activeTab === item.id ? "4px" : "0px"}
+                borderLeftColor={activeTab === item.id ? "text_primary" : "transparent"}
+                backgroundColor={activeTab === item.id ? "bg_box" : "transparent"}
+                _hover={{ backgroundColor: "bg_box" }}
+                onClick={() => action(item)}
+                cursor="pointer"
+                borderBottomWidth="1px"
+                borderBottomColor="border_but"
               >
-                <Flex
-                  key={item.id}
-                  width={activeTab === item.id ? "95%" : "full"}
-                  mx="auto"
-                  align="center"
-                  justify="space-between"
-                  p="4"
-                  roundedTopLeft={activeTab === item.id ? "lg" : "none"}
-                  roundedBottomLeft={activeTab === item.id ? "lg" : "none"}
-                  borderLeftWidth={activeTab === item.id ? "4px" : "0px"}
-                  borderLeftColor={
-                    activeTab === item.id ? "gray.500" : "transparent"
-                  }
-                  backgroundColor={
-                    activeTab === item.id ? "gray.100" : "transparent"
-                  }
-                  mt={activeTab === item.id ? "2" : "0"}
-                  color={activeTab === item.id ? "gray.900" : "gray.700"}
-                  _hover={{ backgroundColor: "gray.50" }}
-                  onClick={() => action(item)}
-                  cursor="pointer"
-                >
-                  <Flex align="center">
-                    <VStack
-                      alignItems={"flex-start"}
-                      justifyContent={"flex-start"}
-                    >
-                      <HStack>
-                        <Stack
-                          h="10"
-                          w="10"
-                          marginRight={4}
-                          rounded="full"
-                          alignItems={"center"}
-                          justifyContent={"center"}
-                          bg="#F71AFC14"
-                        >
-                          <Image src={item.icon} alt={item.text} boxSize="4" />
-                        </Stack>
-
-                        <Text color="text_primary" fontSize={{base:"1rem",md:"1.2rem",lg:"1.5rem"}}>
-                          {item.text}
-                        </Text>
-                      </HStack>
-                    </VStack>
-                  </Flex>
-                  <Image src={item.iconBg} alt="arrow" />
-                </Flex>
-                {activeTab === item.id &&
-                  item.id === "myaccount" &&
-                  item.text === "My Account" && (
-                    <VStack
-                      alignItems={"flex-start"}
-                      justifyContent={"flex-start"}
-                      ml="3rem"
-                      bg="grey.500"
-                      h="24"
-                      w="0.5"
-                      // bg="red.900"
-
-                      // pb="20"
-                      pos="relative"
-                    >
-                      {/* <Box h="0" w="0.5"></Box> */}
-                      <HStack
-                        pos="absolute"
-                        top="8"
-                        onClick={() => {
-                          setOpen(true);
-                        }}
-                      >
-                        {" "}
-                        <Box w="12" h="0.5" bg="grey.500"></Box>
-                        <Text
-                          color="text_primary"
-                          _hover={{ color: "grey.300" }}
-                        >
-                          Feedback/Review
-                        </Text>
-                      </HStack>
-                      <HStack
-                        pos="absolute"
-                        bottom="-2.5"
-                        p="0"
-                        m="0"
-                        onClick={() => {
-                          setfeedbackActivePage("payment");
-                        }}
-                      >
-                        {" "}
-                        <Box w="20" h="0.5" bg="grey.500"></Box>
-                        <Text
-                          color="text_primary"
-                          w="full"
-                          textWrap={"nowrap"}
-                          _hover={{ color: "grey.300" }}
-                        >
-                          Payment Settings
-                        </Text>
-                      </HStack>
-                    </VStack>
-                  )}
-                {activeTab === item.id &&
-                  item.id === "meetings" &&
-                  item.text === "My Meeting" && (
-                    <VStack
-                      alignItems={"flex-start"}
-                      justifyContent={"flex-start"}
-                      ml="2rem"
-                      gap={0}
-                      borderColor={"grey.400"}
-                      // borderBottomWidth={2}
-                      // mb="6"
-                      h={"full"}
-                      // bg="grey.500"
-                      // bg="red.900"
-
-                      // pb="20"
-                      pos="relative"
-                    >
-                      {meetingItems.map((item: meetingType) => (
-                        <HStack
-                          key={item.title}
-                          pos="relative"
-                          // top="8"
-                          pt={3}
-                          m={0}
-                          cursor={"pointer"}
-                          onClick={() => setActivePage(item.title)}
-                          // bg={'red.500'}
-                          borderLeftWidth={2}
-                          borderColor={"grey.400"}
-                          flex={1}
-                          width={"full"}
-                        >
-                          <Box w="12" h="0.5" bg="grey.500"></Box>
-
-                          <Text
-                            color={
-                              activePage === item.title
-                                ? "gray.400"
-                                : "text_primary"
-                            }
-                            _hover={{ color: "grey.300" }}
-                          >
-                            {item.text}
-                          </Text>
-                        </HStack>
-                      ))}
-                    </VStack>
-                  )}
-              </VStack>
+                <HStack gap={3}>
+                  <Stack
+                    h={10}
+                    w={10}
+                    borderRadius="full"
+                    alignItems="center"
+                    justifyContent="center"
+                    bg={item.iconCircleBg}
+                    flexShrink={0}
+                  >
+                    <Image src={item.icon} alt={item.text} boxSize={5} />
+                  </Stack>
+                  <Text
+                    color="text_primary"
+                    fontFamily="Outfit"
+                    fontWeight={activeTab === item.id ? "600" : "400"}
+                    fontSize="1rem"
+                  >
+                    {item.text}
+                  </Text>
+                </HStack>
+                <Image src={item.iconBg} alt="arrow" boxSize={4} />
+              </Flex>
             ))}
-           
           </Drawer.Body>
-          <Drawer.Footer></Drawer.Footer>
         </Drawer.Content>
       </Drawer.Positioner>
     </Drawer.Root>

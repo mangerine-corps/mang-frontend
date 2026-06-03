@@ -10,7 +10,7 @@ import {
   HStack,
   Stack,
 } from "@chakra-ui/react";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import CustomInput from "../customcomponents/Input";
 import { Controller, useForm } from "react-hook-form";
 import { Button } from "../ui/button";
@@ -86,7 +86,7 @@ function AccountSetting() {
   const pwTouched = newPw.length > 0;
   const confirmTouched = confirmPw.length > 0;
   const confirmPasses = confirmTouched && confirmPw === newPw;
-  const confirmFails = confirmTouched && confirmPw !== newPw;
+
 
   const onSubmit = () => {
     const acctdata = getValues();
@@ -119,10 +119,9 @@ function AccountSetting() {
       direction="column"
       align="flex-start"
       justify="flex-start"
-      minH="full"
+      h="full"
       w="full"
-      overflowY={{ base: "auto", md: "flex", lg: "flex" }}
-      maxH={{ base: "full", md: "flex", lg: "flex" }}
+      overflowY="auto"
     >
       <Box
         //w={{ base: "95%", md: "280px", lg: "340px", xl: "340px" }}
@@ -188,7 +187,7 @@ function AccountSetting() {
         </Box>
         {/* Change Password Section */}
 
-        <Box mt={{ base: 4, md: 8, lg: "flex", xl: "flex" }}>
+        <Box mt={16}>
           <Text
             font="outfit"
             fontSize={{ base: "1.1rem", md: "1.3rem", lg: "1.4rem" }}
@@ -221,7 +220,7 @@ function AccountSetting() {
             Update your password to ensure your account remains secured.
           </Text>
 
-          <VStack w="full" pt="6">
+          <VStack w="full">
             <Controller
               name="currentPassword"
               control={control}
@@ -232,6 +231,7 @@ function AccountSetting() {
                   id="password"
                   required={true}
                   name="currentPassword"
+                  autoComplete="new-password"
                   value={value}
                   size="md"
                   onChange={onChange}
@@ -276,6 +276,7 @@ function AccountSetting() {
                     id="password"
                     required={true}
                     name="password"
+                    autoComplete="new-password"
                     value={value}
                     size="md"
                     onChange={onChange}
@@ -306,20 +307,13 @@ function AccountSetting() {
                       </Button>
                     }
                   />
-                  {pwTouched && (
-                    <Text
-                      fontSize="xs"
-                      fontFamily="Outfit"
-                      mt={1}
-                      color={pwValid ? "#30BC0D" : "red.500"}
-                    >
-                      {pwValid
-                        ? "Password meets requirements"
-                        : !pwHasMinLength
-                        ? "Password must be at least 8 characters"
-                        : "Password must contain at least one uppercase letter (A-Z)"}
-                    </Text>
-                  )}
+                  <Text fontSize="xs" fontFamily="Outfit" mt={1} color={pwTouched && !pwValid ? "red.500" : "gray.500"}>
+                    {pwTouched && !pwValid
+                      ? !pwHasMinLength
+                        ? "Password must be at least 8 characters long and include at least one uppercase letter (A – Z)."
+                        : "Password must include at least one uppercase letter (A – Z)."
+                      : "Password must be at least 8 characters long and include at least one uppercase letter (A – Z)."}
+                  </Text>
                 </Box>
               )}
             />
@@ -329,11 +323,12 @@ function AccountSetting() {
               render={({ field: { onChange, value } }) => (
                 <Box w="full">
                   <CustomInput
-                    label="Confirm Password"
+                    label="New Password"
                     placeholder="***"
                     id="confirmPassword"
                     required={true}
                     name="confirmPassword"
+                    autoComplete="new-password"
                     value={value}
                     size="md"
                     onChange={onChange}
@@ -364,16 +359,11 @@ function AccountSetting() {
                       </Button>
                     }
                   />
-                  {confirmTouched && (
-                    <Text
-                      fontSize="xs"
-                      fontFamily="Outfit"
-                      mt={1}
-                      color={confirmPasses ? "#30BC0D" : "red.500"}
-                    >
-                      {confirmPasses ? "Passwords match" : "Passwords do not match"}
-                    </Text>
-                  )}
+                  <Text fontSize="xs" fontFamily="Outfit" mt={1} color={confirmTouched && !confirmPasses ? "red.500" : "gray.500"}>
+                    {confirmTouched && !confirmPasses
+                      ? "Passwords do not match."
+                      : "Password must be at least 8 characters long and include at least one uppercase letter (A – Z)."}
+                  </Text>
                 </Box>
               )}
             />
@@ -381,8 +371,8 @@ function AccountSetting() {
             <CustomButton
               customStyle={{
                 w: "full",
-                py: { base: 3, md: 4, lg: "flex" },
-                px: { base: 4, md: 6, lg: "flex" },
+                py: { base: 3, md: 4, lg: 5 },
+                px: { base: 4, md: 6, lg: 8 },
                 fontSize: { base: "0.875rem", md: "1rem" },
               }}
               onClick={handleSubmit(onSubmit, (error) => console.log(error))}
@@ -593,27 +583,30 @@ const SecNum = () => {
                 </HStack>
               </HStack>
             ) : (
-              <VStack
-                w="full"
-                p="0"
-                m="0"
-                alignItems={"flex-start"}
-                justifyContent={"flex-start"}
-              >
-                <Text color="gray.500">
-                  No secondary phone number added. Consider adding one for extra
-                  security.{" "}
-                  <Text
-                    color="blue.500"
-                    onClick={() => {
-                      setSecondaryPhoneNumber(true);
-                    }}
-                    cursor={"pointer"}
-                  >
-                    Add secondary number
+              !SecondaryPhoneNumber && (
+                <VStack
+                  w="full"
+                  p="0"
+                  m="0"
+                  alignItems={"flex-start"}
+                  justifyContent={"flex-start"}
+                >
+                  <Text color="gray.500">
+                    No secondary phone number added. Consider adding one for extra
+                    security.{" "}
+                    <Text
+                      as="span"
+                      color="blue.500"
+                      onClick={() => {
+                        setSecondaryPhoneNumber(true);
+                      }}
+                      cursor={"pointer"}
+                    >
+                      Add secondary number
+                    </Text>
                   </Text>
-                </Text>
-              </VStack>
+                </VStack>
+              )
             )}
           </Stack>
         </VStack>

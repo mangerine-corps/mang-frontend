@@ -148,10 +148,9 @@ const CreateJobPage = () => {
         flexDir={{ base: "column", md: "row" }}
         gap={4}
         w="full"
-        h="full"
+        h={{ base: "auto", md: "full" }}
         minH={0}
-        overflow="hidden"
-        p={4}
+        overflow={{ base: "visible", md: "hidden" }}
         css={noScrollbar}
       >
         {/* Left sidebar */}
@@ -170,16 +169,16 @@ const CreateJobPage = () => {
         </VStack>
 
         {/* Main content */}
-        <Flex flex={1} gap={4} h="full" minH={0} overflow="hidden" align="flex-start">
+        <Flex flex={1} gap={4} h={{ base: "auto", md: "full" }} minH={0} overflow={{ base: "visible", md: "hidden" }} align="flex-start">
           <Box
             as="form"
             flex={1}
-            h="full"
+            h={{ base: "auto", md: "full" }}
             minH={0}
             bg="bg_box"
             rounded="xl"
             p={{ base: 4, md: 6 }}
-            overflowY="auto"
+            overflowY={{ base: "visible", md: "auto" }}
             css={noScrollbar}
             onSubmit={handleSubmit(onSubmit)}
           >
@@ -279,6 +278,7 @@ const CreateJobPage = () => {
                   <option value="full-time">Full-time</option>
                   <option value="part-time">Part-time</option>
                   <option value="contract">Contract</option>
+                  <option value="temporary">Temporary</option>
                   <option value="internship">Internship</option>
                   <option value="freelance">Freelance</option>
                 </select>
@@ -294,7 +294,7 @@ const CreateJobPage = () => {
                 <select style={selectStyles} {...register("experienceLevel", { required: "Experience level is required" })}>
                   <option value="entry-level">Entry-level</option>
                   <option value="mid-level">Mid-level</option>
-                  <option value="senior">Senior</option>
+                  <option value="senior-level">Senior-level</option>
                   <option value="lead">Lead</option>
                   <option value="executive">Executive</option>
                 </select>
@@ -306,11 +306,11 @@ const CreateJobPage = () => {
                 <select style={{ ...selectStyles, borderColor: errors.educationLevel ? "#FC8181" : "#D0D5DD" }}
                   {...register("educationLevel", { required: "Education level is required" })}>
                   <option value="high-school">High School</option>
-                  <option value="associate">Associate Degree</option>
+                  <option value="diploma">Diploma</option>
                   <option value="bachelors">Bachelor&apos;s Degree</option>
                   <option value="masters">Master&apos;s Degree</option>
-                  <option value="phd">PhD</option>
-                  <option value="other">Other</option>
+                  <option value="doctorate">Doctorate / PhD</option>
+                  <option value="not-required">Not Required</option>
                 </select>
                 <FieldError message={errors.educationLevel?.message} />
               </Box>
@@ -373,13 +373,13 @@ const CreateJobPage = () => {
             <Button
               type="submit"
               w="full"
-              bg="#111D4A"
-              color="white"
+              bg="button_bg"
+              color="button_text"
               borderRadius="8px"
               fontFamily="Outfit"
               fontWeight="600"
               py={6}
-              _hover={{ bg: "#0D173B" }}
+              _hover={{ bg: "button_bg", opacity: 0.9 }}
               loading={isLoading}
               disabled={isLoading}
             >

@@ -1,8 +1,9 @@
-import { Box, Flex, Switch, Text, VStack, HStack, Button, Spinner } from "@chakra-ui/react";
+import { Box, Flex, Switch, Text, VStack, HStack, Spinner, Icon } from "@chakra-ui/react";
 import { outfit } from "mangarine/pages/_app";
 import { useEffect, useMemo, useState } from "react";
 import { useGetNotificationSettingsQuery, useUpdateNotificationSettingsMutation } from "mangarine/state/services/settings.service";
 import { toaster } from "../ui/toaster";
+import { Check } from "lucide-react";
 
 const NotificationSetting = () => {
   const { data, isLoading, isFetching, refetch } = useGetNotificationSettingsQuery({});
@@ -10,126 +11,139 @@ const NotificationSetting = () => {
   const server = useMemo(() => (data as any) || {}, [data]);
 
   const [emailNotificationsEnabled, setEmailNotificationsEnabled] = useState<boolean>(true);
-  const [pushNotificationsEnabled, setPushNotificationsEnabled] = useState<boolean>(true);
-  const [newMessageEmail, setNewMessageEmail] = useState<boolean>(false);
-  const [consultationRequestEmail, setConsultationRequestEmail] = useState<boolean>(false);
-  const [platformAnnouncementEmail, setPlatformAnnouncementEmail] = useState<boolean>(false);
-  const [paymentConfirmationEmail, setPaymentConfirmationEmail] = useState<boolean>(false);
-  const [failedPaymentsEmail, setFailedPaymentsEmail] = useState<boolean>(false);
-  const [subscriptionRenewalEmail, setSubscriptionRenewalEmail] = useState<boolean>(false);
-  const [paymentReminderEmail, setPaymentReminderEmail] = useState<boolean>(false);
+  const [paymentNotificationsEnabled, setPaymentNotificationsEnabled] = useState<boolean>(true);
 
-  const [newMessagePush, setNewMessagePush] = useState<boolean>(false);
-  const [consultationRequestPush, setConsultationRequestPush] = useState<boolean>(false);
-  const [platformAnnouncementPush, setPlatformAnnouncementPush] = useState<boolean>(false);
-  const [paymentConfirmationPush, setPaymentConfirmationPush] = useState<boolean>(false);
-  const [failedPaymentsPush, setFailedPaymentsPush] = useState<boolean>(false);
-  const [subscriptionRenewalPush, setSubscriptionRenewalPush] = useState<boolean>(false);
-  const [paymentReminderPush, setPaymentReminderPush] = useState<boolean>(false);
+  const [emailSelected, setEmailSelected] = useState<Set<string>>(new Set());
+  const [paymentSelected, setPaymentSelected] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     if (server && server.id) {
       setEmailNotificationsEnabled(!!server.emailNotificationsEnabled);
-      setPushNotificationsEnabled(!!server.pushNotificationsEnabled);
-      setNewMessageEmail(!!server.newMessageEmail);
-      setConsultationRequestEmail(!!server.consultationRequestEmail);
-      setPlatformAnnouncementEmail(!!server.platformAnnouncementEmail);
-      setPaymentConfirmationEmail(!!server.paymentConfirmationEmail);
-      setFailedPaymentsEmail(!!server.failedPaymentsEmail);
-      setSubscriptionRenewalEmail(!!server.subscriptionRenewalEmail);
-      setPaymentReminderEmail(!!server.paymentReminderEmail);
-      setNewMessagePush(!!server.newMessagePush);
-      setConsultationRequestPush(!!server.consultationRequestPush);
-      setPlatformAnnouncementPush(!!server.platformAnnouncementPush);
-      setPaymentConfirmationPush(!!server.paymentConfirmationPush);
-      setFailedPaymentsPush(!!server.failedPaymentsPush);
-      setSubscriptionRenewalPush(!!server.subscriptionRenewalPush);
-      setPaymentReminderPush(!!server.paymentReminderPush);
+      setPaymentNotificationsEnabled(
+        typeof server.paymentNotificationsEnabled === 'boolean'
+          ? server.paymentNotificationsEnabled
+          : !!server.emailNotificationsEnabled
+      );
+
+      const email = new Set<string>();
+      if (server.newMessageEmail) email.add('newMessage');
+      if (server.consultationRequestEmail) email.add('consultationRequest');
+      if (server.platformAnnouncementEmail) email.add('platformAnnouncement');
+      setEmailSelected(email);
+
+      const payment = new Set<string>();
+      if (server.paymentConfirmationEmail) payment.add('paymentConfirmation');
+      if (server.failedPaymentsEmail) payment.add('failedPayments');
+      if (server.subscriptionRenewalEmail) payment.add('subscriptionRenewal');
+      if (server.paymentReminderEmail) payment.add('paymentReminder');
+      setPaymentSelected(payment);
     }
   }, [server]);
 
-const onSave = async () => {
-  try {
-    const res = await updateSettings({
+  const saveSettings = async (overrides: Partial<{
+    emailNotificationsEnabled: boolean;
+    paymentNotificationsEnabled: boolean;
+    emailSelected: Set<string>;
+    paymentSelected: Set<string>;
+  }> = {}) => {
+    const merged = {
       emailNotificationsEnabled,
-      pushNotificationsEnabled,
-      newMessageEmail,
-      consultationRequestEmail,
-      platformAnnouncementEmail,
-      paymentConfirmationEmail,
-      failedPaymentsEmail,
-      subscriptionRenewalEmail,
-      paymentReminderEmail,
-      newMessagePush,
-      consultationRequestPush,
-      platformAnnouncementPush,
-      paymentConfirmationPush,
-      failedPaymentsPush,
-      subscriptionRenewalPush,
-      paymentReminderPush,
-    }).unwrap();
+      paymentNotificationsEnabled,
+      emailSelected,
+      paymentSelected,
+      ...overrides,
+    };
+    try {
+      const res = await updateSettings({
+        emailNotificationsEnabled: merged.emailNotificationsEnabled,
+        pushNotificationsEnabled: false,
+        newMessageEmail: merged.emailSelected.has('newMessage'),
+        consultationRequestEmail: merged.emailSelected.has('consultationRequest'),
+        platformAnnouncementEmail: merged.emailSelected.has('platformAnnouncement'),
+        paymentConfirmationEmail: merged.paymentSelected.has('paymentConfirmation'),
+        failedPaymentsEmail: merged.paymentSelected.has('failedPayments'),
+        subscriptionRenewalEmail: merged.paymentSelected.has('subscriptionRenewal'),
+        paymentReminderEmail: merged.paymentSelected.has('paymentReminder'),
+        newMessagePush: false,
+        consultationRequestPush: false,
+        platformAnnouncementPush: false,
+        paymentConfirmationPush: false,
+        failedPaymentsPush: false,
+        subscriptionRenewalPush: false,
+        paymentReminderPush: false,
+      }).unwrap();
 
-    toaster.create({
-      type: "success",
-      title: "Settings Saved",
-      description:
-        res?.message || "Your preferences have been updated successfully.",
-      closable: true,
-    });
+      toaster.create({
+        type: "success",
+        title: "Saved",
+        description: res?.message || "Your preferences have been updated.",
+        closable: true,
+      });
 
-    refetch();
-  } catch (err: any) {
-    toaster.create({
-      type: "error",
-      title: "Failed to Save",
-      description:
-        err?.message || "Something went wrong while saving your settings.",
-      closable: true,
-    });
-  }
-};
+      refetch();
+    } catch (err: any) {
+      toaster.create({
+        type: "error",
+        title: "Failed to Save",
+        description: err?.message || "Something went wrong while saving your settings.",
+        closable: true,
+      });
+    }
+  };
+
+  const toggleEmail = (value: string) => {
+    const next = new Set(emailSelected);
+    next.has(value) ? next.delete(value) : next.add(value);
+    setEmailSelected(next);
+    saveSettings({ emailSelected: next });
+  };
+
+  const togglePayment = (value: string) => {
+    const next = new Set(paymentSelected);
+    next.has(value) ? next.delete(value) : next.add(value);
+    setPaymentSelected(next);
+    saveSettings({ paymentSelected: next });
+  };
 
   return (
-    <Flex
-      direction="column"
-      align="flex-start"
-      justify="flex-start"
-      h="auto"
-      // minH="1"
-      className={outfit.className}
-    >
+    <Flex direction="column" align="flex-start" justify="flex-start" h="full" w="full" className={outfit.className}>
       <Box
-        //w={{ base: "95%", md: "280px", lg: "340px", xl: "340px" }}
-
         borderRadius="lg"
         boxShadow="lg"
         bg="main_background"
         p={{ base: 4, sm: 6, md: 8, lg: 10, xl: 12 }}
         w="full"
-
-        mt={0}
+        h="full"
       >
         <HStack justify="space-between" mb={8}>
-          <Text color="text_primary" fontSize={{ base: "lg", md: "1.5rem" }} fontWeight="600">Notification Settings</Text>
-
+          <Text color="text_primary" fontSize={{ base: "lg", md: "1.5rem" }} fontWeight="600">
+            Notification Settings
+          </Text>
+          {saving && <Spinner size="sm" />}
         </HStack>
         {(isLoading || isFetching) && (
           <HStack py={4}><Spinner size="sm" /><Text>Loading...</Text></HStack>
         )}
+
+        {/* Email Notification */}
         <Box mb={12}>
           <Switch.Root
             w="full"
-            alignItems={"flex-start"}
-            justifyContent={"space-between"}
+            alignItems="flex-start"
+            justifyContent="space-between"
             checked={emailNotificationsEnabled}
-            onCheckedChange={(e) => setEmailNotificationsEnabled(!!(e as any).checked)}
+            onCheckedChange={(e) => {
+              const val = !!(e as any).checked;
+              setEmailNotificationsEnabled(val);
+              saveSettings({ emailNotificationsEnabled: val });
+            }}
           >
             <Switch.Label
               font="outfit"
               fontSize={{ base: "1rem", md: "1.5rem", lg: "1.3rem" }}
               fontWeight="600"
               color="text_primary"
-              lineHeight={{ base: "20px", sm: "24px", md: "28px", lg: "32px", xl: "36px", }}
+              lineHeight={{ base: "20px", sm: "24px", md: "28px", lg: "32px", xl: "36px" }}
             >
               Email Notification
             </Switch.Label>
@@ -142,115 +156,133 @@ const onSave = async () => {
             fontSize={{ base: "1rem", sm: "1.1rem", md: "1.1rem", lg: "1.2rem" }}
             fontWeight="400"
             color="grey.300"
-            // lineHeight={{ base: "20px", sm: "24px", md: "28px", lg: "32px", xl: "36px",}}
-            mb="4"
-          >
-            Receive updates via email for messages, requests, announcements, and
-            payments.
-          </Text>
-          <VStack w="full" alignItems={"flex-start"} gapY={7} justifyContent={"flex-start"} my="4">
-            {[{
-              label: 'New message', checked: newMessageEmail, onChange: setNewMessageEmail
-            }, {
-              label: 'Consultation request', checked: consultationRequestEmail, onChange: setConsultationRequestEmail
-            }, {
-              label: 'Platform announcement', checked: platformAnnouncementEmail, onChange: setPlatformAnnouncementEmail
-            }].map((row, idx) => (
-              <Switch.Root key={idx} w="full" alignItems={"flex-start"} justifyContent={"space-between"} checked={row.checked} onCheckedChange={(e) => row.onChange(!!(e as any).checked)}>
-                <Switch.Label color={"text_primary"} fontSize={{ base: "1rem", sm: "1.1rem", lg: "1.1rem" }} fontWeight={"400"}>
-                  {row.label}
-                </Switch.Label>
-                <Switch.HiddenInput />
-                <Switch.Control />
-              </Switch.Root>
-            ))}
-          </VStack>
-        </Box>
-
-        <Box mb={12}>
-          <Text
-            font="outfit"
-            fontSize={{ base: "1rem", md: "1.5rem", lg: "1.3rem" }}
-            fontWeight="600"
-            color="text_primary"
-            lineHeight={{ base: "20px", sm: "24px", md: "28px", lg: "32px", xl: "36px", }}
+            mt={2}
             mb={4}
           >
-            Payment Notification
+            Receive updates via email for messages, requests, announcements, and payments.
           </Text>
 
-          <VStack className={outfit.className} w="full" alignItems={"flex-start"} justifyContent={"flex-start"} gapY={7} my="4">
-            {[{
-              label: 'Payment Confirmation', checked: paymentConfirmationEmail, onChange: setPaymentConfirmationEmail
-            }, {
-              label: 'Failed Payment', checked: failedPaymentsEmail, onChange: setFailedPaymentsEmail
-            }, {
-              label: 'Subscription renewal', checked: subscriptionRenewalEmail, onChange: setSubscriptionRenewalEmail
-            }, {
-              label: 'Payment Reminder', checked: paymentReminderEmail, onChange: setPaymentReminderEmail
-            }].map((row, idx) => (
-              <Switch.Root key={idx} w="full" alignItems={"flex-start"} justifyContent={"space-between"} checked={row.checked} onCheckedChange={(e) => row.onChange(!!(e as any).checked)}>
-                <Switch.Label color={"text_primary"} fontSize={{ base: "1rem", sm: "1.1rem", lg: "1.1rem" }} fontWeight={"400"}>
-                  {row.label}
-                </Switch.Label>
-                <Switch.HiddenInput />
-                <Switch.Control />
-              </Switch.Root>
-            ))}
-          </VStack>
+          <Box
+            opacity={emailNotificationsEnabled ? 1 : 0.4}
+            pointerEvents={emailNotificationsEnabled ? "auto" : "none"}
+          >
+            <VStack w="full" alignItems="flex-start" gapY={7} justifyContent="flex-start">
+              {[
+                { label: 'New message', value: 'newMessage' },
+                { label: 'Consultation request', value: 'consultationRequest' },
+                { label: 'Platform announcement', value: 'platformAnnouncement' },
+              ].map((item) => (
+                <HStack
+                  key={item.value}
+                  w="full"
+                  justifyContent="space-between"
+                  cursor="pointer"
+                  onClick={() => toggleEmail(item.value)}
+                >
+                  <Text
+                    color="text_primary"
+                    fontSize={{ base: "1rem", sm: "1.1rem", md: "1.1rem" }}
+                    fontWeight="400"
+                  >
+                    {item.label}
+                  </Text>
+                  <Box
+                    boxSize={5}
+                    borderRadius="sm"
+                    borderWidth={2}
+                    borderColor={emailSelected.has(item.value) ? "text_primary" : "gray.300"}
+                    bg={emailSelected.has(item.value) ? "text_primary" : "transparent"}
+                    display="flex"
+                    alignItems="center"
+                    justifyContent="center"
+                    flexShrink={0}
+                  >
+                    {emailSelected.has(item.value) && (
+                      <Icon color="white" boxSize={3}>
+                        <Check />
+                      </Icon>
+                    )}
+                  </Box>
+                </HStack>
+              ))}
+            </VStack>
+          </Box>
         </Box>
-        {/* <Box mb={12}>
+
+        {/* Payment Notification */}
+        <Box mb={12}>
           <Switch.Root
             w="full"
-            alignItems={"flex-start"}
-            justifyContent={"space-between"}
-            checked={pushNotificationsEnabled}
-            onCheckedChange={(e) => setPushNotificationsEnabled(!!(e as any).checked)}
+            alignItems="flex-start"
+            justifyContent="space-between"
+            checked={paymentNotificationsEnabled}
+            onCheckedChange={(e) => {
+              const val = !!(e as any).checked;
+              setPaymentNotificationsEnabled(val);
+              saveSettings({ paymentNotificationsEnabled: val });
+            }}
           >
             <Switch.Label
               font="outfit"
-              fontSize={{ base: "1rem", lg: "1.3rem" }}
+              fontSize={{ base: "1rem", md: "1.5rem", lg: "1.3rem" }}
               fontWeight="600"
               color="text_primary"
-              lineHeight={{ base: "20px", sm: "24px", md: "28px", lg: "32px", xl: "36px", }}
+              lineHeight={{ base: "20px", sm: "24px", md: "28px", lg: "32px", xl: "36px" }}
             >
-              Push Notification
+              Payment Notification
             </Switch.Label>
             <Switch.HiddenInput />
             <Switch.Control />
           </Switch.Root>
 
-          <Text
-            font="outfit"
-            fontSize={{ base: "1rem", sm: "1.1rem", md: "1.1rem", lg: "1.2rem" }}
-            fontWeight="400"
-            color="grey.300"
-            // lineHeight={{ base: "20px", sm: "24px", md: "28px", lg: "32px", xl: "36px",}}
-            mb="4"
+          <Box
+            opacity={paymentNotificationsEnabled ? 1 : 0.4}
+            pointerEvents={paymentNotificationsEnabled ? "auto" : "none"}
+            mt={4}
           >
-            Receive updates via email for messages, requests, announcements, and
-            payments.
-          </Text>
-          <VStack w="full" alignItems={"flex-start"} gapY={7} justifyContent={"flex-start"} my="4">
-            {[{
-              label: 'New message', checked: newMessagePush, onChange: setNewMessagePush
-            }, {
-              label: 'Consultation request', checked: consultationRequestPush, onChange: setConsultationRequestPush
-            }, {
-              label: 'Platform announcement', checked: platformAnnouncementPush, onChange: setPlatformAnnouncementPush
-            }].map((row, idx) => (
-              <Switch.Root key={idx} w="full" alignItems={"flex-start"} justifyContent={"space-between"} checked={row.checked} onCheckedChange={(e) => row.onChange(!!(e as any).checked)}>
-                <Switch.Label color={"text_primary"} fontSize={{ base: "1rem", sm: "1.1rem", lg: "1.1rem" }} fontWeight={"400"}>
-                  {row.label}
-                </Switch.Label>
-                <Switch.HiddenInput />
-                <Switch.Control />
-              </Switch.Root>
-            ))}
-          </VStack>
-        </Box> */}
-
-        <Button size="sm" px={4} colorScheme="blue" onClick={onSave} loading={saving}>Save Changes</Button>
+            <VStack w="full" alignItems="flex-start" gapY={7} justifyContent="flex-start">
+              {[
+                { label: 'Payment Confirmation', value: 'paymentConfirmation' },
+                { label: 'Failed Payment', value: 'failedPayments' },
+                { label: 'Subscription renewal', value: 'subscriptionRenewal' },
+                { label: 'Payment Reminder', value: 'paymentReminder' },
+              ].map((item) => (
+                <HStack
+                  key={item.value}
+                  w="full"
+                  justifyContent="space-between"
+                  cursor="pointer"
+                  onClick={() => togglePayment(item.value)}
+                >
+                  <Text
+                    color="text_primary"
+                    fontSize={{ base: "1rem", sm: "1.1rem", md: "1.1rem" }}
+                    fontWeight="400"
+                  >
+                    {item.label}
+                  </Text>
+                  <Box
+                    boxSize={5}
+                    borderRadius="sm"
+                    borderWidth={2}
+                    borderColor={paymentSelected.has(item.value) ? "text_primary" : "gray.300"}
+                    bg={paymentSelected.has(item.value) ? "text_primary" : "transparent"}
+                    display="flex"
+                    alignItems="center"
+                    justifyContent="center"
+                    flexShrink={0}
+                  >
+                    {paymentSelected.has(item.value) && (
+                      <Icon color="white" boxSize={3}>
+                        <Check />
+                      </Icon>
+                    )}
+                  </Box>
+                </HStack>
+              ))}
+            </VStack>
+          </Box>
+        </Box>
       </Box>
     </Flex>
   );

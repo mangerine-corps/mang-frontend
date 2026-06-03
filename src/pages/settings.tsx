@@ -1,28 +1,23 @@
 "use client";
 import { useEffect, useState } from "react";
-import { Box, Text, Image, Flex, Icon, Stack } from "@chakra-ui/react";
+import { Box, Text, Image, Flex, Icon, HStack } from "@chakra-ui/react";
 import AccountSetting from "mangarine/components/ui-components/accountsetting";
 import PrivacySetting from "mangarine/components/ui-components/privacysetting";
 import NotificationSetting from "mangarine/components/ui-components/notificationsetting";
-import PaymentSetting from "mangarine/components/ui-components/paymentsetting";
 import SecuritySetting from "mangarine/components/ui-components/securitysetting";
 import GeneralSetting from "mangarine/components/ui-components/generalsetting";
-
 import LegalSetting from "mangarine/components/ui-components/legalsetting";
 import CustomInput from "mangarine/components/customcomponents/Input";
 import { CgSearch } from "react-icons/cg";
+import { BiArrowBack } from "react-icons/bi";
 import Help from "mangarine/components/ui-components/settings/help";
-import { BiMenuAltLeft } from "react-icons/bi";
-import MenuList from "mangarine/components/ui-components/mybusiness/modals/settingsdrawer";
 import { useRouter } from "next/router";
-// import CancelSubscriptionModal from "mangarine/components/ui-components/cancelsubscriptionmodal"
 
 const menuData = [
   {
     id: "account",
     text: "Account Setting",
     icon: "/icons/account1.svg",
-    href: "/accountsetting",
     iconBg: "/icons/right.svg",
     iconCircleBg: "rgba(54, 56, 83, 0.12)",
   },
@@ -30,7 +25,6 @@ const menuData = [
     id: "privacy",
     text: "Privacy Setting",
     icon: "/icons/privacy.svg",
-    href: "/",
     iconBg: "/icons/right.svg",
     iconCircleBg: "rgba(252, 115, 26, 0.12)",
   },
@@ -38,23 +32,20 @@ const menuData = [
     id: "notification",
     text: "Notification Setting",
     icon: "/icons/notification.svg",
-    href: "/notification",
     iconBg: "/icons/right.svg",
     iconCircleBg: "rgba(13, 188, 157, 0.12)",
   },
-  {
-    id: "payment",
-    text: "Payment Setting",
-    icon: "/icons/payment1.svg",
-    href: "/payment",
-    iconBg: "/icons/right.svg",
-    iconCircleBg: "rgba(247, 26, 252, 0.12)",
-  },
+  // {
+  //   id: "payment",
+  //   text: "Payment Setting",
+  //   icon: "/icons/payment1.svg",
+  //   iconBg: "/icons/right.svg",
+  //   iconCircleBg: "rgba(247, 26, 252, 0.12)",
+  // },
   {
     id: "security",
     text: "Security Setting",
     icon: "/icons/security.svg",
-    href: "/security",
     iconBg: "/icons/right.svg",
     iconCircleBg: "rgba(24, 25, 35, 0.10)",
   },
@@ -62,7 +53,6 @@ const menuData = [
     id: "general",
     text: "General Setting",
     icon: "/icons/general.svg",
-    href: "/general",
     iconBg: "/icons/right.svg",
     iconCircleBg: "rgba(252, 216, 26, 0.15)",
   },
@@ -70,7 +60,6 @@ const menuData = [
     id: "help",
     text: "Help & Support",
     icon: "/icons/support.svg",
-    href: "/support",
     iconBg: "/icons/right.svg",
     iconCircleBg: "rgba(25, 118, 210, 0.12)",
   },
@@ -78,7 +67,6 @@ const menuData = [
     id: "legal",
     text: "Legal Setting",
     icon: "/icons/legal.svg",
-    href: "",
     iconBg: "/icons/right.svg",
     iconCircleBg: "rgba(48, 188, 13, 0.12)",
   },
@@ -87,42 +75,39 @@ const menuData = [
 const Settings = () => {
   const [activeTab, setActiveTab] = useState("account");
   const [searchTerm, setSearchTerm] = useState("");
-  const [showMenuList, setShowMenuList] = useState<boolean>(false);
+  const [mobileView, setMobileView] = useState<"list" | "content">("list");
   const router = useRouter();
 
   useEffect(() => {
     const tab = router.query.tab;
     if (typeof tab === "string") {
       setActiveTab(tab);
+      setMobileView("content");
     }
   }, [router.query.tab]);
-  // const  [hide, setHide] = useState<boolean>(false);
-  const handleMobileTabChange = (activeTab) => {
-    setActiveTab(activeTab.id);
 
-    setShowMenuList(false);
+  const handleMobileSelect = (id: string) => {
+    setActiveTab(id);
+    setMobileView("content");
   };
+
+  const activeLabel = menuData.find((m) => m.id === activeTab)?.text ?? "Settings";
+
+  const filteredMenu = searchTerm
+    ? menuData.filter((m) => m.text.toLowerCase().includes(searchTerm.toLowerCase()))
+    : menuData;
 
   const renderContent = () => {
     switch (activeTab) {
-      case "account":
-        return <AccountSetting />;
-      case "privacy":
-        return <PrivacySetting />;
-      case "notification":
-        return <NotificationSetting />;
-      case "payment":
-        return <PaymentSetting />;
-      case "security":
-        return <SecuritySetting />;
-      case "general":
-        return <GeneralSetting />;
-      case "help":
-        return <Help />;
-      case "legal":
-        return <LegalSetting />;
-      default:
-        return <AccountSetting />;
+      case "account":      return <AccountSetting />;
+      case "privacy":      return <PrivacySetting />;
+      case "notification": return <NotificationSetting />;
+      // case "payment":   return <PaymentSetting />;
+      case "security":     return <SecuritySetting />;
+      case "general":      return <GeneralSetting />;
+      case "help":         return <Help />;
+      case "legal":        return <LegalSetting />;
+      default:             return <AccountSetting />;
     }
   };
 
@@ -135,35 +120,36 @@ const Settings = () => {
       borderLeft="1px"
       overflow="hidden"
       display="flex"
-      pos="relative"
+      flexDirection="column"
     >
-      <Box
-        flex={1.5}
-        borderRight="1px"
-        h="full"
-        borderColor="gray.200"
-        display={{ base: "none", md: "none", lg: "flex", xl: "flex" }}
-        flexDirection="column"
-        minW={0}
-      >
+      <Box display="flex" flex={1} minH={0}>
+
+        {/* ── Desktop sidebar ──────────────────────────────────────── */}
+        <Box
+          flex={1.5}
+          borderRight="1px"
+          h="full"
+          borderColor="gray.200"
+          display={{ base: "none", lg: "flex" }}
+          flexDirection="column"
+          minW={0}
+        >
           <Box>
             <CustomInput
               label=""
-              placeholder="Search Setting"
+              placeholder="Search settings"
               id="search"
               required={false}
               name="search"
+              autoComplete="off"
               value={searchTerm}
               size="lg"
               onChange={(value) => setSearchTerm(value)}
               hasLeftIcon={true}
-              type={"text"}
-              inputStyle={{
-                bg: "main_background",
-                shadow: "lg",
-              }}
+              type="search"
+              inputStyle={{ bg: "main_background", shadow: "lg" }}
               leftIcon={
-                <Icon m={2} size={"md"} color="grey.500">
+                <Icon m={2} size="md" color="grey.500">
                   <CgSearch />
                 </Icon>
               }
@@ -178,11 +164,9 @@ const Settings = () => {
             borderRadius="16px"
             boxShadow="sm"
             bg="main_background"
-            css={{
-              "&::-webkit-scrollbar": { width: "0px" },
-            }}
+            css={{ "&::-webkit-scrollbar": { width: "0px" } }}
           >
-            {menuData.map((item) => (
+            {filteredMenu.map((item) => (
               <Flex
                 key={item.id}
                 width={activeTab === item.id ? "95%" : "full"}
@@ -194,14 +178,9 @@ const Settings = () => {
                 roundedTopLeft={activeTab === item.id ? "lg" : "none"}
                 roundedBottomLeft={activeTab === item.id ? "lg" : "none"}
                 borderLeftWidth={activeTab === item.id ? "4px" : "0px"}
-                borderLeftColor={
-                  activeTab === item.id ? "text_primary" : "transparent"
-                }
-                backgroundColor={
-                  activeTab === item.id ? "bg_box" : "transparent"
-                }
+                borderLeftColor={activeTab === item.id ? "text_primary" : "transparent"}
+                backgroundColor={activeTab === item.id ? "bg_box" : "transparent"}
                 mt={activeTab === item.id ? "2" : "0"}
-                color={activeTab === item.id ? "text_primary" : "text_primary"}
                 _hover={{ backgroundColor: "bg_box" }}
                 onClick={() => setActiveTab(item.id)}
                 cursor="pointer"
@@ -221,85 +200,141 @@ const Settings = () => {
                     flexShrink={0}
                     marginRight={{ lg: "3", xl: "4" }}
                   >
-                    <Image
-                      src={item.icon}
-                      alt={item.text}
-                      boxSize={{ lg: "4", xl: "5" }}
-                    />
+                    <Image src={item.icon} alt={item.text} boxSize={{ lg: "4", xl: "5" }} />
                   </Box>
-                  <Text
-                    fontSize={{ lg: "1rem", xl: "1.2rem" }}
-                    fontFamily="Outfit"
-                    fontWeight="500"
-                    truncate
-                  >{item.text}</Text>
+                  <Text fontSize={{ lg: "1rem", xl: "1.2rem" }} fontFamily="Outfit" fontWeight="500" truncate>
+                    {item.text}
+                  </Text>
                 </Flex>
                 <Image src={item.iconBg} alt="arrow" />
               </Flex>
             ))}
           </Box>
         </Box>
-        <Stack
-          // as="button"
-          cursor={"pointer"}
-          onClick={() => {
-            setShowMenuList(true);
-          }}
-          display={{
-            base: "flex",
-            md: "flex",
-            lg: "none",
-            xl: "none",
-          }}
-          pos="absolute"
-          left="0"
-          top={"80"}
-          bg="main_background"
-          p="2"
-          zIndex={1000}
-          roundedRight="100%"
-          color="text_primary"
-          h="10"
-          alignItems={"center"}
-          justifyContent="center"
-          w="8"
-          borderWidth="2px"
-          borderColor="button_border"
-        >
-          <BiMenuAltLeft />
-        </Stack>
+
+        {/* ── Desktop content ───────────────────────────────────────── */}
         <Box
-          // mt="2"
           flex="3"
-          overflowY={"scroll"}
+          overflowY="scroll"
           h="full"
-          // bg="red.700"
+          px={{ lg: 5, xl: 6 }}
+          display={{ base: "none", lg: "block" }}
           css={{
-            "&::-webkit-scrollbar": {
-              width: "0px",
-              height: "0px",
-            },
-            "&::-webkit-scrollbar-track": {
-              width: "0px",
-              background: "transparent",
-              height: "0px",
-            },
-            "&::-webkit-scrollbar-thumb": {
-              background: "transparent",
-              borderRadius: "0px",
-              maxHeight: "0px",
-              height: "0px",
-              width: 0,
-            },
+            "&::-webkit-scrollbar": { width: "0px", height: "0px" },
+            "&::-webkit-scrollbar-track": { width: "0px", background: "transparent" },
+            "&::-webkit-scrollbar-thumb": { background: "transparent" },
           }}
         >
           {renderContent()}
         </Box>
-      <MenuList
-        action={handleMobileTabChange}
-        open={showMenuList}
-        onOpenChange={() => setShowMenuList(false)}
-      />
+
+        {/* ── Mobile: settings list ─────────────────────────────────── */}
+        <Box
+          display={{ base: mobileView === "list" ? "flex" : "none", lg: "none" }}
+          flexDirection="column"
+          w="full"
+          h="full"
+          overflowY="auto"
+          bg="main_background"
+        >
+          {/* Mobile search */}
+          <Box px={4} pt={4} pb={2}>
+            <CustomInput
+              label=""
+              placeholder="Search settings"
+              id="mobile-search"
+              required={false}
+              name="mobile-search"
+              autoComplete="off"
+              value={searchTerm}
+              size="md"
+              onChange={(value) => setSearchTerm(value)}
+              hasLeftIcon={true}
+              type="search"
+              inputStyle={{ bg: "main_background" }}
+              leftIcon={
+                <Icon m={2} size="md" color="grey.500">
+                  <CgSearch />
+                </Icon>
+              }
+            />
+          </Box>
+
+          {/* Mobile menu items */}
+          <Box flex={1} px={2}>
+            {filteredMenu.map((item) => (
+              <Flex
+                key={item.id}
+                align="center"
+                justify="space-between"
+                px={4}
+                py={4}
+                borderBottomWidth="1px"
+                borderBottomColor="border_but"
+                onClick={() => handleMobileSelect(item.id)}
+                cursor="pointer"
+                _active={{ bg: "bg_box" }}
+              >
+                <HStack gap={4}>
+                  <Box
+                    display="flex"
+                    alignItems="center"
+                    justifyContent="center"
+                    boxSize={10}
+                    borderRadius="full"
+                    bg={item.iconCircleBg}
+                    flexShrink={0}
+                  >
+                    <Image src={item.icon} alt={item.text} boxSize={5} />
+                  </Box>
+                  <Text fontFamily="Outfit" fontWeight="500" fontSize="1rem" color="text_primary">
+                    {item.text}
+                  </Text>
+                </HStack>
+                <Image src={item.iconBg} alt="arrow" boxSize={4} />
+              </Flex>
+            ))}
+          </Box>
+        </Box>
+
+        {/* ── Mobile: content view ──────────────────────────────────── */}
+        <Box
+          display={{ base: mobileView === "content" ? "flex" : "none", lg: "none" }}
+          flexDirection="column"
+          w="full"
+          h="full"
+          overflowY="auto"
+        >
+          {/* Mobile content header with back button */}
+          <HStack
+            px={4}
+            py={3}
+            borderBottomWidth="1px"
+            borderBottomColor="gray.200"
+            bg="main_background"
+            gap={3}
+            flexShrink={0}
+          >
+            <Box
+              cursor="pointer"
+              onClick={() => setMobileView("list")}
+              color="text_primary"
+              display="flex"
+              alignItems="center"
+            >
+              <BiArrowBack size={20} />
+            </Box>
+            <Text fontFamily="Outfit" fontWeight="600" fontSize="1rem" color="text_primary">
+              {activeLabel}
+            </Text>
+          </HStack>
+
+          <Box flex={1} overflowY="auto" px={3} py={4}>
+            {renderContent()}
+          </Box>
+        </Box>
+
+      </Box>
     </Box>
   );
 };

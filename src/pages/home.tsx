@@ -8,6 +8,7 @@ import ActivityBox from "mangarine/components/ui-components/activitybox";
 import BookingCalendar from "mangarine/components/ui-components/bookingcalender";
 import FeedInput from "mangarine/components/ui-components/feedinput";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { useRouter } from "next/router";
 import { useGetPostsCursorQuery } from "mangarine/state/services/posts.service";
 import { isEmpty, size } from "es-toolkit/compat";
 import { usePosts } from "mangarine/state/hooks/post.hook";
@@ -44,6 +45,7 @@ function Home() {
   const [hasMore, setHasMore] = useState(true);
   const [pendingNew, setPendingNew] = useState<Post[]>([]);
 
+  const router = useRouter();
   const feedTopRef = useRef<HTMLDivElement | null>(null);
   const sentinelRef = useRef<HTMLDivElement | null>(null);
   const { posts } = usePosts();
@@ -218,7 +220,7 @@ function Home() {
                   color="#111D4A"
                   cursor="pointer"
                   _hover={{ textDecoration: "underline" }}
-                  onClick={() => setOpenConsultant(true)}
+                  onClick={() => router.push("/consultant-learn-more")}
                 >
                   Learn more →
                 </Text>

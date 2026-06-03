@@ -31,6 +31,7 @@ type Props = {
   inputStyle?: SystemStyleObject;
   onKeyDown?: React.KeyboardEventHandler<HTMLInputElement>;
   hideErrorText?: boolean;
+  autoComplete?: string;
 };
 const CustomInput = ({
   value,
@@ -56,6 +57,7 @@ const CustomInput = ({
   inputStyle = {},
   onKeyDown: onKeyDownProp,
   hideErrorText = false,
+  autoComplete,
 }: Props) => {
 
   const handleKeyDown = (event) => {
@@ -119,6 +121,7 @@ const CustomInput = ({
           ring={"none"}
           min={min}
           name={name}
+          autoComplete={autoComplete}
           rounded="6px"
           css={{
             "&::-webkit-outer-spin-button, &::-webkit-inner-spin-button": {

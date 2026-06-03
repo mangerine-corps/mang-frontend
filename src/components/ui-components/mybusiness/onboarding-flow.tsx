@@ -516,7 +516,7 @@ const ConsultantOnboardingFlow = () => {
               ...DEFAULT_DRAFT.documents,
               ...(parsedDraft?.documents ?? {}),
             },
-            step: normalizeStoredStep(parsedDraft?.step),
+            step: "intro",
           };
         } catch {
           nextDraft = DEFAULT_DRAFT;

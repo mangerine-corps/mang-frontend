@@ -1,5 +1,6 @@
 import {
   Box,
+  Flex,
   Text,
   HStack,
   VStack,
@@ -33,7 +34,8 @@ const PaymentSetting = () => {
   ];
 
   return (
-    <Box className={outfit.className} w="full" p={{ base: 4, sm: 6, md: 8, lg: 10, xl: 12 }} borderRadius="lg" boxShadow="lg" bg="bg_box" mt={{ base: 4, md: 8, lg: 0, xl: "flex" }}>
+    <Flex direction="column" h="full" w="full">
+    <Box className={outfit.className} w="full" h="full" p={{ base: 4, sm: 6, md: 8, lg: 10, xl: 12 }} borderRadius="lg" boxShadow="lg" bg="bg_box">
       <Text
         fontSize={{base:"1rem", md:"1.5rem", lg:"1.5rem"}}
         fontWeight="600"
@@ -184,6 +186,7 @@ const PaymentSetting = () => {
         }}
       />
     </Box>
+    </Flex>
   );
 };
 

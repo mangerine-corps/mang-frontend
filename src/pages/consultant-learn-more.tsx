@@ -7,6 +7,17 @@ import {
 import CustomButton from "mangarine/components/customcomponents/button";
 import { useRouter } from "next/router";
 import { IoArrowBack } from "react-icons/io5";
+import Biocard from "mangarine/components/ui-components/biocard";
+import DashboardCard from "mangarine/components/ui-components/dashboardcard";
+import ActivityBox from "mangarine/components/ui-components/activitybox";
+import BookingCalendar from "mangarine/components/ui-components/bookingcalender";
+import WhoToFollow from "mangarine/components/ui-components/whotofollow";
+
+const noScrollbar = {
+  "&::-webkit-scrollbar": { width: "0px", height: "0px" },
+  "&::-webkit-scrollbar-track": { width: "0px", background: "transparent", height: "0px" },
+  "&::-webkit-scrollbar-thumb": { background: "transparent", borderRadius: "0px", height: "0px", width: 0 },
+};
 
 const Section = ({ title, children }: { title: string; children: React.ReactNode }) => (
   <VStack alignItems="flex-start" spaceY={2} w="full">
@@ -47,7 +58,36 @@ export default function ConsultantLearnMore() {
   const router = useRouter();
 
   return (
-    <Box maxW="2xl" mx="auto" px={{ base: 5, md: 8 }} py={{ base: 6, md: 10 }}>
+    <Box
+      display="grid"
+      gridTemplateColumns={{ base: "1fr", lg: "320px minmax(0, 1fr) 280px" }}
+      gap={4}
+      w="full"
+      h="full"
+      minH={0}
+    >
+      {/* Left sidebar */}
+      <VStack
+        display={{ base: "none", lg: "flex" }}
+        align="stretch"
+        gap={4}
+        h="full"
+        overflowY="auto"
+        css={noScrollbar}
+      >
+        <Biocard />
+        <DashboardCard />
+      </VStack>
+
+      {/* Main content */}
+      <Box
+        bg="bg_box"
+        borderWidth="1px"
+        borderColor="input_border"
+        borderRadius="24px"
+        overflowY="auto"
+        css={noScrollbar}
+        maxW="2xl" mx="auto" px={{ base: 5, md: 8 }} py={{ base: 6, md: 10 }}>
       {/* Back header */}
       <HStack
         spaceX={2}
@@ -255,6 +295,21 @@ export default function ConsultantLearnMore() {
             </Text>
           </CustomButton>
         </Box>
+      </VStack>
+      </Box>
+
+      {/* Right sidebar */}
+      <VStack
+        display={{ base: "none", lg: "flex" }}
+        align="stretch"
+        gap={4}
+        h="full"
+        overflowY="auto"
+        css={noScrollbar}
+      >
+        <ActivityBox />
+        <BookingCalendar />
+        <WhoToFollow />
       </VStack>
     </Box>
   );
