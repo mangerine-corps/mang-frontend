@@ -1,13 +1,12 @@
 import {
   Box,
+  Flex,
   SkeletonCircle,
   SkeletonText,
   Stack,
   Tooltip,
   VStack,
 } from "@chakra-ui/react";
-import Biocard from "mangarine/components/ui-components/biocard";
-import DashboardCard from "mangarine/components/ui-components/dashboardcard";
 import ActivityBox from "mangarine/components/ui-components/activitybox";
 import BookingCalendar from "mangarine/components/ui-components/bookingcalender";
 import WhoToFollow from "mangarine/components/ui-components/whotofollow";
@@ -133,32 +132,7 @@ function Home() {
   };
 
   return (
-    <Box
-        display="grid"
-        gridTemplateColumns={{
-          base: "1fr", // 1 col on mobile
-          md: "1fr 2fr", // 2 cols on tablet
-          lg: "1fr 2fr 1fr", // 3 cols on desktop
-        }}
-        gap={4}
-        w="100%"
-        maxW="8xl"
-        mx="auto"
-        px={{ base: 2, md: 4, lg: 6 }}
-      >
-        {/* Left sidebar */}
-        <VStack
-          display={{ base: "none", md: "flex" }} // hidden on mobile
-          align="stretch"
-          spaceY={4}
-          h="100vh"
-          pos="sticky"
-          top="64px" // adjust to header height
-        >
-          <Biocard />
-          <DashboardCard />
-        </VStack>
-
+    <Flex gap={4} w="full" h={{ base: "auto", md: "full" }} overflow={{ base: "visible", md: "hidden" }}>
         {/* Center feed */}
         <VStack align="stretch" spaceY={4}>
           <Stack
@@ -400,8 +374,8 @@ function Home() {
             setShowMenuList(false);
           }}
         />
-      </Box>
-      );
+    </Flex>
+  );
 }
 
 export default Home;

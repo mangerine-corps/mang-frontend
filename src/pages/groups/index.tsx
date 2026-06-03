@@ -1,6 +1,7 @@
 import {
   Box,
   Button,
+  Flex,
   HStack,
   Image,
   Link,
@@ -11,8 +12,6 @@ import {
   useMediaQuery,
   VStack,
 } from "@chakra-ui/react";
-import Biocard from "mangarine/components/ui-components/biocard";
-import DashboardCard from "mangarine/components/ui-components/dashboardcard";
 import GroupComponent from "mangarine/components/ui-components/groupcontent";
 import GroupsTabs from "mangarine/components/ui-components/groupstabs";
 import Rules from "mangarine/components/ui-components/rules";
@@ -57,30 +56,7 @@ const Index = () => {
   };
 
   return (
-    <Box
-      display="grid"
-      gridTemplateColumns={{ base: "1fr", md: "1fr 2fr", lg: "1fr 2fr 1fr" }}
-      gap={4}
-      w="full"
-      h={{ base: "auto", md: "full" }}
-      alignItems="start"
-      pos="relative"
-      css={noScrollbar}
-    >
-      {/* Left sidebar */}
-      <VStack
-        display={{ base: "none", md: "flex" }}
-        alignItems="stretch"
-        w="full"
-        spaceY={2}
-        h="full"
-        overflowY="auto"
-        css={noScrollbar}
-      >
-        <Biocard />
-        <DashboardCard />
-      </VStack>
-
+    <Flex gap={4} w="full" h={{ base: "auto", md: "full" }} overflow={{ base: "visible", md: "hidden" }} pos="relative">
       {/* Center content */}
       <VStack
         h={{ base: "auto", md: "full" }}
@@ -161,7 +137,7 @@ const Index = () => {
         open={showMenuList}
         onOpenChange={() => setShowMenuList(false)}
       />
-    </Box>
+    </Flex>
   );
 };
 

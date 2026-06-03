@@ -1,8 +1,6 @@
 "use client";
 import { Stack, Box, VStack, Text, Icon, Flex } from "@chakra-ui/react";
-import Biocard from "mangarine/components/ui-components/biocard";
 import CommunityLists from "mangarine/components/ui-components/communitylists";
-import DashboardCard from "mangarine/components/ui-components/dashboardcard";
 import FollowingLists from "mangarine/components/ui-components/follow-list";
 import NetworkingCard from "mangarine/components/ui-components/networking";
 import NewsItem from "mangarine/components/ui-components/newsitem";
@@ -58,47 +56,7 @@ const PostPage = () => {
     const isConsultant = user?.isConsultant;
 
   return (
-          <Box
-        display={"flex"}
-        // bg="bg_box"
-
-        flexDir={{ base: "column", md: "row", lg: "row", xl: "row" }}
-        // alignItems={"center"}
-        my={{ base: "2", md: "12px" }}
-        justifyContent={"space-between"}
-        w={{ base: "98%", md: "96%", lg: "96%", xl: "full" }}
-        mx="auto"
-        overflowY={"auto"}
-        // spaceY={{ base: "4", md: "0" }}
-        css={{
-          "&::-webkit-scrollbar": {
-            width: "0px",
-
-            height: "0px",
-          },
-          "&::-webkit-scrollbar-track": {
-            width: "0px",
-            background: "transparent",
-
-            height: "0px",
-          },
-          "&::-webkit-scrollbar-thumb": {
-            background: "transparent",
-            borderRadius: "0px",
-            maxHeight: "0px",
-            height: "0px",
-            width: 0,
-          },
-        }}
-      >
-        <VStack
-          bg={{ base: "bg_box", md: "transparent" }}
-          display={{ base: "none", md: "none", lg: "none", xl: "flex" }}
-        >
-          <Biocard />
-          <Box> {showContent && <NetworkingCard />}</Box>
-          <DashboardCard />
-        </VStack>
+      <>
         <VStack
           mx={{ base: "0", md: 4 }}
           flex={1}
@@ -234,8 +192,8 @@ const PostPage = () => {
             </Stack>
           </Stack>
         </VStack>
-      </Box>
-      );
+      </>
+  );
 };
 
 export default PostPage;

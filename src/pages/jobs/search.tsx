@@ -1,7 +1,5 @@
 import { Badge, Box, Button, Flex, Image, Input, Text, VStack, HStack, Skeleton, SkeletonText } from "@chakra-ui/react";
 import { useRouter } from "next/router";
-import Biocard from "mangarine/components/ui-components/biocard";
-import DashboardCard from "mangarine/components/ui-components/dashboardcard";
 import { useGetJobsQuery, useSaveJobMutation, useUnsaveJobMutation } from "mangarine/state/services/jobs.service";
 import { useState } from "react";
 import { BiSearch } from "react-icons/bi";
@@ -138,32 +136,6 @@ const JobSearchPage = () => {
   const handleSearch = () => setSearchQuery(searchInput.trim());
 
   return (
-          <Box
-        display="flex"
-        flexDir={{ base: "column", md: "row" }}
-        gap={4}
-        w="full"
-        h={{ base: "auto", md: "full" }}
-        minH={0}
-        overflow={{ base: "visible", md: "hidden" }}
-        css={noScrollbar}
-      >
-        {/* Left sidebar */}
-        <VStack
-          display={{ base: "none", md: "flex" }}
-          alignItems="stretch"
-          spaceY={2}
-          w={{ md: "25%" }}
-          flexShrink={0}
-          h="full"
-          overflowY="auto"
-          css={noScrollbar}
-        >
-          <Biocard />
-          <DashboardCard />
-        </VStack>
-
-        {/* Main content */}
         <Box flex={1} h={{ base: "auto", md: "full" }} minH={0} overflowY={{ base: "visible", md: "auto" }} css={noScrollbar}>
           {/* Search banner */}
           <Box bg="#FFF4EC" borderRadius="16px" p={{ base: 5, md: 8 }} mb={4}>

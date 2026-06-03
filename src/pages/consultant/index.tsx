@@ -16,8 +16,6 @@ import {
   VStack,
 } from "@chakra-ui/react";
 import { LuSearch, LuSlidersHorizontal } from "react-icons/lu";
-import Biocard from "mangarine/components/ui-components/biocard";
-import DashboardCard from "mangarine/components/ui-components/dashboardcard";
 import GeneralFeed from "mangarine/components/ui-components/generalfeed";
 import ConsultantTabs from "mangarine/components/ui-components/consultanttab";
 
@@ -99,29 +97,7 @@ const Index = () => {
   };
 
   return (
-    <Box
-      display="grid"
-      gridTemplateColumns={{ base: "1fr", md: "1fr 2fr", lg: "1fr 2fr 1fr" }}
-      gap={4}
-      w="full"
-      h={{ base: "auto", md: "full" }}
-      alignItems="start"
-      css={noScrollbar}
-    >
-      {/* Left sidebar */}
-      <VStack
-        display={{ base: "none", md: "flex" }}
-        alignItems="stretch"
-        w="full"
-        spaceY={2}
-        h="full"
-        overflowY="auto"
-        css={noScrollbar}
-      >
-        <Biocard />
-        <DashboardCard />
-      </VStack>
-
+    <Flex gap={4} w="full" h={{ base: "auto", md: "full" }} overflow={{ base: "visible", md: "hidden" }}>
       {/* Center content */}
       <Box
         h={{ base: "auto", md: "full" }}
@@ -313,7 +289,7 @@ const Index = () => {
         <ScheduledConsultation />
         <FavouriteConsultantsComp />
       </VStack>
-    </Box>
+    </Flex>
   );
 };
 

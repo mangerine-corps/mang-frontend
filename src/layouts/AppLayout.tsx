@@ -6,6 +6,23 @@ import { useAuth } from 'mangarine/state/hooks/user.hook';
 import { isEmpty } from 'es-toolkit/compat';
 import { useRouter } from 'next/router';
 import { SSENotificationProvider } from 'mangarine/contexts/SSENotificationContext';
+import Biocard from 'mangarine/components/ui-components/biocard';
+import DashboardCard from 'mangarine/components/ui-components/dashboardcard';
+
+// Routes that show the profile sidebar (Biocard + DashboardCard)
+const SIDEBAR_ROUTES = new Set([
+  '/home', '/home1', '/search', '/notification', '/payment-success',
+  '/consultant-learn-more', '/consultant', '/consultation',
+  '/consultation/view', '/consultation/reschedule', '/consultation/cancel',
+  '/groups', '/jobs', '/jobs/create', '/jobs/search',
+  '/jobs/[jobId]', '/posts/[postId]',
+]);
+
+const noScrollbar = {
+  "&::-webkit-scrollbar": { width: "0px", height: "0px" },
+  "&::-webkit-scrollbar-track": { width: "0px", background: "transparent", height: "0px" },
+  "&::-webkit-scrollbar-thumb": { background: "transparent", borderRadius: "0px", height: "0px", width: 0 },
+};
 
 type Props = {
   children: React.ReactElement;
@@ -47,6 +64,7 @@ const AppLayout: FC<Props> = ({ children }) => {
   const { token, user } = useAuth()
   const persistReady = usePersistReady()
   const router = useRouter()
+  const showSidebar = SIDEBAR_ROUTES.has(router.pathname)
 
   useEffect(() => {
     if (!persistReady) return;
@@ -74,11 +92,7 @@ const AppLayout: FC<Props> = ({ children }) => {
             w="full"
             overflow={{ base: "visible", md: "hidden" }}
             justify="center"
-            css={{
-              "&::-webkit-scrollbar": { width: "0px", height: "0px" },
-              "&::-webkit-scrollbar-track": { width: "0px", background: "transparent", height: "0px" },
-              "&::-webkit-scrollbar-thumb": { background: "transparent", borderRadius: "0px", maxHeight: "0px", height: "0px", width: 0 },
-            }}
+            css={noScrollbar}
           >
             <Flex
               flex={1}
@@ -86,8 +100,32 @@ const AppLayout: FC<Props> = ({ children }) => {
               w="full"
               maxW="1400px"
               px={{ base: "10px", md: "16px", lg: "20px", xl: "24px" }}
+              gap={4}
             >
-              {children}
+              {showSidebar && (
+                <VStack
+                  display={{ base: "none", md: "flex" }}
+                  alignItems="stretch"
+                  spaceY={2}
+                  w="260px"
+                  flexShrink={0}
+                  h={{ base: "auto", md: "full" }}
+                  overflowY="auto"
+                  css={noScrollbar}
+                >
+                  <Biocard />
+                  <DashboardCard />
+                </VStack>
+              )}
+
+              <Box
+                flex={1}
+                minH={0}
+                h={{ base: "auto", md: "full" }}
+                overflow={{ base: "visible", md: "hidden" }}
+              >
+                {children}
+              </Box>
             </Flex>
           </Flex>
         )}

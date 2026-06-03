@@ -2,8 +2,6 @@ import { Box, Button, Flex, Image, Text, VStack, HStack, Badge, Skeleton, Skelet
 
 import React from "react";
 import { useRouter } from "next/router";
-import Biocard from "mangarine/components/ui-components/biocard";
-import DashboardCard from "mangarine/components/ui-components/dashboardcard";
 import { useGetMyJobsQuery, useGetMyApplicationsQuery } from "mangarine/state/services/jobs.service";
 
 const noScrollbar = {
@@ -84,31 +82,7 @@ const JobsPage = () => {
   const [navigatingSearch, setNavigatingSearch] = React.useState(false);
 
   return (
-    <Box
-      display="grid"
-      gridTemplateColumns={{ base: "1fr", md: "1fr 2fr" }}
-      gap={4}
-      w="full"
-      h={{ base: "auto", md: "full" }}
-      alignItems="start"
-      css={noScrollbar}
-    >
-      {/* Left sidebar */}
-      <VStack
-        display={{ base: "none", md: "flex" }}
-        alignItems="stretch"
-        spaceY={2}
-        w="full"
-        h="full"
-        overflowY="auto"
-        css={noScrollbar}
-      >
-        <Biocard />
-        <DashboardCard />
-      </VStack>
-
-      {/* Main content */}
-      <Box h={{ base: "auto", md: "full" }} w="full" overflowY="auto" css={noScrollbar}>
+      <Box flex={1} h={{ base: "auto", md: "full" }} minH={0} overflowY={{ base: "visible", md: "auto" }} css={noScrollbar}>
 
           {/* Header */}
           <Flex
@@ -273,7 +247,6 @@ const JobsPage = () => {
             )
           )}
       </Box>
-    </Box>
   );
 };
 

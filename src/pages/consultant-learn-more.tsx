@@ -1,5 +1,6 @@
 import {
   Box,
+  Flex,
   HStack,
   Text,
   VStack,
@@ -7,8 +8,6 @@ import {
 import CustomButton from "mangarine/components/customcomponents/button";
 import { useRouter } from "next/router";
 import { IoArrowBack } from "react-icons/io5";
-import Biocard from "mangarine/components/ui-components/biocard";
-import DashboardCard from "mangarine/components/ui-components/dashboardcard";
 import ActivityBox from "mangarine/components/ui-components/activitybox";
 import BookingCalendar from "mangarine/components/ui-components/bookingcalender";
 import WhoToFollow from "mangarine/components/ui-components/whotofollow";
@@ -58,27 +57,7 @@ export default function ConsultantLearnMore() {
   const router = useRouter();
 
   return (
-    <Box
-      display="grid"
-      gridTemplateColumns={{ base: "1fr", lg: "320px minmax(0, 1fr) 280px" }}
-      gap={4}
-      w="full"
-      h="full"
-      minH={0}
-    >
-      {/* Left sidebar */}
-      <VStack
-        display={{ base: "none", lg: "flex" }}
-        align="stretch"
-        gap={4}
-        h="full"
-        overflowY="auto"
-        css={noScrollbar}
-      >
-        <Biocard />
-        <DashboardCard />
-      </VStack>
-
+    <Flex gap={4} w="full" h={{ base: "auto", md: "full" }} overflow={{ base: "visible", md: "hidden" }}>
       {/* Main content */}
       <Box
         bg="bg_box"
@@ -311,6 +290,6 @@ export default function ConsultantLearnMore() {
         <BookingCalendar />
         <WhoToFollow />
       </VStack>
-    </Box>
+    </Flex>
   );
 }

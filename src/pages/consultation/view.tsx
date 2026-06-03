@@ -3,8 +3,6 @@ import { Box, Button, HStack, Text, VStack, Spinner, Flex } from '@chakra-ui/rea
 import { useCountdown, resolveStartTime } from 'mangarine/hooks/useCountdown';
 import { useTheme } from 'next-themes';
 import { useRouter } from 'next/router';
-import Biocard from 'mangarine/components/ui-components/biocard';
-import DashboardCard from 'mangarine/components/ui-components/dashboardcard';
 import ActivityEmptyState from 'mangarine/components/ui-components/emptystate';
 import { useGetAppointmentByIdQuery, useCancelAppointmentMutation } from 'mangarine/state/services/apointment.service';
 import CustomButton from 'mangarine/components/customcomponents/button';
@@ -146,44 +144,7 @@ export default function ConsultationViewPage() {
     };
 
     return (
-                    <Box
-                display={"flex"}
-                flexDir={{ base: "column", md: "row", lg: "row", xl: "row" }}
-                my={{ base: "0", md: "12px" }}
-                className={outfit.className}
-                justifyContent={"space-between"}
-                w={{ base: "98%", md: "96%", lg: "96%", xl: "full" }}
-                mx="auto"
-                pos="relative"
-                overflowY={"scroll"}
-                css={{
-                    "&::-webkit-scrollbar": {
-                        width: "0px",
-                        height: "0px",
-                    },
-                    "&::-webkit-scrollbar-track": {
-                        width: "0px",
-                        background: "transparent",
-                        height: "0px",
-                    },
-                    "&::-webkit-scrollbar-thumb": {
-                        background: "transparent",
-                        borderRadius: "0px",
-                        maxHeight: "0px",
-                        height: "0px",
-                        width: 0,
-                    },
-                }}
-            >
-                <VStack
-                    bg={{ base: "bg_box", md: "transparent" }}
-                    display={{ base: "none", md: "none", lg: "none", xl: "flex" }}
-                >
-                    <Biocard />
-                    <DashboardCard />
-                </VStack>
-
-
+            <>
                 {appointment ? (
                     <VStack bg='bg_box' mx={{ base: "0", md: 4, lg: 4, xl: 4 }}
                         flex={1}
@@ -477,6 +438,6 @@ export default function ConsultationViewPage() {
                 <VStack>
                     <ActivityEmptyState />
                 </VStack>
-            </Box>
-            );
+            </>
+    );
 }

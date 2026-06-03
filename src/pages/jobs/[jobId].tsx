@@ -11,8 +11,6 @@ import {
   VStack,
   Dialog,
 } from "@chakra-ui/react";
-import Biocard from "mangarine/components/ui-components/biocard";
-import DashboardCard from "mangarine/components/ui-components/dashboardcard";
 import { useRouter } from "next/router";
 import { useState } from "react";
 import { IoArrowBack } from "react-icons/io5";
@@ -141,32 +139,7 @@ const JobDetailPage = () => {
   };
 
   return (
-    <Box
-      display="flex"
-      flexDir={{ base: "column", md: "row" }}
-      gap={4}
-      w="full"
-      h={{ base: "auto", md: "full" }}
-      minH={0}
-      overflow={{ base: "visible", md: "hidden" }}
-      css={noScrollbar}
-    >
-      {/* Left sidebar */}
-      <VStack
-        display={{ base: "none", md: "flex" }}
-        alignItems="stretch"
-        spaceY={2}
-        w={{ md: "25%" }}
-        flexShrink={0}
-        h="full"
-        overflowY="auto"
-        css={noScrollbar}
-      >
-        <Biocard />
-        <DashboardCard />
-      </VStack>
-
-      {/* Main content */}
+    <>
       <Box flex={1} h={{ base: "auto", md: "full" }} minH={0} overflowY={{ base: "visible", md: "auto" }} css={noScrollbar}>
         <Button
           variant="ghost"
@@ -495,7 +468,7 @@ const JobDetailPage = () => {
           </Dialog.Body>
         </Dialog.Content>
       </Dialog.Root>
-    </Box>
+    </>
   );
 };
 

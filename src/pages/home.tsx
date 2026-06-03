@@ -1,9 +1,7 @@
-import { Box, HStack, Icon, SkeletonCircle, SkeletonText, Stack, Text, VStack } from "@chakra-ui/react";
+import { Box, Flex, HStack, Icon, SkeletonCircle, SkeletonText, Stack, Text, VStack } from "@chakra-ui/react";
 import { IoClose } from "react-icons/io5";
 import { PiSparkle } from "react-icons/pi";
 import { BsArrowUp } from "react-icons/bs";
-import Biocard from "mangarine/components/ui-components/biocard";
-import DashboardCard from "mangarine/components/ui-components/dashboardcard";
 import ActivityBox from "mangarine/components/ui-components/activitybox";
 import BookingCalendar from "mangarine/components/ui-components/bookingcalender";
 import FeedInput from "mangarine/components/ui-components/feedinput";
@@ -122,30 +120,8 @@ function Home() {
   }, [hasMore, isFetchingPage, nextCursor]);
 
   return (
-          <>
-      <Box
-        display="grid"
-        gridTemplateColumns={{ base: "1fr", md: "1fr 2fr", lg: "1fr 2fr 1fr" }}
-        gap={4}
-        w="full"
-        h={{ base: "auto", md: "full" }}
-        alignItems="start"
-        css={noScrollbar}
-      >
-        {/* Left sidebar */}
-        <VStack
-          display={{ base: "none", md: "flex" }}
-          alignItems="stretch"
-          w="full"
-          spaceY={2}
-          h="full"
-          overflowY="auto"
-          css={noScrollbar}
-        >
-          <Biocard />
-          <DashboardCard />
-        </VStack>
-
+      <>
+      <Flex gap={4} w="full" h={{ base: "auto", md: "full" }} overflow={{ base: "visible", md: "hidden" }}>
         {/* Center feed */}
         <Stack bg="bg_box" rounded="xl" px={4} pb={4} h={{ base: "auto", md: "full" }} w="full" overflowY={{ base: "auto", md: "auto" }} css={noScrollbar} position="relative">
           {/* Scroll anchor */}
@@ -328,7 +304,7 @@ function Home() {
         >
           <BiMenuAltRight />
         </Stack>
-      </Box>
+      </Flex>
 
       <MenuList
         action={() => setShowMenuList(false)}
