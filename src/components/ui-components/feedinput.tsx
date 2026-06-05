@@ -358,7 +358,7 @@ const addTag =(username:string)=>{
               {/* Image previews */}
               {imagePreview.length > 0 && (
                 <Box display="grid" gridTemplateColumns="repeat(2, 1fr)" gap="8px" pt={3}>
-                  {imagePreview.map((src) => (
+                  {imagePreview.map((src, index) => (
                     <Box key={src} position="relative" borderRadius="10px" overflow="hidden">
                       <Image
                         src={src}
@@ -489,7 +489,7 @@ const addTag =(username:string)=>{
                     pt={4}
                     w="full"
                   >
-                    {imagePreview.map((src) => (
+                    {imagePreview.map((src, index) => (
                       <Box key={src} position="relative" borderRadius="10px" overflow="hidden">
                         <Image
                           src={src}
