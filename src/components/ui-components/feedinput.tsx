@@ -13,7 +13,8 @@ import {
 import { BiChevronDown } from "react-icons/bi";
 import { IoClose } from "react-icons/io5";
 import FeedAction from "./feedaction";
-import EmojiPicker from "emoji-picker-react";
+import dynamic from "next/dynamic";
+const EmojiPicker = dynamic(() => import("emoji-picker-react"), { ssr: false, loading: () => null });
 import { useCallback, useRef, useState } from "react";
 import { useClickAway } from "react-use";
 import { RiEditFill } from "react-icons/ri";
@@ -357,11 +358,11 @@ const addTag =(username:string)=>{
               {/* Image previews */}
               {imagePreview.length > 0 && (
                 <Box display="grid" gridTemplateColumns="repeat(2, 1fr)" gap="8px" pt={3}>
-                  {imagePreview.map((src, index) => (
-                    <Box key={index} position="relative" borderRadius="10px" overflow="hidden">
+                  {imagePreview.map((src) => (
+                    <Box key={src} position="relative" borderRadius="10px" overflow="hidden">
                       <Image
                         src={src}
-                        alt={`img-${index}`}
+                        alt="preview"
                         w="full"
                         h="130px"
                         objectFit="cover"
@@ -488,11 +489,11 @@ const addTag =(username:string)=>{
                     pt={4}
                     w="full"
                   >
-                    {imagePreview.map((src, index) => (
-                      <Box key={index} position="relative" borderRadius="10px" overflow="hidden">
+                    {imagePreview.map((src) => (
+                      <Box key={src} position="relative" borderRadius="10px" overflow="hidden">
                         <Image
                           src={src}
-                          alt={`Selected Image ${index + 1}`}
+                          alt="Selected image"
                           objectFit="cover"
                           w="full"
                           h="130px"

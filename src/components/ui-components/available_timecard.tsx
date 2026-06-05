@@ -39,7 +39,7 @@ const AvailableTimeCard = ({ availabilityInfo }: { availabilityInfo: any }) => {
                         }
 
                         return (
-                            <Text key={index} color='text_primary' fontSize="sm" fontWeight={'500'} alignSelf="flex-start">
+                            <Text key={availability?.day} color='text_primary' fontSize="sm" fontWeight={'500'} alignSelf="flex-start">
                                 {availability?.day}: {firstFrom} - {lastTo} {tz}
                             </Text>
                         );

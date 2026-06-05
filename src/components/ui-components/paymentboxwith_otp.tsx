@@ -55,8 +55,8 @@ const PaymentOtpBox = () => {
             "Manager Fee",
             "Recording Fee",
             "Total Fee",
-          ].map((item, index) => (
-            <Flex key={index} justify="space-between" width="100%">
+          ].map((item) => (
+            <Flex key={item} justify="space-between" width="100%">
               <Text fontSize="14px" color={"text_primary"}>
                 {item}
               </Text>

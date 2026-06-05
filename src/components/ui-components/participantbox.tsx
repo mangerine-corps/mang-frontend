@@ -56,9 +56,9 @@ const ParticipantBox = () => {
 
 
       <VStack gap={4} maxH="280px" overflowY="auto" pr={1}>
-        {participants.map((p, idx) => (
+        {participants.map((p) => (
           <Box
-            key={idx}
+            key={p.id ?? p.userId}
             w="full"
             p={3}
             borderRadius="xl"

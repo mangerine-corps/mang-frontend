@@ -17,7 +17,8 @@ import {
   Textarea,
   VStack,
 } from "@chakra-ui/react";
-import EmojiPicker from "emoji-picker-react";
+import dynamic from "next/dynamic";
+const EmojiPicker = dynamic(() => import("emoji-picker-react"), { ssr: false, loading: () => null });
 import { isEmpty, size } from "es-toolkit/compat";
 
 import { useAuth } from "mangarine/state/hooks/user.hook";
@@ -37,7 +38,7 @@ import {
   useUnlikeCommentMutation,
   useDeleteCommentMutation,
 } from "mangarine/state/services/posts.service";
-import { useEffect, useRef, useState } from "react";
+import { memo, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/router";
 import { FiThumbsUp } from "react-icons/fi";
 import { IoEllipsisVerticalOutline } from "react-icons/io5";
@@ -557,4 +558,4 @@ const CommentItem = ({
   );
 };
 
-export default CommentItem;
+export default memo(CommentItem);

@@ -1,5 +1,6 @@
 import { Box, Flex, HStack, Image, Avatar, Textarea, VStack } from "@chakra-ui/react";
-import EmojiPicker from "emoji-picker-react";
+import dynamic from "next/dynamic";
+const EmojiPicker = dynamic(() => import("emoji-picker-react"), { ssr: false, loading: () => null });
 import { useAuth } from "mangarine/state/hooks/user.hook";
 import { useAddCommentMutation } from "mangarine/state/services/posts.service";
 import { useMemo, useRef, useState } from "react";

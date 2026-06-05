@@ -99,9 +99,9 @@ const MemberList = ({ open, onOpenChange, data }) => {
                         <Skeleton h="32px" w="80px" rounded="md" />
                       </HStack>
                     ))
-                  : data?.users.map((member, index) => (
+                  : data?.users.map((member) => (
                   <HStack
-                    key={index}
+                    key={member.id}
                     align="start"
                     w="full"
                     justify="space-between"

@@ -24,8 +24,8 @@ const ConsultationDetailsBox = () => {
           Consultation Details
         </Text>
         <Flex flexDirection="column" gap="8px" width="100%">
-          {["Consultant", "Date", "Time", "Amount"].map((item, index) => (
-            <Flex key={index} justify="space-between" width="100%">
+          {["Consultant", "Date", "Time", "Amount"].map((item) => (
+            <Flex key={item} justify="space-between" width="100%">
               <Text fontSize="0.875rem" color={"text_primary"}>
                 {item}
               </Text>

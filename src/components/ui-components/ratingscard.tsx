@@ -58,8 +58,8 @@ interface RatingAndReviewComponentProps {
 const RatingAndReviewComponent: React.FC<RatingAndReviewComponentProps> = ({ reviews }) => (
   <Box maxW={{ base: '100%', md: '800px', lg: '900px' }} >
     {
-      !isEmpty(reviews) ?(<RatingEmptyState/>):    reviews.map((review, index) => (
-      <ReviewItem key={index}  />
+      !isEmpty(reviews) ?(<RatingEmptyState/>):    reviews.map((review) => (
+      <ReviewItem key={review.id ?? review._id}  />
     ))}
 
 

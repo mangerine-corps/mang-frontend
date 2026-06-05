@@ -20,7 +20,8 @@ import { useAppointment } from "mangarine/state/hooks/appointment.hook";
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { IoClose, IoDocument, IoImage, IoVideocam } from "react-icons/io5";
 import { Smile, Mic, SendHorizonal, Plus } from "lucide-react";
-import EmojiPicker from "emoji-picker-react";
+import dynamic from "next/dynamic";
+const EmojiPicker = dynamic(() => import("emoji-picker-react"), { ssr: false, loading: () => null });
 import { ChatHeader } from "mangarine/pages/message";
 import { useChat } from "./ChatProvider";
 import { useAuth } from "mangarine/state/hooks/user.hook";
@@ -272,7 +273,7 @@ const ChatPage = ({ onNewMessage }: Props) => {
       <Box
         position="absolute"
         inset={0}
-        bgImage="url('/doodle.png')"
+        bgImage="url('/doodle.webp')"
         bgSize="420px"
         bgRepeat="repeat"
         opacity={0.05}

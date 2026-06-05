@@ -186,7 +186,7 @@ const SkillItem = ({
             <Tag.Root
               borderColor="text_primary"
               borderWidth={0.5}
-              key={idx}
+              key={`${s}-${idx}`}
               p={2}
               rounded="full"
             >

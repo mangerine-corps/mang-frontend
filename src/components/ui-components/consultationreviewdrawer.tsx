@@ -127,8 +127,8 @@ const ShareReview = ({ open, onOpenChange }) => {
                   { icon: "/icons/facebook.svg", label: "Facebook" },
                   { icon: "/icons/email.svg", label: "Email" },
                   { icon: "/icons/qrcode.svg", label: "QR Code" },
-                ].map((item, index) => (
-                  <VStack key={index} gap={8}>
+                ].map((item) => (
+                  <VStack key={item.label} gap={8}>
                     <Button variant="outline" size="sm" px={6} py={6} h="auto">
                       <Image
                         color="text_primary"

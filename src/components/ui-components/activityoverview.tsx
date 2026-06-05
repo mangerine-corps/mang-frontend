@@ -36,8 +36,8 @@ const ActivityOverview = () => {
         <HStack justify="center" py={8}><Spinner /></HStack>
       ) : (
         <Grid templateColumns={{ base: "1fr", md: "repeat(2, 1fr)" }} gap={4}>
-          {overviewData.map((item, index) => (
-            <GridItem key={index} p={4} borderRadius="md" border="1px solid" borderColor="gray.100">
+          {overviewData.map((item) => (
+            <GridItem key={item.title} p={4} borderRadius="md" border="1px solid" borderColor="gray.100">
               <HStack justify="space-between">
                 <VStack align="start" gap={1}>
                   <Text fontSize="sm" color="gray.500">{item.title}</Text>

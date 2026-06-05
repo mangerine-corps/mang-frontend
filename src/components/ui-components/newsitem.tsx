@@ -12,7 +12,7 @@ import {
   Text,
   VStack,
 } from "@chakra-ui/react";
-import React, { useEffect, useState } from "react";
+import React, { memo, useEffect, useState } from "react";
 import { useFollow } from "mangarine/hooks/useFollow";
 
 import { IoEllipsisVerticalOutline } from "react-icons/io5";
@@ -699,4 +699,4 @@ const NewsItem: React.FC<NewsItemProps> = ({ post, isDetailPage = false }) => {
   );
 };
 
-export default NewsItem;
+export default memo(NewsItem);

@@ -67,9 +67,9 @@ const MenuList = ({
             </Drawer.Title>
           </Drawer.Header>
           <Drawer.Body w="100%">
-            {menuData.map((item, index: number) => (
+            {menuData.map((item) => (
               <VStack
-                key={index}
+                key={item.id}
                 alignItems={"flex-start"}
                 justifyContent={"flex-start"}
                 // bg="red.700"

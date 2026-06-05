@@ -65,8 +65,8 @@ const NetworkingCard = () => {
 
         <Flex align="center" color="text_primary" justify="space-between">
           <AvatarGroup gap="2" pt="2" spaceX="-6" size="sm">
-            {eventInfo.attendees.map((name, index) => (
-              <Avatar.Root key={index}>
+            {eventInfo.attendees.map((name) => (
+              <Avatar.Root key={name}>
                 <Avatar.Fallback name={name}>
                   {name.startsWith("+") ? name : null}
                 </Avatar.Fallback>

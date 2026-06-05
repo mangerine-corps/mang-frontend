@@ -349,8 +349,8 @@ const SingleGroup = ({}) => {
                     spaceX="-3"
                     size={{ base: "xs", md: "lg" }}
                   >
-                    {grp?.users.slice(0, 4).map((user, index) => (
-                      <Avatar.Root key={index}>
+                    {grp?.users.slice(0, 4).map((user) => (
+                      <Avatar.Root key={user.id ?? user._id}>
                         <Avatar.Fallback name={user?.fullName || "?"} />
                         <Avatar.Image
                           src={user?.profilePics || "/default-avatar.png"}

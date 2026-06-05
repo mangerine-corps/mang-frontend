@@ -144,9 +144,9 @@ const GroupComponent = ({ onClickPost }: props) => {
           </Button>
         )}
 
-        {Array.isArray(groupCategory) && groupCategory.map((category, index) => (
+        {Array.isArray(groupCategory) && groupCategory.map((category) => (
           <Button
-            key={index}
+            key={category.label}
             size="sm"
             variant="outline"
             borderRadius="6px"

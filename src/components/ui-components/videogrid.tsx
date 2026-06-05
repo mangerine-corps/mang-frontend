@@ -55,8 +55,8 @@ const VideoGrid = () => {
           lg: "repeat(3, 1fr)",      }}
         gap={6}
       >
-      {videos.map((video, index) => (
-        <GridItem key={index}>
+      {videos.map((video) => (
+        <GridItem key={video.id ?? video.uid ?? video.url}>
           <Box
           w={{ base: "100%", md: "100%", lg: "100%" }}
           h="full"

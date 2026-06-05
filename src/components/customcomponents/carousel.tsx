@@ -106,7 +106,7 @@ const OnboardingCarousel = () => {
             }
             bgSize={"cover"}
             // minHeight={`${height - 50}px`}
-            key={index}
+            key={item.title}
             minH={"95vh"}
             maxH={"95vh"}
             h="full"

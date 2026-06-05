@@ -110,12 +110,12 @@ const MyBusinessWorkspace = () => {
           bg="main_background"
         >
           <VStack w="full" alignItems="flex-start" justifyContent="flex-start" pt={2}>
-            {menuData.map((item, index: number) => {
+            {menuData.map((item) => {
               const isActive = activeTab === item.id;
               const hasSubs = item.id === "meetings" || item.id === "myaccount";
 
               return (
-                <VStack w="full" key={index} gap={0}>
+                <VStack w="full" key={item.id} gap={0}>
                   {/* Main menu item */}
                   <Flex
                     w="full"

@@ -11,7 +11,7 @@ import {
   useGetRecommendedCommunitiesMutation,
   useJoinOrLeaveCommunityMutation,
 } from "mangarine/state/services/community.service";
-import { useEffect, useState } from "react";
+import { memo, useEffect, useState } from "react";
 import JoinGroup from "./joingroup";
 import { useDispatch } from "react-redux";
 import { useCommunity } from "mangarine/state/hooks/communities.hook";
@@ -125,8 +125,8 @@ const SuggestedCommunities = () => {
         {!recommendedIsLoading && Array.isArray(displayCommunities) && displayCommunities.length === 0 && (
           <Text color="grey.500" fontSize="sm">No suggested communities found</Text>
         )}
-        {!recommendedIsLoading && displayCommunities?.map((community, index) => (
-          <HStack key={index} justify="space-between">
+        {!recommendedIsLoading && displayCommunities?.map((community) => (
+          <HStack key={community.id ?? community._id} justify="space-between">
             <HStack>
               <Image
                 src={community?.image || "/images/group.png"}
@@ -203,4 +203,4 @@ const SuggestedCommunities = () => {
   );
 };
 
-export default SuggestedCommunities;
+export default memo(SuggestedCommunities);

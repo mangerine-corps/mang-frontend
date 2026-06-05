@@ -166,7 +166,7 @@ export default function PaymentForm({
               borderWidth="1px"
               borderColor="rgba(17, 29, 74, 0.08)"
               bg="white"
-              backgroundImage="linear-gradient(rgba(255, 255, 255, 0.99), rgba(255, 255, 255, 0.99)), url('/paymentbg.png')"
+              backgroundImage="linear-gradient(rgba(255, 255, 255, 0.99), rgba(255, 255, 255, 0.99)), url('/paymentbg.webp')"
               backgroundPosition="center"
               backgroundRepeat="no-repeat"
               backgroundSize="cover"

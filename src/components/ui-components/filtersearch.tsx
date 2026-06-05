@@ -1,6 +1,6 @@
 import { Avatar, Box, Button, HStack, Icon, Skeleton, SkeletonCircle, Text, VStack } from "@chakra-ui/react";
 import { Clock, X } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo, useCallback, memo } from "react";
 import {
   useGetRecentSearchesQuery,
   useGetSuggestedSearchesQuery,
@@ -14,7 +14,120 @@ interface FilterSearchProps {
   onSelect?: (item: { id: string; name: string; type: "user" | "consultant" }) => void;
 }
 
-const FilterSearch = ({ onSelect }: FilterSearchProps) => {
+interface RecentItemProps {
+  item: any;
+  onSelect: (item: any) => void;
+  onRemove: (e: React.MouseEvent, id: string) => void;
+}
+
+const RecentItem = memo(({ item, onSelect, onRemove }: RecentItemProps) => {
+  const profile = item.profile ?? item;
+  const name = profile.fullName ?? profile.name ?? item.query ?? "";
+  const title = profile.businessName ?? profile.title ?? "";
+  const avatar = profile.profilePics ?? null;
+  const id = item.id ?? item.targetId;
+
+  return (
+    <HStack
+      justify="space-between"
+      py={2}
+      px={1}
+      rounded="md"
+      cursor="pointer"
+      _hover={{ bg: "main_background" }}
+      onClick={() => onSelect(item)}
+    >
+      <HStack gap={3}>
+        <Icon color="grey.400">
+          <Clock size={14} />
+        </Icon>
+        {avatar ? (
+          <Avatar.Root w={8} h={8}>
+            <Avatar.Fallback name={name} />
+            <Avatar.Image src={avatar} />
+          </Avatar.Root>
+        ) : null}
+        <Box>
+          <Text fontWeight="500" color="text_primary" fontSize="0.875rem" fontFamily="Outfit">
+            {name}
+          </Text>
+          {title ? (
+            <Text color="grey.500" fontSize="0.75rem" fontFamily="Outfit">
+              {title}
+            </Text>
+          ) : null}
+        </Box>
+      </HStack>
+      <Box
+        as="button"
+        onClick={(e: React.MouseEvent) => onRemove(e, id)}
+        p={1}
+        rounded="full"
+        _hover={{ bg: "gray.100" }}
+        color="grey.400"
+      >
+        <X size={12} />
+      </Box>
+    </HStack>
+  );
+});
+RecentItem.displayName = "RecentItem";
+
+interface SuggestedItemProps {
+  item: any;
+  isFollowing: boolean;
+  onSelect: (item: any) => void;
+  onToggleFollow: (e: React.MouseEvent, userId: string) => void;
+}
+
+const SuggestedItem = memo(({ item, isFollowing, onSelect, onToggleFollow }: SuggestedItemProps) => {
+  const name = item.fullName ?? item.name ?? "";
+  const title = item.businessName ?? item.title ?? "";
+  const avatar = item.profilePics ?? null;
+
+  return (
+    <HStack
+      py={2}
+      px={1}
+      rounded="md"
+      cursor="pointer"
+      justify="space-between"
+      _hover={{ bg: "main_background" }}
+      onClick={() => onSelect({ id: item.id, name, type: item.type ?? "user" })}
+    >
+      <HStack gap={3} flex={1} minW={0}>
+        <Avatar.Root w={8} h={8} flexShrink={0}>
+          <Avatar.Fallback name={name} />
+          <Avatar.Image src={avatar} />
+        </Avatar.Root>
+        <Box minW={0}>
+          <Text fontWeight="500" color="text_primary" fontSize="0.875rem" fontFamily="Outfit" truncate>
+            {name}
+          </Text>
+          {title ? (
+            <Text color="grey.500" fontSize="0.75rem" fontFamily="Outfit" truncate>
+              {title}
+            </Text>
+          ) : null}
+        </Box>
+      </HStack>
+      <Button
+        size="xs"
+        px={3}
+        variant="outline"
+        rounded="md"
+        colorPalette={isFollowing ? "gray" : "blue"}
+        flexShrink={0}
+        onClick={(e) => onToggleFollow(e, item.id)}
+      >
+        {isFollowing ? "Following" : "+ Follow"}
+      </Button>
+    </HStack>
+  );
+});
+SuggestedItem.displayName = "SuggestedItem";
+
+const FilterSearch = memo(({ onSelect }: FilterSearchProps) => {
   const { user } = useAuth();
   const { data: recentData, isLoading: recentLoading } = useGetRecentSearchesQuery();
   const { data: suggestedData, isLoading: suggestedLoading } = useGetSuggestedSearchesQuery();
@@ -32,10 +145,32 @@ const FilterSearch = ({ onSelect }: FilterSearchProps) => {
     setFollowedIds(new Set(items.map((u: any) => u.id)));
   }, [followingData]);
 
-  const handleToggleFollow = async (e: React.MouseEvent, userId: string) => {
+  const recentSearches: any[] = useMemo(
+    () => (recentData?.data ?? []).slice(0, 3),
+    [recentData]
+  );
+  const suggested: any[] = useMemo(
+    () => (suggestedData?.data ?? []).slice(0, 5),
+    [suggestedData]
+  );
+
+  const handleRemove = useCallback((e: React.MouseEvent, id: string) => {
+    e.stopPropagation();
+    removeRecent(id);
+  }, [removeRecent]);
+
+  const handleSelect = useCallback((item: any) => {
+    const resolved = item.profile ?? item;
+    onSelect?.({
+      id: resolved.id ?? item.targetId,
+      name: resolved.fullName ?? resolved.name ?? "",
+      type: item.type ?? "user",
+    });
+  }, [onSelect]);
+
+  const handleToggleFollow = useCallback(async (e: React.MouseEvent, userId: string) => {
     e.stopPropagation();
     const isFollowing = followedIds.has(userId);
-    // optimistic update
     setFollowedIds((prev) => {
       const s = new Set(prev);
       isFollowing ? s.delete(userId) : s.add(userId);
@@ -48,31 +183,13 @@ const FilterSearch = ({ onSelect }: FilterSearchProps) => {
         await followUser({ targetUserId: userId }).unwrap();
       }
     } catch (_) {
-      // revert on failure
       setFollowedIds((prev) => {
         const s = new Set(prev);
         isFollowing ? s.add(userId) : s.delete(userId);
         return s;
       });
     }
-  };
-
-  const recentSearches: any[] = (recentData?.data ?? []).slice(0, 3);
-  const suggested: any[] = (suggestedData?.data ?? []).slice(0, 5);
-
-  const handleRemove = (e: React.MouseEvent, id: string) => {
-    e.stopPropagation();
-    removeRecent(id);
-  };
-
-  const handleSelect = (item: any) => {
-    const resolved = item.profile ?? item;
-    onSelect?.({
-      id: resolved.id ?? item.targetId,
-      name: resolved.fullName ?? resolved.name ?? "",
-      type: item.type ?? "user",
-    });
-  };
+  }, [followedIds, followUser, unfollowUser]);
 
   return (
     <Box bg="bg_box" rounded="lg" shadow="sm" p={4} w="full">
@@ -99,58 +216,14 @@ const FilterSearch = ({ onSelect }: FilterSearchProps) => {
           >
             Recent
           </Text>
-          {recentSearches.map((item: any, idx: number) => {
-            const profile = item.profile ?? item;
-            const name = profile.fullName ?? profile.name ?? item.query ?? "";
-            const title = profile.businessName ?? profile.title ?? "";
-            const avatar = profile.profilePics ?? null;
-            const id = item.id ?? item.targetId;
-
-            return (
-              <HStack
-                key={idx}
-                justify="space-between"
-                py={2}
-                px={1}
-                rounded="md"
-                cursor="pointer"
-                _hover={{ bg: "main_background" }}
-                onClick={() => handleSelect(item)}
-              >
-                <HStack gap={3}>
-                  <Icon color="grey.400">
-                    <Clock size={14} />
-                  </Icon>
-                  {avatar ? (
-                    <Avatar.Root w={8} h={8}>
-                      <Avatar.Fallback name={name} />
-                      <Avatar.Image src={avatar} />
-                    </Avatar.Root>
-                  ) : null}
-                  <Box>
-                    <Text fontWeight="500" color="text_primary" fontSize="0.875rem" fontFamily="Outfit">
-                      {name}
-                    </Text>
-                    {title ? (
-                      <Text color="grey.500" fontSize="0.75rem" fontFamily="Outfit">
-                        {title}
-                      </Text>
-                    ) : null}
-                  </Box>
-                </HStack>
-                <Box
-                  as="button"
-                  onClick={(e: React.MouseEvent) => handleRemove(e, id)}
-                  p={1}
-                  rounded="full"
-                  _hover={{ bg: "gray.100" }}
-                  color="grey.400"
-                >
-                  <X size={12} />
-                </Box>
-              </HStack>
-            );
-          })}
+          {recentSearches.map((item: any) => (
+            <RecentItem
+              key={item.id ?? item.targetId ?? item.query}
+              item={item}
+              onSelect={handleSelect}
+              onRemove={handleRemove}
+            />
+          ))}
         </VStack>
       ) : null}
 
@@ -183,53 +256,15 @@ const FilterSearch = ({ onSelect }: FilterSearchProps) => {
           >
             Suggested
           </Text>
-          {suggested.map((item: any, idx: number) => {
-            const name = item.fullName ?? item.name ?? "";
-            const title = item.businessName ?? item.title ?? "";
-            const avatar = item.profilePics ?? null;
-            const isFollowing = followedIds.has(item.id);
-
-            return (
-              <HStack
-                key={idx}
-                py={2}
-                px={1}
-                rounded="md"
-                cursor="pointer"
-                justify="space-between"
-                _hover={{ bg: "main_background" }}
-                onClick={() => onSelect?.({ id: item.id, name, type: item.type ?? "user" })}
-              >
-                <HStack gap={3} flex={1} minW={0}>
-                  <Avatar.Root w={8} h={8} flexShrink={0}>
-                    <Avatar.Fallback name={name} />
-                    <Avatar.Image src={avatar} />
-                  </Avatar.Root>
-                  <Box minW={0}>
-                    <Text fontWeight="500" color="text_primary" fontSize="0.875rem" fontFamily="Outfit" truncate>
-                      {name}
-                    </Text>
-                    {title ? (
-                      <Text color="grey.500" fontSize="0.75rem" fontFamily="Outfit" truncate>
-                        {title}
-                      </Text>
-                    ) : null}
-                  </Box>
-                </HStack>
-                <Button
-                  size="xs"
-                  px={3}
-                  variant="outline"
-                  rounded="md"
-                  colorPalette={isFollowing ? "gray" : "blue"}
-                  flexShrink={0}
-                  onClick={(e) => handleToggleFollow(e, item.id)}
-                >
-                  {isFollowing ? "Following" : "+ Follow"}
-                </Button>
-              </HStack>
-            );
-          })}
+          {suggested.map((item: any) => (
+            <SuggestedItem
+              key={item.id}
+              item={item}
+              isFollowing={followedIds.has(item.id)}
+              onSelect={handleSelect}
+              onToggleFollow={handleToggleFollow}
+            />
+          ))}
         </VStack>
       ) : null}
 
@@ -240,6 +275,7 @@ const FilterSearch = ({ onSelect }: FilterSearchProps) => {
       )}
     </Box>
   );
-};
+});
+FilterSearch.displayName = "FilterSearch";
 
 export default FilterSearch;

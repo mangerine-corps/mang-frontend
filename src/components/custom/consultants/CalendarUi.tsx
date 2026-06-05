@@ -115,7 +115,7 @@ const AvailabilityCalendar: React.FC<Props> = ({
 
                     return (
                         <Flex
-                            key={index}
+                            key={formattedDate || `empty-${index}`}
                             position="relative"
                             p={2}
                             // h="24" // Chakra equivalent for h-24

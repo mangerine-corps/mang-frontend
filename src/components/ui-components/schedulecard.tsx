@@ -102,9 +102,9 @@ const Schedulecard
         {/* Activity Card */}
         {user ? (
           <>
-            {upcoming?.map((item, idx) => (
+            {upcoming?.map((item) => (
               <Box
-                key={idx}
+                key={item.id ?? item._id}
                 // bg="gray.50"
 
                 // p={4}
@@ -230,9 +230,9 @@ const Schedulecard
         ) : (
           <>
             {" "}
-            {upcoming?.map((item, idx) => (
+            {upcoming?.map((item) => (
               <Box
-                key={idx}
+                key={item.id ?? item._id}
                 // bg="gray.50"
 
                 // p={4}

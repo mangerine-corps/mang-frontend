@@ -19,7 +19,9 @@ import { useGetConsultantReviewsQuery, useReplyToReviewMutation } from "mangarin
 import { useAuth } from "mangarine/state/hooks/user.hook";
 import { format } from "date-fns";
 import { toaster } from "mangarine/components/ui/toaster";
-import EmojiPicker, { EmojiClickData } from "emoji-picker-react";
+import dynamic from "next/dynamic";
+import type { EmojiClickData } from "emoji-picker-react";
+const EmojiPicker = dynamic(() => import("emoji-picker-react"), { ssr: false, loading: () => null });
 
 type ReviewCardProps = {
   review: any;

@@ -12,7 +12,7 @@ import {
   useGetTrendingCommunitiesMutation,
   useJoinOrLeaveCommunityMutation,
 } from "mangarine/state/services/community.service";
-import { useEffect, useState } from "react";
+import { memo, useEffect, useState } from "react";
 import { toaster } from "../ui/toaster";
 import { setAll, setTrending } from "mangarine/state/reducers/community.reducer";
 import { useCommunity } from "mangarine/state/hooks/communities.hook";
@@ -116,8 +116,8 @@ const TrendingCommunities = () => {
           <Text color="grey.500" fontSize="sm">No trending communities found</Text>
         )}
         {!trending && Array.isArray(list) &&
-          list.map((community, index) => (
-            <HStack key={index} justify="space-between" w="full">
+          list.map((community) => (
+            <HStack key={community.id ?? community._id} justify="space-between" w="full">
               <HStack>
                 <Stack
                   h="8"
@@ -206,4 +206,4 @@ const TrendingCommunities = () => {
   );
 };
 
-export default TrendingCommunities;
+export default memo(TrendingCommunities);

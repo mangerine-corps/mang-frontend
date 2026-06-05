@@ -231,9 +231,9 @@ const JoinedGroup = () => {
       ) : (
         <>
           {!isEmpty(joined) ? (
-            joined.map((item, index) => (
+            joined.map((item) => (
               <Stack
-                key={index}
+                key={item.id ?? item._id}
                 minW={"240px"}
                 h="230px"
                 mx="0.5"
@@ -366,9 +366,9 @@ const CreatedGroup = ({}) => {
       ) : (
         <>
           {!isEmpty(created) ? (
-            created.map((item, index) => (
+            created.map((item) => (
               <Stack
-                key={index}
+                key={item.id ?? item._id}
                 minW={"240px"}
                 h="230px"
                 mx="0.5"

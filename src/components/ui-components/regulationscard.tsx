@@ -41,7 +41,7 @@ const RegulationsCard = ({ title, content, width = 'full' }: RegulationsCardProp
 
       {content.map((item, index) => (
         <Text
-          key={index}
+          key={`${item}-${index}`}
           fontSize={'1rem'}
           fontFamily={'Outfit'}
           color={'text_primary'}

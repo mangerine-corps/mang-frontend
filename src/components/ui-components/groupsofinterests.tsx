@@ -28,8 +28,8 @@ const GroupsOfInterests = () => {
       </Text>
 
       <VStack align="stretch" wordSpacing={6}>
-        {communities.map((community, index) => (
-          <HStack key={index} justify="space-between">
+        {communities.map((community) => (
+          <HStack key={community.id ?? community._id} justify="space-between">
             <HStack>
                 <Image src="/images/group.png" boxSize="32px" rounded="full" alt="user1" />
               <Box>
