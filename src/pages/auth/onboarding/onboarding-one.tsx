@@ -430,7 +430,18 @@ const OnboardingOne = () => {
                       fontSize="0.875rem"
                       lineHeight="100%"
                     >
-                      I agree to the Terms & Conditions
+                      I agree to the{" "}
+                      <Link
+                        asChild
+                        color="text_primary"
+                        fontWeight="500"
+                        textDecoration="underline"
+                        onClick={(event) => event.stopPropagation()}
+                      >
+                        <NextLink href="/termsofservice" target="_blank" rel="noopener noreferrer">
+                          Terms & Conditions
+                        </NextLink>
+                      </Link>
                     </Text>
                   </Checkbox>
                   <Text

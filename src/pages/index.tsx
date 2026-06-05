@@ -186,7 +186,7 @@ export default function Home() {
               textAlign={"center"}
               fontWeight={"500"}
             >
-              <NextLink href="/privacypolicy">Terms of use &</NextLink>
+              <NextLink href="/termsofservice">Terms of use &</NextLink>
             </Link>
             <Link
               asChild
