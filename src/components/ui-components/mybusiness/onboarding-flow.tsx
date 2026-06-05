@@ -8,6 +8,7 @@ import {
   HStack,
   Image,
   Input,
+  NativeSelect,
   RadioGroup,
   Spinner,
   Text,
@@ -29,7 +30,9 @@ import { setUpdatedInfo } from "mangarine/state/reducers/auth.reducer";
 import { useAuth } from "mangarine/state/hooks/user.hook";
 import { useSubmitConsultantVerificationMutation } from "mangarine/state/services/consultant.service";
 import { useLazyGetUserInfoQuery } from "mangarine/state/services/profile.service";
+import { useGetGeneralSettingsQuery } from "mangarine/state/services/settings.service";
 import { useBecomeConsultantMutation } from "mangarine/state/services/user.service";
+import { normalizeTimeZoneValue } from "mangarine/lib/timezone-options";
 
 const noScrollbar = {
   "&::-webkit-scrollbar": { width: "0px", height: "0px" },
@@ -78,6 +81,7 @@ type OnboardingDraft = {
     back: UploadedDocument | null;
     front: UploadedDocument | null;
   };
+  issuingCountry: string;
   idType: string;
   step: OnboardingStep;
 };
@@ -85,6 +89,7 @@ type OnboardingDraft = {
 const DEFAULT_DRAFT: OnboardingDraft = {
   step: "intro",
   idType: "",
+  issuingCountry: "",
   accountDetails: {
     accountHolderName: "",
     accountNumber: "",
@@ -119,6 +124,82 @@ const idOptions = [
   { label: "Driver's License", value: "drivers_license" },
 ];
 
+const countryOptions = [
+  "Nigeria",
+  "Afghanistan",
+  "Albania",
+  "Algeria",
+  "Argentina",
+  "Australia",
+  "Austria",
+  "Bangladesh",
+  "Belgium",
+  "Benin",
+  "Botswana",
+  "Brazil",
+  "Bulgaria",
+  "Cameroon",
+  "Canada",
+  "Chad",
+  "China",
+  "Colombia",
+  "Congo",
+  "Cote d'Ivoire",
+  "Croatia",
+  "Czech Republic",
+  "Denmark",
+  "Egypt",
+  "Ethiopia",
+  "Finland",
+  "France",
+  "Gambia",
+  "Germany",
+  "Ghana",
+  "Greece",
+  "India",
+  "Indonesia",
+  "Ireland",
+  "Italy",
+  "Japan",
+  "Kenya",
+  "Liberia",
+  "Malaysia",
+  "Mexico",
+  "Morocco",
+  "Mozambique",
+  "Namibia",
+  "Netherlands",
+  "New Zealand",
+  "Niger",
+  "Norway",
+  "Pakistan",
+  "Philippines",
+  "Poland",
+  "Portugal",
+  "Rwanda",
+  "Saudi Arabia",
+  "Senegal",
+  "Sierra Leone",
+  "Singapore",
+  "South Africa",
+  "South Korea",
+  "Spain",
+  "Sweden",
+  "Switzerland",
+  "Tanzania",
+  "Thailand",
+  "Togo",
+  "Tunisia",
+  "Turkey",
+  "Uganda",
+  "Ukraine",
+  "United Arab Emirates",
+  "United Kingdom",
+  "United States",
+  "Zambia",
+  "Zimbabwe",
+];
+
 const formatFileSize = (size: number) => {
   if (size < 1024 * 1024) {
     return `${Math.max(size / 1024, 1).toFixed(0)} KB`;
@@ -131,6 +212,9 @@ const getStorageSafeDraft = (draft: OnboardingDraft) => ({
   ...draft,
   documents: { front: null, back: null },
 });
+
+const getIssuingCountryValue = (value: unknown): string =>
+  typeof value === "string" ? value : "";
 
 const normalizeStoredStep = (step: unknown): OnboardingStep => {
   switch (step) {
@@ -315,12 +399,14 @@ const RequirementStatus = ({
 };
 
 const UploadCard = ({
+  disabled = false,
   descriptionItems,
   file,
   onChange,
   onRemove,
   title,
 }: {
+  disabled?: boolean;
   descriptionItems: string[];
   file: UploadedDocument | null;
   onChange: (file: File) => void;
@@ -343,12 +429,14 @@ const UploadCard = ({
       borderColor="#ECECEC"
       borderRadius="20px"
       bg="white"
+      opacity={disabled ? 0.6 : 1}
     >
       <Input
         ref={inputRef}
         type="file"
         display="none"
         accept=".jpg,.jpeg,.png"
+        disabled={disabled}
         onChange={(event) => {
           const nextFile = event.target.files?.[0];
           event.target.value = "";
@@ -367,7 +455,9 @@ const UploadCard = ({
           </HStack>
         ) : (
           <Text fontSize="0.82rem" color="gray.500">
-            Upload a clear file in PNG, JPG, or JPEG format.
+            {disabled
+              ? "Select the issuing country first to enable uploads."
+              : "Upload a clear file in PNG, JPG, or JPEG format."}
           </Text>
         )}
       </VStack>
@@ -423,6 +513,7 @@ const UploadCard = ({
           color="text_primary"
           flex={1}
           onClick={selectFile}
+          disabled={disabled}
         >
           <LuPencil />
           {file ? "Change" : "Upload"}
@@ -465,17 +556,24 @@ const ConsultantOnboardingFlow = () => {
   const router = useRouter();
   const dispatch = useDispatch();
   const { user } = useAuth();
+  const { data: generalSettingsData } = useGetGeneralSettingsQuery();
   const [becomeConsultant] = useBecomeConsultantMutation();
   const [submitConsultantVerification] = useSubmitConsultantVerificationMutation();
   const [triggerGetUserInfo] = useLazyGetUserInfoQuery();
 
   const profilePictureComplete = Boolean(user?.profilePics);
-  const timezoneValue =
+  const savedTimezoneValue = normalizeTimeZoneValue(
+    (generalSettingsData as any)?.data?.timeZone ||
+    (user as any)?.timeZone ||
     (user as any)?.timezone ||
+    ""
+  );
+  const timezoneValue =
+    savedTimezoneValue ||
     (typeof window !== "undefined"
       ? Intl.DateTimeFormat().resolvedOptions().timeZone
       : "");
-  const timeZoneComplete = Boolean(timezoneValue);
+  const timeZoneComplete = Boolean(savedTimezoneValue);
   const agreementsComplete = Object.values(draft.agreements).every(Boolean);
   const documentsComplete = Boolean(draft.documents.front); // back is optional
 
@@ -504,6 +602,7 @@ const ConsultantOnboardingFlow = () => {
           nextDraft = {
             ...DEFAULT_DRAFT,
             ...parsedDraft,
+            issuingCountry: getIssuingCountryValue(parsedDraft?.issuingCountry),
             accountDetails: {
               ...DEFAULT_DRAFT.accountDetails,
               ...(parsedDraft?.accountDetails ?? {}),
@@ -626,6 +725,8 @@ const ConsultantOnboardingFlow = () => {
   };
 
   const handleSubmitVerification = async () => {
+    const issuingCountry = getIssuingCountryValue(draft.issuingCountry).trim();
+
     if (!documentsComplete) {
       toaster.create({
         description: "Upload the front document before submitting.",
@@ -642,6 +743,14 @@ const ConsultantOnboardingFlow = () => {
       return;
     }
 
+    if (!issuingCountry) {
+      toaster.create({
+        description: "Enter the issuing country before submitting.",
+        type: "error",
+      });
+      return;
+    }
+
     let verificationSubmitted = false;
 
     try {
@@ -649,6 +758,7 @@ const ConsultantOnboardingFlow = () => {
 
       const verificationFormData = new FormData();
       verificationFormData.append("idType", draft.idType);
+      verificationFormData.append("issuingCountry", issuingCountry);
       verificationFormData.append("idFront", draft.documents.front!.file);
 
       if (draft.documents.back) {
@@ -658,7 +768,13 @@ const ConsultantOnboardingFlow = () => {
       await submitConsultantVerification(verificationFormData).unwrap();
       verificationSubmitted = true;
 
-      await becomeConsultant(undefined).unwrap();
+      const consultantActivationPayload = {
+        confirmProfileAccurate: Boolean(draft.agreements?.accurate),
+        agreeProfessionalConduct: Boolean(draft.agreements?.ethical),
+        understandSuspensionRisk: Boolean(draft.agreements?.suspension),
+      };
+
+      await becomeConsultant(consultantActivationPayload).unwrap();
 
       try {
         const userInfoResp = await triggerGetUserInfo(undefined).unwrap();
@@ -962,12 +1078,47 @@ const ConsultantOnboardingFlow = () => {
                   Back
                 </Button>
 
+                <VStack align="stretch" gap={2} maxW="560px">
+                  <Text fontSize="1.1rem" fontWeight="700" color="text_primary">
+                    Select issuing country before uploading
+                  </Text>
+                  <Text fontSize="0.92rem" color="gray.500">
+                    Choose the country that issued this document, then upload the ID images below.
+                  </Text>
+                  <NativeSelect.Root size="md" w="full">
+                    <NativeSelect.Field
+                      value={getIssuingCountryValue(draft.issuingCountry)}
+                      onChange={(e) =>
+                        setDraft((currentDraft) => ({
+                          ...currentDraft,
+                          issuingCountry: e.target.value,
+                        }))
+                      }
+                      borderWidth={1}
+                      borderColor="input_border"
+                      color="text_primary"
+                      bg="bg_box"
+                      pl={4}
+                      pr={10}
+                    >
+                      <option value="">Select issuing country</option>
+                      {countryOptions.map((country) => (
+                        <option key={country} value={country}>
+                          {country}
+                        </option>
+                      ))}
+                    </NativeSelect.Field>
+                    <NativeSelect.Indicator />
+                  </NativeSelect.Root>
+                </VStack>
+
                 <HStack
                   align="stretch"
                   gap={6}
                   flexDirection={{ base: "column", lg: "row" }}
                 >
                   <UploadCard
+                    disabled={!getIssuingCountryValue(draft.issuingCountry).trim()}
                     title={`Front of ${draft.idType === "passport" ? "passport" : "ID"}`}
                     file={draft.documents.front}
                     onChange={(file) => uploadDocument("front", file)}
@@ -976,6 +1127,7 @@ const ConsultantOnboardingFlow = () => {
                   />
 
                   <UploadCard
+                    disabled={!getIssuingCountryValue(draft.issuingCountry).trim()}
                     title={`Back of ${draft.idType === "passport" ? "passport" : "ID"} (optional)`}
                     file={draft.documents.back}
                     onChange={(file) => uploadDocument("back", file)}
@@ -992,7 +1144,7 @@ const ConsultantOnboardingFlow = () => {
                   bg="button_bg"
                   color="button_text"
                   loading={isSubmitting}
-                  disabled={!documentsComplete || !draft.idType}
+                  disabled={!documentsComplete || !draft.idType || !getIssuingCountryValue(draft.issuingCountry).trim()}
                   _disabled={{ opacity: 0.55, cursor: "not-allowed" }}
                   onClick={handleSubmitVerification}
                   _hover={{ bg: "button_bg" }}

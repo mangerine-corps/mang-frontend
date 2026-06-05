@@ -87,8 +87,8 @@ const ConsultationPage = () => {
         key={value}
         onClick={() => setActiveTab(value)}
         border="1px solid"
-        borderRadius="6px"
-        px={{ base: "4px", md: "6px" }}
+        borderRadius="lg"
+        px={{ base: 3, md: 4 }}
         fontSize={{ base: "xs", md: "0.875rem" }}
         variant="outline"
         bg={isActive ? "bg_button" : "transparent"}
@@ -96,6 +96,7 @@ const ConsultationPage = () => {
         borderColor={isActive ? "text_primary" : "gray.200"}
         fontFamily="Outfit"
         fontWeight="600"
+        flexShrink={0}
       >
         {label}
       </Button>
@@ -113,10 +114,10 @@ const ConsultationPage = () => {
               placeholder="Search my consultation"
               pl="40px"
               pr="40px"
-              borderRadius="full"
-              bg="gray.50"
+              borderRadius="lg"
+              bg="main_background"
               fontSize={{ base: "sm", md: "0.875rem" }}
-              border="1px solid"
+              border="1.5px solid"
               borderColor="gray.200"
               fontFamily="Outfit"
               value={searchTerm}
@@ -151,7 +152,7 @@ const ConsultationPage = () => {
         pl="1"
         spaceX="2"
         mb="4"
-        overflowX="scroll"
+        overflowX="auto"
         css={{
           "&::-webkit-scrollbar": { width: "0px", height: "0px" },
           "&::-webkit-scrollbar-track": { width: "0px", background: "transparent", height: "0px" },

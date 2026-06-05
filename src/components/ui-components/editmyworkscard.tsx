@@ -11,7 +11,7 @@ import {
   Stack,
   Link,
 } from "@chakra-ui/react";
-import { useRef, useState } from "react";
+import { useRef, useState, useEffect } from "react";
 import { size } from "lodash";
 
 import { useDeleteWorkMutation } from "mangarine/state/services/profile.service";
@@ -23,11 +23,94 @@ import BoxLoader from "./profile/boxloader";
 import { toaster } from "../ui/toaster";
 // import { IoEllipsisVerticalOutline } from "react-icons/io5";
 
+type OGMeta = { title?: string | null; description?: string | null; image?: string | null };
+
+const SimpleFallback = ({ link, domain }: { link: string; domain: string }) => (
+  <Link href={link} target="_blank" rel="noopener noreferrer" textDecoration="none" _hover={{ textDecoration: "none" }}>
+    <Box
+      w="168px"
+      h="100px"
+      borderRadius="8px"
+      borderWidth="1px"
+      borderColor="gray.100"
+      bg="gray.50"
+      overflow="hidden"
+      display="flex"
+      flexDir="column"
+      justifyContent="space-between"
+      p={3}
+      _hover={{ bg: "gray.100" }}
+      transition="background 0.15s"
+    >
+      <HStack gap={2} align="center">
+        <Image
+          src={`https://www.google.com/s2/favicons?sz=32&domain=${domain}`}
+          alt={domain}
+          boxSize="16px"
+          borderRadius="2px"
+          onError={(e) => { (e.target as HTMLImageElement).src = "/icons/link.svg"; }}
+        />
+        <Text fontSize="0.7rem" color="gray.500" fontWeight="500" truncate>
+          {domain}
+        </Text>
+      </HStack>
+      <VStack align="flex-start" gap={1}>
+        <Box w="full" h="2px" bg="gray.200" borderRadius="full" />
+        <Text fontSize="0.65rem" color="gray.400" truncate w="full">
+          {link}
+        </Text>
+      </VStack>
+    </Box>
+  </Link>
+);
+
 const LinkPreview = ({ link }: { link: string }) => {
+  const [meta, setMeta] = useState<OGMeta | null>(null);
+  const [imgFailed, setImgFailed] = useState(false);
+  const [loading, setLoading] = useState(true);
+
   let domain = "";
   try {
     domain = new URL(link).hostname.replace("www.", "");
   } catch {}
+
+  useEffect(() => {
+    setLoading(true);
+    setMeta(null);
+    setImgFailed(false);
+    fetch(`/api/link-preview?url=${encodeURIComponent(link)}`)
+      .then((r) => r.json())
+      .then((data: OGMeta) => setMeta(data))
+      .catch(() => setMeta({}))
+      .finally(() => setLoading(false));
+  }, [link]);
+
+  if (loading) {
+    return (
+      <Box
+        w="168px"
+        h="100px"
+        borderRadius="8px"
+        borderWidth="1px"
+        borderColor="gray.100"
+        bg="gray.100"
+        display="flex"
+        alignItems="center"
+        justifyContent="center"
+      >
+        <Box w="16px" h="16px" borderRadius="full" borderWidth="2px" borderColor="gray.300" borderTopColor="gray.500"
+          style={{ animation: "spin 0.8s linear infinite" }}
+        />
+      </Box>
+    );
+  }
+
+  const hasImage = meta?.image && !imgFailed;
+  const hasTitle = Boolean(meta?.title);
+
+  if (!hasImage && !hasTitle) {
+    return <SimpleFallback link={link} domain={domain} />;
+  }
 
   return (
     <Link href={link} target="_blank" rel="noopener noreferrer" textDecoration="none" _hover={{ textDecoration: "none" }}>
@@ -37,33 +120,70 @@ const LinkPreview = ({ link }: { link: string }) => {
         borderRadius="8px"
         borderWidth="1px"
         borderColor="gray.100"
-        bg="gray.50"
         overflow="hidden"
-        display="flex"
-        flexDir="column"
-        justifyContent="space-between"
-        p={3}
-        _hover={{ bg: "gray.100" }}
-        transition="background 0.15s"
+        position="relative"
+        _hover={{ opacity: 0.92 }}
+        transition="opacity 0.15s"
       >
-        <HStack gap={2} align="center">
-          <Image
-            src={`https://www.google.com/s2/favicons?sz=32&domain=${domain}`}
-            alt={domain}
-            boxSize="16px"
-            borderRadius="2px"
-            onError={(e) => { (e.target as HTMLImageElement).src = "/icons/link.svg"; }}
-          />
-          <Text fontSize="0.7rem" color="gray.500" fontWeight="500" truncate>
-            {domain}
-          </Text>
-        </HStack>
-        <VStack align="flex-start" gap={1}>
-          <Box w="full" h="2px" bg="gray.200" borderRadius="full" />
-          <Text fontSize="0.65rem" color="gray.400" truncate w="full">
-            {link}
-          </Text>
-        </VStack>
+        {hasImage ? (
+          <>
+            <Image
+              src={meta!.image!}
+              alt={meta?.title ?? domain}
+              w="full"
+              h="full"
+              objectFit="cover"
+              onError={() => setImgFailed(true)}
+            />
+            <Box
+              position="absolute"
+              bottom={0}
+              left={0}
+              right={0}
+              bg="blackAlpha.700"
+              px={2}
+              py={1}
+            >
+              <HStack gap={1.5} align="center">
+                <Image
+                  src={`https://www.google.com/s2/favicons?sz=16&domain=${domain}`}
+                  alt={domain}
+                  boxSize="10px"
+                  flexShrink={0}
+                  onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
+                />
+                <Text fontSize="0.6rem" color="white" fontWeight="600" truncate>
+                  {meta?.title ?? domain}
+                </Text>
+              </HStack>
+            </Box>
+          </>
+        ) : (
+          <Box bg="gray.50" h="full" p={3} display="flex" flexDir="column" justifyContent="space-between">
+            <HStack gap={2} align="center">
+              <Image
+                src={`https://www.google.com/s2/favicons?sz=32&domain=${domain}`}
+                alt={domain}
+                boxSize="16px"
+                borderRadius="2px"
+                onError={(e) => { (e.target as HTMLImageElement).src = "/icons/link.svg"; }}
+              />
+              <Text fontSize="0.7rem" color="gray.500" fontWeight="500" truncate>
+                {domain}
+              </Text>
+            </HStack>
+            {hasTitle && (
+              <Text fontSize="0.7rem" color="text_primary" fontWeight="600" lineClamp={2}>
+                {meta!.title}
+              </Text>
+            )}
+            {meta?.description && (
+              <Text fontSize="0.6rem" color="gray.500" lineClamp={2}>
+                {meta.description}
+              </Text>
+            )}
+          </Box>
+        )}
       </Box>
     </Link>
   );

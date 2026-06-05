@@ -12,7 +12,7 @@ import {
   Textarea,
   VStack,
 } from "@chakra-ui/react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import * as Yup from "yup";
 
@@ -40,6 +40,32 @@ import FileUploader from "../customcomponents/fileupload";
 import VideoUploader from "../customcomponents/videoUpload";
 import { useUpdateDetailsMutation } from "mangarine/state/services/auth.service";
 import TopRightDrawer from "../ui/top-right-drawer";
+import { useGetGeneralSettingsQuery, useUpdateGeneralSettingsMutation } from "mangarine/state/services/settings.service";
+import { TIME_ZONE_OPTIONS, normalizeTimeZoneValue } from "mangarine/lib/timezone-options";
+
+const TITLE_OPTIONS = [
+  "Mr.",
+  "Mrs.",
+  "Ms.",
+  "Dr.",
+  "Prof.",
+  "Engr.",
+  "Barr.",
+  "Chief",
+  "Rev.",
+  "Consultant",
+  "Senior Consultant",
+  "Lead Consultant",
+  "Principal Consultant",
+  "Director",
+  "Manager",
+  "Analyst",
+  "Specialist",
+  "Advisor",
+  "Coach",
+  "Mentor",
+];
+
 const profileSchema = Yup.object().shape({
   fullName: Yup.string().required("Full name is required"),
   title: Yup.string().optional(),
@@ -66,14 +92,16 @@ const EditConsultDrawer = ({
   const [updateProfilePic, { isLoading: picLoading }] = useUpdateProfilePictureMutation();
   const [updateBanner, { isLoading: bannerLoading }] = useUpdateProfileBannerMutation();
   const [updateProfile, { isLoading: profileLoading }] = useUpdateProfileInfoMutation();
+  const [updateGeneralSettings] = useUpdateGeneralSettingsMutation();
   //   const toast = useToast();
   const { user } = useAuth();
+  const { data: generalSettingsData } = useGetGeneralSettingsQuery();
   const dispatch = useDispatch();
   const [previewCover, setPreviewCover] = useState(null);
   const [resume, setResume] = useState<any>({})
   const [video, setVideo] = useState<any>({})
   const [addInfo, { isLoading: uploading }] = useUpdateDetailsMutation();
-  const { control, handleSubmit } = useForm({
+  const { control, handleSubmit, reset } = useForm({
     resolver: yupResolver(profileSchema),
     defaultValues: {
       fullName: user?.fullName ?? "",
@@ -81,7 +109,7 @@ const EditConsultDrawer = ({
       occupation: user?.occupation ?? "",
       title: user?.title ?? user?.Title ?? "",
       location: user?.location ?? "",
-      timeZone: user?.timeZone ?? "",
+      timeZone: normalizeTimeZoneValue((generalSettingsData as any)?.data?.timeZone ?? user?.timeZone ?? (user as any)?.timezone ?? ""),
       dateOfBirth: !isEmpty(user?.dateOfBirth)
         ? new Date(
             new Date(user?.dateOfBirth).toLocaleString("en", {
@@ -93,6 +121,33 @@ const EditConsultDrawer = ({
       // enable_selfpay: false,
     },
   });
+
+  useEffect(() => {
+    const resolvedTimeZone = normalizeTimeZoneValue(
+      (generalSettingsData as any)?.data?.timeZone ?? user?.timeZone ?? (user as any)?.timezone ?? ""
+    );
+    const resolvedTitle = user?.title ?? user?.Title ?? "";
+
+    if (open) {
+      reset({
+        fullName: user?.fullName ?? "",
+        email: user?.email ?? "",
+        occupation: user?.occupation ?? "",
+        title: resolvedTitle,
+        location: user?.location ?? "",
+        timeZone: resolvedTimeZone,
+        dateOfBirth: !isEmpty(user?.dateOfBirth)
+          ? new Date(
+              new Date(user?.dateOfBirth).toLocaleString("en", {
+                timeZone: "GMT",
+              })
+            )
+          : new Date(),
+        bio: user?.bio ?? "",
+      });
+    }
+  }, [generalSettingsData, open, reset, user]);
+
   const handleFileChange = (e) => {
     const file = e.target.files[0]; // Get the selected file
 
@@ -163,9 +218,14 @@ const EditConsultDrawer = ({
   };
 
   const handleProfileUpdate = async (data: any) => {
+    const normalizedTimeZone = normalizeTimeZoneValue(data.timeZone);
+    const payload = {
+      ...data,
+      timeZone: normalizedTimeZone,
+    };
+
     try {
-      const profileResp = await updateProfile(data).unwrap();
-      dispatch(setUpdatedInfo({ updatedInfo: profileResp.data }));
+      const profileResp = await updateProfile(payload).unwrap();
 
       const formData = new FormData();
       if (data.title) formData.append("title", data.title);
@@ -173,6 +233,18 @@ const EditConsultDrawer = ({
       if (video instanceof File) formData.append("video", video);
       if (resume instanceof File) formData.append("resume", resume);
       await addInfo(formData).unwrap();
+
+      if (normalizedTimeZone) {
+        await updateGeneralSettings({ timeZone: normalizedTimeZone }).unwrap();
+      }
+
+      dispatch(setUpdatedInfo({
+        updatedInfo: {
+          ...profileResp.data,
+          timeZone: normalizedTimeZone,
+          timezone: normalizedTimeZone,
+        },
+      }));
 
       toaster.create({ title: "Profile Updated", type: "success", duration: 4000, closable: true });
       onOpenChange();
@@ -361,6 +433,9 @@ const EditConsultDrawer = ({
                         px={3}
                       >
                         <option value="">Select title</option>
+                        {value && !TITLE_OPTIONS.includes(value) && (
+                          <option value={value}>{value}</option>
+                        )}
                         <optgroup label="Honorifics">
                           <option value="Mr.">Mr.</option>
                           <option value="Mrs.">Mrs.</option>
@@ -556,22 +631,11 @@ const EditConsultDrawer = ({
                         px={3}
                       >
                         <option value="">Select time zone</option>
-                        <option value="Africa/Lagos">Africa/Lagos (WAT, UTC+1)</option>
-                        <option value="Africa/Nairobi">Africa/Nairobi (EAT, UTC+3)</option>
-                        <option value="Africa/Johannesburg">Africa/Johannesburg (SAST, UTC+2)</option>
-                        <option value="Africa/Accra">Africa/Accra (GMT, UTC+0)</option>
-                        <option value="Europe/London">Europe/London (GMT/BST)</option>
-                        <option value="Europe/Paris">Europe/Paris (CET, UTC+1)</option>
-                        <option value="America/New_York">America/New_York (EST, UTC-5)</option>
-                        <option value="America/Chicago">America/Chicago (CST, UTC-6)</option>
-                        <option value="America/Denver">America/Denver (MST, UTC-7)</option>
-                        <option value="America/Los_Angeles">America/Los_Angeles (PST, UTC-8)</option>
-                        <option value="Asia/Dubai">Asia/Dubai (GST, UTC+4)</option>
-                        <option value="Asia/Kolkata">Asia/Kolkata (IST, UTC+5:30)</option>
-                        <option value="Asia/Singapore">Asia/Singapore (SGT, UTC+8)</option>
-                        <option value="Asia/Tokyo">Asia/Tokyo (JST, UTC+9)</option>
-                        <option value="Australia/Sydney">Australia/Sydney (AEST, UTC+10)</option>
-                        <option value="UTC">UTC (UTC+0)</option>
+                        {TIME_ZONE_OPTIONS.map((option) => (
+                          <option key={option.id} value={option.value}>
+                            {option.label}
+                          </option>
+                        ))}
                       </NativeSelect.Field>
                       <NativeSelect.Indicator />
                     </NativeSelect.Root>

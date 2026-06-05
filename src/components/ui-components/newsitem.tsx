@@ -209,7 +209,18 @@ const NewsItem: React.FC<NewsItemProps> = ({ post, isDetailPage = false }) => {
       )}
       <HStack alignItems={"flex-start"} justifyContent={"space-between"}>
         <HStack alignItems={"flex-start"} flex={1}>
-          <Avatar.Root w={10} h={10} flexShrink={0} alignSelf="flex-start">
+          <Avatar.Root
+            w={10} h={10} flexShrink={0} alignSelf="flex-start"
+            cursor="pointer"
+            onClick={() => {
+              const creatorId = post?.creator?.id;
+              if (!creatorId || creatorId === user?.id) {
+                router.push("/profile");
+              } else {
+                router.push(`/profile/${creatorId}`);
+              }
+            }}
+          >
             <Avatar.Fallback name={`${post?.creator?.fullName}`} />
             <Avatar.Image src={post?.creator?.profilePics} />
           </Avatar.Root>

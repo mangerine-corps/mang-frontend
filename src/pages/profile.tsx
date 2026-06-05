@@ -1,5 +1,7 @@
-import { Box, Flex, HStack, Icon, Skeleton, SkeletonCircle, Stack, Text, VStack } from "@chakra-ui/react";
-import { LuArrowLeft } from "react-icons/lu";
+import { Box, Button, Flex, HStack, Icon, Skeleton, SkeletonCircle, Text, VStack } from "@chakra-ui/react";
+import { LuArrowLeft, LuCalendarDays } from "react-icons/lu";
+import dynamic from "next/dynamic";
+const BookConsultationDrawer = dynamic(() => import("mangarine/components/ui-components/bookconsultationdrawer"), { ssr: false });
 import EditConsultantProfileCard from "mangarine/components/ui-components/editconsultantprofile";
 import EditContactMeCard from "mangarine/components/ui-components/editcontactme";
 import EditEducationCard from "mangarine/components/ui-components/editeducationcard";
@@ -10,7 +12,7 @@ import EditMyWorksCard from "mangarine/components/ui-components/editmyworkscard"
 import ProfileActivitySection from "mangarine/components/ui-components/profileactivitysection";
 import EditSkillCard from "mangarine/components/ui-components/editskillscard";
 import StatusCard from "mangarine/components/ui-components/statscard";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import { useAuth } from "mangarine/state/hooks/user.hook";
 import { BiSolidEditAlt } from "react-icons/bi";
@@ -81,53 +83,69 @@ const Profile = () => {
   }, [profileId, router]);
 
   const { user } = useAuth();
+  // router.query is empty on the first render before hydration — wait for it to be ready
+  // so we never incorrectly treat a /profile/[id] route as the own-profile route
+  const routerReady = router.isReady;
+  const isOwnProfile = routerReady ? (!profileId || profileId === user?.id) : false;
   const { works, skills, educations, experiences, languages, consultings ,contact} =
     useProfile();
+  // Fetch fresh profile data — for own profile pass undefined so the API hits /users/get/
+  // For other users this single call returns works/skills/education/experience/languages too
+  const {
+    data: profileInfoRawData,
+    currentData: profileInfoCurrentData,
+    isLoading: userInfoLoading,
+  } = useGetUserInfoQuery({ profileId }, { skip: !routerReady });
+
+  // Individual section queries — only needed for own profile (edit / Redux sync)
   const {
     data: workData,
     currentData: currentWorkData,
     isLoading: workLoading,
-  } = useGetWorkQuery({ profileId });
+  } = useGetWorkQuery({ profileId }, { skip: !isOwnProfile });
   const {
     data: skillData,
     currentData: currentSkillData,
     isLoading: skillLoading,
     error,
-  } = useGetSkillsQuery({ profileId });
+  } = useGetSkillsQuery({ profileId }, { skip: !isOwnProfile });
   const {
     data: eduData,
     currentData: eduCurrentData,
     isLoading: eduLoading,
-  } = useGetEducationQuery({ profileId });
+  } = useGetEducationQuery({ profileId }, { skip: !isOwnProfile });
   const {
     data: expData,
     currentData: expCurrData,
     isLoading: expLoading,
-  } = useGetExperienceQuery({ profileId });
+  } = useGetExperienceQuery({ profileId }, { skip: !isOwnProfile });
   const {
     data: langData,
     currentData: currLangData,
     isLoading: langLoading,
-  } = useGetLanguagesQuery({ profileId });
+  } = useGetLanguagesQuery({ profileId }, { skip: !isOwnProfile });
 
   const {
     data: consultData,
     currentData: curConsultData,
     isLoading: consultingLoading,
-  } = useGetConsultingServicesQuery({ profileId });
-
-  // Fetch fresh profile data — for own profile pass undefined so the API hits /users/get/
-  const {
-    data: profileInfoRawData,
-    currentData: profileInfoCurrentData,
-  } = useGetUserInfoQuery({ profileId });
+  } = useGetConsultingServicesQuery({ profileId }, { skip: !isOwnProfile });
 
   // API may return { data: {...} } or the object directly — normalise both shapes
   const unwrapUserInfo = (res: any) => res?.data ?? res;
-  const freshUserData = unwrapUserInfo(profileInfoCurrentData ?? profileInfoRawData);
-  // Merge fresh data (for up-to-date follower/following counts) with Redux user as fallback
-  const displayUser = profileId ? freshUserData : (freshUserData ?? user);
-  const isOwnProfile = !profileId || profileId === user?.id;
+  // Only use currentData — never fall back to `data` which may hold a previous user's result
+  const freshUserData = unwrapUserInfo(profileInfoCurrentData);
+  // Guard: when viewing another user, ensure the resolved data actually belongs to them
+  // This prevents logged-in user's cached data from briefly appearing
+  const verifiedUserData = profileId && freshUserData?.id !== profileId ? undefined : freshUserData;
+  // For own profile fall back to Redux user while the query loads
+  // For other users show skeleton until the correct data resolves
+  // Before router is ready show nothing to prevent own data flashing
+  const displayUser = !routerReady
+    ? undefined
+    : profileId
+      ? verifiedUserData
+      : (verifiedUserData ?? user);
 
   useEffect(() => {}, [user]);
 
@@ -205,13 +223,16 @@ const Profile = () => {
     return [];
   };
 
-  // When viewing another user's profile, derive display data directly from query results
-  const displayWorks = isOwnProfile ? works : normalizeWorks(currentWorkData ?? workData);
-  const displaySkills = isOwnProfile ? skills : ((currentSkillData?.data ?? skillData?.data) || []);
-  const displayEducations = isOwnProfile ? educations : ((eduCurrentData?.data ?? eduData?.data) || []);
-  const displayExperiences = isOwnProfile ? experiences : ((expCurrData?.data ?? expData?.data) || []);
-  const displayLanguages = isOwnProfile ? languages : ((currLangData?.data ?? langData?.data) || []);
+  // When viewing another user's profile, use data already embedded in getUserInfo response
+  const displayWorks = isOwnProfile ? works : (verifiedUserData?.works ?? []);
+  const displaySkills = isOwnProfile ? skills : (verifiedUserData?.skills ?? []);
+  const displayEducations = isOwnProfile ? educations : (verifiedUserData?.educations ?? []);
+  const displayExperiences = isOwnProfile ? experiences : (verifiedUserData?.experiences ?? []);
+  const displayLanguages = isOwnProfile ? languages : (verifiedUserData?.languages ?? []);
   const displayConsultings = isOwnProfile ? consultings : ((curConsultData?.data ?? consultData?.data) || []);
+
+  const [bookingOpen, setBookingOpen] = useState(false);
+  const showBookButton = !isOwnProfile && displayUser?.isConsultant;
 
   const noScrollbar = {
     "&::-webkit-scrollbar": { width: "0px", height: "0px" },
@@ -246,21 +267,21 @@ const Profile = () => {
       gridTemplateColumns={{ base: "1fr", lg: "3fr 2fr" }}
       gap={4}
       w="full"
-      h={{ base: "auto", lg: "full" }}
-      alignItems="start"
+      h={{ base: "auto", md: "full", lg: "full" }}
+      minH={0}
+      overflowY={{ base: "visible", md: "auto" }}
       overflowX="hidden"
+      alignItems="start"
       css={noScrollbar}
     >
       {/* Left — main profile content */}
       <Flex
         flexDir="column"
-        h={{ base: "auto", lg: "full" }}
-        overflowY={{ base: "visible", lg: "auto" }}
-        rounded="xl"
-        css={noScrollbar}
+        gap={4}
+        minW={0}
+        pb={{ base: 6, lg: 2 }}
       >
           <HStack
-            mb={3}
             cursor="pointer"
             onClick={() => router.back()}
             color="text_muted"
@@ -268,53 +289,49 @@ const Profile = () => {
             transition="color 0.2s"
             w="fit-content"
           >
-            <Icon>
-              <LuArrowLeft />
-            </Icon>
+            <Icon><LuArrowLeft /></Icon>
             <Text fontSize="0.875rem" fontWeight="500">Back</Text>
           </HStack>
 
-          <Box w="full">
-            {!displayUser ? (
-              <Box bg="bg_box" borderRadius="2xl" overflow="hidden">
-                <Skeleton h={{ base: "130px", lg: "180px" }} w="full" />
-                <Box px={6} pt={2} pb={4}>
-                  <Flex justify="space-between" align="flex-end" mb={3}>
-                    <SkeletonCircle size="20" mt="-10" border="3px solid white" />
-                    <HStack gap={2}>
-                      <Skeleton h="32px" w="32px" rounded="lg" />
-                      <Skeleton h="32px" w="32px" rounded="lg" />
-                      <Skeleton h="32px" w="32px" rounded="lg" />
-                    </HStack>
-                  </Flex>
-                  <VStack align="flex-start" gap={2}>
-                    <Skeleton h="5" w="40%" rounded="md" />
-                    <Skeleton h="3.5" w="55%" rounded="md" />
-                    <Skeleton h="3" w="70%" rounded="md" />
-                    <HStack gap={3} mt={1}>
-                      <Skeleton h="3" w="24" rounded="md" />
-                      <Skeleton h="3" w="20" rounded="md" />
-                    </HStack>
-                  </VStack>
-                </Box>
+          {!displayUser ? (
+            <Box bg="bg_box" borderRadius="2xl" overflow="hidden">
+              <Skeleton h={{ base: "130px", lg: "180px" }} w="full" />
+              <Box px={6} pt={2} pb={4}>
+                <Flex justify="space-between" align="flex-end" mb={3}>
+                  <SkeletonCircle size="20" mt="-10" border="3px solid white" />
+                  <HStack gap={2}>
+                    <Skeleton h="32px" w="32px" rounded="lg" />
+                    <Skeleton h="32px" w="32px" rounded="lg" />
+                    <Skeleton h="32px" w="32px" rounded="lg" />
+                  </HStack>
+                </Flex>
+                <VStack align="flex-start" gap={2}>
+                  <Skeleton h="5" w="40%" rounded="md" />
+                  <Skeleton h="3.5" w="55%" rounded="md" />
+                  <Skeleton h="3" w="70%" rounded="md" />
+                  <HStack gap={3} mt={1}>
+                    <Skeleton h="3" w="24" rounded="md" />
+                    <Skeleton h="3" w="20" rounded="md" />
+                  </HStack>
+                </VStack>
               </Box>
-            ) : (
-              <EditConsultantProfileCard
-                checkmarkSrc={verified}
-                locationSrc={locale}
-                dobSrc={dob}
-                info={displayUser}
-                editable={isOwnProfile}
-              />
-            )}
-          </Box>
+            </Box>
+          ) : (
+            <EditConsultantProfileCard
+              checkmarkSrc={verified}
+              locationSrc={locale}
+              dobSrc={dob}
+              info={displayUser}
+              editable={isOwnProfile}
+            />
+          )}
 
-
-          {/* StatsCard and Buttons */}
+          {/* StatsCard + Book button */}
           <Flex
             justify="space-between"
-            align="center"
-            my={4}
+            align={{ base: "flex-start", sm: "center" }}
+            flexDir={{ base: "column", sm: "row" }}
+            gap={3}
             fontSize="0.875rem"
             color="text_primary"
           >
@@ -323,89 +340,91 @@ const Profile = () => {
               followers={displayUser?.followerCount}
               following={displayUser?.followingCount}
             />
-            {/* <Flex gap={4}>
-            <Button {...buttonStyles(0)} onClick={() => handleButtonClick(0)}>
-              Follow
-            </Button>
-            <Button
-              {...buttonStyles(1, true)}
-              onClick={() => handleButtonClick(1)}
-            >
-              <HiOutlineUserAdd style={{ marginRight: "8px" }} />
-              Book Consultation
-            </Button>
-          </Flex> */}
+            {showBookButton && (
+              <Button
+                bg="bt_schedule"
+                color="white"
+                size="sm"
+                px={5}
+                borderRadius="8px"
+                flexShrink={0}
+                _hover={{ bg: "bt_schedule_hover" }}
+                onClick={() => setBookingOpen(true)}
+              >
+                <Icon mr={1}><LuCalendarDays /></Icon>
+                Book Consultation
+              </Button>
+            )}
           </Flex>
 
           <EditMyWorksCard
             title={"My Works"}
             edit={isOwnProfile ? edit : undefined}
             works={displayWorks}
-            isLoading={workLoading}
+            isLoading={isOwnProfile ? workLoading : userInfoLoading}
           />
 
-          <Box w="full" my="4">
-            <ProfileActivitySection isOwnProfile={isOwnProfile} profileId={profileId} userId={user?.id} />
-          </Box>
+          <ProfileActivitySection isOwnProfile={isOwnProfile} profileId={profileId} userId={user?.id} />
         </Flex>
 
       {/* Right — supplementary profile cards */}
-      <Stack
+      <Flex
         flexDir="column"
-        h={{ base: "auto", lg: "full" }}
-        overflowY={{ base: "visible", lg: "auto" }}
-        css={noScrollbar}
+        gap={4}
+        minW={0}
+        pb={{ base: 6, lg: 2 }}
       >
-          <Box overflowY="auto" css={noScrollbar}>
-            <EditIntroductionVideoCard
-              title={"Introduction Video"}
-              imageSrc={contactme}
-              videoLink={displayUser?.videoIntro}
-              playIconSrc={play}
-              edit={isOwnProfile ? <BiSolidEditAlt /> : undefined}
-            />
-            <Box mt={4} w="full">
-              <EditContactMeCard
-                title={"Contact Me"}
-                info={displayUser}
-                edit={isOwnProfile ? <BiSolidEditAlt /> : undefined}
-              />
-            </Box>
-            <Box mt={4}>
-              <EditSkillCard
-                isLoading={skillLoading}
-                skills={displaySkills}
-                title={"Skills & Expertise"}
-                edit={isOwnProfile ? edit : undefined}
-              />
-            </Box>
-            <Box mt={4}>
-              <EditEducationCard
-                title={"Education"}
-                educations={displayEducations}
-                edit={isOwnProfile ? edit : undefined}
-                isLoading={eduLoading}
-              />
-            </Box>
-            <Box mt={4}>
-              <EditExperienceCard
-                title={"Experience"}
-                experiences={displayExperiences}
-                edit={isOwnProfile ? edit : undefined}
-                isLoading={expLoading}
-              />
-            </Box>
-            <Box mt={4}>
-              <EditLanguageCard
-                title={"Languages"}
-                languages={displayLanguages}
-                edit={isOwnProfile ? edit : undefined}
-                isLoading={langLoading}
-              />
-            </Box>
-          </Box>
-        </Stack>
+        <EditIntroductionVideoCard
+          title={"Introduction Video"}
+          imageSrc={contactme}
+          videoLink={displayUser?.videoIntro}
+          playIconSrc={play}
+          edit={isOwnProfile ? <BiSolidEditAlt /> : undefined}
+        />
+        <EditContactMeCard
+          title={"Contact Me"}
+          info={displayUser}
+          edit={isOwnProfile ? <BiSolidEditAlt /> : undefined}
+        />
+        <EditSkillCard
+          isLoading={isOwnProfile ? skillLoading : userInfoLoading}
+          skills={displaySkills}
+          title={"Skills & Expertise"}
+          edit={isOwnProfile ? edit : undefined}
+        />
+        <EditEducationCard
+          title={"Education"}
+          educations={displayEducations}
+          edit={isOwnProfile ? edit : undefined}
+          isLoading={isOwnProfile ? eduLoading : userInfoLoading}
+        />
+        <EditExperienceCard
+          title={"Experience"}
+          experiences={displayExperiences}
+          edit={isOwnProfile ? edit : undefined}
+          isLoading={isOwnProfile ? expLoading : userInfoLoading}
+        />
+        <EditLanguageCard
+          title={"Languages"}
+          languages={displayLanguages}
+          edit={isOwnProfile ? edit : undefined}
+          isLoading={isOwnProfile ? langLoading : userInfoLoading}
+        />
+      </Flex>
     </Box>
+
+    {showBookButton && displayUser && (
+      <BookConsultationDrawer
+        open={bookingOpen}
+        onClose={() => setBookingOpen(false)}
+        consultant={{
+          id: displayUser.id,
+          fullName: displayUser.fullName,
+          profilePics: displayUser.profilePics,
+          title: displayUser.title,
+        }}
+      />
+    )}
     </>
   );
 };

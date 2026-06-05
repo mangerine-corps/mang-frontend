@@ -19,6 +19,7 @@ function Biocard() {
     refreshedUser?.profileCompletionPercent ??
     user?.profileCompletionPercent ??
     0;
+  const showProfileCompletionCta = Number(profileCompletionPercent) < 100;
   const businessMeetingsPath = user?.isConsultant
     ? "/my-business/dashboard?tab=meetings"
     : "/my-business?startOnboarding=1";
@@ -173,46 +174,48 @@ function Biocard() {
           ) : null}
 
           {/* 5 — Profile completion bar + button */}
-          <VStack align="flex-start" w="full" gap={1}>
-            <Progress.Root value={profileCompletionPercent} w="full">
-              <Progress.Track w="full">
-                <Progress.Range bg="#00A991" />
-              </Progress.Track>
-            </Progress.Root>
-            <HStack w="full" justifyContent="space-between" alignItems="center">
-              <Text color="text_primary" fontSize="sm" fontWeight="500">
-                Profile {profileCompletionPercent}% Complete
-              </Text>
-              <IconButton
-                aria-label="View missing fields"
+          {showProfileCompletionCta && (
+            <VStack align="flex-start" w="full" gap={1}>
+              <Progress.Root value={profileCompletionPercent} w="full">
+                <Progress.Track w="full">
+                  <Progress.Range bg="#00A991" />
+                </Progress.Track>
+              </Progress.Root>
+              <HStack w="full" justifyContent="space-between" alignItems="center">
+                <Text color="text_primary" fontSize="sm" fontWeight="500">
+                  Profile {profileCompletionPercent}% Complete
+                </Text>
+                <IconButton
+                  aria-label="View missing fields"
+                  size="sm"
+                  variant="ghost"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setShowMissingModal(true);
+                  }}
+                >
+                  <IoIosEye />
+                </IconButton>
+              </HStack>
+              <Button
+                bg="button_bg"
+                color="button_text"
                 size="sm"
-                variant="ghost"
+                w="full"
+                borderRadius="md"
+                justifyContent="center"
+                transition="opacity 0.18s, transform 0.18s"
+                _hover={{ opacity: 0.85, transform: "translateY(-1px)" }}
+                _active={{ transform: "translateY(0px)" }}
                 onClick={(e) => {
                   e.stopPropagation();
-                  setShowMissingModal(true);
+                  goToProfile();
                 }}
               >
-                <IoIosEye />
-              </IconButton>
-            </HStack>
-            <Button
-              bg="button_bg"
-              color="button_text"
-              size="sm"
-              w="full"
-              borderRadius="md"
-              justifyContent="center"
-              transition="opacity 0.18s, transform 0.18s"
-              _hover={{ opacity: 0.85, transform: "translateY(-1px)" }}
-              _active={{ transform: "translateY(0px)" }}
-              onClick={(e) => {
-                e.stopPropagation();
-                goToProfile();
-              }}
-            >
-              Complete your profile
-            </Button>
-          </VStack>
+                Complete your profile
+              </Button>
+            </VStack>
+          )}
         </VStack>
         {showMissingModal && (
           <Dialog.Root

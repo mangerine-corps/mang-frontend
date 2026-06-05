@@ -211,7 +211,7 @@ const EditConsultantProfileCard = ({
                 >
                   <Image src="/icons/notification-bell.svg" alt="Notifications" boxSize="18px" />
                 </Button>
-                <Menu.Root>
+                <Menu.Root positioning={{ placement: "bottom-end" }}>
                   <Menu.Trigger asChild>
                     <Button size="sm" h="32px" px={2} variant="plain" bg="bg_box" boxShadow="0px 0px 8px 0px #0000001A">
                       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -221,20 +221,21 @@ const EditConsultantProfileCard = ({
                     </Button>
                   </Menu.Trigger>
                   <Portal>
-                    <Menu.Positioner>
+                    <Menu.Positioner zIndex="max">
                       <Menu.Content
                         bg="bg_box"
                         borderWidth="1px"
                         borderColor="border_background"
                         rounded="2xl"
                         boxShadow="0 8px 32px rgba(0,0,0,0.12)"
-                        p={4}
-                        minW="260px"
+                        p={{ base: 3, sm: 4 }}
+                        w={{ base: "calc(100vw - 32px)", sm: "320px" }}
+                        maxW="calc(100vw - 32px)"
                       >
                         <Text fontFamily="Outfit" fontWeight="600" fontSize="0.95rem" color="text_primary" mb={4} textAlign="center">
                           Share profile
                         </Text>
-                        <HStack justify="center" gap={6} mb={5}>
+                        <Flex justify="center" gap={{ base: 4, sm: 6 }} mb={5} wrap="wrap">
                           <FacebookShareButton url={`${typeof window !== "undefined" ? window.location.origin : ""}/profile/${info?.id}`}>
                             <VStack gap={1} cursor="pointer" _hover={{ opacity: 0.8 }} transition="opacity 0.15s">
                               <FacebookIcon size={44} round />
@@ -253,21 +254,22 @@ const EditConsultantProfileCard = ({
                               <Text fontFamily="Outfit" fontSize="0.68rem" color="text_primary" fontWeight="500">Twitter</Text>
                             </VStack>
                           </TwitterShareButton>
-                        </HStack>
+                        </Flex>
                         <Box borderWidth="1px" borderColor="border_background" rounded="xl" px={3} py={2} bg="main_background">
-                          <HStack gap={2}>
-                            <Text flex={1} fontFamily="Outfit" fontSize="0.78rem" color="text_primary" truncate opacity={0.7}>
+                          <Flex gap={2} direction={{ base: "column", sm: "row" }} align={{ base: "stretch", sm: "center" }}>
+                            <Text flex={1} fontFamily="Outfit" fontSize="0.78rem" color="text_primary" wordBreak="break-all" opacity={0.7}>
                               {typeof window !== "undefined" ? `${window.location.origin}/profile/${info?.id}` : `/profile/${info?.id}`}
                             </Text>
                             <Button
                               size="xs" bg="#111D4A" color="white" borderRadius="8px"
                               fontFamily="Outfit" fontWeight="600" fontSize="0.75rem" px={3} flexShrink={0}
+                              w={{ base: "full", sm: "auto" }}
                               _hover={{ bg: "#0D173B" }}
                               onClick={handleCopyLink}
                             >
                               Copy
                             </Button>
-                          </HStack>
+                          </Flex>
                         </Box>
                       </Menu.Content>
                     </Menu.Positioner>

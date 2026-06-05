@@ -84,9 +84,17 @@ export const UserTypeApi = createApi({
       }),
     }),
      becomeConsultant : builder.mutation({
-      query:()=>({
+     query:(credentials: {
+        confirmProfileAccurate: boolean;
+        agreeProfessionalConduct: boolean;
+        understandSuspensionRisk: boolean;
+      })=>({
         url:"/become/consultant",
         method:"PATCH",
+        body: credentials,
+        headers: {
+          "Content-Type": "application/json",
+        },
       })
      })
   }),

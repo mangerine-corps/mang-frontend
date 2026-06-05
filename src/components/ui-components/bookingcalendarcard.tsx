@@ -20,7 +20,7 @@ const RequiredMark = () => (
     </Text>
 );
 
-const CustomDatePicker = ({onClick}) => {
+const CustomDatePicker = ({ onClick, consultantId: propConsultantId }: { onClick: (data: any) => void; consultantId?: string }) => {
     const router = useRouter()
     const [date, setDate] = useState<any>();
     const [slots, setSlots] = useState<string[]>([]);
@@ -33,9 +33,7 @@ const CustomDatePicker = ({onClick}) => {
     const [createPaypalOrder, {isLoading: paypalLoading}] = useCreatePaypalOrderMutation()
     const isLoading = stripeLoading || paystackLoading || paypalLoading;
 
-    const {
-        query: {consultantId},
-    } = router;
+    const consultantId = propConsultantId ?? router.query.consultantId;
 
     const [fetchPricing, { data: pricingData, isLoading: isPricingLoading, error: pricingError }] = useGetConsultantPricingOnDemandMutation();
 

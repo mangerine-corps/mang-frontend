@@ -13,12 +13,10 @@ import { useEffect, useMemo } from "react";
 import { useGetGeneralSettingsQuery, useUpdateGeneralSettingsMutation } from "mangarine/state/services/settings.service";
 import { ColorModeButton } from "../ui/color-mode";
 import { toaster } from "../ui/toaster";
-
-const timeZoneOptions = [
-  { id: '1', label: "(UTC-8:00) Pacific Time", value: "(UTC-8:00) Pacific Time" },
-  { id: '2', label: "(UTC+1:00) West Africa Time", value: "(UTC+1:00) West Africa Time" },
-  { id: '3', label: "(UTC+0:00) GMT", value: "(UTC+0:00) GMT" },
-];
+import { TIME_ZONE_OPTIONS, normalizeTimeZoneValue } from "mangarine/lib/timezone-options";
+import { useDispatch } from "react-redux";
+import { useAuth } from "mangarine/state/hooks/user.hook";
+import { setUpdatedInfo } from "mangarine/state/reducers/auth.reducer";
 
 const langOptions = [
   { id: '1', label: "English", value: "English" },
@@ -31,6 +29,8 @@ const Schema = Yup.object().shape({
 });
 
 const GeneralSetting = () => {
+  const dispatch = useDispatch();
+  const { user } = useAuth();
   const { data, isLoading, isFetching, refetch } = useGetGeneralSettingsQuery();
   const [updateGeneral, { isLoading: saving }] = useUpdateGeneralSettingsMutation();
   const server = useMemo(() => (data as any)?.data || {}, [data]);
@@ -50,32 +50,53 @@ const GeneralSetting = () => {
 
   useEffect(() => {
     if (server) {
-      if (server.uiLanguage) setValue("language", server.uiLanguage);
-      if (server.timeZone) setValue("time", server.timeZone);
+      if (server.uiLanguage) setValue("language", Array.isArray(server.uiLanguage) ? server.uiLanguage : [server.uiLanguage]);
+      const normalizedTimeZone = normalizeTimeZoneValue(server.timeZone);
+      if (normalizedTimeZone) setValue("time", [normalizedTimeZone]);
     }
   }, [server, setValue]);
 
-  const save = () => {
-    const form = getValues();
-    updateGeneral({
-      uiLanguage: form.language.join(","),
-      timeZone: form.time.join(","),
-    }).then((res) => {
+  const toStr = (val: any): string => {
+    if (!val) return "";
+    if (Array.isArray(val)) return val.filter(Boolean).join(",");
+    return String(val);
+  };
+
+  const save = async (nextValues?: Partial<{ language: string[]; time: string[] }>) => {
+    const form = { ...getValues(), ...nextValues };
+    const uiLanguage = toStr(form.language);
+    const timeZone = normalizeTimeZoneValue(toStr(form.time));
+
+    try {
+      const res = await updateGeneral({
+        uiLanguage,
+        timeZone,
+      }).unwrap();
+      if (user) {
+        dispatch(setUpdatedInfo({
+          updatedInfo: {
+            ...user,
+            uiLanguage,
+            timeZone,
+            timezone: timeZone,
+          },
+        }));
+      }
       toaster.create({
         type: "success",
         title: "Saved",
-        description: (res as any)?.data?.message || "Settings updated.",
+        description: res?.message || "Settings updated.",
         closable: true,
       });
       refetch();
-    }).catch((err: any) => {
+    } catch (err: any) {
       toaster.create({
         type: "error",
         title: "Failed",
-        description: err?.message || "Something went wrong",
+        description: err?.data?.message || err?.message || "Something went wrong",
         closable: true,
       });
-    });
+    }
   };
 
   return (
@@ -124,7 +145,7 @@ const GeneralSetting = () => {
               value={value}
               required={false}
               error={errors.language}
-              onChange={(val) => { onChange(val); save(); }}
+              onChange={(val) => { onChange(val); save({ language: val }); }}
             />
           )}
         />
@@ -149,13 +170,19 @@ const GeneralSetting = () => {
               placeholder="Select Time Zone"
               name="Time Zone"
               size="md"
-              options={timeZoneOptions}
+              options={TIME_ZONE_OPTIONS as any}
               label="Default Time Zone"
               isMulti={false}
               value={value}
               required={false}
               error={errors.time}
-              onChange={(val) => { onChange(val); save(); }}
+              onChange={(val) => {
+                const normalizedTime = Array.isArray(val)
+                  ? val.map((item) => normalizeTimeZoneValue(item)).filter(Boolean)
+                  : [];
+                onChange(normalizedTime);
+                save({ time: normalizedTime });
+              }}
             />
           )}
         />
