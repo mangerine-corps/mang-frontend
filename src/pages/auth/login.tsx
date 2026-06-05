@@ -13,14 +13,14 @@ import {
 import CustomInput from "mangarine/components/customcomponents/Input";
 import { useColorMode } from "mangarine/components/ui/color-mode";
 import GuestLayout from "mangarine/layouts/GuestLayout";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { outfit } from "../_app";
 import CustomButton from "mangarine/components/customcomponents/button";
 import { Checkbox } from "mangarine/components/ui/checkbox";
 import * as Yup from "yup";
 import { yupResolver } from "@hookform/resolvers/yup";
-import { setCredentials } from "mangarine/state/reducers/auth.reducer";
+import { setCredentials, setPreAuth } from "mangarine/state/reducers/auth.reducer";
 import { useDispatch } from "react-redux";
 import { useRouter } from "next/router";
 import { useLoginMutation, useGoogleAuthMutation } from "mangarine/state/services/auth.service";
@@ -61,6 +61,102 @@ const Login = () => {
   const [handleLogin, { isLoading }] = useLoginMutation();
   const [handleGoogleAuth, { isLoading: isGoogleLoading }] = useGoogleAuthMutation();
 
+  const {
+    control,
+    handleSubmit,
+    formState: { errors },
+  } = useForm({
+    resolver: yupResolver(loginSchema),
+    defaultValues: {
+      username: "",
+      password: "",
+    },
+  });
+  const dispatch = useDispatch();
+  const router = useRouter();
+  const onSubmit = (data: any) => {
+    // console.log(data);
+    handleLogin(data)
+      .unwrap()
+      .then((payload) => {
+        const responseData = payload?.data ?? payload;
+
+        if (responseData?.requires2FA) {
+          dispatch(setPreAuth({
+            info: {
+              flow: "login-2fa",
+              challengeToken: responseData.challengeToken,
+              method: responseData.method,
+              email: data.username,
+            },
+          }));
+          toaster.create({
+            type: "info",
+            title: "Verification required",
+            description: payload?.message || "Enter the verification code to complete login.",
+            closable: true,
+          });
+          router.push("/auth/otp-verification?flow=login-2fa");
+          return;
+        }
+
+        const { user, token } = responseData;
+        dispatch(setCredentials({ user, token }));
+        toaster.create({
+          type:"success",
+          title:"Success",
+          description:"Login Successful",
+          closable:true
+        })
+      })
+      .catch((error) => {
+        // console.log(error);
+        const { data } = error;
+        if (!isEmpty(data) && data.hasOwnProperty("message")) {
+          setErrorMessage(data.message);
+        } else {
+          setErrorMessage("Login failed!! please try again");
+        }
+        setShowToast(true);
+      });
+  };
+
+const redirectToApple = () => {
+  const params = new URLSearchParams({
+    client_id: process.env.NEXT_PUBLIC_APPLE_CLIENT_ID!,
+    redirect_uri: process.env.NEXT_PUBLIC_APPLE_REDIRECT_URI!,
+    response_type: "code",
+    scope: "name email",
+    response_mode: "query",
+  });
+
+  window.location.href = `https://appleid.apple.com/auth/authorize?${params.toString()}`;
+};
+
+const handleSuccess = useCallback(async (credentialResponse: any) => {
+  console.log(credentialResponse, "credentialResponse");
+  if (credentialResponse.access_token) {
+    try {
+      // Send the credential to our backend using the service
+      console.log(credentialResponse, "credentialResponse");
+      const response = await handleGoogleAuth({ access_token: credentialResponse.access_token }).unwrap();
+
+      if (response.data) {
+        const { user, token } = response.data;
+        dispatch(setCredentials({ user, token }));
+
+        // Redirect to dashboard after successful Google login
+        router.push('/home');
+      }
+    } catch (error: any) {
+      console.error('Google authentication error:', error);
+      const errorMessage = error?.data?.message || 'Google authentication failed. Please try again.';
+      setErrorMessage(errorMessage);
+      setShowToast(true);
+    }
+  }
+}, [dispatch, handleGoogleAuth, router]);
+
   useEffect(() => {
     setIsClient(true);
 
@@ -100,83 +196,8 @@ const Login = () => {
       // Cleanup interval after 10 seconds
       setTimeout(() => clearInterval(checkGoogleLoaded), 10000);
     }
-  }, []);
-  const {
-    control,
-    handleSubmit,
-    formState: { errors },
-  } = useForm({
-    resolver: yupResolver(loginSchema),
-    defaultValues: {
-      username: "",
-      password: "",
-    },
-  });
-  const dispatch = useDispatch();
-  const router = useRouter();
-  const onSubmit = (data: any) => {
-    // console.log(data);
-    handleLogin(data)
-      .unwrap()
-      .then((payload) => {
-        const { data } = payload;
-        // console.log(data, "payload");
-        const { user, token } = data;
-        dispatch(setCredentials({ user, token }));
-        toaster.create({
-          type:"success",
-          title:"Success",
-          description:"Login Successful",
-          closable:true
-        })
-      })
-      .catch((error) => {
-        // console.log(error);
-        const { data } = error;
-        if (!isEmpty(data) && data.hasOwnProperty("message")) {
-          setErrorMessage(data.message);
-        } else {
-          setErrorMessage("Login failed!! please try again");
-        }
-        setShowToast(true);
-      });
-  };
+  }, [handleSuccess]);
 
-const redirectToApple = () => {
-  const params = new URLSearchParams({
-    client_id: process.env.NEXT_PUBLIC_APPLE_CLIENT_ID!,
-    redirect_uri: process.env.NEXT_PUBLIC_APPLE_REDIRECT_URI!,
-    response_type: "code",
-    scope: "name email",
-    response_mode: "query",
-  });
-
-  window.location.href = `https://appleid.apple.com/auth/authorize?${params.toString()}`;
-};
-
-const handleSuccess = async (credentialResponse: any) => {
-  console.log(credentialResponse, "credentialResponse");
-  if (credentialResponse.access_token) {
-    try {
-      // Send the credential to our backend using the service
-      console.log(credentialResponse, "credentialResponse");
-      const response = await handleGoogleAuth({ access_token: credentialResponse.access_token }).unwrap();
-
-      if (response.data) {
-        const { user, token } = response.data;
-        dispatch(setCredentials({ user, token }));
-
-        // Redirect to dashboard after successful Google login
-        router.push('/home');
-      }
-    } catch (error: any) {
-      console.error('Google authentication error:', error);
-      const errorMessage = error?.data?.message || 'Google authentication failed. Please try again.';
-      setErrorMessage(errorMessage);
-      setShowToast(true);
-    }
-  }
-};
 const loginUser = useGoogleLogin({
   onSuccess: handleSuccess,
   flow: "implicit",

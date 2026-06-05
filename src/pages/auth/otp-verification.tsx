@@ -20,6 +20,7 @@ import Toast from "mangarine/components/ui-components/Error";
 import { BiSolidError } from "react-icons/bi";
 import {
   useSendEmailOtpMutation,
+  useVerifyTwoFAMutation,
   useVerifyEmailMutation,
 } from "mangarine/state/services/auth.service";
 import { toaster } from "mangarine/components/ui/toaster";
@@ -28,6 +29,8 @@ import { isEmpty, size } from "es-toolkit/compat";
 import { useCountdown } from "usehooks-ts";
 
 import OTPInput from "react-otp-input";
+import { useDispatch } from "react-redux";
+import { setCredentials, setPreAuth } from "mangarine/state/reducers/auth.reducer";
 
 const schema = Yup.object().shape({
   otp: Yup.string()
@@ -36,13 +39,15 @@ const schema = Yup.object().shape({
 });
 
 const AccountVerification = () => {
-  const { forgotInfo } = useAuth();
+  const { forgotInfo, preAuth } = useAuth();
   const emailEnabled = process.env.NEXT_PUBLIC_EMAIL_ENABLED !== "false";
   const [showToast, setShowToast] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [sendOtp] = useSendEmailOtpMutation();
   const [verifyEmail, { isLoading: verifying }] = useVerifyEmailMutation();
+  const [verifyTwoFA, { isLoading: verifyingTwoFA }] = useVerifyTwoFAMutation();
   const [visible, setVisible] = useState(true);
+  const dispatch = useDispatch();
 
   const [intervalValue] = useState<number>(1000);
   const [count, { startCountdown, resetCountdown }] =
@@ -59,12 +64,44 @@ const AccountVerification = () => {
 
   // const otp = watch("otp");
   const router = useRouter();
+  const isLoginTwoFAFlow =
+    router.query.flow === "login-2fa" || preAuth?.flow === "login-2fa";
+  const challengeToken = preAuth?.challengeToken;
+  const verificationMethod = preAuth?.method;
+  const loginIdentity = preAuth?.email;
+
   const onSubmit = async () => {
+    const data = getValues();
+
+    if (isLoginTwoFAFlow) {
+      verifyTwoFA({
+        challengeToken,
+        otp: data.otp,
+      })
+        .unwrap()
+        .then((payload) => {
+          const responseData = payload?.data ?? payload;
+          const { user, token } = responseData;
+          dispatch(setCredentials({ user, token }));
+          dispatch(setPreAuth({ info: {} }));
+          router.push("/home");
+        })
+        .catch((error) => {
+          const { data } = error;
+          if (!isEmpty(data) && data.hasOwnProperty("message")) {
+            setErrorMessage(data.message);
+          } else {
+            setErrorMessage("2FA verification failed");
+          }
+          setShowToast(true);
+        });
+      return;
+    }
+
     if (!emailEnabled) {
       router.push("/auth/reset-password");
       return;
     }
-    const data = getValues();
     const formdata = {
       email: forgotInfo.email,
       otpCode: data.otp,
@@ -88,26 +125,29 @@ const AccountVerification = () => {
 
   // Start countdown on mount
   useEffect(() => {
-    if (!emailEnabled) return;
+    if (!emailEnabled || isLoginTwoFAFlow) return;
     startCountdown();
-  }, []);
+  }, [emailEnabled, isLoginTwoFAFlow, startCountdown]);
 
   useEffect(() => {
-    if (!emailEnabled) return;
+    if (!emailEnabled || isLoginTwoFAFlow) return;
     if (count === 0) {
       setVisible(false);
     }
-  }, [count]);
+  }, [count, emailEnabled, isLoginTwoFAFlow]);
 
   // If emails disabled, skip page entirely
   useEffect(() => {
-    if (!emailEnabled) {
+    if (!isLoginTwoFAFlow && !emailEnabled) {
       router.replace("/auth/reset-password");
     }
-  }, [emailEnabled]);
+    if (isLoginTwoFAFlow && !challengeToken) {
+      router.replace("/auth/login");
+    }
+  }, [challengeToken, emailEnabled, isLoginTwoFAFlow, router]);
 
   const resendOtp = async () => {
-    if (!emailEnabled) return;
+    if (!emailEnabled || isLoginTwoFAFlow) return;
     await sendOtp({ email: forgotInfo.email })
       .unwrap()
       .then(() => {
@@ -156,7 +196,7 @@ const AccountVerification = () => {
               fontSize={"1.5rem"}
               lineHeight={"2rem"}
             >
-              Email Verification
+              {isLoginTwoFAFlow ? "Two-Factor Verification" : "Email Verification"}
             </Text>
             <Text
               color="grey.500"
@@ -165,7 +205,9 @@ const AccountVerification = () => {
               lineHeight={"2rem"}
               textAlign={"center"}
             >
-              Input the code sent to {forgotInfo.email} to verify your email
+              {isLoginTwoFAFlow
+                ? `Input the code sent via ${verificationMethod ?? "your selected method"}${loginIdentity ? ` for ${loginIdentity}` : ""} to complete login`
+                : `Input the code sent to ${forgotInfo.email} to verify your email`}
             </Text>
           </VStack>
           <Box w="full">
@@ -253,7 +295,7 @@ const AccountVerification = () => {
         </FormErrorMessage> */}
 
             <VStack w="full" alignItems="center" gap={2}>
-              {visible ? (
+              {!isLoginTwoFAFlow && visible ? (
                 <HStack gap={2}>
                   <Text
                     color={count > 60 ? "green.500" : count > 30 ? "orange.400" : "red.500"}
@@ -263,7 +305,7 @@ const AccountVerification = () => {
                     Code expires in {formatTime(count)}
                   </Text>
                 </HStack>
-              ) : (
+              ) : !isLoginTwoFAFlow ? (
                 <HStack gap={1}>
                   <Text color="red.500" fontWeight="500" fontSize="0.875rem">
                     Code expired.
@@ -278,8 +320,8 @@ const AccountVerification = () => {
                     Resend code
                   </Link>
                 </HStack>
-              )}
-              {visible && (
+              ) : null}
+              {!isLoginTwoFAFlow && visible && (
                 <Text color="grey.500" fontSize="0.8rem">
                   {`Didn't receive a code?`}{" "}
                   <Link
@@ -298,7 +340,7 @@ const AccountVerification = () => {
               customStyle={{
                 w: "full",
               }}
-              loading={verifying}
+              loading={isLoginTwoFAFlow ? verifyingTwoFA : verifying}
               onClick={handleSubmit(onSubmit, (error) => console.log(error))}
             >
               <Text
@@ -307,7 +349,7 @@ const AccountVerification = () => {
                 fontSize={"1rem"}
                 lineHeight={"100%"}
               >
-                Verify
+                {isLoginTwoFAFlow ? "Complete Login" : "Verify"}
               </Text>
             </CustomButton>
           </Stack>

@@ -61,6 +61,13 @@ export const UserAuthApi = createApi({
         body: credentials,
       }),
     }),
+    verifyTwoFA: builder.mutation({
+      query: (credentials: { challengeToken: string; otp: string }) => ({
+        url: "auth/verify-2fa",
+        method: "POST",
+        body: credentials,
+      }),
+    }),
     resetPassword: builder.mutation({
       query: (credentials) => ({
         url: "auth/change/password",
@@ -127,6 +134,7 @@ export const {
   useVerifyEmailMutation,
   usePreSignupMutation,
   useLoginMutation,
+  useVerifyTwoFAMutation,
   useSendEmailOtpMutation,
   useCreateAccountMutation,
   useUpdatePicsMutation,
