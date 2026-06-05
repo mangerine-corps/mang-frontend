@@ -44,7 +44,8 @@ const Consultation = () => {
         <VStack
           display={{ base: "none", lg: "flex" }}
           alignItems="stretch"
-          w="full"
+          w="260px"
+          flexShrink={0}
           spaceY={2}
           h="full"
           overflowY="auto"

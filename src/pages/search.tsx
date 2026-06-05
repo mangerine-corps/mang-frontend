@@ -513,6 +513,8 @@ function SearchPage() {
         <VStack
           display={{ base: "none", md: "flex" }}
           alignItems="stretch"
+          w="260px"
+          flexShrink={0}
           spaceY={2}
           h="full"
           overflowY="auto"

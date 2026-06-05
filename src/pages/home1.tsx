@@ -302,6 +302,8 @@ function Home() {
         <VStack
           display={{ base: "none", lg: "flex" }} // only show on desktop
           align="stretch"
+          w="260px"
+          flexShrink={0}
           spaceY={4}
           h="100vh"
           pos="sticky"

@@ -123,7 +123,7 @@ function Home() {
       <>
       <Flex gap={4} w="full" h={{ base: "auto", md: "full" }} overflow={{ base: "visible", md: "hidden" }}>
         {/* Center feed */}
-        <Stack bg="bg_box" rounded="xl" px={4} pb={4} h={{ base: "auto", md: "full" }} w="full" overflowY={{ base: "auto", md: "auto" }} css={noScrollbar} position="relative">
+        <Stack bg="bg_box" rounded="xl" px={4} pb={4} h={{ base: "auto", md: "full" }} flex={1} minW={0} overflowY={{ base: "auto", md: "auto" }} css={noScrollbar} position="relative">
           {/* Scroll anchor */}
           <div ref={feedTopRef} />
 
@@ -266,7 +266,8 @@ function Home() {
         <VStack
           display={{ base: "none", lg: "flex" }}
           alignItems="stretch"
-          w="full"
+          w="260px"
+          flexShrink={0}
           spaceY={2}
           h="full"
           overflowY="auto"

@@ -281,6 +281,8 @@ export default function ConsultantLearnMore() {
       <VStack
         display={{ base: "none", lg: "flex" }}
         align="stretch"
+        w="260px"
+        flexShrink={0}
         gap={4}
         h="full"
         overflowY="auto"
