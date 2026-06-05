@@ -56,7 +56,7 @@ const VideoGrid = () => {
         gap={6}
       >
       {videos.map((video) => (
-        <GridItem key={video.id ?? video.uid ?? video.url}>
+        <GridItem key={video.name}>
           <Box
           w={{ base: "100%", md: "100%", lg: "100%" }}
           h="full"
