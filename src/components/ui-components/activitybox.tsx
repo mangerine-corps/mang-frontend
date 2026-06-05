@@ -53,7 +53,7 @@ const ActivitiesBox = () => {
     <Box
       w="full"
       bg="bg_box"
-      p="4"
+      p={4}
       rounded="15px"
       alignItems="flex-start"
     >

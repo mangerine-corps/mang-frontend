@@ -227,59 +227,15 @@ const BookingCalendar = () => {
       display={{ base: "none", md: "block", lg: "block" }}
     >
       <Stack gap={4}>
-        <Text
-          fontFamily="Outfit"
-          fontWeight="600"
-          fontSize="1rem"
-          color="text_primary"
-        >
-          Bookings Calendar
-        </Text>
-
-        <Flex justify="space-between" align="center" gap={3}>
-          <HStack
-            bg="badge_background"
-            rounded="full"
-            px={2}
-            py={1}
-            gap={1}
+        <Flex justify="space-between" align="center">
+          <Text
+            fontFamily="Outfit"
+            fontWeight="600"
+            fontSize="1rem"
+            color="text_primary"
           >
-            <IconButton
-              aria-label="Previous days"
-              variant="ghost"
-              size="xs"
-              onClick={() => setWindowStart((current) => Math.max(current - 1, 0))}
-              disabled={!canGoBack}
-            >
-              <LuChevronLeft />
-            </IconButton>
-            <Text
-              fontFamily="Outfit"
-              fontWeight="500"
-              fontSize="0.8rem"
-              color="text_primary"
-              textAlign="center"
-              whiteSpace="nowrap"
-            >
-              {buildRangeLabel(visibleDays)}
-            </Text>
-            <IconButton
-              aria-label="Next days"
-              variant="ghost"
-              size="xs"
-              onClick={() =>
-                setWindowStart((current) =>
-                  Math.min(current + 1, Math.max(calendarDays.length - 2, 0))
-                )
-              }
-              disabled={!canGoForward}
-            >
-              <LuChevronRight />
-            </IconButton>
-          </HStack>
-
-          <Box w="1px" h="8" bg="#E8E8E9" />
-
+            Bookings Calendar
+          </Text>
           <IconButton
             aria-label="Open bookings"
             variant="ghost"
@@ -289,6 +245,48 @@ const BookingCalendar = () => {
             <LuExternalLink />
           </IconButton>
         </Flex>
+
+        <HStack
+          bg="badge_background"
+          rounded="full"
+          px={2}
+          py={1}
+          gap={1}
+          alignSelf="flex-start"
+        >
+          <IconButton
+            aria-label="Previous days"
+            variant="ghost"
+            size="xs"
+            onClick={() => setWindowStart((current) => Math.max(current - 1, 0))}
+            disabled={!canGoBack}
+          >
+            <LuChevronLeft />
+          </IconButton>
+          <Text
+            fontFamily="Outfit"
+            fontWeight="500"
+            fontSize="0.8rem"
+            color="text_primary"
+            textAlign="center"
+            whiteSpace="nowrap"
+          >
+            {buildRangeLabel(visibleDays)}
+          </Text>
+          <IconButton
+            aria-label="Next days"
+            variant="ghost"
+            size="xs"
+            onClick={() =>
+              setWindowStart((current) =>
+                Math.min(current + 1, Math.max(calendarDays.length - 2, 0))
+              )
+            }
+            disabled={!canGoForward}
+          >
+            <LuChevronRight />
+          </IconButton>
+        </HStack>
 
         <Flex
           borderWidth="1px"
