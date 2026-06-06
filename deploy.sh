@@ -12,12 +12,12 @@ echo ">>> Pulling latest changes..."
 git pull
 
 echo ">>> Installing dependencies..."
-npm install
+npm ci
 
 echo ">>> Building application..."
 npm run build
 
 echo ">>> Reloading PM2 process..."
-pm2 reload "$PM2_APP"
+pm2 restart 0
 
 echo ">>> Done. App is live."

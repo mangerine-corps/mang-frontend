@@ -88,6 +88,9 @@ export const UserTypeApi = createApi({
         confirmProfileAccurate: boolean;
         agreeProfessionalConduct: boolean;
         understandSuspensionRisk: boolean;
+        idType?: string;
+        issuingCountry?: string;
+        verificationSubmissionId?: string;
       })=>({
         url:"/become/consultant",
         method:"PATCH",

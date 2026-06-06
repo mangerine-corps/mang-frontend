@@ -765,13 +765,22 @@ const ConsultantOnboardingFlow = () => {
         verificationFormData.append("idBack", draft.documents.back.file);
       }
 
-      await submitConsultantVerification(verificationFormData).unwrap();
+      const verificationResult = await submitConsultantVerification(verificationFormData).unwrap();
       verificationSubmitted = true;
+
+      const verificationSubmissionId =
+        verificationResult?.data?.id ??
+        verificationResult?.data?.verificationId ??
+        verificationResult?.data?.submissionId ??
+        verificationResult?.id;
 
       const consultantActivationPayload = {
         confirmProfileAccurate: Boolean(draft.agreements?.accurate),
         agreeProfessionalConduct: Boolean(draft.agreements?.ethical),
         understandSuspensionRisk: Boolean(draft.agreements?.suspension),
+        idType: draft.idType,
+        issuingCountry: issuingCountry,
+        ...(verificationSubmissionId ? { verificationSubmissionId } : {}),
       };
 
       await becomeConsultant(consultantActivationPayload).unwrap();

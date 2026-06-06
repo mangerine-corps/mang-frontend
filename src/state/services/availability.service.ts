@@ -18,11 +18,32 @@ export const availabilityApi = createApi({
             async onQueryStarted(arg, { dispatch, queryFulfilled }) {
                 try {
                     await queryFulfilled;
-                    // Invalidate profile metrics so missing-fields and completion percent update
                     dispatch(ProfileApi.util.invalidateTags(["profileMetrics", "userInfo"]));
                 } catch {}
             },
         }),
+
+        updateAvailability: builder.mutation({
+            query: (formData) => ({
+                url: `/availability`,
+                method: "PATCH",
+                body: formData,
+            }),
+            async onQueryStarted(arg, { dispatch, queryFulfilled }) {
+                try {
+                    await queryFulfilled;
+                    dispatch(ProfileApi.util.invalidateTags(["profileMetrics", "userInfo"]));
+                } catch {}
+            },
+        }),
+
+        deleteAvailability: builder.mutation<any, { availabilityId: string }>({
+            query: ({ availabilityId }) => ({
+                url: `/availability/${availabilityId}`,
+                method: "DELETE",
+            }),
+        }),
+
         getAvailability: builder.mutation({
             query: (formData) => ({
                 url: `/availability?`,
@@ -30,6 +51,7 @@ export const availabilityApi = createApi({
                 params: formData,
             }),
         }),
+
         getCurrentAvailabilitySettings: builder.query({
             query: () => ({
                 url: `/availability/current/settings`,
@@ -39,9 +61,10 @@ export const availabilityApi = createApi({
     }),
 });
 
-// Export hooks for use in components
 export const {
     useCreateAvailabilityMutation,
+    useUpdateAvailabilityMutation,
+    useDeleteAvailabilityMutation,
     useGetAvailabilityMutation,
     useGetCurrentAvailabilitySettingsQuery,
 } = availabilityApi;
