@@ -779,6 +779,8 @@ const addTag =(username:string)=>{
                   variant="outline"
                   size="sm"
                   borderRadius="8px"
+                  px={5}
+                  py={5}
                   onClick={() => { setCropOpen(false); setCropSrc(null); }}
                 >
                   Cancel
@@ -788,6 +790,8 @@ const addTag =(username:string)=>{
                   color="white"
                   size="sm"
                   borderRadius="8px"
+                  px={5}
+                  py={5}
                   onClick={applyCrop}
                   disabled={!completedCrop}
                   _hover={{ bg: "#1a2a6c" }}

@@ -60,7 +60,9 @@ export const {
   useSaveRecentSearchMutation,
   useRemoveRecentSearchMutation,
   useSearchAllQuery,
+  useLazySearchAllQuery,
   useSearchPostsQuery,
   useSearchPeopleQuery,
+  useLazySearchPeopleQuery,
   useSearchConsultantsQuery,
 } = searchApi;

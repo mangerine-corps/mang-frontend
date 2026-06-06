@@ -101,9 +101,15 @@ const CustomDatePicker = ({ onClick, consultantId: propConsultantId }: { onClick
                     currency: 'USD',
                     consultationDetails,
                 }).unwrap();
+                const orderId = payload?.data?.orderId ?? payload?.orderId;
                 const approveUrl = payload?.data?.approveUrl ?? payload?.approveUrl;
                 if (approveUrl) {
                     window.location.href = approveUrl;
+                } else if (orderId) {
+                    const baseUrl = process.env.NODE_ENV === 'production'
+                        ? 'https://www.paypal.com/checkoutNow'
+                        : 'https://www.sandbox.paypal.com/checkoutNow';
+                    window.location.href = `${baseUrl}?token=${orderId}`;
                 }
             } catch (error) {
                 console.log(error);
