@@ -111,12 +111,12 @@ const NotificationSetting = () => {
         borderRadius="lg"
         boxShadow="lg"
         bg="main_background"
-        p={{ base: 4, sm: 6, md: 8, lg: 10, xl: 12 }}
+        p={{ base: 4, md: 8 }}
         w="full"
         h="full"
       >
-        <HStack justify="space-between" mb={8}>
-          <Text color="text_primary" fontSize={{ base: "lg", md: "1.5rem" }} fontWeight="600">
+        <HStack justify="space-between" mb={4}>
+          <Text color="text_primary" fontSize={{ base: "1rem", md: "1.5rem" }} fontWeight="600">
             Notification Settings
           </Text>
           {saving && <Spinner size="sm" />}
@@ -140,10 +140,10 @@ const NotificationSetting = () => {
           >
             <Switch.Label
               font="outfit"
-              fontSize={{ base: "1rem", md: "1.5rem", lg: "1.3rem" }}
+              fontSize={{ base: "0.875rem", md: "1.1rem" }}
               fontWeight="600"
               color="text_primary"
-              lineHeight={{ base: "20px", sm: "24px", md: "28px", lg: "32px", xl: "36px" }}
+              lineHeight="1.4"
             >
               Email Notification
             </Switch.Label>
@@ -153,7 +153,7 @@ const NotificationSetting = () => {
 
           <Text
             font="outfit"
-            fontSize={{ base: "1rem", sm: "1.1rem", md: "1.1rem", lg: "1.2rem" }}
+            fontSize={{ base: "0.8rem", md: "0.95rem" }}
             fontWeight="400"
             color="grey.300"
             mt={2}
@@ -181,7 +181,7 @@ const NotificationSetting = () => {
                 >
                   <Text
                     color="text_primary"
-                    fontSize={{ base: "1rem", sm: "1.1rem", md: "1.1rem" }}
+                    fontSize={{ base: "0.875rem", md: "1rem" }}
                     fontWeight="400"
                   >
                     {item.label}
@@ -224,10 +224,10 @@ const NotificationSetting = () => {
           >
             <Switch.Label
               font="outfit"
-              fontSize={{ base: "1rem", md: "1.5rem", lg: "1.3rem" }}
+              fontSize={{ base: "0.875rem", md: "1.1rem" }}
               fontWeight="600"
               color="text_primary"
-              lineHeight={{ base: "20px", sm: "24px", md: "28px", lg: "32px", xl: "36px" }}
+              lineHeight="1.4"
             >
               Payment Notification
             </Switch.Label>
@@ -256,7 +256,7 @@ const NotificationSetting = () => {
                 >
                   <Text
                     color="text_primary"
-                    fontSize={{ base: "1rem", sm: "1.1rem", md: "1.1rem" }}
+                    fontSize={{ base: "0.875rem", md: "1rem" }}
                     fontWeight="400"
                   >
                     {item.label}

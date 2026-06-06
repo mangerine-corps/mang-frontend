@@ -69,11 +69,11 @@ const PrivacySetting = () => {
         borderRadius="lg"
         boxShadow="lg"
         bg="main_background"
-        p={8}
+        p={{ base: 4, md: 8 }}
         w="full"
       >
         <HStack justify="space-between" mb={4}>
-          <Text fontSize={{ base: "lg", md: "xl", lg: "1.5rem" }} fontWeight="600">Privacy Settings</Text>
+          <Text fontSize={{ base: "1rem", md: "1.5rem" }} fontWeight="600">Privacy Settings</Text>
           {saving && <Spinner size="sm" />}
         </HStack>
         {(isLoading || isFetching) && (
@@ -83,20 +83,20 @@ const PrivacySetting = () => {
         <Box>
           <Text
             font="outfit"
-            fontSize={{ base: "1rem", md: "1.5rem", lg: "1.3rem" }}
+            fontSize={{ base: "0.875rem", md: "1.1rem" }}
             fontWeight="600"
             color="text_primary"
-            lineHeight={{ base: "20px", sm: "24px", md: "28px", lg: "32px", xl: "36px" }}
+            lineHeight="1.4"
             mb={4}
           >
             Messaging
           </Text>
           <Text
             font="outfit"
-            fontSize={{ base: "1rem", sm: "1.1rem", md: "1.25rem" }}
+            fontSize={{ base: "0.8rem", md: "0.95rem" }}
             w="400"
             color="text_primary"
-            lineHeight={{ base: "20px", sm: "24px", md: "28px", lg: "32px", xl: "36px" }}
+            lineHeight="1.4"
           >
             Who can message me?
           </Text>
@@ -126,7 +126,7 @@ const PrivacySetting = () => {
                   >
                     <RadioGroup.ItemText
                       color="text_primary"
-                      fontSize={{ base: "1rem", sm: "1.1rem", md: "1.1rem" }}
+                      fontSize={{ base: "0.875rem", md: "1rem" }}
                       fontWeight="400"
                       gap={2}
                     >
@@ -144,10 +144,10 @@ const PrivacySetting = () => {
         <Box my={12}>
           <Text
             font="outfit"
-            fontSize={{ base: "1rem", md: "1.3rem" }}
+            fontSize={{ base: "0.875rem", md: "1.1rem" }}
             fontWeight="600"
             color="text_primary"
-            lineHeight={{ base: "20px", sm: "24px", md: "28px", lg: "32px", xl: "36px" }}
+            lineHeight="1.4"
             mb={4}
           >
             Profile Visibility
@@ -166,7 +166,7 @@ const PrivacySetting = () => {
             >
               <Switch.Label
                 color="text_primary"
-                fontSize={{ base: "1rem", sm: "1.1rem", md: "1.1rem" }}
+                fontSize={{ base: "0.875rem", md: "1rem" }}
                 fontWeight="400"
               >
                 Show online status
@@ -180,10 +180,10 @@ const PrivacySetting = () => {
         <Box my={12}>
           <Text
             font="outfit"
-            fontSize={{ base: "1rem", md: "1.3rem" }}
+            fontSize={{ base: "0.875rem", md: "1.1rem" }}
             fontWeight="600"
             color="text_primary"
-            lineHeight={{ base: "20px", sm: "24px", md: "28px", lg: "32px", xl: "36px" }}
+            lineHeight="1.4"
             mb={4}
           >
             Search Visibility
@@ -202,7 +202,7 @@ const PrivacySetting = () => {
             >
               <Switch.Label
                 color="text_primary"
-                fontSize={{ base: "1rem", sm: "1.1rem", md: "1.1rem" }}
+                fontSize={{ base: "0.875rem", md: "1rem" }}
                 fontWeight="400"
               >
                 Appear in search results
@@ -224,7 +224,7 @@ const PrivacySetting = () => {
             >
               <Switch.Label
                 color="text_primary"
-                fontSize={{ base: "1rem", sm: "1.1rem", md: "1.1rem" }}
+                fontSize={{ base: "0.875rem", md: "1rem" }}
                 fontWeight="400"
               >
                 Allow search engines to link to my profile

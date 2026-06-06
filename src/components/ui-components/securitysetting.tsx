@@ -417,7 +417,8 @@ const SecuritySetting = () => {
   const enableApp2FA = settings.enableApp2FA ?? false;
 
   return (
-    <Box w="full" className={outfit.className}>
+    <Box w="full" maxW={{ base: "100%", sm: "540px", md: "full" }} mx="auto" className={outfit.className}>
+      <Box borderRadius="lg" boxShadow="lg" bg="main_background" p={{ base: 4, md: 8 }} w="full">
         <Text fontSize={{ base: "1rem", md: "1.5rem" }} fontWeight="600" color="text_primary" mb={1}>
           Two-Factor Authentication (2FA)
         </Text>
@@ -443,6 +444,7 @@ const SecuritySetting = () => {
             <PaginatedTable />
           </Box>
         </Box>
+      </Box>
     </Box>
   );
 };

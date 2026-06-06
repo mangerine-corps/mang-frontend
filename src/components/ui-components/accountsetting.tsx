@@ -129,7 +129,7 @@ function AccountSetting() {
         borderRadius="lg"
         boxShadow="lg"
         bg="main_background"
-        p={8}
+        p={{ base: 4, md: 8 }}
         w="full"
         //px={6}
         //py={6}
@@ -140,32 +140,20 @@ function AccountSetting() {
         <Box>
           <Text
             font="outfit"
-            fontSize={{ base: "1rem", md: "1.25rem", lg: "1.5rem" }}
+            fontSize={{ base: "1rem", md: "1.5rem" }}
             fontWeight="600"
             color="text_primary"
-            lineHeight={{
-              base: "20px",
-              sm: "24px",
-              md: "28px",
-              lg: "32px",
-              xl: "36px",
-            }}
+            lineHeight="1.4"
             mb={4}
           >
             Phone Number Management
           </Text>
           <Text
             font="outfit"
-            fontSize={{ base: "1.1rem", md: "1.3rem", lg: "1.4rem" }}
+            fontSize={{ base: "0.875rem", md: "1.1rem" }}
             fontWeight="400"
             color="text_primary"
-            lineHeight={{
-              base: "20px",
-              sm: "24px",
-              md: "28px",
-              lg: "32px",
-              xl: "36px",
-            }}
+            lineHeight="1.4"
           >
             Primary Phone Number
           </Text>
@@ -179,34 +167,22 @@ function AccountSetting() {
         </Box>
         {/* Change Password Section */}
 
-        <Box mt={16}>
+        <Box mt={8}>
           <Text
             font="outfit"
-            fontSize={{ base: "1.1rem", md: "1.3rem", lg: "1.4rem" }}
+            fontSize={{ base: "0.875rem", md: "1.1rem" }}
             fontWeight="600"
             color="text_primary"
-            lineHeight={{
-              base: "20px",
-              sm: "24px",
-              md: "28px",
-              lg: "32px",
-              xl: "36px",
-            }}
+            lineHeight="1.4"
           >
             Change Password
           </Text>
           <Text
             font="outfit"
-            fontSize={{ base: "1.1rem", md: "1.3rem", lg: "1.4rem" }}
+            fontSize={{ base: "0.875rem", md: "1.1rem" }}
             fontWeight="200"
             color="text_primary"
-            lineHeight={{
-              base: "20px",
-              sm: "24px",
-              md: "28px",
-              lg: "32px",
-              xl: "36px",
-            }}
+            lineHeight="1.4"
             mb={4}
           >
             Update your password to ensure your account remains secured.
@@ -483,16 +459,10 @@ const SecNum = () => {
         >
           <Text
             font="outfit"
-            fontSize={{ base: "1.1rem", md: "1.3rem", lg: "1.4rem" }}
+            fontSize={{ base: "0.875rem", md: "1.1rem" }}
             fontWeight="400"
             color="text_primary"
-            lineHeight={{
-              base: "20px",
-              sm: "24px",
-              md: "28px",
-              lg: "32px",
-              xl: "36px",
-            }}
+            lineHeight="1.4"
           >
             Secondary Phone Number
           </Text>

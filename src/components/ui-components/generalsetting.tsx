@@ -101,12 +101,12 @@ const GeneralSetting = () => {
 
   return (
     <Flex direction="column" align="flex-start" justify="flex-start" h="full" w="full">
-      <Box w="full" h="full" p={8} borderRadius="lg" boxShadow="lg" bg="bg_box">
+      <Box w="full" h="full" p={{ base: 4, md: 8 }} borderRadius="lg" boxShadow="lg" bg="bg_box">
         <HStack justify="space-between" mb={4}>
           <Text
-            fontSize={{ base: "1.1rem", md: "1.4rem" }}
+            fontSize={{ base: "1rem", md: "1.4rem" }}
             fontWeight="600"
-            lineHeight={{ base: "20px", sm: "24px", md: "28px", lg: "32px", xl: "36px" }}
+            lineHeight="1.4"
             font="outfit"
             color="text_primary"
           >
@@ -120,12 +120,12 @@ const GeneralSetting = () => {
         )}
 
         <Text
-          fontSize={{ base: "1.1rem", md: "1.3rem" }}
+          fontSize={{ base: "0.875rem", md: "1.1rem" }}
           fontWeight="600"
-          lineHeight={{ base: "20px", sm: "24px", md: "28px", lg: "32px", xl: "36px" }}
+          lineHeight="1.4"
           font="outfit"
           color="text_primary"
-          mb={6}
+          mb={3}
         >
           Language Preference
         </Text>
@@ -151,9 +151,9 @@ const GeneralSetting = () => {
         />
 
         <Text
-          fontSize={{ base: "1.1rem", md: "1.3rem" }}
+          fontSize={{ base: "0.875rem", md: "1.1rem" }}
           fontWeight="600"
-          lineHeight={{ base: "20px", sm: "24px", md: "28px", lg: "32px", xl: "36px" }}
+          lineHeight="1.4"
           font="outfit"
           color="text_primary"
           my={6}
@@ -188,18 +188,18 @@ const GeneralSetting = () => {
         />
 
         <Text
-          fontSize={{ base: "1.1rem", md: "1.3rem" }}
+          fontSize={{ base: "0.875rem", md: "1.1rem" }}
           fontWeight="600"
-          lineHeight={{ base: "20px", sm: "24px", md: "28px", lg: "32px", xl: "36px" }}
+          lineHeight="1.4"
           font="outfit"
           color="text_primary"
-          mt={10}
-          mb={8}
+          mt={6}
+          mb={4}
         >
           Interface Theme
         </Text>
 
-        <HStack gap={6} align="flex-start" py="12">
+        <HStack gap={6} align="flex-start" py={4}>
           <ColorModeButton />
         </HStack>
       </Box>
