@@ -237,7 +237,7 @@ const WorkItem = ({
       pos={"relative"}
       boxShadow="0px 0px 4px 0px rgba(0, 0, 0, 0.10)"
     >
-      <Box pos={"relative"}>
+      <Box>
         {work.link && !work.file ? (
           <LinkPreview link={work.link} />
         ) : (
@@ -249,70 +249,55 @@ const WorkItem = ({
             borderRadius="8px"
           />
         )}
-
-        {editable ? (
-          <Menu.Root>
-            <Menu.Trigger asChild>
-              <Button
-                borderWidth={1}
-                borderColor="text_primary"
-                variant="outline"
-                size="sm"
-                pos={"absolute"}
-                top="0"
-              >
-                <Stack
-                  justifyContent={"center"}
-                  alignItems={"center"}
-                  aria-label="Options"
-                  color={"text_primary"}
-                >
-                  <IoEllipsisVerticalOutline size={6} />
-                </Stack>
-              </Button>
-            </Menu.Trigger>
-            <Portal>
-              <Menu.Positioner>
-                <Menu.Content px="2" py="3" spaceY={"2"}>
-                  <Menu.Item
-                    value="export-a"
-                    _hover={{ bg: "primary." }}
-                    roundedTop={"6px"}
-                    onClick={() => {
-                      handleEdit(work);
-                    }}
-                  >
-                    <Menu.ItemCommand>
-                      <Image src="/icons/edit.svg" alt="edit" h={"2.5"} w="2" />
-                    </Menu.ItemCommand>{" "}
-                    Edit Work
-                  </Menu.Item>
-                  <Menu.Item
-                    value="export-b"
-                    _hover={{ bg: "primary." }}
-                    roundedTop={"6px"}
-                    onClick={handleDeleteWork}
-                  >
-                    <Menu.ItemCommand>
-                      {" "}
-                      <Image
-                        src="/icons/delete2.svg"
-                        alt="trash"
-                        h={"2.5"}
-                        w="2"
-                      />
-                      {/* <BiTrash /> */}
-                    </Menu.ItemCommand>
-                    Delete Work
-                  </Menu.Item>
-                </Menu.Content>
-              </Menu.Positioner>
-            </Portal>
-          </Menu.Root>
-        ) : (
-          ""
-        )}
       </Box>
+
+      {editable && (
+        <Menu.Root>
+          <Menu.Trigger asChild>
+            <Button
+              borderWidth={1}
+              borderColor="text_primary"
+              variant="outline"
+              size="sm"
+              pos="absolute"
+              top="2"
+              right="2"
+              minW="auto"
+              px={1.5}
+            >
+              <IoEllipsisVerticalOutline />
+            </Button>
+          </Menu.Trigger>
+          <Portal>
+            <Menu.Positioner>
+              <Menu.Content px="2" py="3" spaceY={"2"}>
+                <Menu.Item
+                  value="export-a"
+                  _hover={{ bg: "primary." }}
+                  roundedTop={"6px"}
+                  onClick={() => handleEdit(work)}
+                >
+                  <Menu.ItemCommand>
+                    <Image src="/icons/edit.svg" alt="edit" h={"2.5"} w="2" />
+                  </Menu.ItemCommand>
+                  Edit Work
+                </Menu.Item>
+                <Menu.Item
+                  value="export-b"
+                  _hover={{ bg: "primary." }}
+                  roundedTop={"6px"}
+                  onClick={handleDeleteWork}
+                >
+                  <Menu.ItemCommand>
+                    <Image src="/icons/delete2.svg" alt="trash" h={"2.5"} w="2" />
+                  </Menu.ItemCommand>
+                  Delete Work
+                </Menu.Item>
+              </Menu.Content>
+            </Menu.Positioner>
+          </Portal>
+        </Menu.Root>
+      )}
 
       <Text fontSize="1rem" fontWeight="600" mt={2} color="text_primary">
         {work.title}

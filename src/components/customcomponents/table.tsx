@@ -26,45 +26,50 @@ export const PaginatedTable = () => {
   const [page, setPage] = useState(1);
   const { data, isLoading, isFetching } = useGetLoginActivitiesQuery({ page, limit: PAGE_SIZE });
 
-  const activities = data?.activities ?? [];
-  const total = data?.total ?? 0;
+  const activities = data?.data?.activities ?? [];
+  const total = data?.data?.total ?? 0;
+  const totalPages = data?.data?.pages ?? 1;
+
+  const COLS = 5;
 
   return (
     <Stack width="full" gap="5" py="4">
       <Box overflowX="auto" w="full">
-        <Table.Root size="lg" variant="outline" minWidth="600">
+        <Table.Root size="sm" variant="outline" minWidth="640">
           <Table.Header>
             <Table.Row>
-              <Table.ColumnHeader textAlign="center" p="4" color="text_primary">Date</Table.ColumnHeader>
-              <Table.ColumnHeader textAlign="center" p="4" color="text_primary">Time</Table.ColumnHeader>
-              <Table.ColumnHeader textAlign="center" p="4" color="text_primary">Location</Table.ColumnHeader>
-              <Table.ColumnHeader textAlign="center" p="4" color="text_primary">Device</Table.ColumnHeader>
+              <Table.ColumnHeader p="3" color="text_primary">Date</Table.ColumnHeader>
+              <Table.ColumnHeader p="3" color="text_primary">Time</Table.ColumnHeader>
+              <Table.ColumnHeader p="3" color="text_primary">Location</Table.ColumnHeader>
+              <Table.ColumnHeader p="3" color="text_primary">Device</Table.ColumnHeader>
+              <Table.ColumnHeader p="3" color="text_primary">IP Address</Table.ColumnHeader>
             </Table.Row>
           </Table.Header>
           <Table.Body>
             {isLoading || isFetching ? (
-              Array.from({ length: PAGE_SIZE }).map((_, i) => (
+              Array.from({ length: 5 }).map((_, i) => (
                 <Table.Row key={i}>
-                  {Array.from({ length: 4 }).map((_, j) => (
-                    <Table.Cell key={j} p="4" textAlign="center">
-                      <Skeleton h="18px" rounded="md" />
+                  {Array.from({ length: COLS }).map((_, j) => (
+                    <Table.Cell key={j} p="3">
+                      <Skeleton h="14px" rounded="md" />
                     </Table.Cell>
                   ))}
                 </Table.Row>
               ))
             ) : activities.length === 0 ? (
               <Table.Row>
-                <Table.Cell colSpan={4} textAlign="center" py={10}>
+                <Table.Cell colSpan={COLS} textAlign="center" py={10}>
                   <Text color="grey.500" fontSize="0.9rem">No login activity found.</Text>
                 </Table.Cell>
               </Table.Row>
             ) : (
               activities.map((item) => (
                 <Table.Row key={item.id}>
-                  <Table.Cell p="4" color="text_primary" textAlign="center">{formatDate(item.createdAt)}</Table.Cell>
-                  <Table.Cell p="4" color="text_primary" textAlign="center">{formatTime(item.createdAt)}</Table.Cell>
-                  <Table.Cell p="4" color="text_primary" textAlign="center">{item.location}</Table.Cell>
-                  <Table.Cell p="4" color="text_primary" textAlign="center">{item.device}</Table.Cell>
+                  <Table.Cell p="3" color="text_primary">{formatDate(item.createdAt)}</Table.Cell>
+                  <Table.Cell p="3" color="text_primary">{formatTime(item.createdAt)}</Table.Cell>
+                  <Table.Cell p="3" color="text_primary">{item.location}</Table.Cell>
+                  <Table.Cell p="3" color="text_primary">{item.device}</Table.Cell>
+                  <Table.Cell p="3" color="text_primary" fontFamily="mono" fontSize="0.8rem">{item.ipAddress}</Table.Cell>
                 </Table.Row>
               ))
             )}
@@ -93,7 +98,7 @@ export const PaginatedTable = () => {
               )}
             />
             <Pagination.NextTrigger asChild>
-              <IconButton disabled={page === (data?.pages ?? 1)}>
+              <IconButton disabled={page === totalPages}>
                 <LuChevronRight />
               </IconButton>
             </Pagination.NextTrigger>

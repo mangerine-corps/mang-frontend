@@ -58,7 +58,7 @@ export const useFollow = ({ targetUserId, initialIsFollowing, postIdContext }: U
         ? await mutateUnfollow({ targetUserId: targetUserId! }).unwrap()
         : await mutateFollow({ targetUserId: targetUserId! }).unwrap();
 
-      const nextState = result?.data?.isFollowing;
+      const nextState = (result as any)?.data?.isFollowing ?? result?.isFollowing;
       if (nextState !== undefined) setIsFollowing(Boolean(nextState));
 
       toaster.create({

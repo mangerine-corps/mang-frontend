@@ -98,7 +98,6 @@ const Header = () => {
   const profileMenuItems: ProfileMenuItem[] = [
     { value: "profile", label: "My Profile", icon: ProfileMenuIcon, action: () => router.replace("/profile") },
     { value: "settings", label: "Settings", icon: SettingsMenuIcon, action: () => router.replace("/settings?tab=account") },
-    { value: "billing", label: "Billing and Payment", icon: BillingMenuIcon, action: () => router.replace("/settings?tab=payment") },
     { value: "help", label: "Help Center", icon: HelpMenuIcon, action: () => router.replace("/settings?tab=help") },
   ];
 

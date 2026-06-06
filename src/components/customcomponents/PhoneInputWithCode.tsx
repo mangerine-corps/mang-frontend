@@ -85,27 +85,23 @@ const PhoneInputWithCode = ({
             )}
             <HStack w="full" gap={0} alignItems="stretch">
                 {/* Country code dropdown */}
-                <Box
-                    as="select"
-                    borderWidth="1.5px"
-                    borderColor={
-                        errorMsg
-                            ? "red.500"
-                            : hasValue
-                              ? "text_primary"
-                              : "input_border"
-                    }
-                    borderRightWidth={0}
-                    borderLeftRadius="6px"
-                    bg="main_background"
-                    color="text_primary"
-                    fontSize="0.85rem"
-                    px={2}
-                    h="10"
-                    minW="110px"
-                    maxW="110px"
-                    cursor="pointer"
-                    _focus={{ outline: "none", borderColor: "primary.100" }}
+                <select
+                    style={{
+                        borderWidth: '1.5px',
+                        borderStyle: 'solid',
+                        borderColor: errorMsg ? '#E53E3E' : hasValue ? 'var(--chakra-colors-text_primary)' : 'var(--chakra-colors-input_border)',
+                        borderRight: 'none',
+                        borderRadius: '6px 0 0 6px',
+                        background: 'var(--chakra-colors-main_background)',
+                        color: 'var(--chakra-colors-text_primary)',
+                        fontSize: '0.85rem',
+                        padding: '0 8px',
+                        height: '40px',
+                        minWidth: '110px',
+                        maxWidth: '110px',
+                        cursor: 'pointer',
+                        outline: 'none',
+                    }}
                     disabled={disabled}
                     value={`${selected.code}-${selected.dial}`}
                     onChange={handleDialChange}
@@ -115,7 +111,7 @@ const PhoneInputWithCode = ({
                             {c.flag} +{c.dial}
                         </option>
                     ))}
-                </Box>
+                </select>
 
                 {/* Number input */}
                 <Input

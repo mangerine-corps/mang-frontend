@@ -349,7 +349,7 @@ const EditContactMeCard = ({
                     required={true}
                     value={value}
                     onChange={onChange}
-                    error={errors?.mobileNumber}
+                    error={errors?.mobileNumber as any}
                   />
                 )}
               />

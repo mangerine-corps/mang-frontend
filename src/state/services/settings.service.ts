@@ -227,16 +227,20 @@ export const settingsApi = createApi({
     // get login activities
     getLoginActivities: builder.query<
       {
-        activities: {
-          id: string;
-          ipAddress: string;
-          location: string;
-          device: string;
-          createdAt: string;
-        }[];
-        total: number;
-        page: number;
-        pages: number;
+        message: string;
+        data: {
+          activities: {
+            id: string;
+            ipAddress: string;
+            location: string;
+            userAgent: string;
+            device: string;
+            createdAt: string;
+          }[];
+          total: number;
+          page: number;
+          pages: number;
+        };
       },
       { page?: number; limit?: number }
     >({
