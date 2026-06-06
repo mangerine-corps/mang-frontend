@@ -10,7 +10,8 @@ import {
   Image,
   Input,
   Portal,
-  Spinner,
+  Skeleton,
+  SkeletonCircle,
   Text,
   VStack,
 } from "@chakra-ui/react";
@@ -19,30 +20,40 @@ import { useDispatch } from "react-redux";
 import { LuSearch } from "react-icons/lu";
 import { useAppointment } from "mangarine/state/hooks/appointment.hook";
 import { useAuth } from "mangarine/state/hooks/user.hook";
-import { setConversations, setCurrentConversation } from "mangarine/state/reducers/appointment.reducer";
+import { setCurrentConversation } from "mangarine/state/reducers/appointment.reducer";
 import {
   getConversationSubtitle,
   isProfileVerified,
   resolveConversationProfile,
 } from "mangarine/components/ui-components/message/helpers";
 import { useLazySearchPeopleQuery } from "mangarine/state/services/search.service";
-import { useCreateConversationMutation } from "mangarine/state/services/apointment.service";
-import { isEmpty, uniqBy } from "es-toolkit/compat";
-import { toaster } from "mangarine/components/ui/toaster";
+import { useGetProfileRecommendationsQuery } from "mangarine/state/services/profile-recommendations.service";
 
 type Props = {
   open: boolean;
   onOpenChange: () => void;
 };
 
-interface SearchResult {
+interface PersonItem {
   id: string;
-  fullName: string;
-  profilePics?: string;
-  title?: string;
-  isConsultant?: boolean;
-  isVerified?: boolean;
+  name: string;
+  avatar: string;
+  subtitle: string;
+  verified: boolean;
+  conversationId?: string;
+  conversation?: any;
 }
+
+// Skeleton row shown while loading
+const PersonRowSkeleton = () => (
+  <Flex align="center" gap={3} py={2} px={3}>
+    <SkeletonCircle size="10" flexShrink={0} />
+    <VStack align="stretch" gap={1.5} flex={1}>
+      <Skeleton h="3.5" w="45%" rounded="md" />
+      <Skeleton h="3" w="30%" rounded="md" />
+    </VStack>
+  </Flex>
+);
 
 const NewMessageDrawer = ({ open, onOpenChange }: Props) => {
   const [search, setSearch] = useState("");
@@ -57,14 +68,15 @@ const NewMessageDrawer = ({ open, onOpenChange }: Props) => {
   const userId = user?.id ?? "";
 
   const [searchPeople, { data: searchData, isFetching: isSearching }] = useLazySearchPeopleQuery();
-  const [createConversation, { isLoading: isCreating }] = useCreateConversationMutation();
+  const { data: recommendations, isFetching: isLoadingRecs } = useGetProfileRecommendationsQuery(
+    {},
+    { skip: !open }
+  );
 
-  const recentContacts = useMemo(() => {
+  const recentContacts = useMemo<PersonItem[]>(() => {
     return conversations.map((conversation: any) => {
       const profile = resolveConversationProfile(conversation, userId);
       return {
-        conversationId: String(conversation?.id),
-        conversation,
         id: String(profile?.id ?? ""),
         name: profile?.fullName || "Unknown user",
         avatar: profile?.profilePics || "",
@@ -72,23 +84,43 @@ const NewMessageDrawer = ({ open, onOpenChange }: Props) => {
           ? `${getConversationSubtitle(profile)} • Consultant`
           : getConversationSubtitle(profile),
         verified: isProfileVerified(profile),
+        conversationId: String(conversation?.id),
+        conversation,
       };
     });
   }, [conversations, userId]);
 
-  const searchResults: SearchResult[] = useMemo(() => {
+  const suggestedPeople = useMemo<PersonItem[]>(() => {
+    const recs: any[] = Array.isArray(recommendations) ? recommendations : [];
+    const recentIds = new Set(recentContacts.map((c) => c.id));
+    return recs
+      .filter((p) => !recentIds.has(String(p.id)))
+      .map((p) => ({
+        id: String(p.id),
+        name: p.fullName ?? p.name ?? "Unknown",
+        avatar: p.profilePics ?? "",
+        subtitle: p.title ?? p.businessName ?? "",
+        verified: Boolean(p.isVerified ?? p.verified),
+      }));
+  }, [recommendations, recentContacts]);
+
+  const searchResults = useMemo<PersonItem[]>(() => {
     const items: any[] = searchData?.data?.items ?? searchData?.data ?? searchData?.items ?? [];
     return items.map((p: any) => ({
       id: String(p.id),
-      fullName: p.fullName ?? p.name ?? "Unknown",
-      profilePics: p.profilePics ?? "",
-      title: p.title ?? p.businessName ?? "",
-      isConsultant: Boolean(p.isConsultant),
-      isVerified: Boolean(p.isVerified ?? p.verified),
+      name: p.fullName ?? p.name ?? "Unknown",
+      avatar: p.profilePics ?? "",
+      subtitle: p.title ?? p.businessName ?? "",
+      verified: Boolean(p.isVerified ?? p.verified),
+      conversationId: recentContacts.find((c) => c.id === String(p.id))?.conversationId,
+      conversation: recentContacts.find((c) => c.id === String(p.id))?.conversation,
     }));
-  }, [searchData]);
+  }, [searchData, recentContacts]);
 
   const isSearchMode = search.trim().length > 0;
+  // Can only open an existing conversation — creating one requires booking an appointment
+  const canMessage = Boolean(selectedUserId && selectedConversationId);
+  const selectedButNoConversation = Boolean(selectedUserId && !selectedConversationId);
 
   useEffect(() => {
     if (!open) return;
@@ -109,70 +141,27 @@ const NewMessageDrawer = ({ open, onOpenChange }: Props) => {
     return () => { if (debounceRef.current) clearTimeout(debounceRef.current); };
   }, [search, searchPeople]);
 
-  const handleSelectRecent = (conversationId: string, pUserId: string) => {
-    setSelectedConversationId(conversationId);
-    setSelectedUserId(pUserId);
+  const handleSelect = (person: PersonItem) => {
+    setSelectedUserId(person.id);
+    setSelectedConversationId(person.conversationId ?? "");
   };
 
-  const handleSelectSearchResult = (result: SearchResult) => {
-    const existing = recentContacts.find((c) => c.id === result.id);
-    if (existing) {
-      setSelectedConversationId(existing.conversationId);
-    } else {
-      setSelectedConversationId("");
-    }
-    setSelectedUserId(result.id);
-  };
-
-  const hasSelection = Boolean(selectedUserId || selectedConversationId);
-
-  const handleMessage = async () => {
-    if (!hasSelection) return;
-
-    if (selectedConversationId) {
-      const contact = recentContacts.find((c) => c.conversationId === selectedConversationId);
-      if (contact) {
-        dispatch(setCurrentConversation({ conversation: contact.conversation }));
-      }
-      router.replace(
-        { pathname: "/message", query: { conversationId: selectedConversationId } },
-        undefined,
-        { shallow: true }
-      );
-      onOpenChange();
-      return;
-    }
-
-    // New conversation with a user found via search
-    try {
-      const payload = await createConversation({ participantId: selectedUserId }).unwrap();
-      const newConv = payload?.data ?? payload;
-      if (newConv?.id) {
-        const updated = isEmpty(conversations) ? [newConv] : [...conversations, newConv];
-        dispatch(setConversations({ conversations: uniqBy(updated, (c: any) => c.id) }));
-        dispatch(setCurrentConversation({ conversation: newConv }));
-        router.replace(
-          { pathname: "/message", query: { conversationId: String(newConv.id) } },
-          undefined,
-          { shallow: true }
-        );
-      }
-      onOpenChange();
-    } catch (err: any) {
-      toaster.create({
-        description: err?.data?.message ?? "Could not start conversation",
-        type: "error",
-        closable: true,
-      });
-    }
+  const handleMessage = () => {
+    if (!canMessage) return;
+    const contact = recentContacts.find((c) => c.conversationId === selectedConversationId);
+    if (contact) dispatch(setCurrentConversation({ conversation: contact.conversation }));
+    router.replace(
+      { pathname: "/message", query: { conversationId: selectedConversationId } },
+      undefined,
+      { shallow: true }
+    );
+    onOpenChange();
   };
 
   return (
     <Dialog.Root
       open={open}
-      onOpenChange={(details: any) => {
-        if (!details?.open) onOpenChange();
-      }}
+      onOpenChange={(details: any) => { if (!details?.open) onOpenChange(); }}
       placement="center"
       size="xl"
     >
@@ -215,7 +204,6 @@ const NewMessageDrawer = ({ open, onOpenChange }: Props) => {
                   New Message
                 </Text>
 
-                {/* Search input */}
                 <Box position="relative">
                   <Box
                     position="absolute"
@@ -241,31 +229,20 @@ const NewMessageDrawer = ({ open, onOpenChange }: Props) => {
                   />
                 </Box>
 
-                {/* Results list */}
-                <VStack align="stretch" gap={1} maxH="420px" overflowY="auto" pr={1}>
-
-                  {/* Search mode */}
+                <VStack align="stretch" gap={0} maxH="420px" overflowY="auto" pr={1}>
                   {isSearchMode ? (
+                    /* Search results */
                     isSearching ? (
-                      <Flex justify="center" py={8}>
-                        <Spinner color="#1C275D" />
-                      </Flex>
+                      Array.from({ length: 5 }).map((_, i) => <PersonRowSkeleton key={i} />)
                     ) : searchResults.length ? (
-                      searchResults.map((person) => {
-                        const isSelected = selectedUserId === person.id;
-                        return (
-                          <PersonRow
-                            key={person.id}
-                            id={person.id}
-                            name={person.fullName}
-                            avatar={person.profilePics ?? ""}
-                            subtitle={person.title ?? ""}
-                            verified={person.isVerified ?? false}
-                            isSelected={isSelected}
-                            onClick={() => handleSelectSearchResult(person)}
-                          />
-                        );
-                      })
+                      searchResults.map((person) => (
+                        <PersonRow
+                          key={person.id}
+                          person={person}
+                          isSelected={selectedUserId === person.id}
+                          onClick={() => handleSelect(person)}
+                        />
+                      ))
                     ) : (
                       <Box py={10} textAlign="center">
                         <Text fontSize="0.92rem" color="#7B8190">
@@ -274,58 +251,80 @@ const NewMessageDrawer = ({ open, onOpenChange }: Props) => {
                       </Box>
                     )
                   ) : (
-                    /* Recent conversations mode */
+                    /* Default: recent + suggested */
                     <>
                       {recentContacts.length > 0 && (
-                        <Text
-                          fontSize="0.78rem"
-                          fontWeight="600"
-                          color="#9CA3AF"
-                          textTransform="uppercase"
-                          letterSpacing="0.06em"
-                          px={1}
-                          pb={1}
-                        >
-                          Recent
-                        </Text>
-                      )}
-                      {recentContacts.length ? (
-                        recentContacts.map((contact) => {
-                          const isSelected = selectedConversationId === contact.conversationId;
-                          return (
+                        <>
+                          <SectionLabel>Recent</SectionLabel>
+                          {recentContacts.map((person) => (
                             <PersonRow
-                              key={contact.conversationId}
-                              id={contact.conversationId}
-                              name={contact.name}
-                              avatar={contact.avatar}
-                              subtitle={contact.subtitle}
-                              verified={contact.verified}
-                              isSelected={isSelected}
-                              onClick={() => handleSelectRecent(contact.conversationId, contact.id)}
+                              key={person.conversationId}
+                              person={person}
+                              isSelected={selectedUserId === person.id}
+                              onClick={() => handleSelect(person)}
                             />
-                          );
-                        })
-                      ) : (
+                          ))}
+                        </>
+                      )}
+
+                      {isLoadingRecs ? (
+                        <>
+                          <SectionLabel mt={recentContacts.length > 0 ? 3 : 0}>
+                            Suggested
+                          </SectionLabel>
+                          {Array.from({ length: 5 }).map((_, i) => (
+                            <PersonRowSkeleton key={i} />
+                          ))}
+                        </>
+                      ) : suggestedPeople.length > 0 ? (
+                        <>
+                          <SectionLabel mt={recentContacts.length > 0 ? 3 : 0}>
+                            Suggested
+                          </SectionLabel>
+                          {suggestedPeople.map((person) => (
+                            <PersonRow
+                              key={person.id}
+                              person={person}
+                              isSelected={selectedUserId === person.id}
+                              onClick={() => handleSelect(person)}
+                            />
+                          ))}
+                        </>
+                      ) : recentContacts.length === 0 ? (
                         <Box py={10} textAlign="center">
                           <Text fontSize="0.92rem" color="#7B8190">
                             Search for someone to message.
                           </Text>
                         </Box>
-                      )}
+                      ) : null}
                     </>
                   )}
                 </VStack>
 
+                {selectedButNoConversation && (
+                  <Box
+                    px={4}
+                    py={3}
+                    borderRadius="12px"
+                    bg="#FFF8EC"
+                    borderWidth="1px"
+                    borderColor="#F6C960"
+                  >
+                    <Text fontSize="0.84rem" color="#92620A" textAlign="center">
+                      No existing conversation. Book an appointment to start messaging.
+                    </Text>
+                  </Box>
+                )}
+
                 <Button
                   h="46px"
                   borderRadius="8px"
-                  bg={hasSelection ? "#1C275D" : "#C9CEDD"}
+                  bg={canMessage ? "#1C275D" : "#C9CEDD"}
                   color="white"
                   fontWeight="600"
                   onClick={handleMessage}
-                  disabled={!hasSelection || isCreating}
-                  loading={isCreating}
-                  _hover={{ bg: hasSelection ? "#162255" : "#C9CEDD" }}
+                  disabled={!canMessage}
+                  _hover={{ bg: canMessage ? "#162255" : "#C9CEDD" }}
                 >
                   Message
                 </Button>
@@ -338,62 +337,83 @@ const NewMessageDrawer = ({ open, onOpenChange }: Props) => {
   );
 };
 
-interface PersonRowProps {
-  id: string;
-  name: string;
-  avatar: string;
-  subtitle: string;
-  verified: boolean;
+const SectionLabel = ({ children, mt = 0 }: { children: React.ReactNode; mt?: number }) => (
+  <Text
+    fontSize="0.75rem"
+    fontWeight="600"
+    color="#9CA3AF"
+    textTransform="uppercase"
+    letterSpacing="0.06em"
+    px={3}
+    pt={mt ? 2 : 0}
+    pb={2}
+  >
+    {children}
+  </Text>
+);
+
+const PersonRow = ({
+  person,
+  isSelected,
+  onClick,
+}: {
+  person: PersonItem;
   isSelected: boolean;
   onClick: () => void;
-}
-
-const PersonRow = ({ name, avatar, subtitle, verified, isSelected, onClick }: PersonRowProps) => (
+}) => (
   <Flex
     align="center"
     gap={3}
     py={3}
-    px={1}
+    px={3}
     borderRadius="14px"
     cursor="pointer"
     onClick={onClick}
-    _hover={{ bg: "#F8F9FC" }}
+    bg={isSelected ? "#F0F2FA" : "transparent"}
+    _hover={{ bg: isSelected ? "#F0F2FA" : "#F8F9FC" }}
   >
-    <Avatar.Root size="md">
-      <Avatar.Fallback name={name} />
-      <Avatar.Image src={avatar} />
+    <Avatar.Root size="md" flexShrink={0}>
+      <Avatar.Fallback name={person.name} />
+      <Avatar.Image src={person.avatar} />
     </Avatar.Root>
 
-    <VStack align="stretch" gap={0} flex={1} minW={0}>
+    <VStack align="stretch" gap={0.5} flex={1} minW={0}>
       <HStack gap={1.5}>
         <Text
           fontFamily="Outfit"
-          fontSize="1.05rem"
+          fontSize="0.95rem"
           fontWeight="600"
           color="text_primary"
           lineClamp={1}
         >
-          {name}
+          {person.name}
         </Text>
-        {verified ? (
+        {person.verified ? (
           <Image src="/icons/verified.svg" alt="Verified" boxSize="14px" flexShrink={0} />
         ) : null}
       </HStack>
-      {subtitle ? (
-        <Text fontSize="0.84rem" color="#7B8190" lineClamp={1}>
-          {subtitle}
+      {person.subtitle ? (
+        <Text fontSize="0.82rem" color="#9CA3AF" lineClamp={1}>
+          {person.subtitle}
         </Text>
       ) : null}
     </VStack>
 
     <Box
-      boxSize="12px"
+      boxSize="18px"
       borderRadius="full"
-      borderWidth="1px"
-      borderColor={isSelected ? "#1C275D" : "#C7CEDD"}
+      borderWidth="1.5px"
+      borderColor={isSelected ? "#1C275D" : "#D1D5DB"}
       bg={isSelected ? "#1C275D" : "white"}
       flexShrink={0}
-    />
+      display="flex"
+      alignItems="center"
+      justifyContent="center"
+    >
+      {isSelected && (
+        <Box boxSize="7px" borderRadius="full" bg="white" />
+      )}
+    </Box>
   </Flex>
 );
 

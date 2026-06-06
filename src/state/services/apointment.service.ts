@@ -78,10 +78,12 @@ export const appointmentApi = createApi({
         params: formData,
       }),
     }),
-    getConversation: builder.mutation({
-      query: () => ({
+    // Supports pagination: { page, take, order }
+    getConversation: builder.mutation<any, { page?: number; take?: number; order?: string } | void>({
+      query: (params) => ({
         url: `/appointment/get/conversations`,
         method: "GET",
+        params: params ?? {},
       }),
     }),
     getChatToken: builder.mutation({

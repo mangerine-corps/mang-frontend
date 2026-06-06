@@ -1,4 +1,4 @@
-import { Avatar, Box, Flex, HStack, Image, Text, VStack } from "@chakra-ui/react";
+import { Avatar, Box, Flex, HStack, Image, Skeleton, SkeletonCircle, Text, VStack } from "@chakra-ui/react";
 import { useMarkConversationReadMutation } from "mangarine/state/services/chat-management.service";
 import { setCurrentConversation } from "mangarine/state/reducers/appointment.reducer";
 import { useAppointment } from "mangarine/state/hooks/appointment.hook";
@@ -146,5 +146,25 @@ const ConversationItem = ({ conversation, unreadCount = 0 }: Props) => {
     </Flex>
   );
 };
+
+export const ConversationItemSkeleton = () => (
+  <Flex
+    align="center"
+    gap={3}
+    px="14px"
+    py="12px"
+    borderRadius="16px"
+    bg="bg_box"
+  >
+    <SkeletonCircle size="12" flexShrink={0} />
+    <VStack align="stretch" gap={2} flex={1}>
+      <HStack justify="space-between">
+        <Skeleton h="3.5" w="40%" rounded="md" />
+        <Skeleton h="2.5" w="14%" rounded="md" />
+      </HStack>
+      <Skeleton h="3" w="65%" rounded="md" />
+    </VStack>
+  </Flex>
+);
 
 export default ConversationItem;

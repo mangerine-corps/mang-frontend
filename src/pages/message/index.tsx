@@ -8,7 +8,6 @@ import {
   Input,
   Menu,
   Portal,
-  Spinner,
   Text,
   VStack,
   Image,
@@ -61,7 +60,7 @@ import {
   isProfileVerified,
   resolveConversationProfile,
 } from "mangarine/components/ui-components/message/helpers";
-import ConversationItem from "mangarine/components/ui-components/message/ConversationItem";
+import ConversationItem, { ConversationItemSkeleton } from "mangarine/components/ui-components/message/ConversationItem";
 
 const DynamicAgoraChatProvider = dynamic(
   () =>
@@ -360,8 +359,9 @@ const Index = () => {
   const [search, setSearch] = useState("");
   const [showDrawer, setShowDrawer] = useState(false);
   const [messageTab, setMessageTab] = useState<"all" | "unread">("all");
+  const [isLoading, setIsLoading] = useState(true);
   const router = useRouter();
-  const [getConversations, { isLoading }] = useGetConversationMutation();
+  const [getConversations] = useGetConversationMutation();
   const dispatch = useDispatch();
   const { conversations, currentConversation, messages } = useAppointment();
   const { user } = useAuth();
@@ -370,18 +370,47 @@ const Index = () => {
   const queryConversationId = (router.query?.conversationId as string) || "";
   const hasSelectedConversation = Boolean(currentConversation?.id || queryConversationId);
 
+  // Fetch all conversation pages concurrently (matches mobile loadchat.hook.ts)
   useEffect(() => {
-    getConversations({})
-      .unwrap()
-      .then((payload) => {
-        const { data } = payload;
-        const deduped = uniqBy(data, (conversation: any) => conversation.id);
-        dispatch(setConversations({ conversations: deduped }));
-      })
-      .catch((error) => {
-        console.log(error);
-      });
-  }, [dispatch, getConversations]);
+    let cancelled = false;
+    setIsLoading(true);
+
+    const loadAll = async () => {
+      try {
+        // Page 1 first to get totalPages
+        const first = await getConversations({}).unwrap();
+        const firstData: any[] = first?.data ?? [];
+        const totalPages: number = first?.totalPages ?? first?.meta?.totalPages ?? 1;
+
+        let all = [...firstData];
+
+        if (totalPages > 1) {
+          const rest = await Promise.all(
+            Array.from({ length: totalPages - 1 }, (_, i) =>
+              getConversations({ page: i + 2 } as any).unwrap().then((p: any) => p?.data ?? [])
+            )
+          );
+          all = all.concat(rest.flat());
+        }
+
+        if (!cancelled) {
+          dispatch(
+            setConversations({
+              conversations: uniqBy(all, (c: any) => c.id),
+            })
+          );
+        }
+      } catch (_) {
+        // silently fall through — list stays empty
+      } finally {
+        if (!cancelled) setIsLoading(false);
+      }
+    };
+
+    loadAll();
+    return () => { cancelled = true; };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const unreadMap = useMemo(() => {
     const nextMap = new Map<string, number>();
@@ -523,9 +552,7 @@ const Index = () => {
                 pr={1}
               >
                 {isLoading ? (
-                  <Flex justify="center" align="center" py={12}>
-                    <Spinner color="button_bg" />
-                  </Flex>
+                  Array.from({ length: 8 }).map((_, i) => <ConversationItemSkeleton key={i} />)
                 ) : filteredConversations
                     .filter((c: any) =>
                       messageTab === "unread"
