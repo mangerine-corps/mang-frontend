@@ -21,7 +21,7 @@ import { signOut } from "mangarine/state/reducers/auth.reducer";
 import { HiOutlineLogout } from "react-icons/hi";
 import { useRouter } from "next/router";
 import { useGetUnreadTotalMessagesQuery } from "mangarine/state/services/chat-management.service";
-import { FiHeart } from "react-icons/fi";
+import { FiHeart, FiSettings, FiUser, FiHelpCircle } from "react-icons/fi";
 import { type SVGProps } from "react";
 
 const noScrollbar = {
@@ -194,6 +194,29 @@ export const MobileDrawer = () => {
                         <Text fontSize="0.875rem" color="text_primary" fontWeight="400">
                           {item.label}
                         </Text>
+                      </HStack>
+                    ))}
+                  </VStack>
+
+                  <Separator mb={4} />
+
+                  {/* Account section */}
+                  <Text fontSize="0.75rem" fontWeight="700" color="gray.400" textTransform="uppercase" letterSpacing="0.08em" mb={2} px={1}>
+                    Account
+                  </Text>
+                  <VStack gap={0} align="stretch" mb={4}>
+                    {([
+                      { label: "My Profile", icon: FiUser, action: () => router.push("/profile") },
+                      { label: "Settings", icon: FiSettings, action: () => router.push("/settings?tab=account") },
+                      { label: "Help Center", icon: FiHelpCircle, action: () => router.push("/settings?tab=help") },
+                    ] as QuickLink[]).map((item) => (
+                      <HStack
+                        key={item.label}
+                        px={3} py={2.5} borderRadius="10px" cursor="pointer" gap={3}
+                        onClick={item.action} _hover={{ bg: "#F4F5FA" }} transition="background 0.15s"
+                      >
+                        <Icon as={item.icon} boxSize={4} color="text_primary" />
+                        <Text fontSize="0.875rem" color="text_primary" fontWeight="400">{item.label}</Text>
                       </HStack>
                     ))}
                   </VStack>

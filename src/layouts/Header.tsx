@@ -144,7 +144,7 @@ const Header = () => {
       top={0}
       alignItems="center"
       justify="center"
-      h={{ base: "80px", lg: "88px" }}
+      h={{ base: "56px", lg: "88px" }}
       overflow="visible"
     >
       <Flex
@@ -166,8 +166,8 @@ const Header = () => {
           <Box
             as="button"
             onClick={() => router.push("/home")}
-            h={{ base: "44px", lg: "38px" }}
-            w={{ base: "44px", lg: "38px" }}
+            h={{ base: "32px", lg: "38px" }}
+            w={{ base: "32px", lg: "38px" }}
             flexShrink={0}
             display="flex"
             alignItems="center"
@@ -208,7 +208,7 @@ const Header = () => {
                     router.push(`/search?q=${encodeURIComponent(query.trim())}`);
                   }
                 }}
-                h={{ base: "52px", lg: "50px" }}
+                h={{ base: "38px", lg: "50px" }}
                 rounded="12px"
                 borderWidth="1px"
                 borderColor={searchBorder}
