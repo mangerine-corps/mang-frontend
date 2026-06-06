@@ -23,6 +23,7 @@ import {
   useApplyToJobMutation,
   useWithdrawApplicationMutation,
   useGetJobApplicantsQuery,
+  useGetMyApplicationsQuery,
 } from "mangarine/state/services/jobs.service";
 import { useAuth } from "mangarine/state/hooks/user.hook";
 import { toaster } from "mangarine/components/ui/toaster";
@@ -88,6 +89,13 @@ const JobDetailPage = () => {
   const isOwner = job?.createdById === user?.id;
   const isSaved: boolean = job?.isSaved ?? false;
   const hasApplied: boolean = job?.hasApplied ?? false;
+
+  const { data: myApplicationsData } = useGetMyApplicationsQuery(undefined, {
+    skip: !hasApplied,
+  });
+  const myApplicationsList: any[] = (myApplicationsData as any)?.data?.jobs ?? [];
+  const myApplicationJob = myApplicationsList.find((a: any) => a.id === jobId) ?? null;
+  const myApplication = myApplicationJob?.application ?? null;
 
   const applicants: any[] = (applicantsData as any)?.data?.applications ?? [];
 
@@ -349,26 +357,53 @@ const JobDetailPage = () => {
               </Section>
             )}
 
+            {/* Your Application section */}
+            {hasApplied && (
+              <Box mb={6} p={4} borderRadius="12px" border="1px solid" borderColor="green.200" bg="green.50" _dark={{ bg: "green.900", borderColor: "green.700" }}>
+                <HStack justify="space-between" mb={3}>
+                  <Text fontWeight="700" fontSize="0.9375rem" color="green.700" _dark={{ color: "green.300" }}>
+                    Your Application
+                  </Text>
+                  {myApplication?.appliedAt && (
+                    <Text fontSize="0.75rem" color="gray.500">
+                      Applied {new Date(myApplication.appliedAt).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}
+                    </Text>
+                  )}
+                </HStack>
+                {myApplication?.coverLetter ? (
+                  <Text fontSize="0.875rem" color="gray.700" _dark={{ color: "gray.300" }} whiteSpace="pre-wrap" lineHeight="1.6">
+                    {myApplication.coverLetter}
+                  </Text>
+                ) : (
+                  <Text fontSize="0.875rem" color="gray.500" fontStyle="italic">No cover letter submitted.</Text>
+                )}
+              </Box>
+            )}
+
             {/* Action buttons */}
             {!isOwner && (
               <Box mt={6} pt={6} borderTopWidth="1px" borderColor="input_border">
-                <HStack gap={3} flexWrap="wrap">
+                <HStack gap={3} flexWrap="wrap" alignItems="center">
                   {/* In-platform apply */}
                   {hasApplied ? (
-                    <Button
-                      variant="outline"
-                      borderColor="red.300"
-                      color="red.500"
-                      borderRadius="8px"
-                      fontWeight="600"
-                      px={8}
-                      py={5}
-                      loading={isWithdrawing}
-                      onClick={handleWithdraw}
-                      _hover={{ bg: "red.50" }}
-                    >
-                      Withdraw Application
-                    </Button>
+                    <HStack gap={3} alignItems="center">
+                      <Badge colorPalette="green" borderRadius="full" px={4} py={2} fontSize="0.875rem" fontWeight="600">
+                        ✓ Applied
+                      </Badge>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        color="red.400"
+                        px={2}
+                        loading={isWithdrawing}
+                        onClick={handleWithdraw}
+                        _hover={{ color: "red.600", bg: "red.50" }}
+                        fontWeight="500"
+                        fontSize="0.8rem"
+                      >
+                        Withdraw
+                      </Button>
+                    </HStack>
                   ) : (
                     <Button
                       bg="button_bg"
@@ -439,6 +474,8 @@ const JobDetailPage = () => {
                   maxLength={2000}
                   fontSize="0.9rem"
                   resize="vertical"
+                  px={4}
+                  py={3}
                 />
                 <Text fontSize="0.75rem" color="gray.400" alignSelf="flex-end">
                   {coverLetter.length}/2000

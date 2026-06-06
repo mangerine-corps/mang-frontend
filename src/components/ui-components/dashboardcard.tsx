@@ -93,6 +93,11 @@ const DashboardCard = () => {
     {
       items: [
         { icon: SavedIcon, label: "Saved Items", action: () => router.push("/saved") },
+        {
+          icon: JobsIcon,
+          label: "Applied Jobs",
+          action: () => router.push("/jobs?tab=applications"),
+        },
         ...(!user?.isConsultant ? [{
           icon: TransactionHistoryIcon,
           label: "Transaction History",
@@ -119,9 +124,6 @@ const DashboardCard = () => {
         },
       ],
     },
-    // {
-    //   items: [{ icon: JobsIcon, label: "Jobs" }],
-    // },
     // {
     //   items: [
     //     {

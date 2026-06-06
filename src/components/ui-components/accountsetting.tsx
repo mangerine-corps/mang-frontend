@@ -31,6 +31,15 @@ import {
 import { useProfile } from "mangarine/state/hooks/profile.hook";
 import { useAuth } from "mangarine/state/hooks/user.hook";
 import { toaster } from "../ui/toaster";
+import { parseStoredPhone } from "mangarine/lib/phone-codes";
+
+const formatPhoneDisplay = (raw: string): string => {
+  if (!raw) return "-";
+  const parsed = parseStoredPhone(raw);
+  if (parsed) return `${parsed.entry.flag} +${parsed.entry.dial} ${parsed.local}`;
+  const digits = raw.replace(/\D/g, "");
+  return digits ? `+${digits}` : raw;
+};
 
 const Schema = Yup.object({
   currentPassword: Yup.string()
@@ -54,6 +63,7 @@ const SecondarySchema = Yup.object({
 function AccountSetting() {
   const [showPassword, setShowPassword] = useState(false);
   const { user } = useAuth();
+  const { contact } = useProfile();
   const [updatePassword, { data, error, isLoading }] =
     useUpdatePasswordMutation();
 
@@ -160,7 +170,7 @@ function AccountSetting() {
             Primary Phone Number
           </Text>
           <Text color="gray.500" my={4}>
-            {user?.mobileNumber}
+            {formatPhoneDisplay(contact?.mobileNumber ?? user?.mobileNumber ?? "")}
           </Text>
         </Box>
 
@@ -500,7 +510,7 @@ const SecNum = () => {
                   color="grey.500"
                   lineHeight="30px"
                 >
-                  {sNumber}
+                  {formatPhoneDisplay(sNumber ?? "")}
                 </Text>
                 <HStack spaceX={"2"}>
                   <Stack

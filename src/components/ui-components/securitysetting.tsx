@@ -52,7 +52,6 @@ const OtpBoxes = ({
     onChange={(v) => onChange(v.replace(/[^0-9]/g, ""))}
     numInputs={6}
     inputType="number"
-    placeholder="000000"
     renderInput={(props, index) => (
       <Input
         bg="main_background"

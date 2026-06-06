@@ -73,7 +73,13 @@ const MyJobCardSkeleton = () => (
 
 const JobsPage = () => {
   const router = useRouter();
-  const [tab, setTab] = React.useState<"posted" | "applications">("posted");
+  const [tab, setTab] = React.useState<"posted" | "applications">(
+    router.query.tab === "applications" ? "applications" : "posted"
+  );
+
+  React.useEffect(() => {
+    if (router.query.tab === "applications") setTab("applications");
+  }, [router.query.tab]);
   const { data, isLoading } = useGetMyJobsQuery();
   const { data: applicationsData, isLoading: isLoadingApplications } = useGetMyApplicationsQuery();
   const jobs: any[] = (data as any)?.data?.jobs ?? [];
@@ -215,7 +221,11 @@ const JobsPage = () => {
             ) : applications.length > 0 ? (
               <VStack gap={3} align="stretch">
                 {applications.map((job: any) => (
-                  <MyJobCard key={job.id} job={job} buttonLabel="View Application" onView={() => router.push(`/jobs/${job.id}`)} />
+                  <MyJobCard key={job.id} job={job} buttonLabel="View Application" onView={() => router.push(`/jobs/applications/${job.id}`)} />
+                ))}
+              </VStack>
+            ) : (
+              <Flex direction="column" align="center" justify="center" minH="60vh" gap={6}>
                 <Image src="/jobssss.png" alt="No applications" maxW={{ base: "160px", md: "200px" }} />
                 <VStack gap={2} textAlign="center">
                   <Text fontSize={{ base: "1.25rem", md: "1.5rem" }} fontWeight="700" fontFamily="Outfit" color="text_primary">
