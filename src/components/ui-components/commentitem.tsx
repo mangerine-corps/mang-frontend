@@ -360,7 +360,7 @@ const CommentItem = ({
                 cursor="pointer"
                 onClick={() => handleLikeComment(comment.id)}
               >
-                <Icon size={"lg"} color={"gray.400"} mr={"4"}>
+                <Icon boxSize={4} color={"gray.400"}>
                   <FiThumbsUp />
                 </Icon>
               </IconButton>

@@ -16,7 +16,7 @@ const statusColor: Record<string, string> = {
   closed: "red",
 };
 
-const MyJobCard = ({ job, onView }: { job: any; onView: () => void }) => {
+const MyJobCard = ({ job, onView, buttonLabel = "View Job" }: { job: any; onView: () => void; buttonLabel?: string }) => {
   const [navigating, setNavigating] = React.useState(false);
   return (
   <Box
@@ -52,7 +52,7 @@ const MyJobCard = ({ job, onView }: { job: any; onView: () => void }) => {
         loading={navigating}
         onClick={() => { setNavigating(true); onView(); }}
       >
-        View Job
+        {buttonLabel}
       </Button>
     </HStack>
   </Box>
@@ -113,7 +113,7 @@ const JobsPage = () => {
                 </Button>
               ))}
             </HStack>
-            <HStack gap={2} justifyContent={{ base: "stretch", sm: "flex-end" }}>
+            {(tab !== "posted" || isLoading || jobs.length > 0) && <HStack gap={2} justifyContent={{ base: "stretch", sm: "flex-end" }}>
               <Button
                 variant="outline"
                 borderColor="button_bg"
@@ -145,7 +145,7 @@ const JobsPage = () => {
               >
                 + Create
               </Button>
-            </HStack>
+            </HStack>}
           </Flex>
 
           {/* Posted jobs tab */}
@@ -215,11 +215,7 @@ const JobsPage = () => {
             ) : applications.length > 0 ? (
               <VStack gap={3} align="stretch">
                 {applications.map((job: any) => (
-                  <MyJobCard key={job.id} job={job} onView={() => router.push(`/jobs/${job.id}`)} />
-                ))}
-              </VStack>
-            ) : (
-              <Flex direction="column" align="center" justify="center" minH="60vh" gap={4}>
+                  <MyJobCard key={job.id} job={job} buttonLabel="View Application" onView={() => router.push(`/jobs/${job.id}`)} />
                 <Image src="/jobssss.png" alt="No applications" maxW={{ base: "160px", md: "200px" }} />
                 <VStack gap={2} textAlign="center">
                   <Text fontSize={{ base: "1.25rem", md: "1.5rem" }} fontWeight="700" fontFamily="Outfit" color="text_primary">

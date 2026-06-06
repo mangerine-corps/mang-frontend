@@ -12,6 +12,7 @@ import {
   IconButton,
   Flex,
 } from "@chakra-ui/react";
+import PhoneInputWithCode from "../customcomponents/PhoneInputWithCode";
 import { useState } from "react";
 import OTPInput from "react-otp-input";
 import { size } from "es-toolkit/compat";
@@ -351,7 +352,9 @@ const PhoneTfa = ({
 }) => {
   const { user } = useAuth();
   const [step, setStep] = useState<TfaStep>(initialActive ? "active" : "idle");
-  const [phone, setPhone] = useState((user as any)?.phoneNumber ?? "");
+  const [phone, setPhone] = useState(
+    ((user as any)?.phoneNumber ?? (user as any)?.mobileNumber ?? "").replace(/\D/g, "")
+  );
   const [otp, setOtp] = useState("");
 
   const [enablePhone2FA, { isLoading: sending }] = useEnablePhone2FAMutation();
@@ -439,19 +442,10 @@ const PhoneTfa = ({
           <Text fontSize="0.875rem" color="grey.500">
             We will send a one-time code via SMS to the number below.
           </Text>
-          <Input
+          <PhoneInputWithCode
             value={phone}
-            onChange={(e) => setPhone(e.target.value)}
-            placeholder="Enter your phone number"
-            type="tel"
-            borderWidth={1}
-            borderColor="gray.200"
-            rounded="md"
-            px={3}
-            py={2}
-            fontSize="0.9rem"
-            color="text_primary"
-            bg="main_background"
+            onChange={setPhone}
+            placeholder="8012345678"
           />
           <PrimaryButton loading={sending} onClick={sendCode}>
             Send Verification Code

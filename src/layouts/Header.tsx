@@ -192,6 +192,7 @@ const Header = () => {
                 </Icon>
               }
               startElementProps={{ ps: { base: 4, lg: 3 } }}
+              startOffset="-6px"
             >
               <Input
                 id="search"

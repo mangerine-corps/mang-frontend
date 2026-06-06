@@ -1,4 +1,4 @@
-import { Box, Flex, HStack, Image, Avatar, Textarea, VStack } from "@chakra-ui/react";
+import { Box, Flex, HStack, Avatar, Textarea, VStack } from "@chakra-ui/react";
 import dynamic from "next/dynamic";
 const EmojiPicker = dynamic(() => import("emoji-picker-react"), { ssr: false, loading: () => null });
 import { useAuth } from "mangarine/state/hooks/user.hook";
@@ -8,11 +8,9 @@ import { useClickAway } from "react-use";
 import { Button } from "../ui/button";
 import { useDispatch } from "react-redux";
 import { incrementCommentCount } from "mangarine/state/reducers/post.reducer";
-import { MdInsertPhoto } from "react-icons/md";
 import FeedAction from "./feedaction";
 
 const smily = "/icons/smily.svg";
-const tag = "/icons/tag.svg";
 
 interface CommentInputWrapperProps {
   postId: string | string[];
@@ -26,8 +24,6 @@ const CommentInputWrapper: React.FC<CommentInputWrapperProps> = ({ postId }) => 
   const [, setErrorMessage] = useState("");
   const emojiRef = useRef(null);
   const dispatch = useDispatch();
-  const fileInputRef = useRef<HTMLInputElement | null>(null);
-
   useClickAway(emojiRef, () => setShowPicker(false));
   const [showPicker, setShowPicker] = useState(false);
 
@@ -82,9 +78,6 @@ const CommentInputWrapper: React.FC<CommentInputWrapperProps> = ({ postId }) => 
         {isActive && (
           <HStack w="full" px={3} pb={2} justifyContent="space-between" borderTopWidth={1} borderColor="gray.100" pt={2}>
             <HStack spaceX={1}>
-              <Box>
-                <input type="file" ref={fileInputRef} accept="image/*" style={{ display: "none" }} />
-              </Box>
               <Box pos="relative">
                 <FeedAction icon={smily} action={() => setShowPicker(!showPicker)} />
                 <Box ref={emojiRef} pos="absolute" bottom="100%" left={0} zIndex="max">

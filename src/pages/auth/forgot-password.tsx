@@ -51,7 +51,7 @@ const ForgotPassword = () => {
       .unwrap()
       .then(() => {
         dispatch(setForgotPassword({ forgotInfo: formdata }))
-        router.push("/auth/otp-verification");
+        router.push("/auth/reset-password");
       })
       .catch((error) => {
         console.log(error);

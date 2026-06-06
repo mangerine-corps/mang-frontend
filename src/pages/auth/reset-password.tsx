@@ -1,4 +1,4 @@
-import { Box, Button, Icon, Image, Text, VStack } from "@chakra-ui/react";
+import { Box, Button, Icon, Text, VStack } from "@chakra-ui/react";
 import CustomInput from "mangarine/components/customcomponents/Input";
 import GuestLayout from "mangarine/layouts/GuestLayout";
 import { useState } from "react";
@@ -17,16 +17,10 @@ import { IoIosEye, IoIosEyeOff } from "react-icons/io";
 import { useColorMode } from "mangarine/components/ui/color-mode";
 
 const resetPasswordSchema = Yup.object({
+  otpCode: Yup.string().required("OTP is required").length(6, "OTP must be 6 digits"),
   password: Yup.string()
     .required("Password is required")
     .min(8, "Password must be at least 8 characters"),
-  // .matches(/[a-z]/, "Password must contain at least one lowercase letter")
-  // .matches(/[A-Z]/, "Password must contain at least one uppercase letter")
-  // .matches(/[0-9]/, "Password must contain at least one number")
-  // .matches(
-  //   /[^a-zA-Z0-9]/,
-  //   "Password must contain at least one special character"
-  // ),
   confirmPassword: Yup.string()
     .oneOf([Yup.ref("password"), null], "Passwords must match")
     .required("Confirm Password is required"),
@@ -37,11 +31,10 @@ const ResetPassword = () => {
   const router = useRouter();
   const [showPassword, setShowPassword] = useState(false);
   const { colorMode } = useColorMode();
-  const [isClient, setIsClient] = useState(false);
-
   const [showToast, setShowToast] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
-  const [resetPassword, { }] = useResetPasswordMutation();
+  const [resetPassword, { isLoading }] = useResetPasswordMutation();
+
   const {
     control,
     handleSubmit,
@@ -49,61 +42,57 @@ const ResetPassword = () => {
     formState: { errors },
   } = useForm({
     resolver: yupResolver(resetPasswordSchema),
-    defaultValues: {
-      password: "",
-      confirmPassword: "",
-    },
+    defaultValues: { otpCode: "", password: "", confirmPassword: "" },
   });
 
   const onSubmit = async () => {
     const data = getValues();
-    // console.log(data.email, "dsta")
-    const formdata = {
-      email: forgotInfo.email,
-      password: data.password,
-    };
-    resetPassword(formdata)
+    resetPassword({
+      email: forgotInfo?.email ?? "",
+      otpCode: data.otpCode,
+      newPassword: data.password,
+    })
       .unwrap()
       .then(() => {
         router.push("/auth/login");
       })
       .catch((error) => {
-        console.log(error);
         const { data } = error;
         if (!isEmpty(data) && data.hasOwnProperty("message")) {
           setErrorMessage(data.message);
-         
         } else {
-          setErrorMessage(" failed");
+          setErrorMessage("Reset failed");
         }
         setShowToast(true);
       });
   };
+
+  const eyeIcon = (
+    <Button
+      variant="ghost"
+      color="#697586"
+      bg="none"
+      p={0}
+      borderWidth={0}
+      _hover={{ bg: "transparent" }}
+      onClick={() => setShowPassword((v) => !v)}
+    >
+      <Icon size="lg" color={colorMode === "dark" ? "white" : "black"} mr="4">
+        {showPassword ? <IoIosEyeOff /> : <IoIosEye />}
+      </Icon>
+    </Button>
+  );
+
   return (
     <GuestLayout>
-      <VStack
-        className={outfit.className}
-        justifyContent={"center"}
-        w="full"
-        flex={1}
-      >
+      <VStack className={outfit.className} justifyContent="center" w="full" flex={1}>
         <VStack w={{ base: "full", md: "4/6" }} spaceY={4}>
-          <VStack w="full" alignItems={"center"}>
-            <Text
-              color="text_primary"
-              fontWeight={"600"}
-              fontSize={"1.5rem"}
-              lineHeight={"2rem"}
-            >
+          <VStack w="full" alignItems="center">
+            <Text color="text_primary" fontWeight="600" fontSize="1.5rem" lineHeight="2rem">
               Reset Password
             </Text>
-            <Text
-              color="grey.500"
-              fontWeight={"400"}
-              fontSize={"1rem"}
-              lineHeight={"2rem"}
-            >
-              Set a new password below
+            <Text color="grey.500" fontWeight="400" fontSize="1rem" lineHeight="2rem">
+              Enter the OTP sent to your email and set a new password.
             </Text>
           </VStack>
 
@@ -119,6 +108,26 @@ const ResetPassword = () => {
           </Box>
 
           <Controller
+            name="otpCode"
+            control={control}
+            render={({ field: { onChange, value } }) => (
+              <CustomInput
+                label="OTP Code"
+                placeholder="Enter 6-digit code"
+                id="otpCode"
+                required
+                name="otpCode"
+                value={value}
+                size="md"
+                onChange={onChange}
+                error={errors.otpCode}
+                hasRightIcon={false}
+                type="text"
+              />
+            )}
+          />
+
+          <Controller
             name="password"
             control={control}
             render={({ field: { onChange, value } }) => (
@@ -126,48 +135,19 @@ const ResetPassword = () => {
                 label="New Password"
                 placeholder="***"
                 id="password"
-                required={true}
+                required
                 name="password"
                 value={value}
                 size="md"
                 onChange={onChange}
                 error={errors.password}
-                hasRightIcon={true}
+                hasRightIcon
                 type={showPassword ? "text" : "password"}
-                rightIcon={
-                  <Button
-                    variant={"ghost"}
-                    color={"#697586"}
-                    bg="none"
-                    p={0}
-                    borderWidth={0}
-                    _hover={{ bg: "transparent" }}
-                    onClick={() =>
-                      setShowPassword((showPassword) => !showPassword)
-                    }
-                  >
-                    {showPassword ? (
-                      <Icon
-                        size={"lg"}
-                        color={ colorMode === "dark" ? "white" : "black"}
-                        mr={"4"}
-                      >
-                        <IoIosEyeOff />
-                      </Icon>
-                    ) : (
-                      <Icon
-                        size={"lg"}
-                        color={colorMode === "dark" ? "white" : "black"}
-                        mr={"4"}
-                      >
-                        <IoIosEye />
-                      </Icon>
-                    )}
-                  </Button>
-                }
+                rightIcon={eyeIcon}
               />
             )}
           />
+
           <Controller
             name="confirmPassword"
             control={control}
@@ -175,63 +155,27 @@ const ResetPassword = () => {
               <CustomInput
                 label="Confirm Password"
                 placeholder="***"
-                id="password"
-                required={true}
-                name="password"
+                id="confirmPassword"
+                required
+                name="confirmPassword"
                 value={value}
                 size="md"
                 onChange={onChange}
                 error={errors.confirmPassword}
-                hasRightIcon={true}
+                hasRightIcon
                 type={showPassword ? "text" : "password"}
-                rightIcon={
-                  <Button
-                    variant={"ghost"}
-                    color={"#697586"}
-                    bg="none"
-                    p={0}
-                    borderWidth={0}
-                    _hover={{ bg: "transparent" }}
-                    onClick={() =>
-                      setShowPassword((showPassword) => !showPassword)
-                    }
-                  >
-                    {showPassword ? (
-                      <Icon
-                        size={"lg"}
-                        color={colorMode === "dark" ? "white" : "black"}
-                        mr={"4"}
-                      >
-                        <IoIosEyeOff />
-                      </Icon>
-                    ) : (
-                      <Icon
-                        size={"lg"}
-                        color={colorMode === "dark" ? "white" : "black"}
-                        mr={"4"}
-                      >
-                        <IoIosEye />
-                      </Icon>
-                    )}
-                  </Button>
-                }
+                rightIcon={eyeIcon}
               />
             )}
           />
 
           <CustomButton
-            customStyle={{
-              w: "full",
-            }}
-            onClick={handleSubmit(onSubmit, (error) => console.log(error))}
+            customStyle={{ w: "full" }}
+            loading={isLoading}
+            onClick={handleSubmit(onSubmit, (e) => console.log(e))}
           >
-            <Text
-              color={"button_text"}
-              fontWeight={"600"}
-              fontSize={"1rem"}
-              lineHeight={"100%"}
-            >
-              Login
+            <Text color="button_text" fontWeight="600" fontSize="1rem" lineHeight="100%">
+              Reset Password
             </Text>
           </CustomButton>
         </VStack>

@@ -417,8 +417,9 @@ const JobDetailPage = () => {
       </Box>
 
       {/* Apply modal */}
-      <Dialog.Root open={applyOpen} onOpenChange={(e) => setApplyOpen(!!(e as any).open)}>
+      <Dialog.Root open={applyOpen} onOpenChange={(e) => setApplyOpen(!!(e as any).open)} placement="center">
         <Dialog.Backdrop />
+        <Dialog.Positioner>
         <Dialog.Content p={6} maxW="480px">
           <Dialog.Header fontWeight="700" color="text_primary" fontSize="1.125rem" pb={2}>
             Apply for this job
@@ -467,6 +468,7 @@ const JobDetailPage = () => {
             </VStack>
           </Dialog.Body>
         </Dialog.Content>
+        </Dialog.Positioner>
       </Dialog.Root>
     </>
   );

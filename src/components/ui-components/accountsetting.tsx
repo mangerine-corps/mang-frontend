@@ -12,6 +12,7 @@ import {
 } from "@chakra-ui/react";
 import { useEffect, useState } from "react";
 import CustomInput from "../customcomponents/Input";
+import PhoneInputWithCode from "../customcomponents/PhoneInputWithCode";
 import { Controller, useForm } from "react-hook-form";
 import { Button } from "../ui/button";
 import CustomButton from "../customcomponents/button";
@@ -409,8 +410,8 @@ const SecNum = () => {
   const onSubmit = (data) => {
     const acctdata = getValues();
     const formdata = {
-      secondaryNumber: `+${acctdata.secNum}`,
-      confirmSecondaryNumber: `+${acctdata.confirmSecNum}`,
+      secondaryNumber: acctdata.secNum,
+      confirmSecondaryNumber: acctdata.confirmSecNum,
     };
     addSecondaryNumber(formdata)
       .unwrap()
@@ -434,17 +435,17 @@ const SecNum = () => {
   // };
   const editClicked = () => {
     if (sNumber) {
-      const withoutPlus = sNumber.startsWith("+") ? sNumber.slice(1) : sNumber;
-      setValue("secNum", withoutPlus);
-      setValue("confirmSecNum", withoutPlus);
+      const digits = sNumber.replace(/\D/g, "");
+      setValue("secNum", digits);
+      setValue("confirmSecNum", digits);
     }
     setSecondaryPhoneNumber(true);
   };
   const editNumber = () => {
     const acctdata = getValues();
     const formdata = {
-      secondaryNumber: `+${acctdata.secNum}`,
-      confirmSecondaryNumber: `+${acctdata.confirmSecNum}`,
+      secondaryNumber: acctdata.secNum,
+      confirmSecondaryNumber: acctdata.confirmSecNum,
     };
     editSecondaryNumber(formdata)
       .unwrap()
@@ -657,20 +658,13 @@ const SecNum = () => {
             name="secNum"
             control={control}
             render={({ field: { onChange, value } }) => (
-              <CustomInput
+              <PhoneInputWithCode
                 label="Secondary Phone Number"
-                placeholder="1234567890"
-                  type="tel"
-                  validator="[^0-9]"
-                id="secNum"
+                placeholder="8012345678"
                 required={true}
-                name="secNum"
                 value={value}
-                size="md"
                 onChange={onChange}
                 error={errors.secNum}
-                hasLeftIcon={true}
-                leftIcon={<Text fontWeight="600" color="text_primary" px={2}>+</Text>}
               />
             )}
           />
@@ -678,20 +672,13 @@ const SecNum = () => {
             name="confirmSecNum"
             control={control}
             render={({ field: { onChange, value } }) => (
-              <CustomInput
+              <PhoneInputWithCode
                 label="Confirm Phone Number"
-                placeholder="1234567890"
-                  type="tel"
-                  validator="[^0-9]"
-                id="confirmSecNum"
+                placeholder="8012345678"
                 required={true}
-                name="confirmSecNum"
                 value={value}
-                size="md"
                 onChange={onChange}
                 error={errors.confirmSecNum}
-                hasLeftIcon={true}
-                leftIcon={<Text fontWeight="600" color="text_primary" px={2}>+</Text>}
               />
             )}
           />

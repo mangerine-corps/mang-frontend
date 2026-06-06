@@ -117,6 +117,7 @@ const CustomSelect = ({
       </SelectTrigger>
 
       <SelectContent
+        portalled={false}
         zIndex={"max"}
         color={"text_primary"}
         bg="main_background"

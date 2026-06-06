@@ -124,6 +124,8 @@ function SavedPage() {
                   onKeyDown={(e) => { if (e.key === "Enter") handleCreateCollection(); }}
                   borderRadius="8px"
                   fontFamily="Outfit"
+                  px={4}
+                  h="44px"
                   autoFocus
                 />
               </Dialog.Body>
@@ -141,6 +143,8 @@ function SavedPage() {
                   color="white"
                   borderRadius="8px"
                   fontFamily="Outfit"
+                  px={6}
+                  py={5}
                   loading={creating}
                   disabled={!newCollectionName.trim()}
                   onClick={handleCreateCollection}
@@ -175,7 +179,8 @@ function SavedPage() {
                 fontFamily="Outfit"
                 fontWeight="600"
                 fontSize="0.75rem"
-                px={2}
+                px={3}
+                py={4}
                 gap={1}
                 onClick={() => setShowCreateDialog(true)}
               >
@@ -396,6 +401,8 @@ function SavedPage() {
                 fontFamily="Outfit"
                 fontWeight="600"
                 fontSize="0.8rem"
+                px={4}
+                py={5}
                 gap={1}
                 display={{ base: "flex", lg: "none" }}
                 onClick={() => setShowCreateDialog(true)}

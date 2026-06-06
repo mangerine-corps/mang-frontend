@@ -16,10 +16,12 @@ import * as Yup from "yup";
 import { yupResolver } from "@hookform/resolvers/yup";
 import { Controller, useForm } from "react-hook-form";
 import CustomInput from "../customcomponents/Input";
+import PhoneInputWithCode from "../customcomponents/PhoneInputWithCode";
 import { toaster } from "../ui/toaster";
 import { useUpdateContactInfoMutation } from "mangarine/state/services/profile.service";
 import { useDispatch } from "react-redux";
 import { setContactDetails } from "mangarine/state/reducers/profile.reducer";
+import { setUpdatedInfo } from "mangarine/state/reducers/auth.reducer";
 import { useProfile } from "mangarine/state/hooks/profile.hook";
 import { useAuth } from "mangarine/state/hooks/user.hook";
 import TopRightDrawer from "../ui/top-right-drawer";
@@ -205,6 +207,14 @@ const EditContactMeCard = ({
               data.webVisible,
           })
         );
+        dispatch(
+          setUpdatedInfo({
+            updatedInfo: {
+              ...user,
+              mobileNumber: res.data?.mobileNumber ?? data.mobileNumber,
+            },
+          })
+        );
         toaster.create({
           type: "success",
           title: "Success",
@@ -333,21 +343,13 @@ const EditContactMeCard = ({
                 name="mobileNumber"
                 control={control}
                 render={({ field: { onChange, value } }) => (
-                  <CustomInput
-                    label="phone Number  "
-                    placeholder="Enter your phone number here"
-                    id="phone_number"
+                  <PhoneInputWithCode
+                    label="Phone Number"
+                    placeholder="8012345678"
                     required={true}
-                    name="mobileNumber"
                     value={value}
-                    size="md"
                     onChange={onChange}
-                    // @ts-expect-error 'build error'
-                    error={errors?.mobileNumber?.message}
-                    hasRightIcon={false}
-                    type={"text"}
-                    inputMode="numeric"
-                    pattern="[0-9]*"
+                    error={errors?.mobileNumber}
                   />
                 )}
               />
