@@ -178,7 +178,7 @@ const TfaSection = ({ title, description, step, onActivate, onDeactivate, activa
 );
 
 const ExpandBox = ({ children, borderColor = "gray.200" }: { children: React.ReactNode; borderColor?: string }) => (
-  <Box borderWidth="1px" borderColor={borderColor} px={{ base: 2, md: 3 }} py={3} mb={4} rounded="8px">
+  <Box borderTopWidth="1px" borderColor={borderColor} pt={3} mb={4}>
     <VStack align="stretch" gap={3}>
       {children}
     </VStack>
@@ -417,8 +417,7 @@ const SecuritySetting = () => {
   const enableApp2FA = settings.enableApp2FA ?? false;
 
   return (
-    <Flex direction="column" align="flex-start" justify="flex-start" h="full" w="full" overflowY="auto">
-      <Box h="full" borderRadius="lg" boxShadow="lg" bg="main_background" px={{ base: 0, md: 8 }} py={{ base: 4, md: 8 }} w="full" className={outfit.className}>
+    <Box w="full" className={outfit.className}>
         <Text fontSize={{ base: "1rem", md: "1.5rem" }} fontWeight="600" color="text_primary" mb={1}>
           Two-Factor Authentication (2FA)
         </Text>
@@ -444,8 +443,7 @@ const SecuritySetting = () => {
             <PaginatedTable />
           </Box>
         </Box>
-      </Box>
-    </Flex>
+    </Box>
   );
 };
 
