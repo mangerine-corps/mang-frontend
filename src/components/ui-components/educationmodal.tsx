@@ -88,9 +88,17 @@ const educationSchema = yup.object().shape({
   degree: yup.string().required("degree is required"),
   field_of_study: yup.string().required("field of study is required"),
   start_month: yup.string().required("start month is required"),
-  start_year: yup.string().required("start month is required"),
-  end_month: yup.string().required("end month is required"),
-  end_year: yup.string().required("end month is required"),
+  start_year: yup.string().required("start year is required"),
+  end_month: yup.string().when("isCurrent", {
+    is: true,
+    then: (schema) => schema.optional(),
+    otherwise: (schema) => schema.required("end month is required"),
+  }),
+  end_year: yup.string().when("isCurrent", {
+    is: true,
+    then: (schema) => schema.optional(),
+    otherwise: (schema) => schema.required("end year is required"),
+  }),
   isCurrent: yup.boolean(),
 });
 
@@ -114,6 +122,7 @@ export const EducationItem = ({
     handleSubmit,
     control,
     reset,
+    watch,
   } = useForm({
     resolver: yupResolver(educationSchema),
     defaultValues: {
@@ -141,11 +150,16 @@ useEffect(() => {
     });
   }
 }, [education, reset]);
+
+  const isCurrent = watch("isCurrent");
+
   const handleAddEducation = (data: any) => {
-    console.log("button clicked save");
     const { isCurrent, ...rest } = data;
-    rest.isCurrent = Boolean(isCurrent)
-    // rest.isCurrent = isCurrent === "true" ? true : false;
+    rest.isCurrent = Boolean(isCurrent);
+    if (isCurrent) {
+      delete rest.end_month;
+      delete rest.end_year;
+    }
     addNewEducation(rest)
       .unwrap()
       .then((payload) => {
@@ -331,39 +345,41 @@ useEffect(() => {
       </VStack>
 
       {/* End Date */}
-      <VStack pb="2" w="full" alignItems="flex-start" gap={1}>
-        <Text fontSize="0.75rem" color="text_primary" fontWeight="400">
-          End Date <Text as="span" color="red.500">*</Text>
-        </Text>
-        <HStack w="full" gap={3}>
-          <Controller
-            name="end_month"
-            control={control}
-            render={({ field: { onChange, value } }) => (
-              <SelectField
-                label=""
-                options={MONTHS}
-                placeholder="Month"
-                value={value}
-                onChange={onChange}
-              />
-            )}
-          />
-          <Controller
-            name="end_year"
-            control={control}
-            render={({ field: { onChange, value } }) => (
-              <SelectField
-                label=""
-                options={YEARS}
-                placeholder="Year"
-                value={value}
-                onChange={onChange}
-              />
-            )}
-          />
-        </HStack>
-      </VStack>
+      {!isCurrent && (
+        <VStack pb="2" w="full" alignItems="flex-start" gap={1}>
+          <Text fontSize="0.75rem" color="text_primary" fontWeight="400">
+            End Date <Text as="span" color="red.500">*</Text>
+          </Text>
+          <HStack w="full" gap={3}>
+            <Controller
+              name="end_month"
+              control={control}
+              render={({ field: { onChange, value } }) => (
+                <SelectField
+                  label=""
+                  options={MONTHS}
+                  placeholder="Month"
+                  value={value}
+                  onChange={onChange}
+                />
+              )}
+            />
+            <Controller
+              name="end_year"
+              control={control}
+              render={({ field: { onChange, value } }) => (
+                <SelectField
+                  label=""
+                  options={YEARS}
+                  placeholder="Year"
+                  value={value}
+                  onChange={onChange}
+                />
+              )}
+            />
+          </HStack>
+        </VStack>
+      )}
       <Box pb={8} w="full">
         <HStack alignItems={"center"}>
           <Controller

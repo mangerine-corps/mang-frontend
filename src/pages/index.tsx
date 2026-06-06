@@ -48,7 +48,7 @@ export default function Home() {
     }
   }, [persistReady, router, token]);
 
-  if (!persistReady || !isEmpty(token)) {
+  if (persistReady && !isEmpty(token)) {
     return null;
   }
 

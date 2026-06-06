@@ -168,6 +168,11 @@ const ExperienceItem = ({
     rest.employment_type = employment_typeString;
     rest.isCurrent = isCurrent === true ? true : false;
 
+    if (isCurrent) {
+      delete rest.end_month;
+      delete rest.end_year;
+    }
+
     addNewExperience(rest)
       .unwrap()
       .then(() => {

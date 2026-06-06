@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/router";
 import {
   Box,
@@ -6,195 +6,134 @@ import {
   CloseButton,
   Text,
   VStack,
-  Flex,
-  Image,
   Drawer,
   HStack,
-  Icon,
   Badge,
   Avatar,
   Skeleton,
   SkeletonCircle,
   Stack,
+  Spinner,
 } from "@chakra-ui/react";
 import { useAuth } from "mangarine/state/hooks/user.hook";
-import { useGetFollowingQuery } from "mangarine/state/services/posts.service";
+import { useFollowUserMutation, useUnfollowUserMutation } from "mangarine/state/services/posts.service";
 
+const MemberItem = ({ member, currentUserId, onNavigate }: { member: any; currentUserId?: string; onNavigate: () => void }) => {
+  const router = useRouter();
+  const [followUser, { isLoading: following }] = useFollowUserMutation();
+  const [unfollowUser, { isLoading: unfollowing }] = useUnfollowUserMutation();
+  const [localFollowing, setLocalFollowing] = useState<boolean>(
+    Boolean(member?.followStatus?.isFollowing)
+  );
 
+  useEffect(() => {
+    setLocalFollowing(Boolean(member?.followStatus?.isFollowing));
+  }, [member?.followStatus?.isFollowing]);
 
+  const isLoading = following || unfollowing;
+  const isSelf = member.id === currentUserId;
 
-const MemberList = ({ open, onOpenChange, data }) => {
-  const {user} = useAuth()
-  const router = useRouter()
-  const targetUserId = user?.id
-    const { data:followingData, error, refetch, isLoading: loadingFollowing } = useGetFollowingQuery(
-      { targetUserId },
-      {
-        skip: !targetUserId,
-      }
-    );
-
-    const canFollow = useMemo(
-      () =>
-        Boolean(user?.id) && Boolean(targetUserId) && user?.id !== targetUserId,
-      [user?.id, targetUserId]
-    );
-
- const isFollow = followingData?.data.isFollowing;
-  const label = isFollow ? "Unfollow" : "Follow";
-  console.log(label, isFollow, "member data");
+  const handleToggle = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (isSelf) return;
+    const prev = localFollowing;
+    setLocalFollowing(!prev);
+    try {
+      const mutation = prev
+        ? unfollowUser({ targetUserId: member.id })
+        : followUser({ targetUserId: member.id });
+      const res = await mutation.unwrap();
+      const next = (res as any)?.data?.isFollowing ?? res?.isFollowing ?? !prev;
+      setLocalFollowing(Boolean(next));
+    } catch {
+      setLocalFollowing(prev);
+    }
+  };
 
   return (
-    <Drawer.Root size={"lg"} open={open} onOpenChange={onOpenChange}>
-      <Drawer.Backdrop />
+    <HStack align="start" w="full" justify="space-between">
+      <HStack
+        gap={6}
+        align="start"
+        cursor="pointer"
+        _hover={{ opacity: 0.8 }}
+        onClick={() => {
+          if (member.id) {
+            onNavigate();
+            router.push(`/profile/${member.id}`);
+          }
+        }}
+      >
+        <Avatar.Root boxSize="40px" rounded="full">
+          <Avatar.Fallback name={member.fullName} />
+          <Avatar.Image src={member.profilePics} />
+        </Avatar.Root>
+        <Box>
+          <HStack>
+            <Text font="outfit" fontSize="1rem" fontWeight="600" lineHeight="24px" color="text_primary">
+              {member.fullName}
+            </Text>
+          </HStack>
+          <Text font="outfit" fontSize="1rem" fontWeight="500" lineHeight="24px" color="gray.500" mb={1}>
+            {member.businessName}
+          </Text>
+          <Text font="outfit" fontSize="1rem" fontWeight="400" lineHeight="24px" color="text_primary">
+            {member.bio}
+          </Text>
+        </Box>
+      </HStack>
 
+      {!isSelf && (
+        <Button
+          borderRadius="8px"
+          px="4"
+          py="3"
+          size="sm"
+          variant="outline"
+          bg="transparent"
+          color={localFollowing ? "red.500" : "primary.950"}
+          borderColor={localFollowing ? "red.400" : "primary.950"}
+          borderWidth="2px"
+          fontWeight="medium"
+          flexShrink={0}
+          onClick={handleToggle}
+          disabled={isLoading}
+        >
+          {isLoading ? <Spinner size="xs" /> : localFollowing ? "Unfollow" : "Follow +"}
+        </Button>
+      )}
+    </HStack>
+  );
+};
+
+const MemberList = ({ open, onOpenChange, data }) => {
+  const { user } = useAuth();
+
+  return (
+    <Drawer.Root size="lg" open={open} onOpenChange={onOpenChange}>
+      <Drawer.Backdrop />
       <Drawer.Positioner>
         <Drawer.Content>
           <Drawer.Header>
-            <Drawer.Title>
-              <VStack
-                // spaceY={6}
-                w="full"
-                // bg="red.900"
-                justifyContent={"flex-start"}
-                alignItems={""}
-                // px="4"
-              ></VStack>
-            </Drawer.Title>
+            <Drawer.Title />
           </Drawer.Header>
           <Drawer.Body px="6" py="6" pr="8">
-            <Box
-              //w="800px"
-              //h="810px"
-
-              // p={6}
-              // maxW="600px"
-              w="full"
-            >
-              <HStack justify="space-between" alignItems={"center"} mb={8}>
-                <Text
-                  font="outfit"
-                  fontSize="2rem"
-                  fontWeight="700"
-                  lineHeight="60px"
-                  color="text_primary"
-                >
+            <Box w="full">
+              <HStack justify="space-between" alignItems="center" mb={8}>
+                <Text font="outfit" fontSize="2rem" fontWeight="700" lineHeight="60px" color="text_primary">
                   Members
                 </Text>
-
                 <CloseButton />
               </HStack>
 
               <VStack gap={8}>
-                {loadingFollowing
-                  ? Array.from({ length: 5 }).map((_, i) => (
-                      <HStack key={i} w="full" justify="space-between">
-                        <HStack gap={6}>
-                          <SkeletonCircle size="10" />
-                          <Stack gap={1}>
-                            <Skeleton h="16px" w="130px" rounded="md" />
-                            <Skeleton h="13px" w="90px" rounded="md" />
-                          </Stack>
-                        </HStack>
-                        <Skeleton h="32px" w="80px" rounded="md" />
-                      </HStack>
-                    ))
-                  : data?.users.map((member) => (
-                  <HStack
+                {(data?.users ?? []).map((member: any) => (
+                  <MemberItem
                     key={member.id}
-                    align="start"
-                    w="full"
-                    justify="space-between"
-                  >
-                    <HStack
-                      gap={6}
-                      align="start"
-                      cursor="pointer"
-                      _hover={{ opacity: 0.8 }}
-                      onClick={() => {
-                        const id = member.id;
-                        if (id) router.push(`/profile/${id}`);
-                      }}
-                    >
-                      <Avatar.Root
-                        boxSize="40px"
-                        rounded="full"
-                      >
-                        <Avatar.Fallback name={member.fullName} />
-                        <Avatar.Image src={member.profilePics} />
-                      </Avatar.Root>
-                      <Box>
-                        <HStack>
-                          <Text
-                            font="outfit"
-                            fontSize="1rem"
-                            fontWeight="600"
-                            lineHeight="24px"
-                            color="text_primary"
-                          >
-                            {member.fullName}
-                          </Text>
-                          {member.id === data.creator.id && (
-                            <Badge
-                              // w="70px"
-                              // h="40px"
-                              borderRadius="2xl"
-                              px="3"
-                              py="2"
-                              bg="orange.100"
-                              color="orange.900"
-                              display="flex"
-                              alignItems="center"
-                              justifyContent="center"
-                            >
-                              Admin
-                            </Badge>
-                          )}
-                        </HStack>
-                        <Text
-                          font="outfit"
-                          fontSize="1rem"
-                          fontWeight="500"
-                          lineHeight="24px"
-                          color="gray.500"
-                          mb={1}
-                        >
-                          {member.businessName}
-                        </Text>
-                        <Text
-                          font="outfit"
-                          fontSize="1rem"
-                          fontWeight="400"
-                          lineHeight="24px"
-                          color="text_primary"
-                        >
-                          {member.bio}
-                        </Text>
-                      </Box>
-                    </HStack>
-
-                    <Button
-                      // w="134px"
-                      // h="48px"
-                      borderRadius="8px"
-                      px="4"
-                      py="3"
-                      gap="8"
-                      color="bt_button"
-                      size="sm"
-                      variant={
-                        ["Following", "Follow back"].includes(member.status)
-                          ? "outline"
-                          : "solid"
-                      }
-                      colorScheme="blue"
-                      fontWeight="medium"
-                    >
-                     {
-                      isFollow === true ? "Following" :"Follow Back"
-                     }
-                    </Button>
-                  </HStack>
+                    member={member}
+                    currentUserId={user?.id}
+                    onNavigate={() => onOpenChange(false)}
+                  />
                 ))}
               </VStack>
             </Box>

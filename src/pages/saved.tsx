@@ -1,5 +1,4 @@
 import {
-  Avatar,
   Box,
   Button,
   Dialog,
@@ -21,9 +20,10 @@ import {
   useGetCollectionPostQuery,
   useCreateCollectionMutation,
 } from "mangarine/state/services/bookmark.service";
+import { useGetSavedJobsQuery } from "mangarine/state/services/jobs.service";
 import { useState } from "react";
 import { useRouter } from "next/router";
-import { BsBookmark, BsBookmarkFill, BsCollectionFill, BsPlus } from "react-icons/bs";
+import { BsBookmark, BsBookmarkFill, BsCollectionFill, BsPlus, BsBriefcase } from "react-icons/bs";
 import { IoChevronBack } from "react-icons/io5";
 
 const SkeletonPost = () => (
@@ -64,6 +64,10 @@ function SavedPage() {
     { skip: !collectionId }
   );
   const [createCollection, { isLoading: creating }] = useCreateCollectionMutation();
+  const { data: savedJobsData, isFetching: savedJobsLoading } = useGetSavedJobsQuery({ page: 1, limit: 20 });
+  const savedJobs: any[] = savedJobsData?.data?.jobs ?? [];
+
+  const isJobsTab = router.query.tab === "jobs";
 
   const bookmarks: any[] = bookmarksData?.data?.items ?? bookmarksData?.data ?? [];
   const collections: any[] = collectionsData?.data?.items ?? collectionsData?.data ?? [];
@@ -79,6 +83,10 @@ function SavedPage() {
 
   const handleBack = () => {
     router.push("/saved", undefined, { shallow: true });
+  };
+
+  const handleJobsTab = () => {
+    router.push("/saved?tab=jobs", undefined, { shallow: true });
   };
 
   const handleCreateCollection = async () => {
@@ -182,40 +190,71 @@ function SavedPage() {
                 px={4}
                 py={3}
                 cursor="pointer"
-                bg={!collectionId ? "main_background" : "transparent"}
+                bg={!collectionId && !isJobsTab ? "main_background" : "transparent"}
                 _hover={{ bg: "main_background" }}
                 onClick={handleBack}
                 gap={3}
                 borderLeftWidth="3px"
-                borderLeftColor={!collectionId ? "#111D4A" : "transparent"}
+                borderLeftColor={!collectionId && !isJobsTab ? "#111D4A" : "transparent"}
                 transition="all 0.15s"
               >
                 <Box
                   w="36px"
                   h="36px"
                   rounded="lg"
-                  bg={!collectionId ? "#111D4A" : "gray.100"}
+                  bg={!collectionId && !isJobsTab ? "#111D4A" : "gray.100"}
                   display="flex"
                   alignItems="center"
                   justifyContent="center"
                   flexShrink={0}
                   transition="background 0.15s"
                 >
-                  <Icon color={!collectionId ? "white" : "grey.500"} fontSize="0.9rem">
+                  <Icon color={!collectionId && !isJobsTab ? "white" : "grey.500"} fontSize="0.9rem">
                     <BsBookmarkFill />
                   </Icon>
                 </Box>
                 <VStack align="flex-start" gap={0} flex={1} minW={0}>
                   <Text
                     fontSize="0.875rem"
-                    fontWeight={!collectionId ? "600" : "500"}
+                    fontWeight={!collectionId && !isJobsTab ? "600" : "500"}
                     color="text_primary"
                     fontFamily="Outfit"
                   >
                     All Saved
                   </Text>
                   <Text fontSize="0.72rem" color="grey.400" fontFamily="Outfit">
-                    {bookmarks.length} item{bookmarks.length !== 1 ? "s" : ""}
+                    All saved items
+                  </Text>
+                </VStack>
+              </HStack>
+
+              {/* Jobs row */}
+              <HStack
+                px={4}
+                py={3}
+                cursor="pointer"
+                bg={isJobsTab ? "main_background" : "transparent"}
+                _hover={{ bg: "main_background" }}
+                onClick={handleJobsTab}
+                gap={3}
+                borderLeftWidth="3px"
+                borderLeftColor={isJobsTab ? "#111D4A" : "transparent"}
+                transition="all 0.15s"
+              >
+                <Box
+                  w="36px" h="36px" rounded="lg"
+                  bg={isJobsTab ? "#111D4A" : "gray.100"}
+                  display="flex" alignItems="center" justifyContent="center"
+                  flexShrink={0} transition="background 0.15s"
+                >
+                  <Icon color={isJobsTab ? "white" : "grey.500"} fontSize="0.9rem"><BsBriefcase /></Icon>
+                </Box>
+                <VStack align="flex-start" gap={0} flex={1} minW={0}>
+                  <Text fontSize="0.875rem" fontWeight={isJobsTab ? "600" : "500"} color="text_primary" fontFamily="Outfit">
+                    Saved Jobs
+                  </Text>
+                  <Text fontSize="0.72rem" color="grey.400" fontFamily="Outfit">
+                    {savedJobs.length} job{savedJobs.length !== 1 ? "s" : ""}
                   </Text>
                 </VStack>
               </HStack>
@@ -331,18 +370,20 @@ function SavedPage() {
                 flexShrink={0}
               >
                 <Icon color="white" fontSize="1rem">
-                  {collectionId ? <BsCollectionFill /> : <BsBookmarkFill />}
+                  {isJobsTab ? <BsBriefcase /> : collectionId ? <BsCollectionFill /> : <BsBookmarkFill />}
                 </Icon>
               </Box>
 
               <VStack align="flex-start" gap={0} flex={1}>
                 <Text fontWeight="700" fontSize="1.1rem" color="text_primary" fontFamily="Outfit">
-                  {activeCollection ? (activeCollection.name ?? "Collection") : "All Saved Items"}
+                  {isJobsTab ? "Saved Jobs" : activeCollection ? (activeCollection.name ?? "Collection") : "All Saved Items"}
                 </Text>
                 <Text fontSize="0.8rem" color="grey.400" fontFamily="Outfit">
-                  {collectionId
+                  {isJobsTab
+                    ? `${savedJobs.length} job${savedJobs.length !== 1 ? "s" : ""}`
+                    : collectionId
                     ? `${collectionPosts.length} post${collectionPosts.length !== 1 ? "s" : ""}`
-                    : `${bookmarks.length} saved item${bookmarks.length !== 1 ? "s" : ""}`}
+                    : "All saved items"}
                 </Text>
               </VStack>
 
@@ -368,19 +409,24 @@ function SavedPage() {
             <Box display={{ base: "block", lg: "none" }} mt={3}>
               <HStack gap={2} flexWrap="wrap">
                 <Box
-                  px={3}
-                  py={1}
-                  rounded="full"
-                  cursor="pointer"
-                  fontSize="0.8rem"
-                  fontFamily="Outfit"
-                  fontWeight={!collectionId ? "600" : "400"}
-                  bg={!collectionId ? "#111D4A" : "main_background"}
-                  color={!collectionId ? "white" : "text_primary"}
-                  transition="all 0.15s"
-                  onClick={handleBack}
+                  px={3} py={1} rounded="full" cursor="pointer"
+                  fontSize="0.8rem" fontFamily="Outfit"
+                  fontWeight={!collectionId && !isJobsTab ? "600" : "400"}
+                  bg={!collectionId && !isJobsTab ? "#111D4A" : "main_background"}
+                  color={!collectionId && !isJobsTab ? "white" : "text_primary"}
+                  transition="all 0.15s" onClick={handleBack}
                 >
                   All
+                </Box>
+                <Box
+                  px={3} py={1} rounded="full" cursor="pointer"
+                  fontSize="0.8rem" fontFamily="Outfit"
+                  fontWeight={isJobsTab ? "600" : "400"}
+                  bg={isJobsTab ? "#111D4A" : "main_background"}
+                  color={isJobsTab ? "white" : "text_primary"}
+                  transition="all 0.15s" onClick={handleJobsTab}
+                >
+                  Jobs
                 </Box>
                 {collections.map((col) => (
                   <Box
@@ -405,7 +451,58 @@ function SavedPage() {
           </Box>
 
           {/* Posts */}
-          {collectionId ? (
+          {isJobsTab ? (
+            savedJobsLoading ? (
+              [...Array(3)].map((_, i) => <SkeletonPost key={i} />)
+            ) : savedJobs.length === 0 ? (
+              <EmptyState
+                icon={<BsBriefcase />}
+                title="No saved jobs yet"
+                subtitle="Save jobs you're interested in and they'll appear here."
+              />
+            ) : (
+              savedJobs.map((job: any) => (
+                  <Box key={job.id} bg="bg_box" rounded="xl" p={4} cursor="pointer"
+                    onClick={() => router.push(`/jobs/${job.id}`)}
+                    _hover={{ opacity: 0.9 }}
+                  >
+                    <HStack gap={3} align="flex-start">
+                      <Box w="44px" h="44px" rounded="lg" bg="gray.100" flexShrink={0}
+                        display="flex" alignItems="center" justifyContent="center"
+                      >
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                          <path d="M3 9C3 7.34315 4.34315 6 6 6H18C19.6569 6 21 7.34315 21 9V18C21 19.6569 19.6569 21 18 21H6C4.34315 21 3 19.6569 3 18V9Z" stroke="#9CA3AF" strokeWidth="1.5"/>
+                          <path d="M8 6V5C8 3.89543 8.89543 3 10 3H14C15.1046 3 16 3.89543 16 5V6" stroke="#9CA3AF" strokeWidth="1.5" strokeLinecap="round"/>
+                          <path d="M3 12H21" stroke="#9CA3AF" strokeWidth="1.5" strokeLinecap="round"/>
+                          <path d="M10 12V13C10 13.5523 10.4477 14 11 14H13C13.5523 14 14 13.5523 14 13V12" stroke="#9CA3AF" strokeWidth="1.5" strokeLinecap="round"/>
+                        </svg>
+                      </Box>
+                      <VStack align="flex-start" gap={0.5} flex={1} minW={0}>
+                        <Text fontWeight="600" fontSize="0.95rem" color="text_primary" fontFamily="Outfit" truncate>
+                          {job.title ?? "Job"}
+                        </Text>
+                        <Text fontSize="0.8rem" color="grey.500" fontFamily="Outfit" truncate>
+                          {job.companyName || ""}
+                        </Text>
+                        {job.location && (
+                          <Text fontSize="0.75rem" color="grey.400" fontFamily="Outfit">
+                            {job.location?.city && job.location?.country
+                              ? `${job.location.city}, ${job.location.country}`
+                              : job.location?.officeLocation ?? ""}
+                          </Text>
+                        )}
+                        {job.workplaceType && (
+                          <Text fontSize="0.7rem" color="primary.950" fontFamily="Outfit" fontWeight="600" textTransform="capitalize">
+                            {job.workplaceType} · {job.jobType}
+                          </Text>
+                        )}
+                      </VStack>
+                    </HStack>
+                  </Box>
+                )
+              )
+            )
+          ) : collectionId ? (
             collectionPostsLoading ? (
               [...Array(3)].map((_, i) => <SkeletonPost key={i} />)
             ) : collectionPosts.length === 0 ? (

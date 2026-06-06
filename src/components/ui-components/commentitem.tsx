@@ -24,11 +24,9 @@ import { isEmpty, size } from "es-toolkit/compat";
 import { useAuth } from "mangarine/state/hooks/user.hook";
 import {
   deleteCommentOnPost,
-  followCreator,
   likeComment,
   Post,
   replyToComment,
-  unfollowCreator,
   unlikeComment,
 } from "mangarine/state/reducers/post.reducer";
 import {
@@ -42,7 +40,7 @@ import { memo, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/router";
 import { FiThumbsUp } from "react-icons/fi";
 import { IoEllipsisVerticalOutline } from "react-icons/io5";
-import { useFollowUserMutation } from "mangarine/state/services/posts.service";
+import { useFollowUserMutation, useUnfollowUserMutation } from "mangarine/state/services/posts.service";
 import { toaster } from "mangarine/components/ui/toaster";
 
 import { useDispatch } from "react-redux";
@@ -113,6 +111,7 @@ const CommentItem = ({
   const [replyText, setReplyText] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
   const [addFollower] = useFollowUserMutation();
+  const [removeFollower] = useUnfollowUserMutation();
   const emojiRef = useRef(null);
 
   useClickAway(emojiRef, () => {
@@ -120,7 +119,7 @@ const CommentItem = ({
   });
 
   const [showPicker, setShowPicker] = useState(false);
-  const [follow, setFollow] = useState(false);
+  const [follow, setFollow] = useState<boolean>(Boolean((post?.creator as any)?.followStatus?.isFollowing ?? (post as any)?.isFollowingCreator));
   const { id: creatorId } = post?.creator || {};
   const onEmojiClick = (emojiObject) => {
     setReplyText(`${replyText} ${emojiObject.emoji}`);
@@ -276,31 +275,28 @@ const CommentItem = ({
       return;
     }
 
-    addFollower({ targetUserId: creatorId })
+    // Optimistic update
+    const prev = follow;
+    setFollow(!prev);
+
+    const mutation = prev
+      ? removeFollower({ targetUserId: creatorId })
+      : addFollower({ targetUserId: creatorId });
+
+    mutation
       .unwrap()
       .then((result) => {
-        const isFollowing = Boolean(result?.isFollowing);
-
-        setFollow(isFollowing);
+        const nextState = Boolean((result as any)?.data?.isFollowing ?? result?.isFollowing ?? !prev);
+        setFollow(nextState);
         toaster.create({
-          description: isFollowing
-            ? "User followed successfully"
-            : "User unfollowed successfully",
-          type: isFollowing ? "success" : "info",
+          description: nextState ? "User followed successfully" : "User unfollowed successfully",
+          type: nextState ? "success" : "info",
           closable: true,
         });
-
-        const postId = (post as any)?.id;
-        if (postId) {
-          if (isFollowing) {
-            dispatch(followCreator({ postId, creatorId }));
-          } else {
-            dispatch(unfollowCreator({ postId, creatorId }));
-          }
-        }
       })
-      .catch((error) => {
-        console.error("Error following/unfollowing creator:", error);
+      .catch(() => {
+        setFollow(prev); // rollback
+        toaster.create({ description: "Failed to update follow state", type: "error", closable: true });
       });
   };
   return (
@@ -418,7 +414,7 @@ const CommentItem = ({
                 {user?.id !== creatorId ||
                   (comment.author?.id && (
                     <Menu.Item value="new-txt-a" onClick={handleFollow}>
-                      Follow
+                      {follow ? "Unfollow" : "Follow"}
                     </Menu.Item>
                   ))}
 

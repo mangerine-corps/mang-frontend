@@ -23,8 +23,6 @@ import { Controller, useForm } from "react-hook-form";
 import DatePicker from "react-datepicker";
 
 
-// import Toast from "../Error";
-import { BiSolidError } from "react-icons/bi";
 import { setUpdatedInfo } from "mangarine/state/reducers/auth.reducer";
 import { isEmpty } from "es-toolkit/compat";
 import { useAuth } from "mangarine/state/hooks/user.hook";
@@ -33,7 +31,7 @@ import {
   useUpdateProfileInfoMutation,
   useUpdateProfilePictureMutation,
 } from "mangarine/state/services/profile.service";
-import Toast from "./Error";
+import { toaster } from "../ui/toaster";
 import { FaTimes } from "react-icons/fa";
 
 
@@ -47,8 +45,6 @@ const EditProfileModal = ({
   onOpenChange: () => void;
 }) => {
   const [previewUrl, setPreviewUrl] = useState(null);
-  const [showToast, setShowToast] = useState(false);
-  const [errorMessage, setErrorMessage] = useState("");
   const [updateProfilePic] = useUpdateProfilePictureMutation();
   const [updateBanner] = useUpdateProfileBannerMutation();
   const [updateProfile] = useUpdateProfileInfoMutation();
@@ -174,9 +170,7 @@ const EditProfileModal = ({
       })
       .catch((err) => {
         console.log("updateProfile error", err);
-        const errorData = err?.data;
-        setErrorMessage(errorData?.message ?? "Something went wrong");
-        setShowToast(true);
+        toaster.create({ description: err?.data?.message ?? "Something went wrong", type: "error", closable: true });
       });
   };
   return (
@@ -383,14 +377,6 @@ const EditProfileModal = ({
                   </Box>
                 </Box>
               </Box>
-              {showToast && (
-                <Toast
-                  message={errorMessage}
-                  icon={BiSolidError}
-                  type="error"
-                  close={() => setShowToast(false)}
-                />
-              )}
               <Controller
                 control={control}
                 rules={{

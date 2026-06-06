@@ -1,156 +1,76 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
-import { useDispatch } from "react-redux";
-import { toaster } from "mangarine/components/ui/toaster";
+import { useCallback, useMemo, useState, useEffect } from "react";
 import { useAuth } from "mangarine/state/hooks/user.hook";
 import {
   useFollowUserMutation,
   useUnfollowUserMutation,
-  useFollowUserLegacyMutation,
-  useUnfollowUserLegacyMutation,
   useGetFollowingQuery,
 } from "mangarine/state/services/posts.service";
-import {
-  followCreator,
-  unfollowCreator,
-} from "mangarine/state/reducers/post.reducer";
+import { toaster } from "mangarine/components/ui/toaster";
 
 interface UseFollowOptions {
-  // Target user to follow/unfollow
   targetUserId?: string | null;
-  // Optional initial state if known from server
+  // If provided (true/false), skip the API check. If undefined, fall back to API.
   initialIsFollowing?: boolean;
-  // Optional postId context for reducers that expect it
   postIdContext?: string;
 }
 
-export const useFollow = ({
-  targetUserId,
-  initialIsFollowing = false,
-  postIdContext,
-}: UseFollowOptions) => {
-  const dispatch = useDispatch();
+export const useFollow = ({ targetUserId, initialIsFollowing, postIdContext }: UseFollowOptions) => {
   const { user } = useAuth();
-  const [mutateFollow, { isLoading: isFollowLoading }] =
-    useFollowUserMutation();
-  const [mutateUnfollow, { isLoading: isUnfollowLoading }] =
-    useUnfollowUserMutation();
-  const [isFollowing, setIsFollowing] = useState<boolean>(
-    Boolean(initialIsFollowing)
-  );
-  const [followLegacy] = useFollowUserLegacyMutation();
-  const [unfollowLegacy] = useUnfollowUserLegacyMutation();
-  const { data, error , refetch} = useGetFollowingQuery(
+  const [mutateFollow, { isLoading: isFollowLoading }] = useFollowUserMutation();
+  const [mutateUnfollow, { isLoading: isUnfollowLoading }] = useUnfollowUserMutation();
+
+  const [isFollowing, setIsFollowing] = useState<boolean>(Boolean(initialIsFollowing));
+
+  const skipApiCheck = initialIsFollowing !== undefined;
+
+  // Only hit API when followStatus is not provided on the object
+  const { data } = useGetFollowingQuery(
     { targetUserId },
-    {
-      skip: !targetUserId,
-    }
+    { skip: !targetUserId || skipApiCheck }
   );
 
+  useEffect(() => {
+    if (!skipApiCheck) {
+      const val = data?.data?.isFollowing;
+      if (val !== undefined) setIsFollowing(val);
+    }
+  }, [data, skipApiCheck]);
+
+  useEffect(() => {
+    if (initialIsFollowing !== undefined) setIsFollowing(Boolean(initialIsFollowing));
+  }, [initialIsFollowing]);
+
   const canFollow = useMemo(
-    () =>
-      Boolean(user?.id) && Boolean(targetUserId) && user?.id !== targetUserId,
+    () => Boolean(user?.id) && Boolean(targetUserId) && user?.id !== targetUserId,
     [user?.id, targetUserId]
   );
-  // console.log(data?.data.isFollowing, error, targetUserId, "isfollo")
+
   const label = isFollowing ? "Unfollow" : "Follow";
-  const isFollow = data?.data.isFollowing;
-  useEffect(() => {
-    if (isFollow !== undefined) {
-      setIsFollowing(isFollow);
-    }
-  }, [isFollow]);
 
   const toggleFollow = useCallback(async () => {
     if (!canFollow) return;
 
+    const prev = isFollowing;
+    setIsFollowing(!prev); // optimistic
+
     try {
-      const mode = (
-        process.env.NEXT_PUBLIC_FOLLOW_API_MODE || "auto"
-      ).toLowerCase();
-      let result: any;
+      const result = prev
+        ? await mutateUnfollow({ targetUserId: targetUserId! }).unwrap()
+        : await mutateFollow({ targetUserId: targetUserId! }).unwrap();
 
-      if (mode === "legacy") {
-        // Use only legacy routes
-        result = isFollowing
-          ? await unfollowLegacy({
-              currentUserId: user!.id,
-              targetUserId: targetUserId!,
-            }).unwrap()
-          : await followLegacy({
-              currentUserId: user!.id,
-              targetUserId: targetUserId!,
-            }).unwrap();
-      } else if (mode === "generic") {
-        // Use only generic routes
-        result = isFollowing
-          ? await mutateUnfollow({ targetUserId: targetUserId! }).unwrap()
-          : await mutateFollow({ targetUserId: targetUserId! }).unwrap();
-
-    await refetch();
-      } else {
-        // Auto: try generic then fallback to legacy on 404
-        try {
-          result = isFollowing
-            ? await mutateUnfollow({ targetUserId: targetUserId! }).unwrap()
-            : await mutateFollow({ targetUserId: targetUserId! }).unwrap();
-        } catch (err: any) {
-          const status =
-            err?.status || err?.originalStatus || err?.data?.statusCode;
-          if (status === 404 && user?.id) {
-            result = isFollowing
-              ? await unfollowLegacy({
-                  currentUserId: user.id,
-                  targetUserId: targetUserId!,
-                }).unwrap()
-              : await followLegacy({
-                  currentUserId: user.id,
-                  targetUserId: targetUserId!,
-                }).unwrap();
-          } else {
-            throw err;
-          }
-        }
-      }
-
-      const { isFollowing: nextState, message } = result?.data ?? result ?? {};
-
-      setIsFollowing(Boolean(nextState));
-
-      if (postIdContext && targetUserId) {
-        if (nextState) {
-          dispatch(
-            followCreator({ postId: postIdContext, creatorId: targetUserId })
-          );
-        } else {
-          dispatch(
-            unfollowCreator({ postId: postIdContext, creatorId: targetUserId })
-          );
-        }
-      }
+      const nextState = result?.data?.isFollowing;
+      if (nextState !== undefined) setIsFollowing(Boolean(nextState));
 
       toaster.create({
-        description:
-          message ||
-          (nextState
-            ? "User followed successfully"
-            : "User unfollowed successfully"),
-        type: nextState ? "success" : "info",
+        description: !prev ? "User followed successfully" : "User unfollowed successfully",
+        type: !prev ? "success" : "info",
         closable: true,
       });
-    } catch (error) {
-      toaster.create({
-        description: "Failed to update follow state",
-        type: "error",
-        closable: true,
-      });
+    } catch {
+      setIsFollowing(prev); // rollback
+      toaster.create({ description: "Failed to update follow state", type: "error", closable: true });
     }
-  }, [canFollow, user, targetUserId, isFollowing, mutateFollow, mutateUnfollow, followLegacy, unfollowLegacy, refetch, dispatch, postIdContext]);
+  }, [canFollow, isFollowing, targetUserId, mutateFollow, mutateUnfollow]);
 
-  return {
-    isFollowing,
-    isLoading: isFollowLoading || isUnfollowLoading,
-    label,
-    toggleFollow,
-    canFollow,
-  };
+  return { isFollowing, isLoading: isFollowLoading || isUnfollowLoading, label, toggleFollow, canFollow };
 };

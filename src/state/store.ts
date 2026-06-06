@@ -166,8 +166,14 @@ let persistorStarted = false;
 export const isPersistorReady = () => persistorReady;
 
 export const onPersistorReady = (cb: () => void) => {
-  if (persistorReady) { cb(); return; }
+  if (persistorReady) {
+    cb();
+    return () => {};
+  }
   persistReadyListeners.add(cb);
+  return () => {
+    persistReadyListeners.delete(cb);
+  };
 };
 
 export const startPersistor = (onReady?: () => void) => {

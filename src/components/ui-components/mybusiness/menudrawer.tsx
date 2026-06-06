@@ -154,26 +154,6 @@ const MenuList = ({
                           Feedback/Review
                         </Text>
                       </HStack>
-                      <HStack
-                        pos="absolute"
-                        bottom="-2.5"
-                        p="0"
-                        m="0"
-                        onClick={() => {
-                          setfeedbackActivePage("payment");
-                        }}
-                      >
-                        {" "}
-                        <Box w="20" h="0.5" bg="grey.500"></Box>
-                        <Text
-                          color="text_primary"
-                          w="full"
-                          textWrap={"nowrap"}
-                          _hover={{ color: "grey.300" }}
-                        >
-                          Payment Settings
-                        </Text>
-                      </HStack>
                     </VStack>
                   )}
                 {activeTab === item.id &&

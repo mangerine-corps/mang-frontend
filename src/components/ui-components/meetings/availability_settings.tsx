@@ -1,142 +1,98 @@
-import { Accordion, Box, Button, Flex, HStack, Image, Switch, Text, VStack, } from "@chakra-ui/react";
+import { Box, Button, HStack, Switch, Text, VStack } from "@chakra-ui/react";
 import { useEffect, useState } from "react";
 import { outfit } from "mangarine/pages/_app";
 import CustomSelect from "mangarine/components/customcomponents/select";
 import { SelectOptions } from "mangarine/types";
 import { generateTimeSlots } from "mangarine/utils/helper";
-import { isEmpty, size } from "es-toolkit/compat";
 import { DaySchedule, generateAvailability } from "mangarine/utils/availability";
-import { useConsultants } from "mangarine/state/hooks/consultant.hook";
 import { useCreateAvailabilityMutation, useGetCurrentAvailabilitySettingsQuery } from "mangarine/state/services/availability.service";
 import { toaster } from "mangarine/components/ui/toaster";
 
 const timezonesCollection: SelectOptions[] = [
-    {
-        id: "1",
-        label: "(UTC-8:00) Pacific Time",
-        value: "(UTC-8:00) Pacific Time",
-    },
-    {
-        id: "2",
-        label: "(UTC+1:00) West Africa Time",
-        value: "(UTC+1:00) West Africa Time",
-    },
+    { id: "1", label: "(UTC-8:00) Pacific Time", value: "(UTC-8:00) Pacific Time" },
+    { id: "2", label: "(UTC+1:00) West Africa Time", value: "(UTC+1:00) West Africa Time" },
     { id: "3", label: "(UTC+0:00) GMT", value: "(UTC+0:00) GMT" },
 ];
 
-const durationsCollection: SelectOptions[] = [
-    { id: "3", label: "60 min", value: "60" },
-    { id: "4", label: "Custom", value: "custom" },
-];
-
-const defaultSlots = [{ from: [""], to: [""] }];
-
-const daysOfWeek = [
-    "Monday",
-    "Tuesday",
-    "Wednesday",
-    "Thursday",
-    "Friday",
-    "Saturday",
-    "Sunday",
-];
+const daysOfWeek = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
 
 const AvailabilitySettings = () => {
     const [timezone, setTimezone] = useState<string[]>([]);
-    const [duration, setDuration] = useState<string[]>([]);
-    const [slots, setSlots] = useState([]);
+    const [slots, setSlots] = useState<SelectOptions[]>([]);
     const [createAvailability] = useCreateAvailabilityMutation();
 
-    // Fetch current availability settings
     const { data: currentSettings, isLoading, error } = useGetCurrentAvailabilitySettingsQuery(undefined, {
-        refetchOnMountOrArgChange: true
+        refetchOnMountOrArgChange: true,
     });
 
     const [availability, setAvailability] = useState<DaySchedule[]>(
         daysOfWeek.map((day) => ({
             day,
             enabled: day !== "Saturday" && day !== "Sunday",
-            slots: [],
-            duration: "",
+            slots: [{ from: [""], to: [""] }],
+            duration: ["60"],
         }))
     );
 
-    // Load current settings when component mounts or data changes
     useEffect(() => {
         if (currentSettings?.data) {
             const { timezone: currentTimezone, availability: currentAvailability } = currentSettings.data;
-
-            // Set timezone
-            if (currentTimezone) {
-                setTimezone([currentTimezone]);
-            }
-
-            // Set availability settings
-            if (currentAvailability && currentAvailability.length > 0) {
-                // Map the current availability to the component state
-                const updatedAvailability = daysOfWeek.map((day) => {
-                    const existingDay = currentAvailability.find((item: any) => item.day === day);
-                    if (existingDay) {
+            if (currentTimezone) setTimezone([currentTimezone]);
+            if (currentAvailability?.length > 0) {
+                const updated = daysOfWeek.map((day) => {
+                    const existing = currentAvailability.find((item: any) => item.day === day);
+                    if (existing) {
                         return {
                             day,
-                            enabled: existingDay.enabled !== false, // Default to true if not explicitly false
-                            slots: existingDay.slots || [],
-                            duration: existingDay.duration ? [existingDay.duration] : [],
+                            enabled: existing.enabled !== false,
+                            slots: existing.slots?.length > 0 ? existing.slots : [{ from: [""], to: [""] }],
+                            duration: existing.duration ? [existing.duration] : ["60"],
                         };
                     }
                     return {
                         day,
                         enabled: day !== "Saturday" && day !== "Sunday",
-                        slots: [],
-                        duration: "",
+                        slots: [{ from: [""], to: [""] }],
+                        duration: ["60"],
                     };
                 });
-                setAvailability(updatedAvailability);
+                setAvailability(updated);
             }
         }
     }, [currentSettings]);
 
-    const handleToggle = (index) => {
-        setAvailability((prev) =>
-            prev.map((item, i) =>
-                i === index ? { ...item, enabled: !item.enabled } : item
-            )
-        );
-    };
-
-
-    const handleSlotChange = (index, slotIndex, field, value) => {
-        const updated = [...availability];
-        updated[index].slots[slotIndex][field] = value;
-        setAvailability(updated);
-    };
-    const handleDurationChange = (index: number, value) => {
-        const updated = [...availability];
-        updated[index].duration = value;
-        setAvailability(updated);
-    };
     useEffect(() => {
         const genSlots = generateTimeSlots("07:00", "20:00", 60);
         setSlots(genSlots);
     }, []);
 
-    const addSlot = (index) => {
-        const updated = [...availability];
-        updated[index].slots.push({ from: [""], to: [""] });
-        setAvailability(updated);
+    const handleToggle = (index: number) => {
+        setAvailability((prev) =>
+            prev.map((item, i) => {
+                if (i !== index) return item;
+                const nowEnabled = !item.enabled;
+                return {
+                    ...item,
+                    enabled: nowEnabled,
+                    slots: item.slots.length === 0 ? [{ from: [""], to: [""] }] : item.slots,
+                };
+            })
+        );
     };
 
-    const removeSlot = (index, slotIndex) => {
-        const updated = [...availability];
-        updated[index].slots.splice(slotIndex, 1);
-        setAvailability(updated);
+    const handleSlotChange = (index: number, field: "from" | "to", value: string[]) => {
+        setAvailability((prev) =>
+            prev.map((item, i) => {
+                if (i !== index) return item;
+                const updatedSlots = item.slots.length > 0
+                    ? [{ ...item.slots[0], [field]: value }, ...item.slots.slice(1)]
+                    : [{ from: [], to: [], [field]: value }];
+                return { ...item, slots: updatedSlots };
+            })
+        );
     };
 
-    const handleTimeZone = (value: any) => {
-        setTimezone(value);
-    };
     const handleAvailabilityUpdate = () => {
-        // Ensure timezone selected
         if (!timezone?.[0]) {
             toaster.create({
                 title: "Select time zone",
@@ -148,361 +104,196 @@ const AvailabilitySettings = () => {
             return;
         }
 
-        // Default missing durations to 60 minutes for enabled days
-        let appliedDefaults = 0;
-        const normalized = availability.map((day) => {
-            if (day.enabled && (isEmpty(day.duration) || !day.duration?.[0])) {
-                appliedDefaults += 1;
-                return { ...day, duration: ["60"] };
-            }
-            return day;
-        });
+        const normalized = availability.map((day) => ({
+            ...day,
+            duration: Array.isArray(day.duration) && day.duration[0] ? day.duration : ["60"],
+        }));
 
-        if (appliedDefaults > 0) {
-            toaster.create({
-                title: "Default duration applied",
-                description: `Set ${appliedDefaults} day(s) to 60 minutes by default.`,
-                type: "info",
-                closable: true,
-                duration: 4000,
-            });
-        }
-
-        const parsedAvailabilities = generateAvailability(normalized, new Date, 3);
+        const parsedAvailabilities = generateAvailability(normalized, new Date(), 3);
         const formData = {
             timezone: timezone[0],
-            availability_settings: normalized.filter((avail) => !isEmpty(avail.duration)),
-            availabilities: parsedAvailabilities
-        }
-        createAvailability(formData).unwrap().then((payload: any) => {
-            const { data } = payload;
-            toaster.create({
-                title: "Success",
-                description: "You availabilities settings have been, created and setup successfully",
-                type: "success",
-                closable: true,
-                duration: 6000,
+            availability_settings: normalized.filter((avail) => avail.enabled),
+            availabilities: parsedAvailabilities,
+        };
+
+        createAvailability(formData)
+            .unwrap()
+            .then(() => {
+                toaster.create({
+                    title: "Success",
+                    description: "Your availability settings have been saved successfully",
+                    type: "success",
+                    closable: true,
+                    duration: 6000,
+                });
             })
-        }).catch((error) => {
-            console.log(error)
-        })
+            .catch(console.error);
     };
 
     return (
         <VStack
             w="100%"
             mx="auto"
-            minH={"full"}
-            px={4}
+            minH="full"
+            px={6}
             className={outfit.className}
             boxShadow="md"
             borderRadius="md"
             bg="main_background"
-            py="5"
-            justifyContent={"flex-start"}
-            alignItems={"flex-start"}
+            py={6}
+            justifyContent="flex-start"
+            alignItems="flex-start"
         >
-            <Text
-                fontWeight="600"
-                lineHeight={{ base: "24px", md: "24px", lg: "36px" }}
-                fontSize={{ base: "1.2rem", md: "1.2rem", lg: "1.5rem" }}
-                color="text_primary"
-                pb="4"
-            >
-                Schedule Timing
-            </Text>
+            <VStack w="full" alignItems="flex-start" gap={1} pb={4}>
+                <Text fontWeight="600" fontSize={{ base: "1.25rem", lg: "1.5rem" }} color="text_primary">
+                    Availability
+                </Text>
+                <Text fontSize={{ base: "0.875rem", lg: "1rem" }} color="gray.500">
+                    Please update your availability for consultation
+                </Text>
+            </VStack>
 
-            {/* Loading State */}
             {isLoading && (
                 <Box w="full" textAlign="center" py={8}>
                     <Text color="gray.500">Loading availability settings...</Text>
                 </Box>
             )}
 
-            {/* Error State */}
             {error && (
                 <Box w="full" textAlign="center" py={8}>
                     <Text color="red.500">Error loading availability settings. Please try again.</Text>
                 </Box>
             )}
 
-            {/* Main Content - Only show when not loading and no errors */}
             {!isLoading && !error && (
                 <>
-                    <VStack
+                    {/* Time Zone */}
+                    <HStack
                         w="full"
-                        justifyContent={"flex-start"}
-                        alignItems={"flex-start"}
-                        gap={"8px"}
-                        pb="4"
+                        justify="space-between"
+                        alignItems="center"
+                        py={3}
+                        borderBottom="1px"
+                        borderColor="gray.100"
+                        flexWrap={{ base: "wrap", md: "nowrap" }}
+                        gap={3}
                     >
-                        <Text
-                            fontSize={{ base: "1rem", md: "1.2rem", lg: "1.5rem" }}
-                            fontWeight="600"
-                            color="text_primary"
-                            font="outfit"
-                        >
-                            Availability
-                        </Text>
-                        <Text
-                            fontSize={{ base: "0.875rem", md: "1rem", lg: "1.25rem" }}
-                            fontWeight="400"
-                            color="gray.500"
-                            font="outfit"
-                        >
-                            Please update your availability for consultation
-                        </Text>
-                    </VStack>
+                        <Box flex={1}>
+                            <Text fontWeight="600" fontSize="0.9375rem" color="text_primary">Time Zone</Text>
+                            <Text fontSize="0.8125rem" color="gray.500">Set your time zone</Text>
+                        </Box>
+                        <Box minW="200px" flex={1.5}>
+                            <CustomSelect
+                                id="timezone"
+                                defaultValue={[timezonesCollection[0].label]}
+                                placeholder="Please select your time zone"
+                                name=""
+                                size="md"
+                                options={timezonesCollection}
+                                label=""
+                                isMulti={false}
+                                value={timezone}
+                                required={false}
+                                error={{}}
+                                onChange={(v: any) => setTimezone(v)}
+                            />
+                        </Box>
+                    </HStack>
 
-                    <VStack align="start" gap={"8px"} w="full">
-                        {/* Time Zone Row */}
+                    {/* Day rows */}
+                    {availability.map((day, index) => (
                         <HStack
+                            key={day.day}
                             w="full"
                             justify="space-between"
                             alignItems="center"
-                            flexWrap="wrap"
-                            gap={"8px"}
+                            py={3}
+                            borderBottom="1px"
+                            borderColor="gray.100"
+                            flexWrap={{ base: "wrap", md: "nowrap" }}
+                            gap={3}
                         >
-                            <Box flex={2}>
-                                <Text
-                                    fontSize={{ base: "0.875rem", md: "1rem", lg: "1.25rem" }}
-                                    fontWeight="600"
-                                    color="text_primary"
-                                    mb={1}
+                            <HStack flex={1} minW="140px">
+                                <Switch.Root
+                                    checked={day.enabled}
+                                    onChange={() => handleToggle(index)}
+                                    size="lg"
                                 >
-                                    Time Zone
-                                </Text>
-                                <Text fontSize={{ base: "0.8rem", md: "0.875rem", lg: "1rem" }} fontWeight="400" color="gray.500">
-                                    Set time zone
-                                </Text>
-                            </Box>
-                            <Box flex={2.5}>
-                                <CustomSelect
-                                    id={"timezone"}
-                                    defaultValue={[timezonesCollection[0].label]}
-                                    placeholder="Please select your time zone"
-                                    name={""}
-                                    size={{ base: "sm", md: "md", lg: "lg" }}
-                                    options={timezonesCollection}
-                                    label=""
-                                    isMulti={false}
-                                    value={timezone}
-                                    required={false}
-                                    error={{}}
-                                    onChange={handleTimeZone}
-                                />
-                            </Box>
+                                    <Switch.HiddenInput />
+                                    <Switch.Control />
+                                    <Switch.Label fontWeight="500" fontSize="0.9375rem" color="text_primary">
+                                        {day.day}
+                                    </Switch.Label>
+                                </Switch.Root>
+                            </HStack>
+
+                            {day.enabled ? (
+                                <HStack gap={3} flex={2} justifyContent="flex-end">
+                                    <HStack gap={1} alignItems="center">
+                                        <Text fontSize="0.8125rem" color="gray.500" whiteSpace="nowrap">From:</Text>
+                                        <Box minW="110px">
+                                            <CustomSelect
+                                                id={`${day.day}-from`}
+                                                placeholder="9:00AM"
+                                                name=""
+                                                size="sm"
+                                                options={slots}
+                                                label=""
+                                                isMulti={false}
+                                                value={day.slots[0]?.from ?? []}
+                                                required={false}
+                                                error={{}}
+                                                onChange={(val: string[]) => handleSlotChange(index, "from", val)}
+                                            />
+                                        </Box>
+                                    </HStack>
+                                    <HStack gap={1} alignItems="center">
+                                        <Text fontSize="0.8125rem" color="gray.500" whiteSpace="nowrap">To:</Text>
+                                        <Box minW="110px">
+                                            <CustomSelect
+                                                id={`${day.day}-to`}
+                                                placeholder="8:00PM"
+                                                name=""
+                                                size="sm"
+                                                options={slots}
+                                                label=""
+                                                isMulti={false}
+                                                value={day.slots[0]?.to ?? []}
+                                                required={false}
+                                                error={{}}
+                                                onChange={(val: string[]) => handleSlotChange(index, "to", val)}
+                                            />
+                                        </Box>
+                                    </HStack>
+                                </HStack>
+                            ) : (
+                                <Box bg="gray.100" px={4} py={3} borderRadius="md" flex={2}>
+                                    <Text color="gray.400" fontSize="0.9375rem">Unavailable</Text>
+                                </Box>
+                            )}
                         </HStack>
+                    ))}
 
-                        {/* Appointment Duration Row */}
-                        <Flex
-                            w="full"
-                            justify="space-between"
-                            alignItems="center"
-                            flexWrap="wrap"
-                            gap={4}
-                        >
-                            <Box flex={2}>
-                                <Text fontSize={{ base: "0.875rem", md: "1rem", lg: "1.25rem" }} fontWeight="600" color="text_primary">
-                                    Preferred Appointment Duration
-                                </Text>
-                            </Box>
-
-                            <Box flex={2.5}>
-                                <CustomSelect
-                                    id={"duration"}
-                                    placeholder="Please select preffered duration time"
-                                    name={""}
-                                    size={{ base: "sm", md: "md", lg: "lg" }}
-                                    options={durationsCollection}
-                                    label=""
-                                    isMulti={false}
-                                    value={duration}
-                                    required={false}
-                                    error={{}}
-                                    onChange={(value: any) => setDuration(value)}
-                                />
-                            </Box>
-                        </Flex>
-                    </VStack>
-
-                    <Accordion.Root collapsible defaultValue={["Monday", "Tuesday"]}>
-                        {availability.map((day, index) => (
-                            <Accordion.Item key={day.day} value={day.day} pb={"3"}>
-                                <Accordion.ItemTrigger>
-                                    <Flex
-                                        w="full"
-                                        color="text_primary"
-                                        fontSize="1.2rem"
-                                        fontWeight="500"
-                                        align="center"
-                                        justify="space-between"
-                                        py={3}
-                                    >
-                                        <HStack>
-                                            <Switch.Root
-                                                size={{ base: "sm", md: "md", lg: "lg" }}
-                                                checked={day.enabled}
-                                                onChange={() => handleToggle(index)}
-                                            >
-                                                <Switch.HiddenInput />
-                                                <Switch.Control />
-                                                <Switch.Label fontSize={{ base: "0.875rem", md: "1rem", lg: "1.25rem" }}>{day.day}</Switch.Label>
-                                            </Switch.Root>
-                                        </HStack>
-                                        <Accordion.ItemIndicator />
-                                    </Flex>
-                                </Accordion.ItemTrigger>
-
-                                <Accordion.ItemContent>
-                                    <Accordion.ItemBody>
-                                        {day.enabled ? (
-                                            <VStack gap={4} mt={4} alignItems="center">
-                                                {size(day.slots) > 0 ? day.slots.map((slot, slotIndex) => (
-                                                    <HStack
-                                                        alignSelf={"flex-end"}
-                                                        justifyContent={"flex-end"}
-                                                        alignItems={"center"}
-                                                        key={slotIndex}
-                                                        w="50%"
-                                                        gap={"2"}
-                                                    >
-                                                        <CustomSelect
-                                                            id={`${day.day}-${slotIndex}-from`}
-                                                            placeholder="07:00 AM"
-                                                            name={""}
-                                                            size={{ base: "sm", md: "md", lg: "lg" }}
-                                                            options={slots}
-                                                            label=""
-                                                            isMulti={false}
-                                                            defaultValue={!isEmpty(slots) && [slots[0].label]}
-                                                            value={slot.from}
-                                                            required={false}
-                                                            error={{}}
-                                                            onChange={(val) =>
-                                                                handleSlotChange(index, slotIndex, "from", val)
-                                                            }
-                                                        />
-                                                        <CustomSelect
-                                                            id={`${day.day}-${slotIndex}-to`}
-                                                            placeholder="09:00 PM"
-                                                            name={""}
-                                                            size={{ base: "sm", md: "md", lg: "lg" }}
-                                                            options={slots}
-                                                            label=""
-                                                            isMulti={false}
-                                                            defaultValue={!isEmpty(slots) && [slots[0].value]}
-                                                            value={slot.to}
-                                                            required={false}
-                                                            error={{}}
-                                                            onChange={(val) =>
-                                                                handleSlotChange(index, slotIndex, "to", val)
-                                                            }
-                                                        />
-
-                                                        {/* Show plus icon only for first slot */}
-                                                        {slotIndex === 0 && (
-                                                            <Button
-                                                                variant="ghost"
-                                                                minW="auto"
-                                                                px={2}
-                                                                onClick={() => addSlot(index)}
-                                                            >
-                                                                <Image
-                                                                    src="/icons/plus.svg"
-                                                                    alt="Add Time"
-                                                                // boxSize="20px"
-                                                                />
-                                                            </Button>
-                                                        )}
-
-                                                        {/* Show delete icon only for slots beyond the first */}
-                                                        {slotIndex > 0 && (
-                                                            <Image
-                                                                src="/icons/delete2.svg"
-                                                                alt="Remove"
-                                                                cursor="pointer"
-                                                                onClick={() => removeSlot(index, slotIndex)}
-                                                            />
-                                                        )}
-                                                    </HStack>
-                                                )) : (
-                                                    <Button onClick={() => addSlot(index)} alignSelf={'flex-end'} px={2}>Add slot</Button>
-                                                )}
-
-                                                <HStack
-                                                    justifyContent={"space-between"}
-                                                    alignItems={"center"}
-                                                    w={"full"}
-                                                >
-                                                    <Text
-                                                        fontSize={{ base: "0.8rem", md: "0.875rem", lg: "1rem" }}
-                                                        color="gray.900"
-                                                        // lineHeight={"150%"}
-                                                        fontWeight="400"
-                                                    >
-                                                        Preferred Appointment Duration:
-                                                    </Text>
-                                                    <HStack flex={1} justifySelf={"flex-end"}>
-                                                        {durationsCollection.map((opt) => (
-                                                            <Button
-                                                                key={opt.value}
-                                                                variant={
-                                                                    day.duration[0] === opt.value ? "solid" : "outline"
-                                                                }
-                                                                onClick={() => handleDurationChange(index, [opt.value])}
-                                                                mb={2}
-                                                                flex={"1"}
-                                                                bg={
-                                                                    day.duration[0] === opt.value
-                                                                        ? "blue.900"
-                                                                        : "gray.100"
-                                                                }
-                                                                color={
-                                                                    day.duration[0] === opt.value ? "white" : "gray.600"
-                                                                }
-                                                                _hover={{
-                                                                    bg:
-                                                                        day.duration[0] === opt.value
-                                                                            ? "blue.800"
-                                                                            : "gray.200",
-                                                                }}
-                                                            >
-                                                                {opt.label}
-                                                            </Button>
-                                                        ))}
-                                                    </HStack>
-                                                </HStack>
-                                            </VStack>
-                                        ) : (
-                                            <Text mt={3} color="gray.500">
-                                                Unavailable
-                                            </Text>
-                                        )}
-                                    </Accordion.ItemBody>
-                                </Accordion.ItemContent>
-                            </Accordion.Item>
-                        ))}
-                    </Accordion.Root>
-
-                    <HStack justifyContent="flex-end" mt={4}>
+                    <HStack justify="flex-end" w="full" mt={6} gap={3}>
                         <Button
-                            px={{ base: "4", md: "6", lg: "8" }}
+                            px={8}
                             borderRadius="8px"
                             border="1px solid"
+                            borderColor="gray.300"
                             variant="outline"
+                            color="text_primary"
                         >
                             Cancel
                         </Button>
                         <Button
-                            px={{ base: "4", md: "6", lg: "8" }}
+                            px={8}
                             borderRadius="8px"
                             onClick={handleAvailabilityUpdate}
-                            bg="blue.900"
+                            bg="primary.950"
                             color="white"
-                            _hover={{ bg: "blue.800" }}
+                            _hover={{ opacity: 0.9 }}
                         >
-                            Save Availability
+                            Save
                         </Button>
                     </HStack>
                 </>

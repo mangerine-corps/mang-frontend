@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import TopRightDrawer from "mangarine/components/ui/top-right-drawer";
 import { useGetFollowersListQuery, useGetFollowingListQuery } from "mangarine/state/services/profile.service";
-import { useFollowUserMutation } from "mangarine/state/services/posts.service";
+import { useFollowUserMutation, useUnfollowUserMutation } from "mangarine/state/services/posts.service";
 
 interface Props {
   open: boolean;
@@ -28,20 +28,33 @@ const FollowListItem = ({
   onNavigate?: () => void;
 }) => {
   const [localFollowing, setLocalFollowing] = useState<boolean>(isFollowingInitial);
-  const [followUser, { isLoading }] = useFollowUserMutation();
+  const [followUser, { isLoading: following }] = useFollowUserMutation();
+  const [unfollowUser, { isLoading: unfollowing }] = useUnfollowUserMutation();
+  const isLoading = following || unfollowing;
   const router = useRouter();
 
-  // Sync with parent when the following list refreshes after a mutation
   useEffect(() => {
     setLocalFollowing(isFollowingInitial);
   }, [isFollowingInitial]);
 
-  const handleFollow = (e: React.MouseEvent) => {
+  const handleToggle = (e: React.MouseEvent) => {
     e.stopPropagation();
-    followUser({ targetUserId: item?.id ?? item?._id })
-      .unwrap()
-      .then((res) => setLocalFollowing(res.isFollowing))
-      .catch(() => {});
+    const id = item?.id ?? item?._id;
+    if (!id) return;
+
+    const prev = localFollowing;
+    setLocalFollowing(!prev); // optimistic
+
+    const mutation = prev
+      ? unfollowUser({ targetUserId: id })
+      : followUser({ targetUserId: id });
+
+    mutation.unwrap().then((res) => {
+      const next = (res as any)?.data?.isFollowing ?? res?.isFollowing ?? !prev;
+      setLocalFollowing(Boolean(next));
+    }).catch(() => {
+      setLocalFollowing(prev); // rollback
+    });
   };
 
   const goToProfile = () => {
@@ -81,15 +94,15 @@ const FollowListItem = ({
         size="sm"
         px={4}
         borderRadius="8px"
-        onClick={handleFollow}
+        onClick={handleToggle}
         disabled={isLoading}
-        bg={localFollowing ? "transparent" : "primary.500"}
-        color={localFollowing ? "primary.500" : "white"}
-        borderWidth="1px"
-        borderColor="primary.500"
+        bg="transparent"
+        color={localFollowing ? "red.500" : "primary.950"}
+        borderWidth="2px"
+        borderColor={localFollowing ? "red.400" : "primary.950"}
         flexShrink={0}
       >
-        {isLoading ? <Spinner size="xs" /> : localFollowing ? "Following" : "Follow Back"}
+        {isLoading ? <Spinner size="xs" /> : localFollowing ? "Unfollow" : "Follow +"}
       </Button>
     </HStack>
   );
@@ -98,7 +111,6 @@ const FollowListItem = ({
 const FollowersFollowingDrawer = ({ open, onClose, type, profileId, count }: Props) => {
   const isFollowers = type === "followers";
 
-  // Always fetch both lists so we can cross-reference follow state
   const { data: followersData, isFetching: loadingFollowers } = useGetFollowersListQuery(
     { profileId },
     { skip: !open || !profileId }
@@ -111,7 +123,7 @@ const FollowersFollowingDrawer = ({ open, onClose, type, profileId, count }: Pro
   const followersList = normalizeList(followersData);
   const followingList = normalizeList(followingData);
 
-  // Build a set of IDs the current user is following for O(1) lookup
+  // Build a set of IDs the current user is following for cross-reference
   const followingIds = new Set<string>(
     followingList.map((u: any) => u?.id ?? u?._id).filter(Boolean)
   );
@@ -122,11 +134,7 @@ const FollowersFollowingDrawer = ({ open, onClose, type, profileId, count }: Pro
   const title = `${isFollowers ? "Followers" : "Following"}${count !== undefined ? ` (${count})` : ""}`;
 
   return (
-    <TopRightDrawer
-      open={open}
-      onOpenChange={onClose}
-      title={title}
-    >
+    <TopRightDrawer open={open} onOpenChange={onClose} title={title}>
       {isLoading ? (
         <VStack py={8} w="full">
           <Spinner color="text_primary" />
@@ -141,11 +149,13 @@ const FollowersFollowingDrawer = ({ open, onClose, type, profileId, count }: Pro
         <VStack w="full" gap={0}>
           {list.map((item, i) => {
             const id = item?.id ?? item?._id;
-            // For followers: check if we're actually following them back
-            // For following: we're always following them
-            const isFollowingInitial = isFollowers
-              ? followingIds.has(id)
-              : true;
+            // Prefer followStatus from the item object; fallback to cross-referencing the following list
+            const isFollowingInitial =
+              item?.followStatus != null
+                ? item.followStatus.isFollowing
+                : isFollowers
+                  ? followingIds.has(id)
+                  : true;
             return (
               <Box key={id ?? i} w="full" borderBottomWidth="1px" borderColor="input_border">
                 <FollowListItem

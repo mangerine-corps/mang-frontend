@@ -3,41 +3,35 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/router";
 import { useGetTrendingProfilesQuery } from "mangarine/state/services/profile-recommendations.service";
 import { useFollowUserMutation, useUnfollowUserMutation } from "mangarine/state/services/posts.service";
-import { useGetFollowingListQuery } from "mangarine/state/services/profile.service";
-import { useAuth } from "mangarine/state/hooks/user.hook";
+import { toaster } from "mangarine/components/ui/toaster";
 
 const ProspectiveFollowing = () => {
-  const { user } = useAuth();
   const { data: trending, isLoading } = useGetTrendingProfilesQuery(6);
-  const { data: followingData } = useGetFollowingListQuery(
-    { profileId: user?.id, limit: 200 },
-    { skip: !user?.id }
-  );
-  const router = useRouter();
   const [followUser] = useFollowUserMutation();
   const [unfollowUser] = useUnfollowUserMutation();
   const [followedIds, setFollowedIds] = useState<Set<string>>(new Set());
-
-  useEffect(() => {
-    const items: any[] = followingData?.data?.items ?? followingData?.data ?? [];
-    if (items.length > 0) {
-      setFollowedIds(new Set(items.map((u: any) => u.id)));
-    }
-  }, [followingData]);
+  const router = useRouter();
 
   const users: any[] = Array.isArray(trending) ? trending : [];
 
+  useEffect(() => {
+    if (!users.length) return;
+    setFollowedIds(new Set(users.filter((p: any) => p.followStatus?.isFollowing).map((p: any) => p.id)));
+  }, [trending]);
+
   const handleToggleFollow = async (userId: string) => {
     const isFollowing = followedIds.has(userId);
+    setFollowedIds((prev) => { const s = new Set(prev); isFollowing ? s.delete(userId) : s.add(userId); return s; });
     try {
       if (isFollowing) {
         await unfollowUser({ targetUserId: userId }).unwrap();
-        setFollowedIds((prev) => { const s = new Set(prev); s.delete(userId); return s; });
       } else {
         await followUser({ targetUserId: userId }).unwrap();
-        setFollowedIds((prev) => new Set(prev).add(userId));
       }
-    } catch (_) {}
+    } catch {
+      setFollowedIds((prev) => { const s = new Set(prev); isFollowing ? s.add(userId) : s.delete(userId); return s; });
+      toaster.create({ description: "Failed to update follow state", type: "error", closable: true });
+    }
   };
 
   return (
@@ -130,10 +124,11 @@ const ProspectiveFollowing = () => {
                 </HStack>
 
                 <Button
-                  variant={isFollowing ? "outline" : "solid"}
-                  bg={isFollowing ? "transparent" : "#111D4A"}
-                  borderColor={isFollowing ? "gray.300" : "transparent"}
-                  color={isFollowing ? "text_primary" : "white"}
+                  variant={isFollowing ? "outline" : "outline"}
+                  bg="transparent"
+                  borderColor={isFollowing ? "red.400" : "primary.950"}
+                  color={isFollowing ? "red.500" : "primary.950"}
+                  borderWidth="2px"
                   size="xs"
                   borderRadius="8px"
                   fontFamily="Outfit"
@@ -142,11 +137,10 @@ const ProspectiveFollowing = () => {
                   px={3}
                   h="28px"
                   flexShrink={0}
-                  minW="60px"
-                  _hover={{ opacity: 0.85 }}
+                  minW="68px"
                   onClick={() => handleToggleFollow(person.id)}
                 >
-                  {isFollowing ? "Following" : "Follow +"}
+                  {isFollowing ? "Unfollow" : "Follow +"}
                 </Button>
               </HStack>
             );

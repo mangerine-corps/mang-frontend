@@ -96,12 +96,19 @@ export const UserTypeApi = createApi({
           "Content-Type": "application/json",
         },
       })
-     })
+     }),
+    getConsultantStatus: builder.query<any, void>({
+      query: () => ({
+        url: "/become/consultant/status",
+        method: "GET",
+      }),
+    }),
   }),
 });
 
 // Export hooks for usage in functional components, which are
 // auto-generated based on the defined endpoints
 export const {
-useBecomeConsultantMutation,
+  useBecomeConsultantMutation,
+  useGetConsultantStatusQuery,
 } = UserTypeApi;

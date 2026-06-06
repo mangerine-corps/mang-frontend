@@ -84,7 +84,6 @@ const SuggestedItem = memo(({ item, isFollowing, onSelect, onToggleFollow }: Sug
   const name = item.fullName ?? item.name ?? "";
   const title = item.businessName ?? item.title ?? "";
   const avatar = item.profilePics ?? null;
-
   return (
     <HStack
       py={2}
@@ -116,11 +115,14 @@ const SuggestedItem = memo(({ item, isFollowing, onSelect, onToggleFollow }: Sug
         px={3}
         variant="outline"
         rounded="md"
-        colorPalette={isFollowing ? "gray" : "blue"}
+        borderColor={isFollowing ? "red.400" : "primary.950"}
+        color={isFollowing ? "red.500" : "primary.950"}
+        bg="transparent"
+        borderWidth="2px"
         flexShrink={0}
         onClick={(e) => onToggleFollow(e, item.id)}
       >
-        {isFollowing ? "Following" : "+ Follow"}
+        {isFollowing ? "Unfollow" : "Follow +"}
       </Button>
     </HStack>
   );
@@ -140,18 +142,27 @@ const FilterSearch = memo(({ onSelect }: FilterSearchProps) => {
   const [unfollowUser] = useUnfollowUserMutation();
   const [followedIds, setFollowedIds] = useState<Set<string>>(new Set());
 
+  const suggested: any[] = useMemo(
+    () => (suggestedData?.data ?? []).slice(0, 5),
+    [suggestedData]
+  );
+
   useEffect(() => {
     const items: any[] = followingData?.data?.items ?? followingData?.data ?? [];
-    setFollowedIds(new Set(items.map((u: any) => u.id)));
-  }, [followingData]);
+    const withStatus = new Set(suggested.filter((p: any) => p.followStatus != null).map((p: any) => p.id));
+
+    const ids = new Set<string>();
+    // followStatus on the person object takes priority
+    suggested.forEach((p: any) => { if (p.followStatus?.isFollowing) ids.add(p.id); });
+    // API following list fills in the rest
+    items.forEach((u: any) => { if (!withStatus.has(u.id)) ids.add(u.id); });
+
+    setFollowedIds(ids);
+  }, [followingData, suggestedData]);
 
   const recentSearches: any[] = useMemo(
     () => (recentData?.data ?? []).slice(0, 3),
     [recentData]
-  );
-  const suggested: any[] = useMemo(
-    () => (suggestedData?.data ?? []).slice(0, 5),
-    [suggestedData]
   );
 
   const handleRemove = useCallback((e: React.MouseEvent, id: string) => {

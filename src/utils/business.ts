@@ -29,9 +29,6 @@ const accountItems : meetingType[] = [
     {
         text: 'Feedback/Review',
         title: 'feedback'
-    }, {
-        text: 'Payment Settings',
-        title: 'payment'
     }
 ]
 

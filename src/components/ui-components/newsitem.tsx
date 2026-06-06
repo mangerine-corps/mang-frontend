@@ -30,12 +30,12 @@ import {
   useToggleAllowCommentsMutation,
   useMarkNotInterestedMutation,
 } from "mangarine/state/services/posts.service";
-import { useAddPostToCollectionMutation } from "mangarine/state/services/bookmark.service";
+import { useAddToBookmarkMutation, useRemoveFromBookmarkMutation, useAddPostToCollectionMutation } from "mangarine/state/services/bookmark.service";
 import { Post, updateSinglePost, deletePost as removeFromFeed } from "mangarine/state/reducers/post.reducer";
 import NewsAction from "./newsaction";
 import AddToCollection from "./addtocollection";
 import { BiShareAlt } from "react-icons/bi";
-import { FiEye, FiThumbsUp } from "react-icons/fi";
+import { FiThumbsUp, FiBookmark } from "react-icons/fi";
 import {
   FacebookShareButton,
   WhatsappShareButton,
@@ -89,7 +89,27 @@ const NewsItem: React.FC<NewsItemProps> = ({ post, isDetailPage = false }) => {
   // const [unlikePost] = useUnlikePostMutation();
   //   const toast = useToast();
 
-  const [addToCollection] = useAddPostToCollectionMutation();
+  const [addToBookmark] = useAddToBookmarkMutation();
+  const [removeBookmark] = useRemoveFromBookmarkMutation();
+  const [addPostToCollection] = useAddPostToCollectionMutation();
+  const [isBookmarked, setIsBookmarked] = useState<boolean>(Boolean((post as any)?.isBookmarked));
+
+  const handleBookmark = async () => {
+    const prev = isBookmarked;
+    setIsBookmarked(!prev);
+    try {
+      if (prev) {
+        await removeBookmark({ postId: post.id }).unwrap();
+        toaster.create({ description: "Removed from saved", type: "info", closable: true });
+      } else {
+        await addToBookmark({ postId: post.id }).unwrap();
+        toaster.create({ description: "Post saved", type: "success", closable: true });
+      }
+    } catch {
+      setIsBookmarked(prev);
+      toaster.create({ description: "Failed to update saved post", type: "error", closable: true });
+    }
+  };
 
   const [removePost] = useDeletePostMutation();
   const [toggleAllowComments] = useToggleAllowCommentsMutation();
@@ -106,8 +126,8 @@ const NewsItem: React.FC<NewsItemProps> = ({ post, isDetailPage = false }) => {
   // Hook manages isFollowing state and label consistently across app
   const { isFollowing, label, toggleFollow } = useFollow({
     targetUserId: post?.creator?.id,
-    initialIsFollowing: false,
-    postIdContext: post?.id,
+    // Use followStatus from the post object if present; otherwise useFollow falls back to API check
+    initialIsFollowing: post?.isFollowingCreator,
   });
   const [report, setReport] = useState(false);
   const [reportComment, { isLoading, data, error: reportError }] = useReportCommentMutation()
@@ -120,7 +140,7 @@ const NewsItem: React.FC<NewsItemProps> = ({ post, isDetailPage = false }) => {
       post: post?.id,
       collection: collectionId,
     };
-    addToCollection(formData)
+    addPostToCollection(formData)
       .unwrap()
       .then(() => {
         setShowCollections(false);
@@ -298,6 +318,24 @@ const NewsItem: React.FC<NewsItemProps> = ({ post, isDetailPage = false }) => {
                     <Menu.Item
                       px={4}
                       py={3}
+                      value="save"
+                      onClick={handleBookmark}
+                      cursor="pointer"
+                      _hover={{ bg: "bg_hover" }}
+                    >
+                      <HStack gap={3}>
+                        <Icon size="sm" color={isBookmarked ? "#111D4A" : "gray.500"}>
+                          <FiBookmark />
+                        </Icon>
+                        <Text fontSize="0.875rem" fontWeight="500" color="text_primary">
+                          {isBookmarked ? "Unsave post" : "Save post"}
+                        </Text>
+                      </HStack>
+                    </Menu.Item>
+                    <Box px={4}><Box h="1px" bg="gray.100" /></Box>
+                    <Menu.Item
+                      px={4}
+                      py={3}
                       value="toggle-comments"
                       onClick={handleToggleComments}
                       cursor="pointer"
@@ -337,6 +375,26 @@ const NewsItem: React.FC<NewsItemProps> = ({ post, isDetailPage = false }) => {
                         </svg>
                         <Text fontSize="0.875rem" fontWeight="500" color="text_primary">
                           {isFollowing ? "Unfollow" : `Follow ${post?.creator?.fullName}`}
+                        </Text>
+                      </HStack>
+                    </Menu.Item>
+
+                    <Box px={4}><Box h="1px" bg="gray.100" /></Box>
+
+                    <Menu.Item
+                      px={4}
+                      py={3}
+                      value="save"
+                      onClick={handleBookmark}
+                      cursor="pointer"
+                      _hover={{ bg: "bg_hover" }}
+                    >
+                      <HStack gap={3}>
+                        <Icon size="sm" color={isBookmarked ? "#111D4A" : "gray.500"}>
+                          <FiBookmark />
+                        </Icon>
+                        <Text fontSize="0.875rem" fontWeight="500" color="text_primary">
+                          {isBookmarked ? "Unsave post" : "Save post"}
                         </Text>
                       </HStack>
                     </Menu.Item>
@@ -572,18 +630,7 @@ const NewsItem: React.FC<NewsItemProps> = ({ post, isDetailPage = false }) => {
           isDisabled={!(post?.allowComments ?? true)}
         />
 
-        <NewsAction
-          icon={
-            <Icon size={"md"} color={"gray.400"}>
-              <FiEye />
-            </Icon>
-          }
-          count={views?.data?.viewCount ?? post?.views ?? 0}
-          desc="Views"
-          action={() => {}}
-        />
-
-        <Menu.Root positioning={{ placement: "bottom-end" }}>
+<Menu.Root positioning={{ placement: "bottom-end" }}>
           <Menu.Trigger asChild>
             <Button bg="transparent" border="none" size="sm" p={0}>
               <NewsAction

@@ -29,9 +29,7 @@ import {
 } from "mangarine/state/reducers/profile.reducer";
 import { useProfile } from "mangarine/state/hooks/profile.hook";
 import { useAuth } from "mangarine/state/hooks/user.hook";
-import Toast from "./Error";
-import { BiSolidError } from "react-icons/bi";
-import { FaCheckCircle } from "react-icons/fa";
+import { toaster } from "../ui/toaster";
 
 const Schema = Yup.object({
   currentPassword: Yup.string()
@@ -54,9 +52,6 @@ const SecondarySchema = Yup.object({
 
 function AccountSetting() {
   const [showPassword, setShowPassword] = useState(false);
-  const [showToast, setShowToast] = useState(false);
-  const [toastType, setToastType] = useState<"success" | "error">("success");
-  const [toastMessage, setToastMessage] = useState<string>("");
   const { user } = useAuth();
   const [updatePassword, { data, error, isLoading }] =
     useUpdatePasswordMutation();
@@ -100,18 +95,12 @@ function AccountSetting() {
       .unwrap()
       .then((payload) => {
         setShowPassword(false);
-        setToastType("success");
-        setToastMessage(payload.message ?? "Password updated successfully");
-        setShowToast(true);
+        toaster.create({ description: payload.message ?? "Password updated successfully", type: "success", closable: true });
       })
       .catch((error) => {
         console.log(error);
         const { data, message } = error;
-        setToastType("error");
-        setToastMessage(
-          (!isEmpty(data) && data?.message) ? data.message : (message ?? "Update failed")
-        );
-        setShowToast(true);
+        toaster.create({ description: (!isEmpty(data) && data?.message) ? data.message : (message ?? "Update failed"), type: "error", closable: true });
       });
   };
   return (
@@ -138,14 +127,6 @@ function AccountSetting() {
       >
         {/* Phone Section */}
         <Box>
-          {showToast && (
-            <Toast
-              icon={toastType === "success" ? FaCheckCircle : BiSolidError}
-              type={toastType}
-              message={toastMessage}
-              close={() => setShowToast(false)}
-            />
-          )}
           <Text
             font="outfit"
             fontSize={{ base: "1rem", md: "1.25rem", lg: "1.5rem" }}
@@ -400,9 +381,6 @@ const SecNum = () => {
   const [SecondaryPhoneNumber, setSecondaryPhoneNumber] =
     useState<boolean>(false);
   const [Delete, setDelete] = useState(false);
-  const [showToast, setShowToast] = useState(false);
-  const [toastType, setToastType] = useState<"success" | "error">("success");
-  const [toastMessage, setToastMessage] = useState<string>("");
   const [addSecondaryNumber, { data, error, isLoading }] =
     useAddSecondaryNumberMutation();
   const [editSecondaryNumber] = useEditSecondaryNumberMutation();
@@ -438,9 +416,7 @@ const SecNum = () => {
       .unwrap()
       .then((payload) => {
         const { data } = payload;
-        setToastType("success");
-        setToastMessage("Added secondary number successfully");
-        setShowToast(true);
+        toaster.create({ description: "Added secondary number successfully", type: "success", closable: true });
         dispatch(setSecNum({ secNum: data.secondaryNumber }));
         setSecondaryPhoneNumber(false);
         reset();
@@ -448,9 +424,7 @@ const SecNum = () => {
       .catch((error) => {
         console.log(error);
         const { data } = error;
-        setToastType("error");
-        setToastMessage((!isEmpty(data) && data?.message) ? data.message : "Failed to add secondary number");
-        setShowToast(true);
+        toaster.create({ description: (!isEmpty(data) && data?.message) ? data.message : "Failed to add secondary number", type: "error", closable: true });
       });
   };
   // const editClicked = () => {
@@ -476,9 +450,7 @@ const SecNum = () => {
       .unwrap()
       .then((payload) => {
         const { data } = payload;
-        setToastType("success");
-        setToastMessage("Updated secondary number successfully");
-        setShowToast(true);
+        toaster.create({ description: "Updated secondary number successfully", type: "success", closable: true });
         dispatch(setSecNum({ secNum: data.secondaryNumber }));
         setSecondaryPhoneNumber(false);
         reset();
@@ -486,22 +458,12 @@ const SecNum = () => {
       .catch((error) => {
         console.log(error);
         const { data } = error;
-        setToastType("error");
-        setToastMessage((!isEmpty(data) && data?.message) ? data.message : "Failed to update secondary number");
-        setShowToast(true);
+        toaster.create({ description: (!isEmpty(data) && data?.message) ? data.message : "Failed to update secondary number", type: "error", closable: true });
       });
   };
 
   return (
     <>
-      {showToast && (
-        <Toast
-          icon={toastType === "success" ? FaCheckCircle : BiSolidError}
-          type={toastType}
-          message={toastMessage}
-          close={() => setShowToast(false)}
-        />
-      )}
       <HStack w="full" justifyContent={"space-between"}>
         <VStack
           w="full"

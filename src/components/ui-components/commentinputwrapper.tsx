@@ -83,7 +83,6 @@ const CommentInputWrapper: React.FC<CommentInputWrapperProps> = ({ postId }) => 
           <HStack w="full" px={3} pb={2} justifyContent="space-between" borderTopWidth={1} borderColor="gray.100" pt={2}>
             <HStack spaceX={1}>
               <Box>
-                <FeedAction icon="/icons/img.svg" action={() => fileInputRef.current?.click()} />
                 <input type="file" ref={fileInputRef} accept="image/*" style={{ display: "none" }} />
               </Box>
               <Box pos="relative">

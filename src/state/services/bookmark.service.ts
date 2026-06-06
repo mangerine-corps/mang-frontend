@@ -18,7 +18,6 @@ export const BookmarkApi = createApi({
         url: "add",
         method: "POST",
         body: credentials,
-        formData: true,
       }),
       invalidatesTags: ['bookmarks']
     }),
@@ -27,7 +26,6 @@ export const BookmarkApi = createApi({
         url: "/remove",
         method: "POST",
         body: credentials,
-        formData: true,
       }),
       invalidatesTags: ['bookmarks']
     }),

@@ -3,40 +3,35 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/router";
 import { useGetProfileRecommendationsQuery } from "mangarine/state/services/profile-recommendations.service";
 import { useFollowUserMutation, useUnfollowUserMutation } from "mangarine/state/services/posts.service";
-import { useGetFollowingListQuery } from "mangarine/state/services/profile.service";
-import { useAuth } from "mangarine/state/hooks/user.hook";
+import { toaster } from "mangarine/components/ui/toaster";
 
 const WhoToFollow = () => {
-  const { user } = useAuth();
   const { data: recommendations, isLoading } = useGetProfileRecommendationsQuery({});
-  const { data: followingData, refetch } = useGetFollowingListQuery(
-    { profileId: user?.id, limit: 200 },
-    { skip: !user?.id }
-  );
   const [followUser] = useFollowUserMutation();
   const [unfollowUser] = useUnfollowUserMutation();
   const [followedIds, setFollowedIds] = useState<Set<string>>(new Set());
   const router = useRouter();
 
-  // Seed from the user's actual following list
+  const recs: any[] = recommendations ?? [];
+
   useEffect(() => {
-    const items: any[] = followingData?.data?.items ?? followingData?.data ?? [];
-    if (items.length > 0) {
-      setFollowedIds(new Set(items.map((u: any) => u.id)));
-    }
-  }, [followingData]);
+    if (!recs.length) return;
+    setFollowedIds(new Set(recs.filter((p: any) => p.followStatus?.isFollowing).map((p: any) => p.id)));
+  }, [recommendations]);
 
   const handleToggleFollow = async (userId: string) => {
     const isFollowing = followedIds.has(userId);
+    setFollowedIds((prev) => { const s = new Set(prev); isFollowing ? s.delete(userId) : s.add(userId); return s; });
     try {
       if (isFollowing) {
         await unfollowUser({ targetUserId: userId }).unwrap();
-        setFollowedIds((prev) => { const s = new Set(prev); s.delete(userId); return s; });
       } else {
         await followUser({ targetUserId: userId }).unwrap();
-        setFollowedIds((prev) => new Set(prev).add(userId));
       }
-    } catch (_) {}
+    } catch {
+      setFollowedIds((prev) => { const s = new Set(prev); isFollowing ? s.add(userId) : s.delete(userId); return s; });
+      toaster.create({ description: "Failed to update follow state", type: "error", closable: true });
+    }
   };
 
   const goToProfile = (userId: string) => {
@@ -108,14 +103,18 @@ const WhoToFollow = () => {
                   size="xs"
                   px={2}
                   rounded="md"
-                  colorPalette={isFollowing ? "gray" : "blue"}
+                  colorPalette={isFollowing ? "red" : "blue"}
+                  borderColor={isFollowing ? "red.400" : "primary.950"}
+                  color={isFollowing ? "red.500" : "primary.950"}
+                  bg="transparent"
+                  borderWidth="2px"
                   onClick={() => handleToggleFollow(person.id)}
                   flexShrink={0}
-                  minW="60px"
+                  minW="68px"
                 >
-                  {isFollowing ? "Following" : (
+                  {isFollowing ? "Unfollow" : (
                     <>
-                      <Image alt="add-follower-icon" src="/icons/plus.svg" />
+                      <Image alt="add-follower-icon" src="/icons/plus.svg" boxSize="10px" />
                       Follow
                     </>
                   )}

@@ -21,10 +21,49 @@ export function Providers(props: ColorModeProviderProps) {
   const [persistReady, setPersistReady] = useState(false);
 
   useEffect(() => {
+    let active = true;
+
+    const markReady = () => {
+      if (active) {
+        setPersistReady(true);
+      }
+    };
+
+    const storageUnavailable = () => {
+      try {
+        const probeKey = "__mangerine_storage_probe__";
+        window.localStorage.setItem(probeKey, "1");
+        window.localStorage.removeItem(probeKey);
+        return false;
+      } catch {
+        return true;
+      }
+    };
+
+    if (typeof window === "undefined" || storageUnavailable()) {
+      markReady();
+      return () => {
+        active = false;
+      };
+    }
+
     // startPersistor boots redux-persist (once, guarded).
     // onPersistorReady fires the callback immediately if already done.
-    startPersistor();
-    onPersistorReady(() => setPersistReady(true));
+    const unsubscribe = onPersistorReady(markReady);
+    const fallback = window.setTimeout(markReady, 2500);
+
+    try {
+      startPersistor();
+    } catch (error) {
+      console.error("Failed to start persisted auth state:", error);
+      markReady();
+    }
+
+    return () => {
+      active = false;
+      unsubscribe();
+      window.clearTimeout(fallback);
+    };
   }, []);
 
   return (
