@@ -10,7 +10,7 @@ function MyMeetings({ page }: { page: string }) {
       ["availability_settings"]: <AvailabilitySettings />,
       ["preferences"]: <Preferences />,
       ["pricing"]: <Pricing />,
-      ["calendar"]: <AvailabilitySettings />,
+      // ["calendar"]: <AvailabilitySettings />,
       ["upcoming_appointments"]: <UpcomingAppointments />,
       ["consultation_history"]: <ConsultationHistory />,
     }[page] ?? <AvailabilitySettings />

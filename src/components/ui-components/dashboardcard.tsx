@@ -25,17 +25,6 @@ const SavedIcon = (props: SVGProps<SVGSVGElement>) => (
   </svg>
 );
 
-const PaymentsIcon = (props: SVGProps<SVGSVGElement>) => (
-  <svg viewBox="0 0 13 11" fill="none" xmlns="http://www.w3.org/2000/svg" {...props}>
-    <path
-      d="M9.83333 3.16667V1.83333C9.83333 1.47971 9.69286 1.14057 9.44281 0.890524C9.19276 0.640476 8.85362 0.5 8.5 0.5H1.83333C1.47971 0.5 1.14057 0.640476 0.890524 0.890524C0.640476 1.14057 0.5 1.47971 0.5 1.83333V5.83333C0.5 6.18695 0.640476 6.52609 0.890524 6.77614C1.14057 7.02619 1.47971 7.16667 1.83333 7.16667H3.16667M3.16667 4.5C3.16667 4.14638 3.30714 3.80724 3.55719 3.55719C3.80724 3.30714 4.14638 3.16667 4.5 3.16667H11.1667C11.5203 3.16667 11.8594 3.30714 12.1095 3.55719C12.3595 3.80724 12.5 4.14638 12.5 4.5V8.5C12.5 8.85362 12.3595 9.19276 12.1095 9.44281C11.8594 9.69286 11.5203 9.83333 11.1667 9.83333H4.5C4.14638 9.83333 3.80724 9.69286 3.55719 9.44281C3.30714 9.19276 3.16667 8.85362 3.16667 8.5V4.5ZM6.5 6.5C6.5 6.85362 6.64048 7.19276 6.89052 7.44281C7.14057 7.69286 7.47971 7.83333 7.83333 7.83333C8.18696 7.83333 8.52609 7.69286 8.77614 7.44281C9.02619 7.19276 9.16667 6.85362 9.16667 6.5C9.16667 6.14638 9.02619 5.80724 8.77614 5.55719C8.52609 5.30714 8.18696 5.16667 7.83333 5.16667C7.47971 5.16667 7.14057 5.30714 6.89052 5.55719C6.64048 5.80724 6.5 6.14638 6.5 6.5Z"
-      stroke="currentColor"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-  </svg>
-);
-
 const TransactionHistoryIcon = (props: SVGProps<SVGSVGElement>) => (
   <svg viewBox="0 0 11 13" fill="none" xmlns="http://www.w3.org/2000/svg" {...props}>
     <path
@@ -104,16 +93,11 @@ const DashboardCard = () => {
     {
       items: [
         { icon: SavedIcon, label: "Saved Items", action: () => router.push("/saved") },
-        {
-          icon: PaymentsIcon,
-          label: "Payment History",
-          action: () => router.push(`${businessWalletPath}&section=payments`),
-        },
-        {
+        ...(!user?.isConsultant ? [{
           icon: TransactionHistoryIcon,
           label: "Transaction History",
           action: () => router.push(`${businessWalletPath}&section=transactions`),
-        },
+        }] : []),
       ],
     },
     {

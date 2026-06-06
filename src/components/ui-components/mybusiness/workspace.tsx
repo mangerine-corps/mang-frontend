@@ -121,7 +121,7 @@ const MyBusinessWorkspace = () => {
       display="flex"
       borderRadius="lg"
       boxShadow="lg"
-      h="100vh"
+      h="full"
       overflow="hidden"
     >
       {/* ── Sidebar ── */}
@@ -313,7 +313,7 @@ const MyBusinessWorkspace = () => {
       </Stack>
 
       {/* ── Main content ── */}
-      <Box flex={1} overflowY="auto" px={4} py={4}>
+      <Box flex={1} minH={0} overflowY="auto" px={4} py={4}>
         {renderContent()}
       </Box>
 

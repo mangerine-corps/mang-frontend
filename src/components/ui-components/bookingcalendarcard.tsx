@@ -148,7 +148,7 @@ const CustomDatePicker = ({ onClick, consultantId: propConsultantId }: { onClick
                     <RequiredMark />
                 </Text>
                 <Box mb={4}>
-                    <BookingCalendarCard slots={slots} setSlots={setSlots} date={date} setDate={setDate}/>
+                    <BookingCalendarCard userId={consultantId as string} slots={slots} setSlots={setSlots} date={date} setDate={setDate}/>
                 </Box>
 
                 <Text

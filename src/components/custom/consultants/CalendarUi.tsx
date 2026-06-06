@@ -15,7 +15,7 @@ import {
 import 'react-date-range/dist/styles.css'; // main style file
 import 'react-date-range/dist/theme/default.css';
 import { BiChevronLeft, BiChevronRight } from "react-icons/bi";
-import { useGetAvailabilityMutation } from "mangarine/state/services/availability.service"; // theme css file
+import { useLazyGetAvailabilityQuery } from "mangarine/state/services/availability.service"; // theme css file
 import { format } from 'date-fns';
 import { endOfMonth } from 'date-fns';
 import { useRouter } from "next/router";
@@ -197,7 +197,7 @@ const BookingCalendarCard = ({ date, setDate, slots, setSlots, userId }: Booking
     } = router;
     const [availabilities, setAvailabilities] = useState<any>()
 
-    const [getAvailability, { isLoading }] = useGetAvailabilityMutation()
+    const [getAvailability, { isLoading }] = useLazyGetAvailabilityQuery()
     const [selectedDate, setSelectedDate] = useState(null);
 
 
@@ -280,20 +280,20 @@ const BookingCalendarCard = ({ date, setDate, slots, setSlots, userId }: Booking
 
 
     const fetchAvailability = useCallback(
-        (currentMonth: number) => {
+        (month: number) => {
             const formData = {
                 userId: consultantId ?? userId,
-                startDate: format(new Date(new Date(currentYear, currentMonth)), 'yyyy/MM/dd'),
-                endDate: format(endOfMonth(new Date(currentYear, currentMonth)), 'yyyy/MM/dd')
-            }
+                startDate: format(new Date(currentYear, month), 'yyyy-MM-dd'),
+                endDate: format(endOfMonth(new Date(currentYear, month)), 'yyyy-MM-dd'),
+            };
             getAvailability(formData).unwrap().then((payload) => {
                 const { data } = payload;
-                setAvailabilities(data)
+                setAvailabilities(data);
             }).catch((error) => {
-                console.log(error)
-            })
+                console.log(error);
+            });
         },
-        [],
+        [consultantId, userId, currentYear, getAvailability],
     )
 
     useEffect(() => {

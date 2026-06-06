@@ -7,6 +7,7 @@ export const availabilityApi = createApi({
     baseQuery: axiosBaseQuery({
         baseUrl: `${process.env.API_BASE_URL}/`,
     }),
+    tagTypes: ["Availability"],
     endpoints: (builder) => ({
 
         createAvailability: builder.mutation({
@@ -15,6 +16,7 @@ export const availabilityApi = createApi({
                 method: "POST",
                 body: formData,
             }),
+            invalidatesTags: ["Availability"],
             async onQueryStarted(arg, { dispatch, queryFulfilled }) {
                 try {
                     await queryFulfilled;
@@ -29,6 +31,7 @@ export const availabilityApi = createApi({
                 method: "PATCH",
                 body: formData,
             }),
+            invalidatesTags: ["Availability"],
             async onQueryStarted(arg, { dispatch, queryFulfilled }) {
                 try {
                     await queryFulfilled;
@@ -42,14 +45,16 @@ export const availabilityApi = createApi({
                 url: `/availability/${availabilityId}`,
                 method: "DELETE",
             }),
+            invalidatesTags: ["Availability"],
         }),
 
-        getAvailability: builder.mutation({
-            query: (formData) => ({
-                url: `/availability?`,
+        getAvailability: builder.query<any, Record<string, any> | void>({
+            query: (params) => ({
+                url: `/availability`,
                 method: "GET",
-                params: formData,
+                params: params ?? {},
             }),
+            providesTags: ["Availability"],
         }),
 
         getCurrentAvailabilitySettings: builder.query({
@@ -57,6 +62,7 @@ export const availabilityApi = createApi({
                 url: `/availability/current/settings`,
                 method: "GET",
             }),
+            providesTags: ["Availability"],
         }),
     }),
 });
@@ -65,6 +71,7 @@ export const {
     useCreateAvailabilityMutation,
     useUpdateAvailabilityMutation,
     useDeleteAvailabilityMutation,
-    useGetAvailabilityMutation,
+    useGetAvailabilityQuery,
+    useLazyGetAvailabilityQuery,
     useGetCurrentAvailabilitySettingsQuery,
 } = availabilityApi;
