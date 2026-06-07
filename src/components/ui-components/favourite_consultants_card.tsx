@@ -165,7 +165,7 @@ const FavouriteConsultantsComp = () => {
           px="6"
           mt={2}
           _hover={{ textDecoration: "underline" }}
-          onClick={() => router.push("/saved")}
+          onClick={() => router.push("/saved?tab=consultants")}
         >
           See all
         </Text>

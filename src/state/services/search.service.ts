@@ -65,4 +65,5 @@ export const {
   useSearchPeopleQuery,
   useLazySearchPeopleQuery,
   useSearchConsultantsQuery,
+  useLazySearchConsultantsQuery,
 } = searchApi;

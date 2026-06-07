@@ -17,7 +17,7 @@ import {
 } from "@chakra-ui/react";
 import { useRouter } from "next/router";
 import { useDispatch } from "react-redux";
-import { LuSearch } from "react-icons/lu";
+import { LuArrowRight, LuSearch } from "react-icons/lu";
 import { useAppointment } from "mangarine/state/hooks/appointment.hook";
 import { useAuth } from "mangarine/state/hooks/user.hook";
 import { setCurrentConversation } from "mangarine/state/reducers/appointment.reducer";
@@ -26,7 +26,7 @@ import {
   isProfileVerified,
   resolveConversationProfile,
 } from "mangarine/components/ui-components/message/helpers";
-import { useLazySearchPeopleQuery } from "mangarine/state/services/search.service";
+import { useLazySearchConsultantsQuery } from "mangarine/state/services/search.service";
 import { useGetProfileRecommendationsQuery } from "mangarine/state/services/profile-recommendations.service";
 
 type Props = {
@@ -44,7 +44,6 @@ interface PersonItem {
   conversation?: any;
 }
 
-// Skeleton row shown while loading
 const PersonRowSkeleton = () => (
   <Flex align="center" gap={3} py={2} px={3}>
     <SkeletonCircle size="10" flexShrink={0} />
@@ -67,34 +66,39 @@ const NewMessageDrawer = ({ open, onOpenChange }: Props) => {
   const { user } = useAuth();
   const userId = user?.id ?? "";
 
-  const [searchPeople, { data: searchData, isFetching: isSearching }] = useLazySearchPeopleQuery();
+  const [searchConsultants, { data: searchData, isFetching: isSearching }] = useLazySearchConsultantsQuery();
   const { data: recommendations, isFetching: isLoadingRecs } = useGetProfileRecommendationsQuery(
     {},
     { skip: !open }
   );
 
+  // Only show conversations where the other party is a consultant
   const recentContacts = useMemo<PersonItem[]>(() => {
-    return conversations.map((conversation: any) => {
-      const profile = resolveConversationProfile(conversation, userId);
-      return {
-        id: String(profile?.id ?? ""),
-        name: profile?.fullName || "Unknown user",
-        avatar: profile?.profilePics || "",
-        subtitle: profile?.isConsultant
-          ? `${getConversationSubtitle(profile)} • Consultant`
-          : getConversationSubtitle(profile),
-        verified: isProfileVerified(profile),
-        conversationId: String(conversation?.id),
-        conversation,
-      };
-    });
+    return conversations
+      .filter((conversation: any) => {
+        const profile = resolveConversationProfile(conversation, userId);
+        return Boolean(profile?.isConsultant);
+      })
+      .map((conversation: any) => {
+        const profile = resolveConversationProfile(conversation, userId);
+        return {
+          id: String(profile?.id ?? ""),
+          name: profile?.fullName || "Unknown",
+          avatar: profile?.profilePics || "",
+          subtitle: getConversationSubtitle(profile),
+          verified: isProfileVerified(profile),
+          conversationId: String(conversation?.id),
+          conversation,
+        };
+      });
   }, [conversations, userId]);
 
-  const suggestedPeople = useMemo<PersonItem[]>(() => {
+  // Suggested consultants from recommendations
+  const suggestedConsultants = useMemo<PersonItem[]>(() => {
     const recs: any[] = Array.isArray(recommendations) ? recommendations : [];
     const recentIds = new Set(recentContacts.map((c) => c.id));
     return recs
-      .filter((p) => !recentIds.has(String(p.id)))
+      .filter((p) => p.isConsultant && !recentIds.has(String(p.id)))
       .map((p) => ({
         id: String(p.id),
         name: p.fullName ?? p.name ?? "Unknown",
@@ -104,6 +108,7 @@ const NewMessageDrawer = ({ open, onOpenChange }: Props) => {
       }));
   }, [recommendations, recentContacts]);
 
+  // Search results — consultants only endpoint
   const searchResults = useMemo<PersonItem[]>(() => {
     const items: any[] = searchData?.data?.items ?? searchData?.data ?? searchData?.items ?? [];
     return items.map((p: any) => ({
@@ -118,7 +123,6 @@ const NewMessageDrawer = ({ open, onOpenChange }: Props) => {
   }, [searchData, recentContacts]);
 
   const isSearchMode = search.trim().length > 0;
-  // Can only open an existing conversation — creating one requires booking an appointment
   const canMessage = Boolean(selectedUserId && selectedConversationId);
   const selectedButNoConversation = Boolean(selectedUserId && !selectedConversationId);
 
@@ -136,10 +140,10 @@ const NewMessageDrawer = ({ open, onOpenChange }: Props) => {
     if (debounceRef.current) clearTimeout(debounceRef.current);
     if (!search.trim()) return;
     debounceRef.current = setTimeout(() => {
-      searchPeople({ query: search.trim(), limit: 20 });
+      searchConsultants({ query: search.trim(), limit: 20 });
     }, 350);
     return () => { if (debounceRef.current) clearTimeout(debounceRef.current); };
-  }, [search, searchPeople]);
+  }, [search, searchConsultants]);
 
   const handleSelect = (person: PersonItem) => {
     setSelectedUserId(person.id);
@@ -155,6 +159,11 @@ const NewMessageDrawer = ({ open, onOpenChange }: Props) => {
       undefined,
       { shallow: true }
     );
+    onOpenChange();
+  };
+
+  const handleViewProfile = () => {
+    router.push(`/consultant/${selectedUserId}`);
     onOpenChange();
   };
 
@@ -194,16 +203,22 @@ const NewMessageDrawer = ({ open, onOpenChange }: Props) => {
 
             <Dialog.Body p={0}>
               <VStack align="stretch" gap={5}>
-                <Text
-                  fontFamily="Outfit"
-                  fontSize={{ base: "2rem", md: "2.25rem" }}
-                  fontWeight="700"
-                  color="text_primary"
-                  lineHeight="1"
-                >
-                  New Message
-                </Text>
+                <VStack align="stretch" gap={1}>
+                  <Text
+                    fontFamily="Outfit"
+                    fontSize={{ base: "2rem", md: "2.25rem" }}
+                    fontWeight="700"
+                    color="text_primary"
+                    lineHeight="1"
+                  >
+                    New Message
+                  </Text>
+                  <Text fontSize="0.84rem" color="#9CA3AF">
+                    You can only message consultants you&apos;ve booked with.
+                  </Text>
+                </VStack>
 
+                {/* Search input */}
                 <Box position="relative">
                   <Box
                     position="absolute"
@@ -218,7 +233,7 @@ const NewMessageDrawer = ({ open, onOpenChange }: Props) => {
                   <Input
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
-                    placeholder="Search people"
+                    placeholder="Search consultants"
                     h="46px"
                     borderRadius="10px"
                     borderColor="#EEF0F4"
@@ -229,9 +244,9 @@ const NewMessageDrawer = ({ open, onOpenChange }: Props) => {
                   />
                 </Box>
 
-                <VStack align="stretch" gap={0} maxH="420px" overflowY="auto" pr={1}>
+                {/* List */}
+                <VStack align="stretch" gap={0} maxH="360px" overflowY="auto" pr={1}>
                   {isSearchMode ? (
-                    /* Search results */
                     isSearching ? (
                       Array.from({ length: 5 }).map((_, i) => <PersonRowSkeleton key={i} />)
                     ) : searchResults.length ? (
@@ -246,12 +261,11 @@ const NewMessageDrawer = ({ open, onOpenChange }: Props) => {
                     ) : (
                       <Box py={10} textAlign="center">
                         <Text fontSize="0.92rem" color="#7B8190">
-                          No users found for &ldquo;{search}&rdquo;.
+                          No consultants found for &ldquo;{search}&rdquo;.
                         </Text>
                       </Box>
                     )
                   ) : (
-                    /* Default: recent + suggested */
                     <>
                       {recentContacts.length > 0 && (
                         <>
@@ -276,12 +290,12 @@ const NewMessageDrawer = ({ open, onOpenChange }: Props) => {
                             <PersonRowSkeleton key={i} />
                           ))}
                         </>
-                      ) : suggestedPeople.length > 0 ? (
+                      ) : suggestedConsultants.length > 0 ? (
                         <>
                           <SectionLabel mt={recentContacts.length > 0 ? 3 : 0}>
                             Suggested
                           </SectionLabel>
-                          {suggestedPeople.map((person) => (
+                          {suggestedConsultants.map((person) => (
                             <PersonRow
                               key={person.id}
                               person={person}
@@ -293,7 +307,7 @@ const NewMessageDrawer = ({ open, onOpenChange }: Props) => {
                       ) : recentContacts.length === 0 ? (
                         <Box py={10} textAlign="center">
                           <Text fontSize="0.92rem" color="#7B8190">
-                            Search for someone to message.
+                            Search for a consultant to message.
                           </Text>
                         </Box>
                       ) : null}
@@ -301,19 +315,44 @@ const NewMessageDrawer = ({ open, onOpenChange }: Props) => {
                   )}
                 </VStack>
 
+                {/* Book-to-message banner with profile link */}
                 {selectedButNoConversation && (
-                  <Box
+                  <Flex
+                    align="center"
+                    justify="space-between"
+                    gap={3}
                     px={4}
                     py={3}
-                    borderRadius="12px"
+                    borderRadius="14px"
                     bg="#FFF8EC"
                     borderWidth="1px"
                     borderColor="#F6C960"
                   >
-                    <Text fontSize="0.84rem" color="#92620A" textAlign="center">
-                      No existing conversation. Book an appointment to start messaging.
-                    </Text>
-                  </Box>
+                    <VStack align="stretch" gap={0}>
+                      <Text fontSize="0.84rem" fontWeight="600" color="#92620A">
+                        No active conversation
+                      </Text>
+                      <Text fontSize="0.78rem" color="#B07C2A">
+                        Book an appointment first to unlock messaging.
+                      </Text>
+                    </VStack>
+                    <Button
+                      size="sm"
+                      bg="button_bg"
+                      color="button_text"
+                      borderRadius="10px"
+                      fontWeight="600"
+                      fontSize="0.82rem"
+                      px={4}
+                      py={5}
+                      flexShrink={0}
+                      onClick={handleViewProfile}
+                      _hover={{ opacity: 0.9 }}
+                    >
+                      View Profile
+                      <LuArrowRight size={13} />
+                    </Button>
+                  </Flex>
                 )}
 
                 <Button
@@ -410,9 +449,7 @@ const PersonRow = ({
       alignItems="center"
       justifyContent="center"
     >
-      {isSelected && (
-        <Box boxSize="7px" borderRadius="full" bg="white" />
-      )}
+      {isSelected && <Box boxSize="7px" borderRadius="full" bg="white" />}
     </Box>
   </Flex>
 );
