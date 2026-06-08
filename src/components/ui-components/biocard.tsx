@@ -1,4 +1,6 @@
 import { Avatar, Box, Flex, HStack, Image, Progress, Text, VStack, Dialog, Button, IconButton, Skeleton, SkeletonCircle, Stack } from "@chakra-ui/react";
+import ImageLightbox from "./imagelightbox";
+import NextImage from "next/image";
 import { useAuth } from "mangarine/state/hooks/user.hook";
 import { useRouter } from "next/router";
 // import { InfoTip } from "@/components/ui/toggle-tip"
@@ -10,6 +12,8 @@ function Biocard() {
   const { user } = useAuth()
   const router = useRouter()
   const [showMissingModal, setShowMissingModal] = useState(false);
+  const [profilePicOpen, setProfilePicOpen] = useState(false);
+  const [bannerOpen, setBannerOpen] = useState(false);
   const { data: userInfo, isLoading: loadingInfo } = useGetUserInfoQuery(undefined);
   const { data: missingFieldsResponse } = useGetMissingFieldsQuery(undefined);
   const { data: profileCompletionResponse } = useGetProfileCompletionQuery(undefined);
@@ -90,21 +94,27 @@ function Biocard() {
         borderTopRadius="lg"
         position="relative"
         bg="grey.300"
+        cursor={user?.profileBanner ? "pointer" : "default"}
+        onClick={(e) => {
+          e.stopPropagation();
+          if (user?.profileBanner) setBannerOpen(true);
+        }}
       >
         {user?.profileBanner ? (
-          <Image
+          <NextImage
             src={user.profileBanner}
             alt="profile banner"
-            position="absolute"
-            top={0}
-            left={0}
-            w="full"
-            h="full"
-            objectFit="cover"
-            objectPosition="center"
-            borderTopRadius="lg"
+            fill
+            sizes="400px"
+            style={{ objectFit: "cover", objectPosition: "center", borderRadius: "var(--chakra-radii-lg) var(--chakra-radii-lg) 0 0" }}
+            priority
           />
         ) : null}
+        <ImageLightbox
+          images={user?.profileBanner ? [user.profileBanner] : []}
+          initialIndex={bannerOpen ? 0 : null}
+          onClose={() => setBannerOpen(false)}
+        />
 
         {/* Avatar overlapping below the banner */}
         <Avatar.Root
@@ -116,10 +126,20 @@ function Biocard() {
           overflow="hidden"
           border={{ base: "3px solid white", md: "4px solid white" }}
           zIndex={1}
+          cursor={user?.profilePics ? "pointer" : "default"}
+          onClick={(e) => {
+            e.stopPropagation();
+            if (user?.profilePics) setProfilePicOpen(true);
+          }}
         >
           <Avatar.Fallback name={`${user?.fullName}`} />
           <Avatar.Image src={user?.profilePics} />
         </Avatar.Root>
+        <ImageLightbox
+          images={user?.profilePics ? [user.profilePics] : []}
+          initialIndex={profilePicOpen ? 0 : null}
+          onClose={() => setProfilePicOpen(false)}
+        />
       </Box>
 
       <Box

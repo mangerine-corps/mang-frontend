@@ -9,8 +9,10 @@ import {
     useIntiateTransactionMutation,
     useInitializePaystackPaymentMutation,
     useCreatePaypalOrderMutation,
+    useCapturePaypalOrderMutation,
 } from "mangarine/state/services/apointment.service";
 import { useGetConsultantPricingOnDemandMutation } from "mangarine/state/services/consultant.service";
+import { PayPalScriptProvider, PayPalButtons, FUNDING } from '@paypal/react-paypal-js';
 
 type PaymentMethod = 'stripe' | 'paystack' | 'paypal';
 
@@ -31,6 +33,7 @@ const CustomDatePicker = ({ onClick, consultantId: propConsultantId }: { onClick
     const [initiateTransaction, {isLoading: stripeLoading}] = useIntiateTransactionMutation()
     const [initializePaystack, {isLoading: paystackLoading}] = useInitializePaystackPaymentMutation()
     const [createPaypalOrder, {isLoading: paypalLoading}] = useCreatePaypalOrderMutation()
+    const [capturePaypalOrder] = useCapturePaypalOrderMutation()
     const isLoading = stripeLoading || paystackLoading || paypalLoading;
 
     const consultantId = propConsultantId ?? router.query.consultantId;
@@ -92,30 +95,7 @@ const CustomDatePicker = ({ onClick, consultantId: propConsultantId }: { onClick
             return;
         }
 
-        if (paymentMethod === 'paypal') {
-            try {
-                if (typeof window !== 'undefined') {
-                    localStorage.setItem('paymentConsultantId', consultantId as string);
-                }
-                const payload = await createPaypalOrder({
-                    currency: 'USD',
-                    consultationDetails,
-                }).unwrap();
-                const orderId = payload?.data?.orderId ?? payload?.orderId;
-                const approveUrl = payload?.data?.approveUrl ?? payload?.approveUrl;
-                if (approveUrl) {
-                    window.location.href = approveUrl;
-                } else if (orderId) {
-                    const baseUrl = process.env.NODE_ENV === 'production'
-                        ? 'https://www.paypal.com/checkoutNow'
-                        : 'https://www.sandbox.paypal.com/checkoutNow';
-                    window.location.href = `${baseUrl}?token=${orderId}`;
-                }
-            } catch (error) {
-                console.log(error);
-            }
-            return;
-        }
+        if (paymentMethod === 'paypal') return; // handled by PayPalButtons
     };
 
     const paymentOptions: { value: PaymentMethod; label: string }[] = [
@@ -269,18 +249,49 @@ const CustomDatePicker = ({ onClick, consultantId: propConsultantId }: { onClick
                     ))}
                 </Flex>
 
-                <Button
-                    bg="bt_schedule"
-                    color="white"
-                    flex={1}
-                    disabled={isLoading || !message || !date || !slots.length}
-                    _hover={{bg: "bt_schedule_hover"}}
-                    w="100%"
-                    loading={isLoading}
-                    onClick={bookConsultation}
-                >
-                    Proceed to payment
-                </Button>
+                {paymentMethod === 'paypal' ? (
+                    <PayPalScriptProvider options={{ clientId: process.env.NEXT_PUBLIC_PAYPAL_CLIENT_ID ?? 'test', currency: 'USD' }}>
+                        <PayPalButtons
+                            fundingSource={FUNDING.PAYPAL}
+                            style={{ layout: 'vertical', color: 'gold', shape: 'rect', label: 'pay' }}
+                            disabled={!message || !date || !slots.length}
+                            createOrder={async () => {
+                                const payload = await createPaypalOrder({
+                                    amount: pricingData?.data?.consultant?.pricing?.flatPrice || 75,
+                                    currency: 'USD',
+                                    consultationDetails,
+                                }).unwrap();
+                                const orderId =
+                                    payload?.data?.orderId ??
+                                    payload?.data?.id ??
+                                    payload?.id ??
+                                    payload?.orderId;
+                                if (!orderId) throw new Error("PayPal order creation failed: no order ID returned");
+                                return String(orderId);
+                            }}
+                            onApprove={async (data) => {
+                                const result = await capturePaypalOrder(data.orderID).unwrap();
+                                onClick(result?.data ?? result);
+                            }}
+                            onError={(err) => {
+                                console.error('PayPal error', err);
+                            }}
+                        />
+                    </PayPalScriptProvider>
+                ) : (
+                    <Button
+                        bg="bt_schedule"
+                        color="white"
+                        flex={1}
+                        disabled={isLoading || !message || !date || !slots.length}
+                        _hover={{bg: "bt_schedule_hover"}}
+                        w="100%"
+                        loading={isLoading}
+                        onClick={bookConsultation}
+                    >
+                        Proceed to payment
+                    </Button>
+                )}
             </Box>
         </>
     );

@@ -1,147 +1,150 @@
 "use client";
 
-import {
-  Box,
-  Stack,
-  Table,
-  Text,
-} from "@chakra-ui/react";
+import { Badge, Box, Stack, Table, Text } from "@chakra-ui/react";
 import { outfit } from "mangarine/pages/_app";
+import { EarningItem, PaymentItem } from "mangarine/state/services/transaction.service";
 
 type WalletTableProps = {
-  items: any[];
+  payments?: PaymentItem[];
+  earnings?: EarningItem[];
   isLoading?: boolean;
   error?: any;
 };
 
-export const WalletTable = ({ items = [], isLoading, error }: WalletTableProps) => {
-  const safeItems = Array.isArray(items) ? items : [];
+const fmt = (n: number, currency = "USD") =>
+  new Intl.NumberFormat(undefined, { style: "currency", currency }).format(n);
+
+const statusColor = (status: string) => {
+  const s = status?.toLowerCase();
+  if (s === "completed" || s === "paid") return "green";
+  if (s === "pending") return "orange";
+  if (s === "cancelled" || s === "failed") return "red";
+  return "gray";
+};
+
+export const WalletTable = ({ payments = [], earnings = [], isLoading, error }: WalletTableProps) => {
+  const hasPayments = payments.length > 0;
+  const hasEarnings = earnings.length > 0;
+  const isEmpty = !hasPayments && !hasEarnings;
+
   return (
-    <Stack w="full" h="full" gap={6} overflowX="auto">
+    <Stack w="full" gap={6}>
+      {/* Payments */}
       <Box w="full" overflowX="auto">
-        <Table.Root
-          variant="outline"
-          size="md"
-          striped
-          minW="720px" // ensures table scrolls on smaller screens
-        >
+        <Text fontWeight="600" fontSize="0.9rem" color="text_primary" mb={2}>
+          Payments Made
+        </Text>
+        <Table.Root variant="outline" size="md" striped minW="640px">
           <Table.Header>
             <Table.Row>
-              <Table.ColumnHeader
-                font="outfit"
-                fontWeight="600"
-                fontSize={{ base: "sm", md: "md" }}
-                px={{ base: 2, md: 3 }}
-                py={{ base: 3, md: 4 }}
-              >
-                Date & Time
-              </Table.ColumnHeader>
-              <Table.ColumnHeader
-                font="outfit"
-                fontWeight="600"
-                fontSize={{ base: "sm", md: "md" }}
-                px={{ base: 2, md: 3 }}
-                py={{ base: 3, md: 4 }}
-              >
-                Topic
-              </Table.ColumnHeader>
-              <Table.ColumnHeader
-                font="outfit"
-                fontWeight="600"
-                fontSize={{ base: "sm", md: "md" }}
-                px={{ base: 2, md: 3 }}
-                py={{ base: 3, md: 4 }}
-              >
-                Status
-              </Table.ColumnHeader>
-              <Table.ColumnHeader
-                font="outfit"
-                fontWeight="600"
-                fontSize={{ base: "sm", md: "md" }}
-                px={{ base: 2, md: 3 }}
-                py={{ base: 3, md: 4 }}
-                textAlign="end"
-              >
-                Amount
-              </Table.ColumnHeader>
+              <Table.ColumnHeader fontWeight="600" px={3} py={3} className={outfit.className}>Date</Table.ColumnHeader>
+              <Table.ColumnHeader fontWeight="600" px={3} py={3} className={outfit.className}>Consultant</Table.ColumnHeader>
+              <Table.ColumnHeader fontWeight="600" px={3} py={3} className={outfit.className}>Status</Table.ColumnHeader>
+              <Table.ColumnHeader fontWeight="600" px={3} py={3} textAlign="end" className={outfit.className}>Amount</Table.ColumnHeader>
             </Table.Row>
           </Table.Header>
-
           <Table.Body className={outfit.className}>
             {isLoading && (
               <Table.Row>
-                <Table.Cell colSpan={4} py={{ base: 3, md: 4 }} px={{ base: 2, md: 3 }}>
-                  <Text color="gray.500">Loading transactions…</Text>
+                <Table.Cell colSpan={4} textAlign="center" py={4}>
+                  <Text color="gray.500">Loading…</Text>
                 </Table.Cell>
               </Table.Row>
             )}
             {!isLoading && error && (
               <Table.Row>
-                <Table.Cell colSpan={4} py={{ base: 3, md: 4 }} px={{ base: 2, md: 3 }}>
-                  <Text color="red.500">Failed to load transactions</Text>
+                <Table.Cell colSpan={4} textAlign="center" py={4}>
+                  <Text color="red.500">Failed to load payments</Text>
                 </Table.Cell>
               </Table.Row>
             )}
-            {!isLoading && !error && safeItems.length === 0 && (
+            {!isLoading && !error && !hasPayments && (
               <Table.Row>
-                <Table.Cell  textAlign={'center'} colSpan={4} py={{ base: 3, md: 4 }} px={{ base: 2, md: 3 }}>
-                  <Text textAlign="center" color="gray.500">No transactions found</Text>
+                <Table.Cell colSpan={4} textAlign="center" py={4}>
+                  <Text color="gray.500">No payments found</Text>
                 </Table.Cell>
               </Table.Row>
             )}
-            {!isLoading && !error && safeItems.map((t, idx) => {
-              const when = t?.createdAt ?? t?.updatedAt ?? t?.date;
-              const topic = t?.topic ?? t?.description ?? t?.purpose ?? "—";
-              const status = t?.status ?? t?.state ?? "—";
-              const amount = Number(t?.amount ?? t?.price ?? 0);
-              return (
-                <Table.Row key={t?.id ?? idx} minH="72px" color="text_primary">
-                  <Table.Cell py={{ base: 3, md: 4 }} px={{ base: 2, md: 3 }}>
-                    <Text textWrap={"nowrap"} fontSize={{ base: "sm", md: "md" }}>
-                      {when ? new Date(when).toLocaleString() : "—"}
-                    </Text>
-                  </Table.Cell>
-                  <Table.Cell py={{ base: 3, md: 4 }} px={{ base: 2, md: 3 }}>
-                    <Text textWrap={"wrap"} fontSize={{ base: "sm", md: "md" }}>
-                      {topic}
-                    </Text>
-                  </Table.Cell>
-                  <Table.Cell py={{ base: 3, md: 4 }} px={{ base: 2, md: 3 }}>
-                    <Text fontSize={{ base: "sm", md: "md" }}>
-                      {status}
-                    </Text>
-                  </Table.Cell>
-                  <Table.Cell py={{ base: 3, md: 4 }} px={{ base: 2, md: 3 }} textAlign="end">
-                    <Text fontSize={{ base: "sm", md: "md" }}>
-                      {new Intl.NumberFormat(undefined, { style: 'currency', currency: 'USD' }).format(amount)}
-                    </Text>
-                  </Table.Cell>
-                </Table.Row>
-              );
-            })}
+            {!isLoading && !error && payments.map((p) => (
+              <Table.Row key={p.id} color="text_primary">
+                <Table.Cell px={3} py={3} fontSize="sm">
+                  {p.createdAt ? new Date(p.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) : "—"}
+                </Table.Cell>
+                <Table.Cell px={3} py={3} fontSize="sm">
+                  {p.consultant?.fullName ?? "—"}
+                </Table.Cell>
+                <Table.Cell px={3} py={3}>
+                  <Badge colorPalette={statusColor(p.status)} fontSize="xs">
+                    {p.status}
+                  </Badge>
+                </Table.Cell>
+                <Table.Cell px={3} py={3} textAlign="end" fontSize="sm" fontWeight="600">
+                  {fmt(Number(p.amount), p.currency)}
+                </Table.Cell>
+              </Table.Row>
+            ))}
           </Table.Body>
         </Table.Root>
       </Box>
 
-      {/* <Pagination.Root count={20} pageSize={5} defaultPage={1}>
-        <ButtonGroup variant="ghost" size="sm" wrap="wrap" justifyContent="center">
-          <Pagination.PrevTrigger asChild>
-            <IconButton icon={<LuChevronLeft />} aria-label="Previous Page" />
-          </Pagination.PrevTrigger>
-
-          <Pagination.Items
-            render={(page) => (
-              <IconButton key={page.value} variant={page.selected ? "solid" : "ghost"}>
-                {page.value}
-              </IconButton>
+      {/* Earnings */}
+      <Box w="full" overflowX="auto">
+        <Text fontWeight="600" fontSize="0.9rem" color="text_primary" mb={2}>
+          Earnings Received
+        </Text>
+        <Table.Root variant="outline" size="md" striped minW="720px">
+          <Table.Header>
+            <Table.Row>
+              <Table.ColumnHeader fontWeight="600" px={3} py={3} className={outfit.className}>Date</Table.ColumnHeader>
+              <Table.ColumnHeader fontWeight="600" px={3} py={3} className={outfit.className}>From</Table.ColumnHeader>
+              <Table.ColumnHeader fontWeight="600" px={3} py={3} className={outfit.className}>Status</Table.ColumnHeader>
+              <Table.ColumnHeader fontWeight="600" px={3} py={3} textAlign="end" className={outfit.className}>Gross</Table.ColumnHeader>
+              <Table.ColumnHeader fontWeight="600" px={3} py={3} textAlign="end" className={outfit.className}>Fee (10%)</Table.ColumnHeader>
+              <Table.ColumnHeader fontWeight="600" px={3} py={3} textAlign="end" className={outfit.className}>Net</Table.ColumnHeader>
+            </Table.Row>
+          </Table.Header>
+          <Table.Body className={outfit.className}>
+            {isLoading && (
+              <Table.Row>
+                <Table.Cell colSpan={6} textAlign="center" py={4}>
+                  <Text color="gray.500">Loading…</Text>
+                </Table.Cell>
+              </Table.Row>
             )}
-          />
-
-          <Pagination.NextTrigger asChild>
-            <IconButton icon={<LuChevronRight />} aria-label="Next Page" />
-          </Pagination.NextTrigger>
-        </ButtonGroup>
-      </Pagination.Root> */}
+            {!isLoading && !hasEarnings && (
+              <Table.Row>
+                <Table.Cell colSpan={6} textAlign="center" py={4}>
+                  <Text color="gray.500">No earnings yet</Text>
+                </Table.Cell>
+              </Table.Row>
+            )}
+            {!isLoading && earnings.map((e) => (
+              <Table.Row key={e.id} color="text_primary">
+                <Table.Cell px={3} py={3} fontSize="sm">
+                  {e.createdAt ? new Date(e.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) : "—"}
+                </Table.Cell>
+                <Table.Cell px={3} py={3} fontSize="sm">
+                  {e.payer?.fullName ?? "—"}
+                </Table.Cell>
+                <Table.Cell px={3} py={3}>
+                  <Badge colorPalette={e.status === "PAID" ? "green" : "orange"} fontSize="xs">
+                    {e.status}
+                  </Badge>
+                </Table.Cell>
+                <Table.Cell px={3} py={3} textAlign="end" fontSize="sm">
+                  {fmt(e.grossAmount, e.currency)}
+                </Table.Cell>
+                <Table.Cell px={3} py={3} textAlign="end" fontSize="sm" color="red.400">
+                  -{fmt(e.platformFeeAmount, e.currency)}
+                </Table.Cell>
+                <Table.Cell px={3} py={3} textAlign="end" fontSize="sm" fontWeight="600" color="green.500">
+                  {fmt(e.netAmount, e.currency)}
+                </Table.Cell>
+              </Table.Row>
+            ))}
+          </Table.Body>
+        </Table.Root>
+      </Box>
     </Stack>
   );
 };

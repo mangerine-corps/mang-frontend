@@ -37,6 +37,8 @@ import { format } from "date-fns";
 import ReportUser from "./modals/reportuser";
 import { useBlockUserMutation } from "mangarine/state/services/profile.service";
 import { safeProfilePic, getBannerGradient } from "mangarine/lib/constants";
+import ImageLightbox from "./imagelightbox";
+import NextImage from "next/image";
 import ConsultantNotificationModal from "./modals/consultantnotificationmodal";
 
 interface EditConsultantProfileCardProps {
@@ -63,6 +65,8 @@ const EditConsultantProfileCard = ({
   const route = useRouter();
   const [open, setOpen] = useState<boolean>(false);
   const [report, setReport] = useState(false);
+  const [profilePicOpen, setProfilePicOpen] = useState(false);
+  const [bannerOpen, setBannerOpen] = useState(false);
   const [block, setBlock] = useState<boolean>(false);
   const [notificationOpen, setNotificationOpen] = useState(false);
   const [notificationPreference, setNotificationPreference] = useState<
@@ -145,14 +149,20 @@ const EditConsultantProfileCard = ({
         overflow="hidden"
       >
         {/* Cover photo / grey fallback */}
-        <Box h={{ base: "130px", lg: "180px" }} w="full">
+        <Box
+          h={{ base: "130px", lg: "180px" }} w="full"
+          position="relative"
+          cursor={info?.profileBanner ? "pointer" : "default"}
+          onClick={() => { if (info?.profileBanner) setBannerOpen(true); }}
+        >
           {info?.profileBanner ? (
-            <Image
+            <NextImage
               src={info.profileBanner}
               alt="profile banner"
-              h="full"
-              w="full"
-              objectFit="cover"
+              fill
+              sizes="(max-width: 768px) 100vw, 900px"
+              style={{ objectFit: "cover" }}
+              priority
             />
           ) : (
             <Box
@@ -162,6 +172,11 @@ const EditConsultantProfileCard = ({
             />
           )}
         </Box>
+        <ImageLightbox
+          images={info?.profileBanner ? [info.profileBanner] : []}
+          initialIndex={bannerOpen ? 0 : null}
+          onClose={() => setBannerOpen(false)}
+        />
 
         {/* Avatar + actions row */}
         <Flex px={{ base: 4, lg: 6 }} justify="space-between" align="flex-end" mb={2}>
@@ -174,6 +189,8 @@ const EditConsultantProfileCard = ({
             bg="bg_box"
             overflow="hidden"
             boxSize={{ base: "88px", lg: "148px" }}
+            cursor={info?.profilePics ? "pointer" : "default"}
+            onClick={() => { if (info?.profilePics) setProfilePicOpen(true); }}
           >
             <Avatar.Root style={{ width: "100%", height: "100%", borderRadius: "50%" }}>
               <Avatar.Fallback>{info?.fullName}</Avatar.Fallback>
@@ -183,6 +200,11 @@ const EditConsultantProfileCard = ({
               />
             </Avatar.Root>
           </Box>
+          <ImageLightbox
+            images={info?.profilePics ? [info.profilePics] : []}
+            initialIndex={profilePicOpen ? 0 : null}
+            onClose={() => setProfilePicOpen(false)}
+          />
 
           {/* Actions */}
           <HStack gap={2} pb={1}>

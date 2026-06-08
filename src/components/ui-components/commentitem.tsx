@@ -46,6 +46,7 @@ import { toaster } from "mangarine/components/ui/toaster";
 import { useDispatch } from "react-redux";
 import { useClickAway } from "react-use";
 import ReportComment from "./modals/reportcomment";
+import ImageLightbox from "./imagelightbox";
 
 const smily = "/icons/smily.svg";
 
@@ -109,6 +110,7 @@ const CommentItem = ({
   const [, setCurrentPost] = useState<Post>(post);
   const [reply, setReply] = useState<number | null>(null);
   const [replyText, setReplyText] = useState("");
+  const [profilePicOpen, setProfilePicOpen] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [addFollower] = useFollowUserMutation();
   const [removeFollower] = useUnfollowUserMutation();
@@ -314,8 +316,12 @@ const CommentItem = ({
             alignItems="center"
             cursor="pointer"
             onClick={() => {
-              const authorId = comment.author?.id;
-              if (authorId) router.push(`/profile/${authorId}`);
+              if (comment.author?.profilePics) {
+                setProfilePicOpen(true);
+              } else {
+                const authorId = comment.author?.id;
+                if (authorId) router.push(`/profile/${authorId}`);
+              }
             }}
             _hover={{ opacity: 0.8 }}
           >
@@ -542,6 +548,11 @@ const CommentItem = ({
           )}
         </Box>
       )}
+      <ImageLightbox
+        images={comment.author?.profilePics ? [comment.author.profilePics] : []}
+        initialIndex={profilePicOpen ? 0 : null}
+        onClose={() => setProfilePicOpen(false)}
+      />
       <ReportComment
         userId={user?.id}
         isOpen={report}

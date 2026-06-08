@@ -6,6 +6,17 @@ const nextConfig: NextConfig = {
   compiler: {
     removeConsole: process.env.NODE_ENV === "production" ? { exclude: ["error", "warn"] } : false,
   },
+  images: {
+    remotePatterns: [
+      { protocol: "https", hostname: "**.mangerine.com" },
+      { protocol: "https", hostname: "mangerine.com" },
+      { protocol: "https", hostname: "res.cloudinary.com" },
+      { protocol: "https", hostname: "**.amazonaws.com" },
+      { protocol: "https", hostname: "**.r2.dev" },
+      { protocol: "https", hostname: "**.cloudfront.net" },
+
+    ],
+  },
   env: {
     API_BASE_URL: process.env.API_BASE_URL,
     APP_URL: process.env.APP_URL,

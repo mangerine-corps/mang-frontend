@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import { Text, VStack, Image, Flex, Box, HStack, Skeleton, SkeletonCircle } from "@chakra-ui/react";
+import NextImage from "next/image";
 import {
   useGetFavoriteConsultantsQuery,
   useUnfavoriteConsultantMutation,
@@ -120,14 +121,13 @@ const FavouriteConsultantsComp = () => {
                   if (consultantId) router.push(`/profile/${consultantId}`);
                 }}
               >
-                <Box boxSize="40px" borderRadius="full" overflow="hidden" flexShrink={0}>
-                  <Image
+                <Box boxSize="40px" borderRadius="full" overflow="hidden" flexShrink={0} position="relative">
+                  <NextImage
                     src={safeProfilePic(item?.consultant?.profilePics)}
-                    onError={imgErrorFallback}
                     alt={item?.consultant?.fullName ?? "Consultant"}
-                    w="full"
-                    h="full"
-                    objectFit="cover"
+                    fill
+                    sizes="40px"
+                    style={{ objectFit: "cover" }}
                   />
                 </Box>
                 <Box minW={0}>

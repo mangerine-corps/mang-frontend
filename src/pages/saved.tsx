@@ -80,7 +80,7 @@ function SavedPage() {
   const collectionId = router.query.collection as string | undefined;
   const { user } = useAuth();
 
-  const { data: bookmarksData, isFetching: bookmarksLoading } = useGetBookmarksQuery(undefined);
+  const { data: bookmarksData, isFetching: bookmarksLoading, isError: bookmarksError } = useGetBookmarksQuery(undefined);
   const { data: collectionsData, isFetching: collectionsLoading } = useGetCollectionQuery(undefined);
   const { data: collectionPostsData, isFetching: collectionPostsLoading } = useGetCollectionPostQuery(
     collectionId,
@@ -96,9 +96,26 @@ function SavedPage() {
   const isJobsTab = router.query.tab === "jobs";
   const isConsultantsTab = router.query.tab === "consultants";
 
-  const bookmarks: any[] = bookmarksData?.data?.items ?? bookmarksData?.data ?? [];
-  const collections: any[] = collectionsData?.data?.items ?? collectionsData?.data ?? [];
-  const collectionPosts: any[] = collectionPostsData?.data?.items ?? collectionPostsData?.data ?? [];
+  const bookmarks: any[] = (() => {
+    const d = bookmarksData?.data;
+    if (Array.isArray(d)) return d;
+    if (Array.isArray(d?.items)) return d.items;
+    if (Array.isArray(d?.bookmarks)) return d.bookmarks;
+    if (Array.isArray(d?.data)) return d.data;
+    return [];
+  })();
+  const collections: any[] = (() => {
+    const d = collectionsData?.data;
+    if (Array.isArray(d)) return d;
+    if (Array.isArray(d?.items)) return d.items;
+    return [];
+  })();
+  const collectionPosts: any[] = (() => {
+    const d = collectionPostsData?.data;
+    if (Array.isArray(d)) return d;
+    if (Array.isArray(d?.items)) return d.items;
+    return [];
+  })();
   const activeCollection = collections.find((c) => c.id === collectionId);
 
   const rawFavList: any[] = Array.isArray(favConsultantsData?.data)
@@ -165,7 +182,7 @@ function SavedPage() {
     ? "Favourite Consultants"
     : activeCollection
     ? (activeCollection.name ?? "Collection")
-    : "All Saved Items";
+    : "Saved Posts";
 
   const headerSubtitle = isJobsTab
     ? `${savedJobs.length} job${savedJobs.length !== 1 ? "s" : ""}`
@@ -173,7 +190,7 @@ function SavedPage() {
     ? `${favConsultants.length} consultant${favConsultants.length !== 1 ? "s" : ""}`
     : collectionId
     ? `${collectionPosts.length} post${collectionPosts.length !== 1 ? "s" : ""}`
-    : "All saved items";
+    : "All bookmarked posts";
 
   return (
     <>
@@ -269,8 +286,8 @@ function SavedPage() {
               {/* All Saved */}
               <SidebarRow
                 icon={<BsBookmarkFill />}
-                label="All Saved"
-                sublabel="All saved items"
+                label="Saved Posts"
+                sublabel="All bookmarked posts"
                 isActive={isDefaultTab}
                 onClick={handleBack}
               />
@@ -417,7 +434,7 @@ function SavedPage() {
             <Box display={{ base: "block", lg: "none" }} mt={3}>
               <HStack gap={2} flexWrap="wrap">
                 {[
-                  { label: "All", active: isDefaultTab, onClick: handleBack },
+                  { label: "Saved Posts", active: isDefaultTab, onClick: handleBack },
                   { label: "Jobs", active: isJobsTab, onClick: handleJobsTab },
                   { label: "Consultants", active: isConsultantsTab, onClick: handleConsultantsTab },
                   ...collections.map((col) => ({
@@ -588,6 +605,12 @@ function SavedPage() {
           ) : (
             bookmarksLoading ? (
               [...Array(3)].map((_, i) => <SkeletonPost key={i} />)
+            ) : bookmarksError ? (
+              <EmptyState
+                icon={<BsBookmark />}
+                title="Couldn't load saved items"
+                subtitle="Please try refreshing the page."
+              />
             ) : bookmarks.length === 0 ? (
               <EmptyState
                 icon={<BsBookmark />}
@@ -595,9 +618,9 @@ function SavedPage() {
                 subtitle="Tap the bookmark icon on any post to save it here."
               />
             ) : (
-              bookmarks.map((item: any) => {
-                const post = item.post ?? item;
-                return <NewsItem key={post.id} post={post} />;
+              bookmarks.map((item: any, i: number) => {
+                const post = item?.post ?? item;
+                return <NewsItem key={post?.id ?? i} post={post} />;
               })
             )
           )}

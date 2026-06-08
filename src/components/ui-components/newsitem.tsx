@@ -13,9 +13,11 @@ import {
   VStack,
 } from "@chakra-ui/react";
 import React, { memo, useEffect, useState } from "react";
+import NextImage from "next/image";
 import { useFollow } from "mangarine/hooks/useFollow";
 
 import { IoEllipsisVerticalOutline } from "react-icons/io5";
+import { BsCollectionFill } from "react-icons/bs";
 import { usePathname, useRouter, useParams } from "next/navigation";
 
 import { useDispatch } from "react-redux";
@@ -121,6 +123,7 @@ const NewsItem: React.FC<NewsItemProps> = ({ post, isDetailPage = false }) => {
   // const [unfollowUser] = useUnfollowUserMutation();
   const [view, setView] = useState<boolean>(false);
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
+  const [profilePicOpen, setProfilePicOpen] = useState(false);
 
   const [showCollections, setShowCollections] = useState(false);
   // Hook manages isFollowing state and label consistently across app
@@ -136,23 +139,16 @@ const NewsItem: React.FC<NewsItemProps> = ({ post, isDetailPage = false }) => {
   const [deletePost, setDeletePost] = useState(false);
   // pathname already defined above
   const handleAddToCollection = (collectionId: string) => {
-    const formData = {
-      post: post?.id,
-      collection: collectionId,
-    };
-    addPostToCollection(formData)
+    if (!collectionId) return;
+    addPostToCollection({ post: post?.id, collection: collectionId })
       .unwrap()
       .then(() => {
         setShowCollections(false);
-        // Toast({
-        //   title: "Added to Collection",
-        //   description: "Post has been added to your collection",
-        //   status: "success",
-        //   duration: 3000,
-        // });
-        alert("add to collection");
+        toaster.create({ description: "Post added to collection", type: "success", closable: true });
       })
-      .catch(() => { });
+      .catch(() => {
+        toaster.create({ description: "Failed to add to collection", type: "error", closable: true });
+      });
   };
 
   const handlePostClick = (postId: string) => {
@@ -232,18 +228,28 @@ const NewsItem: React.FC<NewsItemProps> = ({ post, isDetailPage = false }) => {
           <Avatar.Root
             w={10} h={10} flexShrink={0} alignSelf="flex-start"
             cursor="pointer"
-            onClick={() => {
-              const creatorId = post?.creator?.id;
-              if (!creatorId || creatorId === user?.id) {
-                router.push("/profile");
+            onClick={(e) => {
+              e.stopPropagation();
+              if (post?.creator?.profilePics) {
+                setProfilePicOpen(true);
               } else {
-                router.push(`/profile/${creatorId}`);
+                const creatorId = post?.creator?.id;
+                if (!creatorId || creatorId === user?.id) {
+                  router.push("/profile");
+                } else {
+                  router.push(`/profile/${creatorId}`);
+                }
               }
             }}
           >
             <Avatar.Fallback name={`${post?.creator?.fullName}`} />
             <Avatar.Image src={post?.creator?.profilePics} />
           </Avatar.Root>
+          <ImageLightbox
+            images={post?.creator?.profilePics ? [post.creator.profilePics] : []}
+            initialIndex={profilePicOpen ? 0 : null}
+            onClose={() => setProfilePicOpen(false)}
+          />
 
           <VStack align={"left"} gap={0} alignItems={"flex-start"} flex={1}>
             <HStack
@@ -332,6 +338,23 @@ const NewsItem: React.FC<NewsItemProps> = ({ post, isDetailPage = false }) => {
                         </Text>
                       </HStack>
                     </Menu.Item>
+                    <Menu.Item
+                      px={4}
+                      py={3}
+                      value="add-to-collection"
+                      onClick={() => setShowCollections(true)}
+                      cursor="pointer"
+                      _hover={{ bg: "bg_hover" }}
+                    >
+                      <HStack gap={3}>
+                        <Icon size="sm" color="gray.500">
+                          <BsCollectionFill />
+                        </Icon>
+                        <Text fontSize="0.875rem" fontWeight="500" color="text_primary">
+                          Add to collection
+                        </Text>
+                      </HStack>
+                    </Menu.Item>
                     <Box px={4}><Box h="1px" bg="gray.100" /></Box>
                     <Menu.Item
                       px={4}
@@ -395,6 +418,23 @@ const NewsItem: React.FC<NewsItemProps> = ({ post, isDetailPage = false }) => {
                         </Icon>
                         <Text fontSize="0.875rem" fontWeight="500" color="text_primary">
                           {isBookmarked ? "Unsave post" : "Save post"}
+                        </Text>
+                      </HStack>
+                    </Menu.Item>
+                    <Menu.Item
+                      px={4}
+                      py={3}
+                      value="add-to-collection"
+                      onClick={() => setShowCollections(true)}
+                      cursor="pointer"
+                      _hover={{ bg: "bg_hover" }}
+                    >
+                      <HStack gap={3}>
+                        <Icon size="sm" color="gray.500">
+                          <BsCollectionFill />
+                        </Icon>
+                        <Text fontSize="0.875rem" fontWeight="500" color="text_primary">
+                          Add to collection
                         </Text>
                       </HStack>
                     </Menu.Item>
@@ -491,10 +531,11 @@ const NewsItem: React.FC<NewsItemProps> = ({ post, isDetailPage = false }) => {
           if (total === 1) {
             return (
               <Box
-                mt={5} cursor="pointer" rounded="6px" overflow="hidden"
+                mt={5} cursor="pointer" rounded="6px" overflow="hidden" position="relative"
+                h={{ base: "220px", md: "300px" }}
                 onClick={(e) => { e.stopPropagation(); setLightboxIndex(0); }}
               >
-                <Image h={{ base: "220px", md: "300px" }} w="full" objectFit="cover" objectPosition="center" src={imgs[0]} alt="Post image" />
+                <NextImage src={imgs[0]} alt="Post image" fill sizes="(max-width: 768px) 100vw, 680px" style={{ objectFit: "cover", objectPosition: "center" }} />
               </Box>
             );
           }
@@ -503,10 +544,11 @@ const NewsItem: React.FC<NewsItemProps> = ({ post, isDetailPage = false }) => {
             return (
               <Grid mt={5} templateColumns="1fr 1fr" gap={1}>
                 {imgs.map((url, i) => (
-                  <Box key={i} cursor="pointer" rounded="6px" overflow="hidden"
+                  <Box key={i} cursor="pointer" rounded="6px" overflow="hidden" position="relative"
+                    h={{ base: "160px", md: "220px" }}
                     onClick={(e) => { e.stopPropagation(); setLightboxIndex(i); }}
                   >
-                    <Image h={{ base: "160px", md: "220px" }} w="full" objectFit="cover" objectPosition="center" src={url} alt={`Post image ${i + 1}`} />
+                    <NextImage src={url} alt={`Post image ${i + 1}`} fill sizes="(max-width: 768px) 50vw, 340px" style={{ objectFit: "cover", objectPosition: "center" }} />
                   </Box>
                 ))}
               </Grid>
@@ -518,24 +560,24 @@ const NewsItem: React.FC<NewsItemProps> = ({ post, isDetailPage = false }) => {
             <HStack mt={5} gap={1} alignItems="stretch" h={{ base: "200px", md: "260px" }}>
               {/* Left: first image full height */}
               <Box
-                flex={1} cursor="pointer" rounded="6px" overflow="hidden" h="full"
+                flex={1} cursor="pointer" rounded="6px" overflow="hidden" h="full" position="relative"
                 onClick={(e) => { e.stopPropagation(); setLightboxIndex(0); }}
               >
-                <Image h="full" w="full" objectFit="cover" objectPosition="center" src={imgs[0]} alt="Post image 1" />
+                <NextImage src={imgs[0]} alt="Post image 1" fill sizes="(max-width: 768px) 50vw, 340px" style={{ objectFit: "cover", objectPosition: "center" }} />
               </Box>
               {/* Right: two stacked */}
               <VStack flex={1} gap={1} h="full">
                 <Box
-                  flex={1} w="full" cursor="pointer" rounded="6px" overflow="hidden"
+                  flex={1} w="full" cursor="pointer" rounded="6px" overflow="hidden" position="relative"
                   onClick={(e) => { e.stopPropagation(); setLightboxIndex(1); }}
                 >
-                  <Image h="full" w="full" objectFit="cover" objectPosition="center" src={imgs[1]} alt="Post image 2" />
+                  <NextImage src={imgs[1]} alt="Post image 2" fill sizes="(max-width: 768px) 50vw, 340px" style={{ objectFit: "cover", objectPosition: "center" }} />
                 </Box>
                 <Box
                   flex={1} w="full" position="relative" cursor="pointer" rounded="6px" overflow="hidden"
                   onClick={(e) => { e.stopPropagation(); setLightboxIndex(2); }}
                 >
-                  <Image h="full" w="full" objectFit="cover" objectPosition="center" src={imgs[2]} alt="Post image 3" />
+                  <NextImage src={imgs[2]} alt="Post image 3" fill sizes="(max-width: 768px) 50vw, 340px" style={{ objectFit: "cover", objectPosition: "center" }} />
                   {remaining > 0 && (
                     <Box
                       position="absolute" inset={0} bg="rgba(0,0,0,0.55)"
@@ -552,12 +594,6 @@ const NewsItem: React.FC<NewsItemProps> = ({ post, isDetailPage = false }) => {
           );
         })()}
 
-        <ImageLightbox
-          images={post?.images ?? []}
-          initialIndex={lightboxIndex}
-          onClose={() => setLightboxIndex(null)}
-        />
-
         {post?.video && (
           <Box mt={5}>
             <video controls style={{ width: "100%", borderRadius: "6px" }}>
@@ -567,6 +603,12 @@ const NewsItem: React.FC<NewsItemProps> = ({ post, isDetailPage = false }) => {
           </Box>
         )}
       </Box>
+
+      <ImageLightbox
+        images={post?.images ?? []}
+        initialIndex={lightboxIndex}
+        onClose={() => setLightboxIndex(null)}
+      />
 
       {likeError && (
         <Box

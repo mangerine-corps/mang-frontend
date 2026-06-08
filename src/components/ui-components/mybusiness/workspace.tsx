@@ -17,7 +17,6 @@ import MyAccounts from "mangarine/components/ui-components/myaccount/TabPages/my
 import MyMeetings from "mangarine/components/ui-components/meetings/TabPages/my_meeting";
 import Dashboard from "mangarine/components/ui-components/mybusiness/dashboard";
 import MenuList from "mangarine/components/ui-components/mybusiness/menudrawer";
-import ScheduleGroupConsultation from "mangarine/components/ui-components/mybusiness/modals/schedulegroupconsult";
 import MyWalletComponent from "mangarine/components/ui-components/mybusiness/mywalletcomp";
 import {
   menuData,
@@ -71,7 +70,7 @@ const MyBusinessWorkspace = () => {
   const [activePage, setActivePage] = useState("availability_settings");
   const [feedbackActivePage, setFeedbackActivePage] = useState("feedback");
   const [showMenuList, setShowMenuList] = useState(false);
-  const [openModal, setOpenModal] = useState(false);
+
 
   const router = useRouter();
   const { tab = "dashboard" } = router.query;
@@ -274,17 +273,6 @@ const MyBusinessWorkspace = () => {
             })}
           </VStack>
 
-          <Button
-            bg="button_bg"
-            w="90%"
-            mx="auto"
-            mb={6}
-            onClick={() => setOpenModal(true)}
-          >
-            <Text fontFamily="Outfit" color="button_text" fontWeight="400">
-              + Create Group Session
-            </Text>
-          </Button>
         </Box>
       </Box>
 
@@ -323,12 +311,6 @@ const MyBusinessWorkspace = () => {
         onOpenChange={() => setShowMenuList(false)}
       />
 
-      {openModal && (
-        <ScheduleGroupConsultation
-          isOpen={openModal}
-          onOpenChange={() => setOpenModal(false)}
-        />
-      )}
     </Box>
   );
 };
