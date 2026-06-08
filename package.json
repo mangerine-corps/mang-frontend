@@ -7,7 +7,9 @@
     "build": "next build",
     "start": "dotenv -e .env -- next start",
     "lint": "next lint",
-    "prepare": "husky"
+    "prepare": "husky",
+    "clean": "rm -rf .next/cache",
+    "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "@aws-sdk/client-ses": "^3.872.0",

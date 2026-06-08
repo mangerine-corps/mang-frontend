@@ -16,10 +16,17 @@ cd "$APP_DIR"
 echo ">>> Pulling latest changes..."
 git pull
 
-echo ">>> Installing dependencies..."
-npm ci
+# Only reinstall if dependencies actually changed
+if git diff HEAD@{1} HEAD --name-only 2>/dev/null | grep -q "package-lock.json"; then
+  echo ">>> Dependencies changed — installing..."
+  npm ci
+else
+  echo ">>> No dependency changes — skipping install."
+fi
 
 echo ">>> Building application..."
+export CI=true
+export NODE_OPTIONS="--max-old-space-size=4096"
 npm run build
 
 echo ">>> Reloading PM2 process..."

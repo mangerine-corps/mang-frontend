@@ -31,7 +31,7 @@ const CommentInputWrapper: React.FC<CommentInputWrapperProps> = ({ postId }) => 
     return Array.isArray(postId) ? postId[0] : postId;
   }, [postId]);
 
-  if (!numericPostId) return <div>Invalid post ID</div>;
+  if (!numericPostId) return null;
 
   const onEmojiClick = (emojiObject) => {
     setComment(`${comment} ${emojiObject.emoji}`);

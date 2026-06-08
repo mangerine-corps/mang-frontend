@@ -58,7 +58,8 @@ const signinSchema = Yup.object().shape({
   password: Yup.string()
     .required("Password is required")
     .min(8, "Password must be at least 8 characters")
-    .matches(/[A-Z]/, "Password must include at least one uppercase letter"),
+    .matches(/[A-Z]/, "Password must include at least one uppercase letter (A - Z)")
+    .matches(/[0-9]/, "Password must contain at least one number"),
 
   confirmPassword: Yup.string()
     .oneOf([Yup.ref("password"), null], "Passwords must match")
@@ -358,7 +359,9 @@ const OnboardingOne = () => {
                 Password must be at least{" "}
                 <Text as="span" color="primary.500" fontWeight={"600"}>8 characters</Text>
                 {" "}long and include at least{" "}
-                <Text as="span" color="primary.500" fontWeight={"600"}>one uppercase letter (A - Z)</Text>.
+                <Text as="span" color="primary.500" fontWeight={"600"}>one uppercase letter (A - Z)</Text>
+                {" "}and{" "}
+                <Text as="span" color="primary.500" fontWeight={"600"}>one number (0 - 9)</Text>.
               </Text>
             )}
           </VStack>

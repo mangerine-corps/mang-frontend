@@ -123,7 +123,6 @@ const NewsItem: React.FC<NewsItemProps> = ({ post, isDetailPage = false }) => {
   // const [unfollowUser] = useUnfollowUserMutation();
   const [view, setView] = useState<boolean>(false);
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
-  const [profilePicOpen, setProfilePicOpen] = useState(false);
 
   const [showCollections, setShowCollections] = useState(false);
   // Hook manages isFollowing state and label consistently across app
@@ -230,26 +229,17 @@ const NewsItem: React.FC<NewsItemProps> = ({ post, isDetailPage = false }) => {
             cursor="pointer"
             onClick={(e) => {
               e.stopPropagation();
-              if (post?.creator?.profilePics) {
-                setProfilePicOpen(true);
+              const creatorId = post?.creator?.id;
+              if (!creatorId || creatorId === user?.id) {
+                router.push("/profile");
               } else {
-                const creatorId = post?.creator?.id;
-                if (!creatorId || creatorId === user?.id) {
-                  router.push("/profile");
-                } else {
-                  router.push(`/profile/${creatorId}`);
-                }
+                router.push(`/profile/${creatorId}`);
               }
             }}
           >
             <Avatar.Fallback name={`${post?.creator?.fullName}`} />
             <Avatar.Image src={post?.creator?.profilePics} />
           </Avatar.Root>
-          <ImageLightbox
-            images={post?.creator?.profilePics ? [post.creator.profilePics] : []}
-            initialIndex={profilePicOpen ? 0 : null}
-            onClose={() => setProfilePicOpen(false)}
-          />
 
           <VStack align={"left"} gap={0} alignItems={"flex-start"} flex={1}>
             <HStack
