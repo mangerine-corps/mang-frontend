@@ -1,4 +1,4 @@
-import { Box, Flex, Text, HStack, Button, Image, Spinner, VStack, Badge } from "@chakra-ui/react";
+import { Box, Flex, Text, HStack, Button, Image, Spinner, VStack, Icon } from "@chakra-ui/react";
 import { useState, useEffect } from "react";
 import { useGetUpcomingConsultationQuery } from "mangarine/state/services/apointment.service";
 import { format, isAfter, subMinutes, isBefore, addMinutes } from "date-fns";
@@ -6,8 +6,8 @@ import { useRouter } from "next/router";
 import AreyouCancellingModal from "./modals/areyoucancelling";
 import { safeProfilePic, imgErrorFallback } from "mangarine/lib/constants";
 import RescheduleConsultation from "./modals/rescheduleconsultation";
+import { LuMail, LuVideo, LuCalendar, LuClock } from "react-icons/lu";
 
-// Returns true when we are within 10 min before start or before end
 const isJoinable = (item: any): boolean => {
   const startRaw = item.scheduledDateTimeStart ?? item.scheduledDate;
   const endRaw = item.scheduledDateTimeEnd;
@@ -25,197 +25,188 @@ const ScheduledConsultation = () => {
   const [, setTick] = useState(0);
   const router = useRouter();
 
-  // Re-render every 30 s so joinable state updates automatically
   useEffect(() => {
     const timer = setInterval(() => setTick((t) => t + 1), 30_000);
     return () => clearInterval(timer);
   }, []);
 
   const { data, isLoading } = useGetUpcomingConsultationQuery({});
-
   const appointments: any[] = (data as any)?.data?.consultations ?? [];
 
-  const formatTime = (val: string) => {
+  const fmtTime = (val: string) => {
     if (!val) return "";
-    try {
-      return format(new Date(val), "h:mmaa");
-    } catch {
-      return val;
-    }
+    try { return format(new Date(val), "HH:mm"); }
+    catch { return val; }
   };
 
-  const formatDateLabel = (val: string) => {
+  const fmtDate = (val: string) => {
     if (!val) return "";
-    try {
-      return format(new Date(val), "MMMM d, yyyy");
-    } catch {
-      return val;
-    }
+    try { return format(new Date(val), "MMM d, yyyy"); }
+    catch { return val; }
   };
 
   return (
     <Box
-      w={{ base: "100%", md: "100%" }}
       display={{ base: "none", md: "flex" }}
-      p={6}
-      bg="bg_box"
-      borderRadius="lg"
-      boxShadow="sm"
       flexDirection="column"
+      bg="bg_box"
+      borderRadius="xl"
+      boxShadow="sm"
+      overflow="hidden"
     >
-      <Text fontSize="xl" fontWeight="700" mb={4} color="text_primary" fontFamily="Outfit">
-        Scheduled Consultation
-      </Text>
+      {/* Header */}
+      <Box px={4} pt={4} pb={2}>
+        <Text fontSize="0.95rem" fontWeight="700" color="text_primary" fontFamily="Outfit">
+          Scheduled Consultation
+        </Text>
+      </Box>
 
       {isLoading ? (
-        <HStack justify="center" py={6}>
-          <Spinner size="sm" />
-          <Text fontSize="sm" color="gray.500" fontFamily="Outfit">Loading...</Text>
+        <HStack justify="center" py={6} px={4}>
+          <Spinner size="sm" color="gray.400" />
+          <Text fontSize="0.8rem" color="gray.400" fontFamily="Outfit">Loading…</Text>
         </HStack>
       ) : appointments.length === 0 ? (
-        <VStack py={6} gap={2}>
-          <Text fontSize="sm" color="gray.400" fontFamily="Outfit" textAlign="center">
-            No upcoming consultations.
+        <Box py={6} px={4} textAlign="center">
+          <Text fontSize="0.8rem" color="gray.400" fontFamily="Outfit">
+            No upcoming consultations
           </Text>
-        </VStack>
+        </Box>
       ) : (
-        appointments.map((item: any) => {
-          const consultant = item.consultant ?? {};
-          const dateLabel: string = item.dateDisplay ?? formatDateLabel(item.scheduledDateTimeStart ?? item.scheduledDate ?? "");
-          const timeLabel: string = item.timeRangeDisplay ?? (
-            item.scheduledDateTimeStart
-              ? `${formatTime(item.scheduledDateTimeStart)}${item.scheduledDateTimeEnd ? ` - ${formatTime(item.scheduledDateTimeEnd)}` : ""}`
-              : ""
-          );
+        <VStack gap={0} align="stretch" pb={3}>
+          {appointments.map((item: any, idx: number) => {
+            const consultant = item.consultant ?? {};
+            const dateLabel = item.dateDisplay ?? fmtDate(item.scheduledDateTimeStart ?? item.scheduledDate ?? "");
+            const timeStart = fmtTime(item.scheduledDateTimeStart ?? "");
+            const timeEnd = fmtTime(item.scheduledDateTimeEnd ?? "");
+            const timeLabel = item.timeRangeDisplay ?? (timeStart ? `${timeStart}${timeEnd ? ` - ${timeEnd}` : ""}` : "");
+            const joinable = isJoinable(item);
 
-          return (
-            <Box key={item.id} bg="bg_box" borderRadius="lg" mb={4}>
-              <Flex justify="space-between" align="center">
-                <HStack gap={3}>
-                  <Image
-                    src={safeProfilePic(consultant.profilePics)}
-                    onError={imgErrorFallback}
-                    alt={consultant.fullName || "Consultant"}
-                    boxSize="40px"
-                    borderRadius="full"
-                    objectFit="cover"
-                  />
-                  <Box>
-                    <Text fontWeight="700" color="text_primary" fontSize="0.875rem" fontFamily="Outfit">
-                      {consultant.fullName || "Consultant"}
-                    </Text>
-                    <Text fontSize="xs" color="grey.500" fontFamily="Outfit">
-                      {consultant.title || consultant.location || ""}
-                    </Text>
-                  </Box>
-                </HStack>
+            return (
+              <Box key={item.id}>
+                {idx > 0 && <Box mx={4} h="1px" bg="gray.100" my={1} />}
+                <Box px={4} py={3}>
 
-                <HStack gap={2}>
-                  <Box
-                    p={2}
-                    bg="gray.100"
-                    borderRadius="md"
-                    _hover={{ bg: "gray.200", cursor: "pointer" }}
-                  >
-                    <Image src="/icons/greyMail.svg" alt="mail-icon" boxSize="16px" />
-                  </Box>
-                  <Box
-                    p={2}
-                    bg="primary.950"
-                    borderRadius="md"
-                    cursor="pointer"
-                    _hover={{ opacity: 0.85 }}
-                    onClick={() => router.push(`/message/videoconsultation?consultationId=${item.id}`)}
-                    title="Join Call"
-                  >
-                    <Image src="/icons/greyCamera.svg" alt="Join Call" boxSize="16px" style={{ filter: "brightness(10)" }} />
-                  </Box>
-                </HStack>
-              </Flex>
+                  {/* Consultant row */}
+                  <Flex justify="space-between" align="center" mb={3} gap={2}>
+                    <HStack gap={2} minW={0} flex={1}>
+                      <Image
+                        src={safeProfilePic(consultant.profilePics)}
+                        onError={imgErrorFallback}
+                        alt={consultant.fullName || "Consultant"}
+                        boxSize="34px"
+                        borderRadius="full"
+                        objectFit="cover"
+                        flexShrink={0}
+                      />
+                      <VStack align="flex-start" gap={0} minW={0} flex={1}>
+                        <Text
+                          fontWeight="600" color="text_primary" fontSize="0.8rem"
+                          fontFamily="Outfit" lineHeight="1.3"
+                          whiteSpace="nowrap" overflow="hidden" textOverflow="ellipsis"
+                          w="full"
+                        >
+                          {consultant.fullName || "Consultant"}
+                        </Text>
+                        {(consultant.title || consultant.location) && (
+                          <Text
+                            fontSize="0.7rem" color="gray.400" fontFamily="Outfit" lineHeight="1.3"
+                            whiteSpace="nowrap" overflow="hidden" textOverflow="ellipsis"
+                            w="full"
+                          >
+                            {consultant.title || consultant.location}
+                          </Text>
+                        )}
+                      </VStack>
+                    </HStack>
 
-              {/* Date & Time */}
-              <Flex
-                align="center"
-                justify="space-between"
-                bg="time_boxcon"
-                p={2}
-                borderRadius="md"
-                mt={3}
-              >
-                <HStack gap={1} color="text_primary">
-                  <Image src="/icons/cal.svg" alt="calendar" boxSize="14px" />
-                  <Text color="text_primary" fontSize="0.8rem" fontFamily="Outfit">
-                    {dateLabel}
-                  </Text>
-                </HStack>
-                {timeLabel && (
-                  <HStack gap={1} color="text_primary">
-                    <Image alt="clock" src="/icons/clock.svg" boxSize="14px" />
-                    <Text color="text_primary" fontSize="0.8rem" fontFamily="Outfit">
-                      {timeLabel}
-                    </Text>
-                  </HStack>
-                )}
-              </Flex>
+                    {/* Action icons */}
+                    <HStack gap={1} flexShrink={0}>
+                      <Box
+                        w="28px" h="28px"
+                        display="flex" alignItems="center" justifyContent="center"
+                        bg="gray.100" borderRadius="7px"
+                        cursor="pointer" _hover={{ bg: "gray.200" }}
+                        flexShrink={0}
+                        onClick={() => item.conversation?.id && router.push(`/message?conversationId=${item.conversation.id}`)}
+                      >
+                        <Icon color="gray.500" fontSize="13px"><LuMail /></Icon>
+                      </Box>
+                      <Box
+                        w="28px" h="28px"
+                        display="flex" alignItems="center" justifyContent="center"
+                        bg="#111D4A" borderRadius="7px"
+                        cursor="pointer" _hover={{ opacity: 0.85 }}
+                        flexShrink={0}
+                        onClick={() => router.push(`/message/videoconsultation?consultationId=${item.id}`)}
+                      >
+                        <Icon color="white" fontSize="13px"><LuVideo /></Icon>
+                      </Box>
+                    </HStack>
+                  </Flex>
 
-              {/* Buttons */}
-              {isJoinable(item) ? (
-                <Flex mt={3} gap={3} direction="column">
-                  <Badge
-                    colorPalette="green"
-                    variant="subtle"
-                    borderRadius="full"
-                    px={3}
-                    py={1}
-                    fontSize="0.75rem"
-                    w="fit-content"
+                  {/* Date & Time — stacked vertically to fit narrow sidebar */}
+                  <VStack
+                    align="stretch" gap={0}
+                    bg="time_boxcon"
+                    borderRadius="8px"
+                    px={3} py={2}
+                    mb={3}
                   >
-                    ● Live now
-                  </Badge>
-                  <Button
-                    bg="#111D4A"
-                    color="white"
-                    w="full"
-                    borderRadius={8}
-                    fontSize="0.875rem"
-                    fontFamily="Outfit"
-                    _hover={{ opacity: 0.85 }}
-                    onClick={() => router.push(`/message/videoconsultation?consultationId=${item.id}`)}
-                  >
-                    Join Consultation
-                  </Button>
-                </Flex>
-              ) : (
-                <Flex mt={3} gap={3}>
-                  <Button
-                    variant="outline"
-                    borderColor="gray.300"
-                    color="button_bg"
-                    flex={1}
-                    borderRadius={8}
-                    fontSize="0.875rem"
-                    fontFamily="Outfit"
-                    onClick={() => setCancelId(item.id)}
-                  >
-                    Cancel
-                  </Button>
-                  <Button
-                    bg="bt_schedule"
-                    color="white"
-                    flex={1}
-                    borderRadius={8}
-                    fontSize="0.875rem"
-                    fontFamily="Outfit"
-                    _hover={{ bg: "bt_schedule_hover" }}
-                    onClick={() => setRescheduleId(item.id)}
-                  >
-                    Reschedule
-                  </Button>
-                </Flex>
-              )}
-            </Box>
-          );
-        })
+                    {dateLabel && (
+                      <HStack gap={1.5}>
+                        <Icon color="gray.400" fontSize="12px" flexShrink={0}><LuCalendar /></Icon>
+                        <Text fontSize="0.75rem" color="text_primary" fontFamily="Outfit">
+                          {dateLabel}
+                        </Text>
+                      </HStack>
+                    )}
+                    {timeLabel && (
+                      <HStack gap={1.5}>
+                        <Icon color="gray.400" fontSize="12px" flexShrink={0}><LuClock /></Icon>
+                        <Text fontSize="0.75rem" color="text_primary" fontFamily="Outfit">
+                          {timeLabel}
+                        </Text>
+                      </HStack>
+                    )}
+                  </VStack>
+
+                  {/* Actions */}
+                  {joinable ? (
+                    <Button
+                      bg="#111D4A" color="white" w="full" h="36px"
+                      borderRadius="8px" fontSize="0.8rem" fontFamily="Outfit"
+                      fontWeight="600" _hover={{ opacity: 0.85 }}
+                      onClick={() => router.push(`/message/videoconsultation?consultationId=${item.id}`)}
+                    >
+                      ● Join Now
+                    </Button>
+                  ) : (
+                    <HStack gap={2}>
+                      <Button
+                        variant="outline" borderColor="gray.200" color="text_primary"
+                        flex={1} h="36px" borderRadius="8px"
+                        fontSize="0.78rem" fontFamily="Outfit" fontWeight="500"
+                        _hover={{ bg: "gray.50" }}
+                        onClick={() => setCancelId(item.id)}
+                      >
+                        Cancel
+                      </Button>
+                      <Button
+                        bg="#111D4A" color="white" flex={1} h="36px"
+                        borderRadius="8px" fontSize="0.78rem" fontFamily="Outfit"
+                        fontWeight="600" _hover={{ opacity: 0.85 }}
+                        onClick={() => setRescheduleId(item.id)}
+                      >
+                        Reschedule
+                      </Button>
+                    </HStack>
+                  )}
+                </Box>
+              </Box>
+            );
+          })}
+        </VStack>
       )}
 
       <AreyouCancellingModal

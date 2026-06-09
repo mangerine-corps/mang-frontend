@@ -10,7 +10,6 @@ import {
   useBreakpointValue,
 } from "@chakra-ui/react";
 import { useEffect, useState } from "react";
-import dynamic from "next/dynamic";
 import { useRouter } from "next/router";
 import ConsultationHistory from "./consultationhistory";
 import PaymentHistory from "./paymenthistory";
@@ -18,12 +17,6 @@ import EmptyConsultationVideo from "./emptyconsultationvideo";
 import VideoGrid from "./videogrid";
 import { useAuth } from "mangarine/state/hooks/user.hook";
 
-// react-date-range (used inside Upcoming_appointments) accesses browser globals
-// at module init — skipping SSR prevents it from crashing on page refresh.
-const Upcoming_appointments = dynamic(
-  () => import("mangarine/components/ui-components/meetings/upcoming_appointments"),
-  { ssr: false }
-);
 
 const ConsultationPage = () => {
   const { user } = useAuth();
@@ -50,18 +43,11 @@ const ConsultationPage = () => {
 
   // All users see "Consultation History" — their own bookings with other consultants.
   // Consultants additionally see "Upcoming Consultations" (their incoming appointments as a consultant).
-  const tabs = isConsultant
-    ? [
-        { label: "Consultation History", value: "history" },
-        { label: "Upcoming Consultations", value: "upcoming" },
-        { label: "Payment History", value: "payment" },
-        { label: "Consultation Videos", value: "videos" },
-      ]
-    : [
-        { label: "Consultation History", value: "history" },
-        { label: "Payment History", value: "payment" },
-        { label: "Consultation Videos", value: "videos" },
-      ];
+  const tabs = [
+    { label: "Consultation History", value: "history" },
+    { label: "Payment History", value: "payment" },
+    { label: "Consultation Videos", value: "videos" },
+  ];
 
   const renderTab = (label: string, value: string) => {
     const isActive = activeTab === value;
@@ -170,7 +156,6 @@ const ConsultationPage = () => {
 
       {/* Content */}
       {activeTab === "history" && <ConsultationHistory searchTerm={searchTerm} />}
-      {activeTab === "upcoming" && <Upcoming_appointments />}
       {activeTab === "payment" && <PaymentHistory />}
       {activeTab === "videos" && (
         <EmptyConsultationVideo onUnlock={() => setActiveTab("videosGrid")} />
