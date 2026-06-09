@@ -88,11 +88,31 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({ trigger }) 
     await markAllAsRead();
   };
 
+  const resolveDeepLink = (n: NotificationItem): string | null => {
+    // Prefer explicit appointmentId in data over deepLink parsing
+    const appointmentId = (n.data as any)?.appointmentId;
+    if (appointmentId) return `/consultation/view?consultation_id=${appointmentId}`;
+
+    const deepLink: string = (n.metadata as any)?.deepLink ?? '';
+    if (!deepLink) return null;
+
+    // /appointments/:id → /consultation/view?consultation_id=:id
+    const apptMatch = deepLink.match(/^\/appointments\/([^/]+)/);
+    if (apptMatch) return `/consultation/view?consultation_id=${apptMatch[1]}`;
+
+    // Already a valid internal path — use as-is
+    if (deepLink.startsWith('/')) return deepLink;
+
+    return null;
+  };
+
   const handleItemClick = async (n: NotificationItem) => {
     if (n.status === 'unread') {
       markAsRead({ notificationId: n.id });
     }
+    const link = resolveDeepLink(n);
     setIsOpen(false);
+    if (link) router.push(link);
   };
 
   // Group notifications by date label, preserving order

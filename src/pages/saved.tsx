@@ -112,6 +112,7 @@ function SavedPage() {
   })();
   const collectionPosts: any[] = (() => {
     const d = collectionPostsData?.data;
+    if (Array.isArray(d?.posts)) return d.posts;
     if (Array.isArray(d)) return d;
     if (Array.isArray(d?.items)) return d.items;
     return [];
@@ -189,7 +190,7 @@ function SavedPage() {
     : isConsultantsTab
     ? `${favConsultants.length} consultant${favConsultants.length !== 1 ? "s" : ""}`
     : collectionId
-    ? `${collectionPosts.length} post${collectionPosts.length !== 1 ? "s" : ""}`
+    ? `${collectionPostsLoading ? "…" : collectionPosts.length} post${collectionPosts.length !== 1 ? "s" : ""}`
     : "All bookmarked posts";
 
   return (
@@ -363,7 +364,12 @@ function SavedPage() {
                           {col.name ?? col.title ?? "Untitled"}
                         </Text>
                         <Text fontSize="0.72rem" color="grey.400" fontFamily="Outfit">
-                          {col.postCount ?? col.count ?? 0} post{(col.postCount ?? col.count ?? 0) !== 1 ? "s" : ""}
+                          {(() => {
+                            const count = col.id === collectionId
+                              ? collectionPosts.length
+                              : (col.postCount ?? col.count ?? 0);
+                            return `${count} post${count !== 1 ? "s" : ""}`;
+                          })()}
                         </Text>
                       </VStack>
                     </HStack>

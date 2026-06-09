@@ -320,7 +320,7 @@ export default function ConsultationViewPage() {
                 </VStack>
             )}
 
-            {['UPCOMING', 'RESCHEDULED', 'CONFIRMED'].includes((appointment?.status || '').toUpperCase()) && (
+            {['UPCOMING', 'RESCHEDULED', 'CONFIRMED', 'PENDING'].includes((appointment?.status || '').toUpperCase()) && (
                 <ConsultationJoinSection
                     appointment={appointment}
                     isCancelling={isCancelling}

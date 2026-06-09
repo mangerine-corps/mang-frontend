@@ -65,7 +65,7 @@ const AppointmentTable = ({ filters = {} }: { filters?: Filters }) => {
     limit:    LIMIT,
     fromDate: filters.fromDate || undefined,
     toDate:   filters.toDate   || undefined,
-    status:   filters.status && filters.status !== "Pending" ? filters.status : undefined,
+    status:   filters.status || undefined,
     name:     filters.nameSearch || searchTerm || undefined,
     sortBy,
   });

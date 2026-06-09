@@ -3,12 +3,12 @@ import { useState } from "react";
 import { FaCalendar } from "react-icons/fa6";
 import AppointmentTable from "../appointmenttable";
 
-const statusOptions = ["Pending", "Ongoing", "Completed", "Cancelled", "Rescheduled"];
+const statusOptions = ["All", "Pending", "Ongoing", "Completed", "Cancelled", "Rescheduled"];
 
 const ConsultationHistory = () => {
   const [fromDate, setFromDate] = useState("");
   const [toDate, setToDate] = useState("");
-  const [status, setStatus] = useState("Pending");
+  const [status, setStatus] = useState("");
   const [nameSearch, setNameSearch] = useState("");
 
   return (
