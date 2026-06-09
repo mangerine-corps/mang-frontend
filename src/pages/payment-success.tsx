@@ -1,255 +1,259 @@
 import { useEffect, useMemo, useState } from "react";
-import {
-  Box,
-  Button,
-  Center,
-  Container,
-  Flex,
-  Heading,
-  Icon,
-  Stack,
-  Text,
-  VStack,
-} from "@chakra-ui/react";
-import { useTheme } from "next-themes";
+import { Box, Flex, Icon, Text, VStack, HStack, Avatar } from "@chakra-ui/react";
+import { Button } from "mangarine/components/ui/button";
 import { useRouter } from "next/router";
-import { AiFillCheckCircle, AiOutlineInfoCircle } from "react-icons/ai";
-import ActivityEmptyState from "mangarine/components/ui-components/emptystate";
+import { BsCheckCircleFill } from "react-icons/bs";
+import { FiCalendar, FiClock, FiDollarSign } from "react-icons/fi";
 import {
   useGetAppointmentByPaymentIntentQuery,
   useCapturePaypalOrderMutation,
 } from "mangarine/state/services/apointment.service";
 
+const to12h = (t: any): string => {
+  if (!t) return "";
+  const d = new Date(t);
+  if (!isNaN(d.getTime())) return d.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
+  const m = String(t).match(/^([0-9]{1,2}):([0-9]{2})/);
+  if (m) {
+    let h = parseInt(m[1], 10);
+    const min = m[2];
+    const ampm = h >= 12 ? "PM" : "AM";
+    h = h % 12 || 12;
+    return `${h}:${min} ${ampm}`;
+  }
+  return String(t);
+};
+
 export default function PaymentSuccessPage() {
   const router = useRouter();
   const [client, setClient] = useState(false);
   const [amount, setAmount] = useState<string | null>(null);
-  const [captureStatus, setCaptureStatus] = useState<'idle' | 'loading' | 'done' | 'error'>('idle');
-  const { resolvedTheme } = useTheme();
+  const [captureStatus, setCaptureStatus] = useState<"idle" | "loading" | "done" | "error">("idle");
 
-  const { redirect_status, payment_intent, consultantId, token, reference } =
+  const { payment_intent, consultantId, token, reference } =
     router.query as Record<string, string>;
-  const [capturePaypalOrder] = useCapturePaypalOrderMutation();
-  const { data: apptByIntent, isLoading: isLoadingAppt } = useGetAppointmentByPaymentIntentQuery(payment_intent as string, { skip: !payment_intent });
-  const appointment: any = (apptByIntent as any)?.data ?? apptByIntent ?? null;
 
-  useEffect(() => {
-    setClient(true);
-  }, []);
+  const [capturePaypalOrder] = useCapturePaypalOrderMutation();
+  const { data: apptByIntent, isLoading } = useGetAppointmentByPaymentIntentQuery(
+    payment_intent as string,
+    { skip: !payment_intent }
+  );
+  const appointment: any = (apptByIntent as any)?.data ?? apptByIntent ?? null;
+  if (apptByIntent) console.log("[payment-success] raw API response:", apptByIntent);
+
+  useEffect(() => { setClient(true); }, []);
 
   useEffect(() => {
     if (!client) return;
     try {
       const saved = localStorage.getItem("paymentAmount");
       if (saved) setAmount(saved);
-    } catch (e) {}
+    } catch {}
   }, [client]);
 
-  // Capture PayPal order when user returns from PayPal (token = orderId)
   useEffect(() => {
-    if (!token || captureStatus !== 'idle') return;
-    setCaptureStatus('loading');
+    if (!token || captureStatus !== "idle") return;
+    setCaptureStatus("loading");
     capturePaypalOrder(token)
       .unwrap()
-      .then(() => setCaptureStatus('done'))
-      .catch(() => setCaptureStatus('error'));
+      .then(() => setCaptureStatus("done"))
+      .catch(() => setCaptureStatus("error"));
   }, [token, captureStatus, capturePaypalOrder]);
 
-  const succeeded = useMemo(() => {
-    // Stripe success
-    if (redirect_status === "succeeded" || !!payment_intent) return true;
-    // PayPal success (token present + capture done or done regardless)
-    if (token) return captureStatus === 'done' || captureStatus === 'loading';
-    // Paystack success (reference present — backend webhook verified)
-    if (reference) return true;
-    return false;
-  }, [redirect_status, payment_intent, token, reference, captureStatus]);
+  const resolvedConsultantId =
+    consultantId || (client ? localStorage.getItem("paymentConsultantId") ?? undefined : undefined);
 
-  // Resolve consultantId from query or localStorage (set before redirect for Paystack/PayPal)
-  const resolvedConsultantId = consultantId || (client ? localStorage.getItem('paymentConsultantId') ?? undefined : undefined);
+  const details = useMemo(() => {
+    const name = appointment?.consultant?.fullName || null;
+    const profilePic = appointment?.consultant?.profilePics || null;
+    const email = appointment?.user?.email || null;
 
-  // Manually designed info card colors (Chakra v3: compute via next-themes)
-  const isDark = resolvedTheme === "dark";
-  const infoBg = isDark ? "blue.900" : "blue.50";
-  const infoBorder = isDark ? "blue.700" : "blue.200";
-  const infoColor = isDark ? "blue.200" : "blue.700";
+    const rawDate = appointment?.availability?.date || appointment?.date;
+    const dt = rawDate ? new Date(rawDate) : null;
+    const date =
+      dt && !isNaN(dt.getTime())
+        ? dt.toLocaleDateString([], { weekday: "long", year: "numeric", month: "long", day: "numeric" })
+        : null;
 
-  const panelBg = isDark ? "gray.800" : "white";
-  const subText = succeeded
-    ? "Your payment was received. We are finalizing your consultation booking."
-    : "We are processing your payment. You will receive an email soon.";
+    const ts = Array.isArray(appointment?.timeslots) ? appointment.timeslots : [];
+    let time: string | null = null;
+    if (ts.length > 0) {
+      const starts = ts.map((t: any) => t.startTime).filter(Boolean).sort();
+      const ends = ts.map((t: any) => t.endTime).filter(Boolean).sort();
+      const s = to12h(starts[0]);
+      const e = to12h(ends[ends.length - 1]);
+      time = [s, e].filter(Boolean).join(" – ") || null;
+    }
 
-  const amountText = amount ? `$${Number(amount).toFixed(2)}` : undefined;
+    const rawAmount = amount || appointment?.amount;
+    const amountStr = rawAmount ? `$${Number(rawAmount).toFixed(2)}` : null;
 
-  const goToConsultant = () => {
+    return { name, profilePic, email, date, time, amountStr };
+  }, [appointment, amount]);
+
+  const loading = (isLoading && !appointment) || captureStatus === "loading";
+
+  const handleDone = () => {
+    if (client) localStorage.removeItem("paymentConsultantId");
     if (resolvedConsultantId) {
-      if (client) localStorage.removeItem('paymentConsultantId');
-      router.push(`/consultant/${resolvedConsultantId}`);
+      router.push(`/profile/${resolvedConsultantId}`);
     } else {
       router.push("/home");
     }
   };
 
-  const { consultantName, userEmail, dateText, timeText, amountDisplay } = useMemo(() => {
-    // Consultant Name
-    const cName = appointment?.consultant?.fullName || "-";
-    const userEmail = appointment?.user?.email || "-";
-    // Date
-    const rawDate = appointment?.availability?.date || appointment?.date;
-    const dt = rawDate ? new Date(rawDate) : null;
-    const dateStr = dt && !isNaN(dt.getTime())
-      ? dt.toLocaleDateString([], { year: 'numeric', month: 'short', day: 'numeric' })
-      : "-";
-    // Time Range
-    const ts = Array.isArray(appointment?.timeslots) ? appointment.timeslots : [];
-    let s: string | null = null; let e: string | null = null;
-    if (ts.length > 0) {
-      const starts = ts.map((t: any) => t.startTime).filter(Boolean).sort();
-      const ends = ts.map((t: any) => t.endTime).filter(Boolean).sort();
-      const to12h = (t: any) => {
-        if (!t) return null;
-        const d = new Date(t);
-        if (!isNaN(d.getTime())) {
-          return d.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
-        }
-        const m = String(t).match(/^([0-9]{1,2}):([0-9]{2})(?::([0-9]{2}))?$/);
-        if (m) {
-          let h = parseInt(m[1], 10);
-          const min = m[2];
-          const ampm = h >= 12 ? 'PM' : 'AM';
-          h = h % 12 || 12;
-          return `${h}:${min} ${ampm}`;
-        }
-        return String(t);
-      };
-      s = to12h(starts[0]);
-      e = to12h(ends[ends.length - 1]);
-    }
-    const timeStr = [s, e].filter(Boolean).join(' - ') || "-";
-    // Amount
-    const amountStr = amountText || (appointment?.amount ? `$${Number(appointment.amount).toFixed(2)}` : undefined);
-    return { consultantName: cName,userEmail: userEmail, dateText: dateStr, timeText: timeStr, amountDisplay: amountStr };
-  }, [appointment, amountText]);
-
   return (
-    <>
-      <Box
-          mx={{ base: "0", md: 4, lg: 4, xl: 4 }}
-          flex={1}
-          h="fit-content"
-          p="6"
-          bg="main_background"
-          overflowY={{ base: "scroll", md: "scroll" }}
-          css={{
-            "&::-webkit-scrollbar": {
-              width: "0px",
+    <Box
+      w="full"
+      h="full"
+      overflowY="auto"
+      css={{ "&::-webkit-scrollbar": { width: 0 } }}
+    >
+      <VStack gap={6} w="full" maxW="500px" mx="auto" py={8} px={{ base: 4, md: 0 }}>
 
-              height: "0px",
-            },
-            "&::-webkit-scrollbar-track": {
-              width: "0px",
-              background: "transparent",
-
-              height: "0px",
-            },
-            "&::-webkit-scrollbar-thumb": {
-              background: "transparent",
-              borderRadius: "0px",
-              maxHeight: "0px",
-              height: "0px",
-              width: 0,
-            },
-          }}
-          rounded={"xl"}
-          overflowX="hidden"
-
-          // w={{ base: "95%", md: "280px", lg: "340px", xl: "340px" }}
-        >
-          {/* Section 1: Consultation Info */}
-          <Box >
-            <Text
-              fontSize="1.25rem"
-              font="outfit"
-              fontWeight="600"
-              mb={2}
-              color={"text_primary"}
-            >
-              Consultation Details
+          {/* Success icon + heading */}
+          <VStack gap={3} textAlign="center">
+            <Icon color="#22c55e" boxSize={16}>
+              <BsCheckCircleFill />
+            </Icon>
+            <Text fontSize="1.5rem" fontWeight="700" color="text_primary" fontFamily="Outfit">
+              Booking Confirmed!
             </Text>
-            <Flex flexDirection="column" gap="8px" width="100%">
-              {["Consultant", "Date", "Time", "Amount"].map((item) => (
-                <Flex key={item} justify="space-between" width="100%">
-                  <Text  fontSize="0.875rem" color={"text_primary"}>
-                    {item}
-                  </Text>
-                  <Text
-                    fontWeight={item === "Amount" ? "bold" : "normal"}
-                    fontSize="0.875rem"
-                    textTransform="capitalize"
-                    color={"text_primary"}
-                  >
-                    {(isLoadingAppt && !appointment) || captureStatus === 'loading' ? "..." : (
-                      item === "Consultant"
-                        ? consultantName
-                        : item === "Date"
-                          ? dateText
-                          : item === "Time"
-                            ? timeText
-                            : amountDisplay || "-"
-                    )}
-                  </Text>
-                </Flex>
-              ))}
-            </Flex>
+            <Text fontSize="0.875rem" color="gray.500" fontFamily="Outfit">
+              Your consultation has been booked successfully.
+            </Text>
+          </VStack>
+
+          {/* Receipt card */}
+          <Box
+            w="full"
+            borderWidth="1px"
+            borderColor="border_background"
+            rounded="2xl"
+            overflow="hidden"
+            bg="bg_box"
+            boxShadow="sm"
+          >
+            {/* Consultant header */}
+            <Box px={5} py={4} borderBottomWidth="1px" borderColor="border_background">
+              {loading ? (
+                <HStack gap={3}>
+                  <Box w={10} h={10} rounded="full" bg="gray.200" />
+                  <Box>
+                    <Box h="14px" w="120px" bg="gray.200" rounded="md" mb={1} />
+                    <Box h="12px" w="80px" bg="gray.100" rounded="md" />
+                  </Box>
+                </HStack>
+              ) : (
+                <HStack gap={3}>
+                  <Avatar.Root w={10} h={10}>
+                    <Avatar.Fallback name={details.name ?? "Consultant"} />
+                    <Avatar.Image src={details.profilePic} />
+                  </Avatar.Root>
+                  <Box>
+                    <Text fontWeight="600" fontSize="0.9375rem" color="text_primary" fontFamily="Outfit">
+                      {details.name ?? "—"}
+                    </Text>
+                    <Text fontSize="0.75rem" color="gray.500" fontFamily="Outfit">
+                      Consultant
+                    </Text>
+                  </Box>
+                </HStack>
+              )}
+            </Box>
+
+            {/* Detail rows */}
+            <VStack gap={0} divideY="1px" px={5}>
+              <DetailRow
+                icon={<FiCalendar />}
+                label="Date"
+                value={loading ? "…" : (details.date ?? "—")}
+              />
+              <DetailRow
+                icon={<FiClock />}
+                label="Time"
+                value={loading ? "…" : (details.time ?? "—")}
+              />
+              <DetailRow
+                icon={<FiDollarSign />}
+                label="Amount Paid"
+                value={loading ? "…" : (details.amountStr ?? "—")}
+                valueWeight="700"
+                valueColor="#22c55e"
+              />
+            </VStack>
           </Box>
 
-          {/* Section 2: Success Message */}
-          <Box>
-            <Text
-              fontSize="1.25rem"
-              font="outfit"
-              fontWeight="600"
-              color={"text_primary"}
+          {/* Email note */}
+          {details.email && (
+            <Box
+              w="full"
+              bg="blue.50"
+              borderWidth="1px"
+              borderColor="blue.200"
+              rounded="xl"
+              px={4}
+              py={3}
             >
-              Consultation Booking Successful!
-            </Text>
-            <Text fontSize="0.75rem" color={"text_primary"} mb={4}>
-              {`Your consultation booking with ${consultantName} was successful`}
-            </Text>
-
-            <Button
-              bg="bt_schedule"
-              color="white"
-              flex={1}
-              _hover={{ bg: "bt_schedule_hover" }}
-              width="100%"
-              mt={12}
-              onClick={goToConsultant}
-            >
-              {resolvedConsultantId ? "Back to Consultant" : "Go to Home"}
-            </Button>
-
-            <Box mt={4}>
-              <Text color={"text_primary"} fontSize="xs" whiteSpace="pre-line">
-                {`An email has been sent to ${userEmail}
-                Please check your inbox for consultation details.
-                  We look forward to assisting you!`}
+              <Text fontSize="0.8rem" color="blue.700" fontFamily="Outfit" lineHeight="1.5">
+                A confirmation email has been sent to{" "}
+                <Text as="span" fontWeight="600">{details.email}</Text>.
               </Text>
             </Box>
-          </Box>
-        </Box>
-        <VStack
-          w={{ base: "100%", md: "25%" }}
-          h={{ base: "auto", md: "100vh" }}
-          overflowY={{ base: "visible", md: "auto" }}
-          display={{ base: "none", md: "flex" }}
-          spaceY={2}
-          pos={{ base: "relative", md: "sticky" }}
-          top={{ base: "unset", md: 0 }}
-          alignSelf="flex-start"
-        >
-          <ActivityEmptyState />
-        </VStack>
-    </>
+          )}
+
+          {/* Action button */}
+          <Button
+            w="full"
+            bg="#111D4A"
+            color="white"
+            borderRadius="12px"
+            py={6}
+            fontFamily="Outfit"
+            fontWeight="600"
+            fontSize="0.9375rem"
+            _hover={{ bg: "#0D173B" }}
+            onClick={handleDone}
+          >
+            {resolvedConsultantId ? "Back to Consultant" : "Go to Home"}
+          </Button>
+
+      </VStack>
+    </Box>
+  );
+}
+
+function DetailRow({
+  icon,
+  label,
+  value,
+  valueWeight = "500",
+  valueColor = "text_primary",
+}: {
+  icon: React.ReactNode;
+  label: string;
+  value: string;
+  valueWeight?: string;
+  valueColor?: string;
+}) {
+  return (
+    <Flex w="full" justify="space-between" align="center" py={4}>
+      <HStack gap={2} color="gray.500">
+        <Icon boxSize={4}>{icon}</Icon>
+        <Text fontSize="0.875rem" color="gray.500" fontFamily="Outfit">
+          {label}
+        </Text>
+      </HStack>
+      <Text
+        fontSize="0.875rem"
+        fontWeight={valueWeight}
+        color={valueColor}
+        fontFamily="Outfit"
+        textAlign="right"
+        maxW="60%"
+      >
+        {value}
+      </Text>
+    </Flex>
   );
 }

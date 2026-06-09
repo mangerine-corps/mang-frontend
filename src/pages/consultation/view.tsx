@@ -3,7 +3,6 @@ import { Box, Button, HStack, Text, VStack, Spinner, Flex } from '@chakra-ui/rea
 import { useCountdown, resolveStartTime } from 'mangarine/hooks/useCountdown';
 import { useTheme } from 'next-themes';
 import { useRouter } from 'next/router';
-import ActivityEmptyState from 'mangarine/components/ui-components/emptystate';
 import { useGetAppointmentByIdQuery, useCancelAppointmentMutation } from 'mangarine/state/services/apointment.service';
 import CustomButton from 'mangarine/components/customcomponents/button';
 import { useAuth } from 'mangarine/state/hooks/user.hook';
@@ -103,341 +102,233 @@ export default function ConsultationViewPage() {
     const { resolvedTheme } = useTheme();
     const { user: authUser } = useAuth();
 
-
     const { consultation_id } = router.query as Record<string, string>;
     const { data: apptResp, isLoading: isApptLoading, error: apptError, refetch } = useGetAppointmentByIdQuery(consultation_id as string, { skip: !consultation_id });
     const appointment: any = (apptResp as any)?.data ?? apptResp ?? null;
     const [cancelAppointment, { isLoading: isCancelling }] = useCancelAppointmentMutation();
-    const [confirmCancelOpen, setConfirmCancelOpen] = useState(false);
 
     const isConsultantViewer = !!authUser?.isConsultant;
     const counterpart = useMemo(() => {
         if (!appointment) return null;
-        // If viewer is consultant, show the client/user details; otherwise show the consultant's details
         const maybeConsultant = appointment?.consultant || appointment?.consultantInfo || appointment?.creator || appointment?.provider;
         return isConsultantViewer ? appointment?.user : maybeConsultant;
     }, [appointment, isConsultantViewer]);
-
 
     useEffect(() => {
         setClient(true);
     }, []);
 
- 
     const isDark = resolvedTheme === 'dark';
-    const infoBg = isDark ? 'blue.900' : 'blue.50';
-    const infoBorder = isDark ? 'blue.700' : 'blue.200';
-    const infoColor = isDark ? 'blue.200' : 'blue.700';
-
     const panelBg = isDark ? 'gray.800' : 'white';
 
-    const goToConsultations = () => {
-        router.push('/consultation');
-    };
+    // Loading state
+    if (isApptLoading) {
+        return (
+            <Flex w="full" h="full" justify="center" align="center" py={16}>
+                <Spinner size="lg" />
+            </Flex>
+        );
+    }
 
-    const rescheduleConsultation = () => {
-        router.push(`/consultation/reschedule?consultation_id=${consultation_id}`);
-    };
+    // Error state
+    if (apptError) {
+        return (
+            <Flex w="full" h="full" justify="center" align="center" py={16}>
+                <VStack gap={3} textAlign="center">
+                    <Text fontSize="1rem" fontWeight="600" color="text_primary">
+                        Failed to load appointment
+                    </Text>
+                    <Text fontSize="0.875rem" color="gray.500">
+                        The appointment could not be found or you don't have access.
+                    </Text>
+                    <Button
+                        bg="#111D4A" color="white" borderRadius="8px" px={6}
+                        onClick={() => router.push('/consultation')}
+                    >
+                        Back to Consultations
+                    </Button>
+                </VStack>
+            </Flex>
+        );
+    }
 
-    const cancelConsultation = () => {
-        router.push(`/consultation/cancel?consultation_id=${consultation_id}`);
-    };
+    // Empty state — no consultation_id in URL or no data returned
+    if (!consultation_id || !appointment) {
+        return (
+            <Flex w="full" h="full" justify="center" align="center" py={16}>
+                <VStack gap={3} textAlign="center">
+                    <Text fontSize="1rem" fontWeight="600" color="text_primary">
+                        No appointment found
+                    </Text>
+                    <Text fontSize="0.875rem" color="gray.500">
+                        This consultation doesn't exist or may have been removed.
+                    </Text>
+                    <Button
+                        bg="#111D4A" color="white" borderRadius="8px" px={6}
+                        onClick={() => router.push('/consultation')}
+                    >
+                        View My Consultations
+                    </Button>
+                </VStack>
+            </Flex>
+        );
+    }
 
     return (
-            <>
-                {appointment ? (
-                    <VStack bg='bg_box' mx={{ base: "0", md: 4, lg: 4, xl: 4 }}
-                        flex={1}
-                        h="fit-content"
-                        p={8}
-                        // bg="main_background"
-                        // overflowY={{ base: "scroll", md: "scroll" }}
-                        css={{
-                            "&::-webkit-scrollbar": {
-                                width: "0px",
+        <VStack
+            bg='bg_box'
+            mx={{ base: "0", md: 4, lg: 4, xl: 4 }}
+            flex={1}
+            h="fit-content"
+            p={8}
+            css={{
+                "&::-webkit-scrollbar": { width: "0px", height: "0px" },
+                "&::-webkit-scrollbar-track": { width: "0px", background: "transparent", height: "0px" },
+                "&::-webkit-scrollbar-thumb": { background: "transparent", borderRadius: "0px", maxHeight: "0px", height: "0px", width: 0 },
+            }}
+            rounded={"xl"}
+        >
+            <VStack w="full" py="2" alignItems="flex-start">
+                <Text fontSize="1.25rem" fontWeight="600" mb="2" textAlign="left" lineHeight="30px" color="text_primary">
+                    Appointment Details
+                </Text>
 
-                                height: "0px",
-                            },
-                            "&::-webkit-scrollbar-track": {
-                                width: "0px",
-                                background: "transparent",
+                <VStack w="full" rounded="xl" p="4" shadow="xs">
+                    <HStack justifyContent={"space-between"} alignItems={"center"} w="full">
+                        <Text color="grey.500" fontSize="1.25rem" lineHeight="30px" fontWeight="400">
+                            {isConsultantViewer ? 'Client Name:' : 'Consultant:'}
+                        </Text>
+                        <Text color="text_primary" fontSize="1.25rem" lineHeight="30px" fontWeight="400" textTransform="capitalize">
+                            {/* Fix: consultant viewers see the client name, not their own */}
+                            {isConsultantViewer ? appointment?.user?.fullName : appointment?.consultant?.fullName || '-'}
+                        </Text>
+                    </HStack>
+                    <HStack justifyContent={"space-between"} alignItems={"center"} w="full">
+                        <Text color="grey.500" fontSize="1.25rem" lineHeight="30px" fontWeight="400">
+                            Consultation Topic:
+                        </Text>
+                        <Text color="text_primary" fontSize="1.25rem" lineHeight="30px" fontWeight="400">
+                            {appointment?.topic || appointment?.title || appointment?.message || '-'}
+                        </Text>
+                    </HStack>
+                    <HStack justifyContent={"space-between"} alignItems={"center"} w="full">
+                        <Text color="grey.500" fontSize="1.25rem" lineHeight="30px" fontWeight="400">
+                            Consultation time:
+                        </Text>
+                        <Text color="text_primary" fontSize="1.25rem" lineHeight="30px" fontWeight="400">
+                            {(() => {
+                                const ts = appointment?.timeslots?.[0] || {};
+                                const rawStart = ts?.startTime || appointment?.startTime;
+                                const rawEnd = ts?.endTime || appointment?.endTime;
+                                const rawDate = appointment?.availability?.date || appointment?.date || ts?.date;
 
-                                height: "0px",
-                            },
-                            "&::-webkit-scrollbar-thumb": {
-                                background: "transparent",
-                                borderRadius: "0px",
-                                maxHeight: "0px",
-                                height: "0px",
-                                width: 0,
-                            },
-                        }}
-                        rounded={"xl"}>
+                                const to12h = (t: any) => {
+                                    if (!t) return null;
+                                    const d = new Date(t);
+                                    if (!isNaN(d.getTime())) {
+                                        return d.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+                                    }
+                                    const m = String(t).match(/^([0-9]{1,2}):([0-9]{2})(?::([0-9]{2}))?$/);
+                                    if (m) {
+                                        let h = parseInt(m[1], 10);
+                                        const min = m[2];
+                                        const ampm = h >= 12 ? 'PM' : 'AM';
+                                        h = h % 12 || 12;
+                                        return `${h}:${min} ${ampm}`;
+                                    }
+                                    return String(t);
+                                };
 
+                                const fmtDate = (d: any) => {
+                                    if (!d) return null;
+                                    const dt = new Date(d);
+                                    if (!isNaN(dt.getTime())) {
+                                        return dt.toLocaleDateString([], { year: 'numeric', month: 'short', day: 'numeric' });
+                                    }
+                                    return String(d);
+                                };
 
-                        <VStack w="full" py="2" alignItems="flex-start">
-                            <Text fontSize="1.25rem" fontWeight="600" mb="2" textAlign="left" lineHeight="30px" color="text_primary">Appointment Details</Text>
+                                const s = to12h(rawStart);
+                                const e = to12h(rawEnd);
+                                const ds = fmtDate(rawDate);
 
-                            <VStack
-                                w="full"
-
-                                rounded="xl"
-                                p="4"
-                                shadow="xs"
-                            >
-                                <HStack
-                                    justifyContent={"space-between"}
-                                    alignItems={"center"}
-                                    w="full"
-                                >
-                                    <Text
-                                        color="grey.500"
-                                        fontSize="1.25rem"
-                                        lineHeight="30px"
-                                        fontWeight="400"
-                                    >
-                                        Client Name:
-                                    </Text>
-                                    <Text
-                                        color="text_primary"
-                                        fontSize="1.25rem"
-                                        lineHeight="30px"
-                                        fontWeight="400"
-                                        textTransform="capitalize"
-                                    >
-                                        {isConsultantViewer ? appointment?.consultant?.fullName : appointment?.user?.fullName}
-                                    </Text>
-                                </HStack>
-                                <HStack
-                                    justifyContent={"space-between"}
-                                    alignItems={"center"}
-                                    w="full"
-                                >
-                                    <Text
-                                        color="grey.500"
-                                        fontSize="1.25rem"
-                                        lineHeight="30px"
-                                        fontWeight="400"
-                                    >
-                                        Consultation Topic:
-                                    </Text>
-                                    <Text
-                                        color="text_primary"
-                                        fontSize="1.25rem"
-                                        lineHeight="30px"
-                                        fontWeight="400"
-                                    >
-                                        {appointment?.topic || appointment?.title || appointment?.message || '-'}
-                                    </Text>
-                                </HStack>
-                                <HStack
-                                    justifyContent={"space-between"}
-                                    alignItems={"center"}
-                                    w="full"
-                                >
-                                    <Text
-                                        color="grey.500"
-                                        fontSize="1.25rem"
-                                        lineHeight="30px"
-                                        fontWeight="400"
-                                    >
-                                        Consultation time:
-                                    </Text>
-                                    <Text
-                                        color="text_primary"
-                                        fontSize="1.25rem"
-                                        lineHeight="30px"
-                                        fontWeight="400"
-                                    >
-                                        {(() => {
-                                            const ts = appointment?.timeslots?.[0] || {};
-                                            const rawStart = ts?.startTime || appointment?.startTime;
-                                            const rawEnd = ts?.endTime || appointment?.endTime;
-                                            const rawDate = appointment?.availability?.date || appointment?.date || ts?.date;
-
-                                            const to12h = (t: any) => {
-                                                if (!t) return null;
-                                                // If it's a full ISO/date string
-                                                const d = new Date(t);
-                                                if (!isNaN(d.getTime())) {
-                                                    return d.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
-                                                }
-                                                // If it's likely HH:mm or HH:mm:ss
-                                                const m = String(t).match(/^([0-9]{1,2}):([0-9]{2})(?::([0-9]{2}))?$/);
-                                                if (m) {
-                                                    let h = parseInt(m[1], 10);
-                                                    const min = m[2];
-                                                    const ampm = h >= 12 ? 'PM' : 'AM';
-                                                    h = h % 12 || 12;
-                                                    return `${h}:${min} ${ampm}`;
-                                                }
-                                                return String(t);
-                                            };
-
-                                            const fmtDate = (d: any) => {
-                                                if (!d) return null;
-                                                const dt = new Date(d);
-                                                if (!isNaN(dt.getTime())) {
-                                                    return dt.toLocaleDateString([], { year: 'numeric', month: 'short', day: 'numeric' });
-                                                }
-                                                return String(d);
-                                            };
-
-                                            const s = to12h(rawStart);
-                                            const e = to12h(rawEnd);
-                                            const ds = fmtDate(rawDate);
-
-                                            if (s || e || ds) {
-                                                const timeRange = [s, e].filter(Boolean).join(' - ');
-                                                return [ds, timeRange].filter(Boolean).join(' | ');
-                                            }
-                                            return '-';
-                                        })()}
-                                    </Text>
-                                </HStack>
-                                <HStack
-                                    justifyContent={"space-between"}
-                                    alignItems={"center"}
-                                    w="full"
-                                >
-                                    <Text
-                                        color="grey.500"
-                                        fontSize="1.25rem"
-                                        lineHeight="30px"
-                                        fontWeight="400"
-                                    >
-                                        Duration:
-                                    </Text>
-                                    <Text
-                                        color="text_primary"
-                                        fontSize="1.25rem"
-                                        lineHeight="30px"
-                                        fontWeight="400"
-                                    >
-                                        {(() => {
-                                            const minutes = appointment?.timeslots?.[0]?.duration;
-                                            if (!minutes && minutes !== 0) return '-';
-                                            const h = Math.floor(minutes / 60);
-                                            const m = minutes % 60;
-                                            const hStr = h > 0 ? `${h}hr${h > 1 ? 's' : ''}` : '';
-                                            const mStr = m > 0 ? `${m}mins` : (h === 0 ? '0mins' : '');
-                                            return [hStr, mStr].filter(Boolean).join(':');
-                                        })()}
-                                    </Text>
-                                </HStack>
-                                <HStack
-                                    justifyContent={"space-between"}
-                                    alignItems={"center"}
-                                    w="full"
-                                >
-                                    <Text
-                                        color="grey.500"
-                                        fontSize="1.25rem"
-                                        lineHeight="30px"
-                                        fontWeight="400"
-                                    >
-                                        Status:
-                                    </Text>
-                                    <Text
-                                        color="#FF9800"
-                                        fontSize="1.25rem"
-                                        lineHeight="30px"
-                                        fontWeight="400"
-                                    >
-                                        {appointment?.status || 'Scheduled'}
-                                    </Text>
-                                </HStack>
-                            </VStack>
-
-                        </VStack>
-                        {/* Counterpart Details: Consultant for users, Client for consultants */}
-                        {counterpart && (
-                            <VStack
-                                w="full"
-                                py="2"
-                                rounded="xl"
-                                p="4"
-                                shadow="xs"
-                                mt={2}
-                                mb={4}
-                                alignItems="stretch"
-                            >
-                                <Text
-                                    color="text_primary"
-                                    fontSize="1.25rem"
-                                    lineHeight="30px"
-                                    fontWeight="600"
-                                    mb={2}
-                                >
-                                    {isConsultantViewer ? 'Client Details' : 'Consultant Details'}
-                                </Text>
-
-                                <HStack justifyContent="space-between" alignItems="center" w="full">
-                                    <Text color="grey.500" fontSize="1.0rem" lineHeight="26px" fontWeight="400">
-                                        Name:
-                                    </Text>
-                                    <Text textTransform="capitalize" color="text_primary" fontSize="1.0rem" lineHeight="26px" fontWeight="500">
-                                        {counterpart?.fullName || counterpart?.name || counterpart?.userName || '-'}
-                                    </Text>
-                                </HStack>
-
-                                <HStack justifyContent="space-between" alignItems="center" w="full">
-                                    <Text color="grey.500" fontSize="1.0rem" lineHeight="26px" fontWeight="400">
-                                        Email:
-                                    </Text>
-                                    <Text color="text_primary" fontSize="1.0rem" lineHeight="26px" fontWeight="400">
-                                        {counterpart?.email || counterpart?.contactEmail || '-'}
-                                    </Text>
-                                </HStack>
-
-                                <HStack justifyContent="space-between" alignItems="center" w="full">
-                                    <Text color="grey.500" fontSize="1.0rem" lineHeight="26px" fontWeight="400">
-                                        Role/Title:
-                                    </Text>
-                                    <Text color="text_primary" fontSize="1.0rem" lineHeight="26px" fontWeight="400">
-                                        {counterpart?.role || counterpart?.title || counterpart?.occupation || '-'}
-                                    </Text>
-                                </HStack>
-
-                                <HStack justifyContent="space-between" alignItems="center" w="full">
-                                    <Text color="grey.500" fontSize="1.0rem" lineHeight="26px" fontWeight="400">
-                                        Phone:
-                                    </Text>
-                                    <Text color="text_primary" fontSize="1.0rem" lineHeight="26px" fontWeight="400">
-                                        {counterpart?.mobileNumber || counterpart?.phone || counterpart?.phoneNumber || '-'}
-                                    </Text>
-                                </HStack>
-                            </VStack>
-                        )}
-                        {['UPCOMING', 'RESCHEDULED', 'CONFIRMED'].includes((appointment?.status || '').toUpperCase()) && (
-                            <ConsultationJoinSection
-                                appointment={appointment}
-                                isCancelling={isCancelling}
-                                onCancel={() => router.push(`/consultation/cancel?consultation_id=${consultation_id}`)}
-                                onReschedule={() => router.push(`/consultation/reschedule?consultation_id=${consultation_id}`)}
-                                onJoin={() => router.push(`/message/videoconsultation?consultationId=${consultation_id}`)}
-                            />
-                        )}
-                        
-                    </VStack>
-                ) : (
-                    <VStack>
-                        {isApptLoading && (
-                            <Flex w="full" justify="center" align="center" py={12}>
-                                <Spinner size="lg" />
-                            </Flex>
-                        )}
-                        {apptError && (
-                            <Box bg={panelBg} borderRadius="md" boxShadow="md" p={6} w={{ base: "100%", md: "60%" }}>
-                                <Text color="red.500">Failed to load appointment.</Text>
-                            </Box>
-                        )}
-                    </VStack>
-                )
-                }
-                <VStack>
-                    <ActivityEmptyState />
+                                if (s || e || ds) {
+                                    const timeRange = [s, e].filter(Boolean).join(' - ');
+                                    return [ds, timeRange].filter(Boolean).join(' | ');
+                                }
+                                return '-';
+                            })()}
+                        </Text>
+                    </HStack>
+                    <HStack justifyContent={"space-between"} alignItems={"center"} w="full">
+                        <Text color="grey.500" fontSize="1.25rem" lineHeight="30px" fontWeight="400">
+                            Duration:
+                        </Text>
+                        <Text color="text_primary" fontSize="1.25rem" lineHeight="30px" fontWeight="400">
+                            {(() => {
+                                const minutes = appointment?.timeslots?.[0]?.duration;
+                                if (!minutes && minutes !== 0) return '-';
+                                const h = Math.floor(minutes / 60);
+                                const m = minutes % 60;
+                                const hStr = h > 0 ? `${h}hr${h > 1 ? 's' : ''}` : '';
+                                const mStr = m > 0 ? `${m}mins` : (h === 0 ? '0mins' : '');
+                                return [hStr, mStr].filter(Boolean).join(':');
+                            })()}
+                        </Text>
+                    </HStack>
+                    <HStack justifyContent={"space-between"} alignItems={"center"} w="full">
+                        <Text color="grey.500" fontSize="1.25rem" lineHeight="30px" fontWeight="400">
+                            Status:
+                        </Text>
+                        <Text color="#FF9800" fontSize="1.25rem" lineHeight="30px" fontWeight="400">
+                            {appointment?.status || 'Scheduled'}
+                        </Text>
+                    </HStack>
                 </VStack>
-            </>
+            </VStack>
+
+            {/* Counterpart Details */}
+            {counterpart && (
+                <VStack w="full" py="2" rounded="xl" p="4" shadow="xs" mt={2} mb={4} alignItems="stretch">
+                    <Text color="text_primary" fontSize="1.25rem" lineHeight="30px" fontWeight="600" mb={2}>
+                        {isConsultantViewer ? 'Client Details' : 'Consultant Details'}
+                    </Text>
+                    <HStack justifyContent="space-between" alignItems="center" w="full">
+                        <Text color="grey.500" fontSize="1.0rem" lineHeight="26px" fontWeight="400">Name:</Text>
+                        <Text textTransform="capitalize" color="text_primary" fontSize="1.0rem" lineHeight="26px" fontWeight="500">
+                            {counterpart?.fullName || counterpart?.name || counterpart?.userName || '-'}
+                        </Text>
+                    </HStack>
+                    <HStack justifyContent="space-between" alignItems="center" w="full">
+                        <Text color="grey.500" fontSize="1.0rem" lineHeight="26px" fontWeight="400">Email:</Text>
+                        <Text color="text_primary" fontSize="1.0rem" lineHeight="26px" fontWeight="400">
+                            {counterpart?.email || counterpart?.contactEmail || '-'}
+                        </Text>
+                    </HStack>
+                    <HStack justifyContent="space-between" alignItems="center" w="full">
+                        <Text color="grey.500" fontSize="1.0rem" lineHeight="26px" fontWeight="400">Role/Title:</Text>
+                        <Text color="text_primary" fontSize="1.0rem" lineHeight="26px" fontWeight="400">
+                            {counterpart?.role || counterpart?.title || counterpart?.occupation || '-'}
+                        </Text>
+                    </HStack>
+                    <HStack justifyContent="space-between" alignItems="center" w="full">
+                        <Text color="grey.500" fontSize="1.0rem" lineHeight="26px" fontWeight="400">Phone:</Text>
+                        <Text color="text_primary" fontSize="1.0rem" lineHeight="26px" fontWeight="400">
+                            {counterpart?.mobileNumber || counterpart?.phone || counterpart?.phoneNumber || '-'}
+                        </Text>
+                    </HStack>
+                </VStack>
+            )}
+
+            {['UPCOMING', 'RESCHEDULED', 'CONFIRMED'].includes((appointment?.status || '').toUpperCase()) && (
+                <ConsultationJoinSection
+                    appointment={appointment}
+                    isCancelling={isCancelling}
+                    onCancel={() => router.push(`/consultation/cancel?consultation_id=${consultation_id}`)}
+                    onReschedule={() => router.push(`/consultation/reschedule?consultation_id=${consultation_id}`)}
+                    onJoin={() => router.push(`/message/videoconsultation?consultationId=${consultation_id}`)}
+                />
+            )}
+        </VStack>
     );
 }

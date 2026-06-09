@@ -103,7 +103,7 @@ export default function PaymentForm({
       return;
     }
 
-    const { error } = await stripe.confirmCardPayment(clientSecret, {
+    const { error, paymentIntent } = await stripe.confirmCardPayment(clientSecret, {
       payment_method: { card: cardElement },
     });
 
@@ -115,7 +115,10 @@ export default function PaymentForm({
       }
       setIsLoading(false);
     } else {
-      router.push(successUrl);
+      // Extract payment intent ID from the client secret (pi_xxx_secret_xxx → pi_xxx)
+      const intentId = paymentIntent?.id ?? clientSecret.split("_secret_")[0];
+      const sep = successUrl.includes("?") ? "&" : "?";
+      router.push(`${successUrl}${sep}payment_intent=${intentId}`);
     }
   };
 

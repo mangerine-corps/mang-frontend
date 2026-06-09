@@ -44,7 +44,7 @@ export default function BookConsultationDrawer({
   const [paymentState, setPaymentState] = useState<PaymentState | null>(null);
 
   const handleBookingComplete = (data: any) => {
-    const clientSecret = data?.clientSecret ?? data?.client_secret;
+    const clientSecret = data?.secret ?? data?.clientSecret ?? data?.client_secret;
     const paymentDetails = data?.paymentDetails ?? data?.payment_details ?? data;
     if (clientSecret) {
       setPaymentState({ clientSecret, paymentDetails });
