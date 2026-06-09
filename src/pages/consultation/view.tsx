@@ -1,18 +1,107 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Box, Button, HStack, Text, VStack, Spinner, Flex } from '@chakra-ui/react';
+import {
+  Box, Button, HStack, Image, Text, VStack,
+  Skeleton, SkeletonCircle, Flex, Icon,
+} from '@chakra-ui/react';
 import { useCountdown, resolveStartTime } from 'mangarine/hooks/useCountdown';
 import { useTheme } from 'next-themes';
 import { useRouter } from 'next/router';
-import { useGetAppointmentByIdQuery, useCancelAppointmentMutation } from 'mangarine/state/services/apointment.service';
-import CustomButton from 'mangarine/components/customcomponents/button';
+import {
+  useGetAppointmentByIdQuery,
+  useCancelAppointmentMutation,
+} from 'mangarine/state/services/apointment.service';
 import { useAuth } from 'mangarine/state/hooks/user.hook';
 import { outfit } from '../_app';
+import { format } from 'date-fns';
+import { LuArrowLeft, LuCalendar, LuClock, LuUser, LuVideo } from 'react-icons/lu';
+import { safeProfilePic, imgErrorFallback } from 'mangarine/lib/constants';
+
+// ── Status badge ──────────────────────────────────────────────────────────────
+
+const statusColorMap: Record<string, { color: string; bg: string }> = {
+  COMPLETED:   { color: '#16A34A', bg: '#DCFCE7' },
+  CANCELLED:   { color: '#DC2626', bg: '#FEE2E2' },
+  RESCHEDULED: { color: '#111D4A', bg: '#B5B9C7' },
+  PENDING:     { color: '#111D4A', bg: '#E7E8ED' },
+  UPCOMING:    { color: '#111D4A', bg: '#E7E8ED' },
+  CONFIRMED:   { color: '#16A34A', bg: '#DCFCE7' },
+  NO_SHOW:     { color: '#6B7280', bg: '#F3F4F6' },
+  EXPIRED:     { color: '#9CA3AF', bg: '#F9FAFB' },
+};
+
+const StatusBadge = ({ status }: { status: string }) => {
+  const key = (status ?? '').toUpperCase();
+  const { color, bg } = statusColorMap[key] ?? { color: '#6B7280', bg: '#F3F4F6' };
+  const label = key === 'NO_SHOW' ? 'No Show'
+    : status.charAt(0).toUpperCase() + status.slice(1).toLowerCase();
+  return (
+    <Box display="inline-flex" alignItems="center" px={2.5} py={0.5} borderRadius="full" bg={bg}>
+      <Text fontSize="0.72rem" fontWeight="600" color={color} fontFamily="Outfit">{label}</Text>
+    </Box>
+  );
+};
+
+// ── Detail row ────────────────────────────────────────────────────────────────
+
+const DetailRow = ({ label, value }: { label: string; value?: string | null }) => (
+  <HStack justify="space-between" align="flex-start" w="full" gap={4} py={2.5}
+    borderBottomWidth="1px" borderColor="gray.100" _last={{ borderBottom: 'none' }}
+  >
+    <Text fontSize="0.78rem" color="gray.500" fontFamily="Outfit" flexShrink={0}>{label}</Text>
+    <Text fontSize="0.82rem" fontWeight="500" color="text_primary" fontFamily="Outfit" textAlign="right">
+      {value || '—'}
+    </Text>
+  </HStack>
+);
+
+// ── Skeleton loader ───────────────────────────────────────────────────────────
+
+const ViewSkeleton = () => (
+  <VStack gap={4} w="full" maxW="600px" mx="auto" px={{ base: 3, md: 0 }} py={4}>
+    {/* Back button */}
+    <Skeleton h="32px" w="80px" borderRadius="8px" alignSelf="flex-start" />
+
+    {/* Profile card */}
+    <Box w="full" bg="bg_box" borderRadius="16px" borderWidth="1px" borderColor="gray.100" p={4}>
+      <HStack gap={3}>
+        <SkeletonCircle size="14" />
+        <VStack align="flex-start" gap={1.5} flex={1}>
+          <Skeleton h="3.5" w="50%" borderRadius="6px" />
+          <Skeleton h="2.5" w="35%" borderRadius="6px" />
+          <Skeleton h="5" w="20%" borderRadius="full" />
+        </VStack>
+      </HStack>
+    </Box>
+
+    {/* Appointment details */}
+    <Box w="full" bg="bg_box" borderRadius="16px" borderWidth="1px" borderColor="gray.100" p={4}>
+      <Skeleton h="3.5" w="40%" borderRadius="6px" mb={4} />
+      {[1, 2, 3, 4].map((i) => (
+        <HStack key={i} justify="space-between" py={2.5} borderBottomWidth="1px" borderColor="gray.100">
+          <Skeleton h="3" w="30%" borderRadius="4px" />
+          <Skeleton h="3" w="45%" borderRadius="4px" />
+        </HStack>
+      ))}
+    </Box>
+
+    {/* Action buttons */}
+    <Box w="full" bg="bg_box" borderRadius="16px" borderWidth="1px" borderColor="gray.100" p={4}>
+      <Skeleton h="10" w="full" borderRadius="10px" mb={3} />
+      <HStack gap={3}>
+        <Skeleton h="9" flex={1} borderRadius="10px" />
+        <Skeleton h="9" flex={1} borderRadius="10px" />
+      </HStack>
+    </Box>
+  </VStack>
+);
+
+// ── Countdown join section ────────────────────────────────────────────────────
 
 const urgencyConfig = {
-  future:   { bg: 'transparent',  border: 'transparent', labelColor: '#5f6368', joinBg: '#111D4A', joinLabel: 'Join Call' },
-  soon:     { bg: '#FFF3E0',      border: '#FFB74D',      labelColor: '#E65100', joinBg: '#111D4A', joinLabel: 'Join Call' },
-  imminent: { bg: '#FFF3E0',      border: '#FF9800',      labelColor: '#E65100', joinBg: '#FF9800', joinLabel: 'Join Now' },
-  now:      { bg: '#E8F5E9',      border: '#66BB6A',      labelColor: '#2E7D32', joinBg: '#2E7D32', joinLabel: 'Join Now — Starting!' },
+  future:   { joinBg: '#111D4A', joinLabel: 'Join Call',          urgentBorder: '' },
+  soon:     { joinBg: '#111D4A', joinLabel: 'Join Call',          urgentBorder: '#FFB74D' },
+  imminent: { joinBg: '#FF9800', joinLabel: 'Join Now',           urgentBorder: '#FF9800' },
+  now:      { joinBg: '#2E7D32', joinLabel: 'Join Now — Live!',   urgentBorder: '#66BB6A' },
 };
 
 const ConsultationJoinSection = ({
@@ -27,308 +116,293 @@ const ConsultationJoinSection = ({
   const startTime = resolveStartTime(appointment);
   const countdown = useCountdown(startTime);
   const cfg = urgencyConfig[countdown.urgency] ?? urgencyConfig.future;
-  const isUrgent = countdown.urgency === 'imminent' || countdown.urgency === 'now' || countdown.isPast;
+  const isUrgent = ['imminent', 'now'].includes(countdown.urgency) || countdown.isPast;
 
   return (
-    <VStack w="full" gap={3} pt={2}>
-      {/* Countdown banner — only shown when time info is available */}
-      {startTime && (
-        <Box
-          w="full"
-          px={4}
-          py={3}
-          borderRadius="12px"
-          bg={cfg.bg}
-          borderWidth={isUrgent ? '1.5px' : '0'}
-          borderColor={cfg.border}
+    <Box w="full" bg="bg_box" borderRadius="16px" borderWidth="1px" borderColor="gray.100" p={4}>
+      {startTime && countdown.label && (
+        <HStack
+          mb={3} px={3} py={2} borderRadius="10px"
+          bg={isUrgent ? (countdown.urgency === 'now' || countdown.isPast ? '#E8F5E9' : '#FFF3E0') : 'badge_background'}
+          justify="space-between"
         >
-          <HStack justify="space-between" align="center">
-            <VStack align="start" gap={0}>
-              <Text fontSize="0.78rem" color="#888" fontFamily="Outfit">Starts</Text>
-              <HStack gap={2} align="center">
-                {(countdown.urgency === 'now' || countdown.isPast) && (
-                  <Box
-                    w="8px" h="8px" borderRadius="full" bg="#2E7D32"
-                    style={{ animation: 'dot-blink 1.2s ease-in-out infinite' }}
-                  />
-                )}
-                <style>{`@keyframes dot-blink { 0%,100%{opacity:1} 50%{opacity:0.2} }`}</style>
-                <Text fontSize="1rem" fontWeight="700" color={cfg.labelColor} fontFamily="Outfit">
-                  {countdown.isPast ? 'Right now' : countdown.label}
-                </Text>
-              </HStack>
-            </VStack>
-            {isUrgent && (
-              <Text fontSize="0.75rem" color={cfg.labelColor} fontWeight="600" fontFamily="Outfit">
-                {countdown.urgency === 'now' || countdown.isPast ? 'Live' : `${countdown.minutes}m left`}
-              </Text>
+          <HStack gap={2}>
+            {(countdown.urgency === 'now' || countdown.isPast) && (
+              <Box w="7px" h="7px" borderRadius="full" bg="#2E7D32"
+                style={{ animation: 'dot-blink 1.2s ease-in-out infinite' }} />
             )}
+            <style>{`@keyframes dot-blink { 0%,100%{opacity:1} 50%{opacity:0.2} }`}</style>
+            <Text fontSize="0.78rem" color="gray.500" fontFamily="Outfit">Starts in</Text>
+            <Text fontSize="0.82rem" fontWeight="700"
+              color={isUrgent ? (countdown.urgency === 'now' || countdown.isPast ? '#2E7D32' : '#E65100') : 'text_primary'}
+              fontFamily="Outfit"
+            >
+              {countdown.isPast ? 'Right now' : countdown.label}
+            </Text>
           </HStack>
-        </Box>
+          {isUrgent && (
+            <Text fontSize="0.72rem" fontWeight="600"
+              color={countdown.urgency === 'now' || countdown.isPast ? '#2E7D32' : '#E65100'}
+              fontFamily="Outfit"
+            >
+              {countdown.urgency === 'now' || countdown.isPast ? 'Live' : `${countdown.minutes}m`}
+            </Text>
+          )}
+        </HStack>
       )}
 
-      {/* Join button */}
       <Button
-        w="full"
-        bg={cfg.joinBg}
-        color="white"
-        borderRadius="10px"
-        h="52px"
-        fontSize="1rem"
-        fontWeight="700"
+        w="full" bg={cfg.joinBg} color="white" borderRadius="10px" h="42px"
+        fontSize="0.875rem" fontWeight="700" fontFamily="Outfit" mb={3}
         _hover={{ opacity: 0.88 }}
         onClick={onJoin}
-        style={isUrgent ? { boxShadow: `0 0 0 4px ${cfg.border}40` } : undefined}
+        style={isUrgent ? { boxShadow: `0 0 0 3px ${cfg.urgentBorder}40` } : undefined}
       >
+        <Icon mr={2}><LuVideo /></Icon>
         {cfg.joinLabel}
       </Button>
 
-      {/* Secondary actions */}
-      <HStack w="full" gap={3}>
-        <CustomButton customStyle={{ flex: 1 }} variant="outline" disabled={isCancelling} onClick={onCancel}>
-          <Text fontWeight="600" fontSize="0.9rem">Cancel</Text>
-        </CustomButton>
-        <CustomButton customStyle={{ flex: 1 }} onClick={onReschedule}>
-          <Text color="button_text" fontWeight="600" fontSize="0.9rem">Reschedule</Text>
-        </CustomButton>
+      <HStack gap={2.5}>
+        <Button
+          variant="outline" borderColor="gray.200" color="text_primary"
+          flex={1} h="36px" borderRadius="8px" fontSize="0.78rem"
+          fontFamily="Outfit" fontWeight="500" _hover={{ bg: 'gray.50' }}
+          disabled={isCancelling}
+          onClick={onCancel}
+        >
+          Cancel
+        </Button>
+        <Button
+          bg="#111D4A" color="white" flex={1} h="36px" borderRadius="8px"
+          fontSize="0.78rem" fontFamily="Outfit" fontWeight="600"
+          _hover={{ opacity: 0.85 }}
+          onClick={onReschedule}
+        >
+          Reschedule
+        </Button>
       </HStack>
-    </VStack>
+    </Box>
   );
 };
 
+// ── Main page ─────────────────────────────────────────────────────────────────
+
 export default function ConsultationViewPage() {
-    const router = useRouter();
-    const [client, setClient] = useState(false);
-    const { resolvedTheme } = useTheme();
-    const { user: authUser } = useAuth();
+  const router = useRouter();
+  const [client, setClient] = useState(false);
+  const { user: authUser } = useAuth();
 
-    const { consultation_id } = router.query as Record<string, string>;
-    const { data: apptResp, isLoading: isApptLoading, error: apptError, refetch } = useGetAppointmentByIdQuery(consultation_id as string, { skip: !consultation_id });
-    const appointment: any = (apptResp as any)?.data ?? apptResp ?? null;
-    const [cancelAppointment, { isLoading: isCancelling }] = useCancelAppointmentMutation();
+  const { consultation_id } = router.query as Record<string, string>;
+  const {
+    data: apptResp,
+    isLoading,
+    error: apptError,
+  } = useGetAppointmentByIdQuery(consultation_id as string, { skip: !consultation_id });
+  const appointment: any = (apptResp as any)?.data ?? apptResp ?? null;
+  const [, { isLoading: isCancelling }] = useCancelAppointmentMutation();
 
-    const isConsultantViewer = !!authUser?.isConsultant;
-    const counterpart = useMemo(() => {
-        if (!appointment) return null;
-        const maybeConsultant = appointment?.consultant || appointment?.consultantInfo || appointment?.creator || appointment?.provider;
-        return isConsultantViewer ? appointment?.user : maybeConsultant;
-    }, [appointment, isConsultantViewer]);
+  const isConsultantViewer = !!authUser?.isConsultant;
+  const counterpart = useMemo(() => {
+    if (!appointment) return null;
+    return isConsultantViewer
+      ? appointment?.user
+      : (appointment?.consultant || appointment?.consultantInfo || appointment?.provider);
+  }, [appointment, isConsultantViewer]);
 
-    useEffect(() => {
-        setClient(true);
-    }, []);
+  useEffect(() => { setClient(true); }, []);
 
-    const isDark = resolvedTheme === 'dark';
-    const panelBg = isDark ? 'gray.800' : 'white';
-
-    // Loading state
-    if (isApptLoading) {
-        return (
-            <Flex w="full" h="full" justify="center" align="center" py={16}>
-                <Spinner size="lg" />
-            </Flex>
-        );
-    }
-
-    // Error state
-    if (apptError) {
-        return (
-            <Flex w="full" h="full" justify="center" align="center" py={16}>
-                <VStack gap={3} textAlign="center">
-                    <Text fontSize="1rem" fontWeight="600" color="text_primary">
-                        Failed to load appointment
-                    </Text>
-                    <Text fontSize="0.875rem" color="gray.500">
-                        The appointment could not be found or you don't have access.
-                    </Text>
-                    <Button
-                        bg="#111D4A" color="white" borderRadius="8px" px={6}
-                        onClick={() => router.push('/consultation')}
-                    >
-                        Back to Consultations
-                    </Button>
-                </VStack>
-            </Flex>
-        );
-    }
-
-    // Empty state — no consultation_id in URL or no data returned
-    if (!consultation_id || !appointment) {
-        return (
-            <Flex w="full" h="full" justify="center" align="center" py={16}>
-                <VStack gap={3} textAlign="center">
-                    <Text fontSize="1rem" fontWeight="600" color="text_primary">
-                        No appointment found
-                    </Text>
-                    <Text fontSize="0.875rem" color="gray.500">
-                        This consultation doesn't exist or may have been removed.
-                    </Text>
-                    <Button
-                        bg="#111D4A" color="white" borderRadius="8px" px={6}
-                        onClick={() => router.push('/consultation')}
-                    >
-                        View My Consultations
-                    </Button>
-                </VStack>
-            </Flex>
-        );
-    }
-
+  // ── Loading ────────────────────────────────────────────────────────────────
+  if (isLoading || !client) {
     return (
-        <VStack
-            bg='bg_box'
-            mx={{ base: "0", md: 4, lg: 4, xl: 4 }}
-            flex={1}
-            h="fit-content"
-            p={8}
-            css={{
-                "&::-webkit-scrollbar": { width: "0px", height: "0px" },
-                "&::-webkit-scrollbar-track": { width: "0px", background: "transparent", height: "0px" },
-                "&::-webkit-scrollbar-thumb": { background: "transparent", borderRadius: "0px", maxHeight: "0px", height: "0px", width: 0 },
-            }}
-            rounded={"xl"}
-        >
-            <VStack w="full" py="2" alignItems="flex-start">
-                <Text fontSize="1.25rem" fontWeight="600" mb="2" textAlign="left" lineHeight="30px" color="text_primary">
-                    Appointment Details
-                </Text>
-
-                <VStack w="full" rounded="xl" p="4" shadow="xs">
-                    <HStack justifyContent={"space-between"} alignItems={"center"} w="full">
-                        <Text color="grey.500" fontSize="1.25rem" lineHeight="30px" fontWeight="400">
-                            {isConsultantViewer ? 'Client Name:' : 'Consultant:'}
-                        </Text>
-                        <Text color="text_primary" fontSize="1.25rem" lineHeight="30px" fontWeight="400" textTransform="capitalize">
-                            {/* Fix: consultant viewers see the client name, not their own */}
-                            {isConsultantViewer ? appointment?.user?.fullName : appointment?.consultant?.fullName || '-'}
-                        </Text>
-                    </HStack>
-                    <HStack justifyContent={"space-between"} alignItems={"center"} w="full">
-                        <Text color="grey.500" fontSize="1.25rem" lineHeight="30px" fontWeight="400">
-                            Consultation Topic:
-                        </Text>
-                        <Text color="text_primary" fontSize="1.25rem" lineHeight="30px" fontWeight="400">
-                            {appointment?.topic || appointment?.title || appointment?.message || '-'}
-                        </Text>
-                    </HStack>
-                    <HStack justifyContent={"space-between"} alignItems={"center"} w="full">
-                        <Text color="grey.500" fontSize="1.25rem" lineHeight="30px" fontWeight="400">
-                            Consultation time:
-                        </Text>
-                        <Text color="text_primary" fontSize="1.25rem" lineHeight="30px" fontWeight="400">
-                            {(() => {
-                                const ts = appointment?.timeslots?.[0] || {};
-                                const rawStart = ts?.startTime || appointment?.startTime;
-                                const rawEnd = ts?.endTime || appointment?.endTime;
-                                const rawDate = appointment?.availability?.date || appointment?.date || ts?.date;
-
-                                const to12h = (t: any) => {
-                                    if (!t) return null;
-                                    const d = new Date(t);
-                                    if (!isNaN(d.getTime())) {
-                                        return d.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
-                                    }
-                                    const m = String(t).match(/^([0-9]{1,2}):([0-9]{2})(?::([0-9]{2}))?$/);
-                                    if (m) {
-                                        let h = parseInt(m[1], 10);
-                                        const min = m[2];
-                                        const ampm = h >= 12 ? 'PM' : 'AM';
-                                        h = h % 12 || 12;
-                                        return `${h}:${min} ${ampm}`;
-                                    }
-                                    return String(t);
-                                };
-
-                                const fmtDate = (d: any) => {
-                                    if (!d) return null;
-                                    const dt = new Date(d);
-                                    if (!isNaN(dt.getTime())) {
-                                        return dt.toLocaleDateString([], { year: 'numeric', month: 'short', day: 'numeric' });
-                                    }
-                                    return String(d);
-                                };
-
-                                const s = to12h(rawStart);
-                                const e = to12h(rawEnd);
-                                const ds = fmtDate(rawDate);
-
-                                if (s || e || ds) {
-                                    const timeRange = [s, e].filter(Boolean).join(' - ');
-                                    return [ds, timeRange].filter(Boolean).join(' | ');
-                                }
-                                return '-';
-                            })()}
-                        </Text>
-                    </HStack>
-                    <HStack justifyContent={"space-between"} alignItems={"center"} w="full">
-                        <Text color="grey.500" fontSize="1.25rem" lineHeight="30px" fontWeight="400">
-                            Duration:
-                        </Text>
-                        <Text color="text_primary" fontSize="1.25rem" lineHeight="30px" fontWeight="400">
-                            {(() => {
-                                const minutes = appointment?.timeslots?.[0]?.duration;
-                                if (!minutes && minutes !== 0) return '-';
-                                const h = Math.floor(minutes / 60);
-                                const m = minutes % 60;
-                                const hStr = h > 0 ? `${h}hr${h > 1 ? 's' : ''}` : '';
-                                const mStr = m > 0 ? `${m}mins` : (h === 0 ? '0mins' : '');
-                                return [hStr, mStr].filter(Boolean).join(':');
-                            })()}
-                        </Text>
-                    </HStack>
-                    <HStack justifyContent={"space-between"} alignItems={"center"} w="full">
-                        <Text color="grey.500" fontSize="1.25rem" lineHeight="30px" fontWeight="400">
-                            Status:
-                        </Text>
-                        <Text color="#FF9800" fontSize="1.25rem" lineHeight="30px" fontWeight="400">
-                            {appointment?.status || 'Scheduled'}
-                        </Text>
-                    </HStack>
-                </VStack>
-            </VStack>
-
-            {/* Counterpart Details */}
-            {counterpart && (
-                <VStack w="full" py="2" rounded="xl" p="4" shadow="xs" mt={2} mb={4} alignItems="stretch">
-                    <Text color="text_primary" fontSize="1.25rem" lineHeight="30px" fontWeight="600" mb={2}>
-                        {isConsultantViewer ? 'Client Details' : 'Consultant Details'}
-                    </Text>
-                    <HStack justifyContent="space-between" alignItems="center" w="full">
-                        <Text color="grey.500" fontSize="1.0rem" lineHeight="26px" fontWeight="400">Name:</Text>
-                        <Text textTransform="capitalize" color="text_primary" fontSize="1.0rem" lineHeight="26px" fontWeight="500">
-                            {counterpart?.fullName || counterpart?.name || counterpart?.userName || '-'}
-                        </Text>
-                    </HStack>
-                    <HStack justifyContent="space-between" alignItems="center" w="full">
-                        <Text color="grey.500" fontSize="1.0rem" lineHeight="26px" fontWeight="400">Email:</Text>
-                        <Text color="text_primary" fontSize="1.0rem" lineHeight="26px" fontWeight="400">
-                            {counterpart?.email || counterpart?.contactEmail || '-'}
-                        </Text>
-                    </HStack>
-                    <HStack justifyContent="space-between" alignItems="center" w="full">
-                        <Text color="grey.500" fontSize="1.0rem" lineHeight="26px" fontWeight="400">Role/Title:</Text>
-                        <Text color="text_primary" fontSize="1.0rem" lineHeight="26px" fontWeight="400">
-                            {counterpart?.role || counterpart?.title || counterpart?.occupation || '-'}
-                        </Text>
-                    </HStack>
-                    <HStack justifyContent="space-between" alignItems="center" w="full">
-                        <Text color="grey.500" fontSize="1.0rem" lineHeight="26px" fontWeight="400">Phone:</Text>
-                        <Text color="text_primary" fontSize="1.0rem" lineHeight="26px" fontWeight="400">
-                            {counterpart?.mobileNumber || counterpart?.phone || counterpart?.phoneNumber || '-'}
-                        </Text>
-                    </HStack>
-                </VStack>
-            )}
-
-            {['UPCOMING', 'RESCHEDULED', 'CONFIRMED', 'PENDING'].includes((appointment?.status || '').toUpperCase()) && (
-                <ConsultationJoinSection
-                    appointment={appointment}
-                    isCancelling={isCancelling}
-                    onCancel={() => router.push(`/consultation/cancel?consultation_id=${consultation_id}`)}
-                    onReschedule={() => router.push(`/consultation/reschedule?consultation_id=${consultation_id}`)}
-                    onJoin={() => router.push(`/message/videoconsultation?consultationId=${consultation_id}`)}
-                />
-            )}
-        </VStack>
+      <Box w="full" className={outfit.className}>
+        <ViewSkeleton />
+      </Box>
     );
+  }
+
+  // ── Error ──────────────────────────────────────────────────────────────────
+  if (apptError) {
+    return (
+      <Flex w="full" justify="center" align="center" py={12}>
+        <VStack gap={3} textAlign="center">
+          <Text fontSize="0.9rem" fontWeight="600" color="text_primary" fontFamily="Outfit">
+            Failed to load appointment
+          </Text>
+          <Text fontSize="0.8rem" color="gray.500" fontFamily="Outfit">
+            This appointment could not be found or you don't have access.
+          </Text>
+          <Button bg="#111D4A" color="white" borderRadius="8px" px={5} h="36px"
+            fontSize="0.82rem" fontFamily="Outfit" onClick={() => router.push('/consultation')}>
+            Back to Consultations
+          </Button>
+        </VStack>
+      </Flex>
+    );
+  }
+
+  // ── Empty ──────────────────────────────────────────────────────────────────
+  if (!consultation_id || !appointment) {
+    return (
+      <Flex w="full" justify="center" align="center" py={12}>
+        <VStack gap={3} textAlign="center">
+          <Text fontSize="0.9rem" fontWeight="600" color="text_primary" fontFamily="Outfit">
+            Appointment not found
+          </Text>
+          <Button bg="#111D4A" color="white" borderRadius="8px" px={5} h="36px"
+            fontSize="0.82rem" fontFamily="Outfit" onClick={() => router.push('/consultation')}>
+            View My Consultations
+          </Button>
+        </VStack>
+      </Flex>
+    );
+  }
+
+  // ── Helpers ────────────────────────────────────────────────────────────────
+  const fmtTime = (t: any) => {
+    if (!t) return null;
+    const d = new Date(t);
+    if (!isNaN(d.getTime())) return format(d, 'h:mm aa');
+    const m = String(t).match(/^([0-9]{1,2}):([0-9]{2})/);
+    if (m) {
+      let h = parseInt(m[1], 10);
+      const min = m[2];
+      const ampm = h >= 12 ? 'PM' : 'AM';
+      h = h % 12 || 12;
+      return `${h}:${min} ${ampm}`;
+    }
+    return String(t);
+  };
+
+  const fmtDate = (d: any) => {
+    if (!d) return null;
+    const dt = new Date(d);
+    if (!isNaN(dt.getTime())) return format(dt, 'MMM d, yyyy');
+    return String(d);
+  };
+
+  const ts = appointment?.timeslots?.[0] ?? {};
+  const timeStart = fmtTime(ts?.startTime || appointment?.scheduledDateTimeStart);
+  const timeEnd   = fmtTime(ts?.endTime   || appointment?.scheduledDateTimeEnd);
+  const dateStr   = fmtDate(appointment?.availability?.date || appointment?.scheduledDateTimeStart || ts?.date);
+  const timeStr   = [timeStart, timeEnd].filter(Boolean).join(' – ');
+
+  const minutes = ts?.duration ?? appointment?.duration;
+  const durationStr = minutes != null
+    ? (() => {
+        const h = Math.floor(minutes / 60);
+        const m = minutes % 60;
+        return [h > 0 ? `${h}h` : '', m > 0 ? `${m}m` : ''].filter(Boolean).join(' ') || '0m';
+      })()
+    : null;
+
+  const isJoinable = ['UPCOMING', 'RESCHEDULED', 'CONFIRMED', 'PENDING']
+    .includes((appointment?.status || '').toUpperCase());
+
+  return (
+    <Box w="full" className={outfit.className}>
+      <VStack gap={4} w="full" maxW="600px" mx="auto" px={{ base: 3, md: 0 }} py={4} align="stretch">
+
+        {/* Back button */}
+        <Button
+          variant="ghost" alignSelf="flex-start" h="32px" px={2} gap={1.5}
+          borderRadius="8px" fontSize="0.8rem" color="gray.500" fontFamily="Outfit"
+          _hover={{ bg: 'gray.100', color: 'text_primary' }}
+          onClick={() => router.back()}
+        >
+          <LuArrowLeft size={14} />
+          Back
+        </Button>
+
+        {/* Profile card */}
+        <Box bg="bg_box" borderRadius="16px" borderWidth="1px" borderColor="gray.100" p={4}>
+          <HStack gap={3} align="flex-start">
+            <Image
+              src={safeProfilePic(counterpart?.profilePics)}
+              onError={imgErrorFallback}
+              alt={counterpart?.fullName || 'User'}
+              boxSize="52px"
+              borderRadius="12px"
+              objectFit="cover"
+              flexShrink={0}
+            />
+            <VStack align="flex-start" gap={0.5} flex={1} minW={0}>
+              <Text fontSize="0.95rem" fontWeight="700" color="text_primary" fontFamily="Outfit" lineClamp={1}>
+                {counterpart?.fullName || '—'}
+              </Text>
+              {(counterpart?.title || counterpart?.occupation || counterpart?.businessName) && (
+                <Text fontSize="0.75rem" color="gray.400" fontFamily="Outfit" lineClamp={1}>
+                  {counterpart?.title || counterpart?.occupation || counterpart?.businessName}
+                </Text>
+              )}
+              <Box mt={1}>
+                <StatusBadge status={appointment?.status || 'Scheduled'} />
+              </Box>
+            </VStack>
+            <Text fontSize="0.72rem" color="gray.400" fontFamily="Outfit" flexShrink={0}>
+              #{(appointment?.uniqueId ?? appointment?.id ?? '').toString().slice(0, 8)}
+            </Text>
+          </HStack>
+        </Box>
+
+        {/* Appointment details */}
+        <Box bg="bg_box" borderRadius="16px" borderWidth="1px" borderColor="gray.100" px={4} pt={4} pb={1}>
+          <HStack mb={3} gap={1.5}>
+            <Icon color="gray.400" fontSize="13px"><LuCalendar /></Icon>
+            <Text fontSize="0.82rem" fontWeight="600" color="text_primary" fontFamily="Outfit">
+              Appointment Details
+            </Text>
+          </HStack>
+          <DetailRow
+            label={isConsultantViewer ? 'Client' : 'Consultant'}
+            value={isConsultantViewer ? appointment?.user?.fullName : appointment?.consultant?.fullName}
+          />
+          <DetailRow
+            label="Topic"
+            value={appointment?.topic || appointment?.title || appointment?.message}
+          />
+          {dateStr && <DetailRow label="Date" value={dateStr} />}
+          {timeStr && (
+            <DetailRow label="Time" value={timeStr} />
+          )}
+          {durationStr && <DetailRow label="Duration" value={durationStr} />}
+          {appointment?.videoOption != null && (
+            <DetailRow label="Format" value={appointment?.videoOption ? 'Video call' : 'Text only'} />
+          )}
+        </Box>
+
+        {/* Contact details */}
+        {counterpart && (counterpart?.email || counterpart?.mobileNumber || counterpart?.phone) && (
+          <Box bg="bg_box" borderRadius="16px" borderWidth="1px" borderColor="gray.100" px={4} pt={4} pb={1}>
+            <HStack mb={3} gap={1.5}>
+              <Icon color="gray.400" fontSize="13px"><LuUser /></Icon>
+              <Text fontSize="0.82rem" fontWeight="600" color="text_primary" fontFamily="Outfit">
+                {isConsultantViewer ? 'Client Details' : 'Consultant Details'}
+              </Text>
+            </HStack>
+            {counterpart?.email && (
+              <DetailRow label="Email" value={counterpart.email} />
+            )}
+            {(counterpart?.mobileNumber || counterpart?.phone) && (
+              <DetailRow label="Phone" value={counterpart?.mobileNumber || counterpart?.phone} />
+            )}
+            {(counterpart?.businessName) && (
+              <DetailRow label="Business" value={counterpart.businessName} />
+            )}
+          </Box>
+        )}
+
+        {/* Join / action section */}
+        {isJoinable && (
+          <ConsultationJoinSection
+            appointment={appointment}
+            isCancelling={isCancelling}
+            onCancel={() => router.push(`/consultation/cancel?consultation_id=${consultation_id}`)}
+            onReschedule={() => router.push(`/consultation/reschedule?consultation_id=${consultation_id}`)}
+            onJoin={() => router.push(`/message/videoconsultation?consultationId=${consultation_id}`)}
+          />
+        )}
+
+      </VStack>
+    </Box>
+  );
 }

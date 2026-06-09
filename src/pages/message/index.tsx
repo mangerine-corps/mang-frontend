@@ -379,15 +379,39 @@ const Index = () => {
       try {
         // Page 1 first to get totalPages
         const first = await getConversations({}).unwrap();
-        const firstData: any[] = first?.data ?? [];
-        const totalPages: number = first?.totalPages ?? first?.meta?.totalPages ?? 1;
+
+        // Normalise response — API may return flat { data: [...], totalPages }
+        // or nested { data: { conversations: [...], meta: { totalPages } } }
+        const extractItems = (res: any): any[] => {
+          const raw = res?.data ?? res ?? {};
+          if (Array.isArray(raw)) return raw;
+          if (Array.isArray(raw?.data)) return raw.data;
+          if (Array.isArray(raw?.conversations)) return raw.conversations;
+          if (Array.isArray(raw?.items)) return raw.items;
+          return [];
+        };
+        const extractTotalPages = (res: any): number => {
+          const raw = res?.data ?? {};
+          return (
+            res?.totalPages ??
+            res?.meta?.totalPages ??
+            res?.pageCount ??
+            (raw as any)?.totalPages ??
+            (raw as any)?.meta?.totalPages ??
+            (raw as any)?.pageCount ??
+            1
+          );
+        };
+
+        const firstData = extractItems(first);
+        const totalPages = extractTotalPages(first);
 
         let all = [...firstData];
 
         if (totalPages > 1) {
           const rest = await Promise.all(
             Array.from({ length: totalPages - 1 }, (_, i) =>
-              getConversations({ page: i + 2 } as any).unwrap().then((p: any) => p?.data ?? [])
+              getConversations({ page: i + 2 } as any).unwrap().then((p: any) => extractItems(p))
             )
           );
           all = all.concat(rest.flat());

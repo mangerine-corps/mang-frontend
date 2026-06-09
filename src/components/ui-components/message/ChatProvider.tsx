@@ -17,6 +17,7 @@ import { updateConversationLastMessage } from 'mangarine/state/reducers/appointm
 import { uniqBy, sortBy } from 'es-toolkit/compat';
 import { createSocket } from 'mangarine/state/services/socket.service';
 import { toaster } from 'mangarine/components/ui/toaster';
+import { useLazyGetChatHistoryQuery } from 'mangarine/state/services/chat.service';
 
 export interface ChatMessage {
   id: string;
@@ -80,6 +81,9 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const socketRef = useRef<Socket | null>(null);
   const currentRoomRef = useRef<string | null>(null);
   const callTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const historyFallbackRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const [fetchChatHistory] = useLazyGetChatHistoryQuery();
 
   const [pagination, setPagination] = useState<Record<string, any>>({});
   const [incomingCall, setIncomingCall] = useState<IncomingCall | null>(null);
@@ -136,9 +140,34 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     };
 
     const handleMessageHistory = (history: any) => {
-      const { data, ...rest } = history?.data ?? {};
-      setPagination(rest);
-      const msgs = Array.isArray(data) ? data : [];
+      // Cancel REST fallback since socket delivered the history
+      if (historyFallbackRef.current) {
+        clearTimeout(historyFallbackRef.current);
+        historyFallbackRef.current = null;
+      }
+
+      // Handle multiple response shapes from socket:
+      // history = [...] | { data: [...] } | { data: { data: [...], ...pagination } }
+      let msgs: any[];
+      let paginationData: Record<string, any> = {};
+
+      if (Array.isArray(history)) {
+        msgs = history;
+      } else if (Array.isArray(history?.data)) {
+        msgs = history.data;
+        const { data: _, ...rest } = history;
+        paginationData = rest;
+      } else if (Array.isArray(history?.data?.data)) {
+        const { data: innerData, ...rest } = history.data;
+        msgs = innerData;
+        paginationData = rest;
+      } else if (Array.isArray(history?.messages)) {
+        msgs = history.messages;
+      } else {
+        msgs = [];
+      }
+
+      setPagination(paginationData);
       const sorted = sortBy(uniqBy(msgs, (m: any) => m.id), (m: any) => m.createdAt);
       dispatch(setMessages({ messages: sorted }));
     };
@@ -189,12 +218,56 @@ export const ChatProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   // ── Room change — load history for the newly selected conversation ───────
   useEffect(() => {
-    currentRoomRef.current = currentConversation?.id ?? null;
+    const convId = currentConversation?.id ?? null;
+    currentRoomRef.current = convId;
 
-    if (!currentConversation?.id || !socketRef.current) return;
+    if (historyFallbackRef.current) {
+      clearTimeout(historyFallbackRef.current);
+      historyFallbackRef.current = null;
+    }
+
+    if (!convId || !socketRef.current) return;
 
     dispatch(setMessages({ messages: [] }));
-    socketRef.current.emit('getHistory', { conversationId: currentConversation.id });
+
+    const sock = socketRef.current;
+    const emitHistory = () => {
+      // Guard: conversation may have changed while we were waiting for connect
+      if (currentRoomRef.current !== convId) return;
+      sock.emit('getHistory', { conversationId: convId });
+
+      // REST fallback: if socket doesn't deliver messageHistory within 3 s, fetch via REST
+      historyFallbackRef.current = setTimeout(async () => {
+        if (currentRoomRef.current !== convId) return;
+        try {
+          const result = await fetchChatHistory({ conversationId: convId, page: 1, limit: 50 }).unwrap();
+          if (currentRoomRef.current !== convId) return;
+          // Normalize to array
+          const raw = result?.data ?? result;
+          const msgs = Array.isArray(raw) ? raw : Array.isArray(raw?.data) ? raw.data : [];
+          if (msgs.length > 0) {
+            const sorted = sortBy(uniqBy(msgs, (m: any) => m.id), (m: any) => m.createdAt);
+            dispatch(setMessages({ messages: sorted }));
+          }
+        } catch {
+          // REST fallback failed — leave messages empty
+        }
+      }, 3000);
+    };
+
+    if (sock.connected) {
+      emitHistory();
+    } else {
+      sock.once('connect', emitHistory);
+    }
+
+    return () => {
+      if (historyFallbackRef.current) {
+        clearTimeout(historyFallbackRef.current);
+        historyFallbackRef.current = null;
+      }
+    };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentConversation?.id, dispatch]);
 
   // ── Call actions ──────────────────────────────────────────────────────────

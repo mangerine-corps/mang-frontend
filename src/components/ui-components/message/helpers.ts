@@ -5,8 +5,6 @@ const getConversationMessagePayload = (conversation: any) => {
     conversation?.lastMessage ||
     conversation?.latestMessage ||
     conversation?.recentMessage ||
-    conversation?.message ||
-    conversation?.lastAppointment?.message ||
     null
   );
 };

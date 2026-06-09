@@ -143,6 +143,7 @@ const ChatPage = ({ onNewMessage }: Props) => {
 
     const messagePayload = {
       conversationId: currentConversation.id,
+      senderId: userId,
       receiverId: peer.id,
       content: sanitizedContent,
       attachments: uploadedFiles.map((file) => ({
