@@ -1756,6 +1756,22 @@ const VideoContainer = ({ consultationId }: { consultationId?: string }) => {
         };
     }, []); // empty — runs only on unmount
 
+    // Release camera/mic the moment any navigation starts (browser back, Next.js Link, router.push).
+    // The unmount cleanup fires too late — the OS camera indicator stays on until React finishes
+    // tearing down the tree. routeChangeStart fires synchronously before that.
+    useEffect(() => {
+        const release = () => {
+            try { cameraTrackRef.current?.stop(); (cameraTrackRef.current as any)?.close?.(); } catch {}
+            try { micTrackRef.current?.stop(); (micTrackRef.current as any)?.close?.(); } catch {}
+        };
+        router.events.on('routeChangeStart', release);
+        window.addEventListener('beforeunload', release);
+        return () => {
+            router.events.off('routeChangeStart', release);
+            window.removeEventListener('beforeunload', release);
+        };
+    }, [router.events]);
+
     // Show loading state while fetching consultation data
     if (isLoadingConversation || (isApptLoading && consultationId && !currentConversation?.id)) {
         return (

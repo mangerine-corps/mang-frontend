@@ -82,6 +82,10 @@ const Login = () => {
         const responseData = payload?.data ?? payload;
 
         if (responseData?.requires2FA) {
+          sessionStorage.setItem(
+            "_2fa_pending",
+            JSON.stringify({ username: data.username, password: data.password })
+          );
           dispatch(setPreAuth({
             info: {
               flow: "login-2fa",

@@ -22,6 +22,7 @@ import {
   useSendEmailOtpMutation,
   useVerifyTwoFAMutation,
   useVerifyEmailMutation,
+  useLoginMutation,
 } from "mangarine/state/services/auth.service";
 import { toaster } from "mangarine/components/ui/toaster";
 import { isEmpty, size } from "es-toolkit/compat";
@@ -44,6 +45,7 @@ const AccountVerification = () => {
   const [showToast, setShowToast] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
   const [sendOtp] = useSendEmailOtpMutation();
+  const [login, { isLoading: isResending }] = useLoginMutation();
   const [verifyEmail, { isLoading: verifying }] = useVerifyEmailMutation();
   const [verifyTwoFA, { isLoading: verifyingTwoFA }] = useVerifyTwoFAMutation();
   const [visible, setVisible] = useState(true);
@@ -70,6 +72,11 @@ const AccountVerification = () => {
   const verificationMethod = preAuth?.method;
   const loginIdentity = preAuth?.email;
 
+  const has2FACredentials =
+    typeof window !== "undefined" &&
+    !!sessionStorage.getItem("_2fa_pending");
+  const canResend = isLoginTwoFAFlow ? has2FACredentials : emailEnabled;
+
   const onSubmit = async () => {
     const data = getValues();
 
@@ -82,6 +89,7 @@ const AccountVerification = () => {
         .then((payload) => {
           const responseData = payload?.data ?? payload;
           const { user, token } = responseData;
+          sessionStorage.removeItem("_2fa_pending");
           dispatch(setCredentials({ user, token }));
           dispatch(setPreAuth({ info: {} }));
           router.push("/home");
@@ -125,16 +133,15 @@ const AccountVerification = () => {
 
   // Start countdown on mount
   useEffect(() => {
-    if (!emailEnabled || isLoginTwoFAFlow) return;
+    if (!canResend) return;
     startCountdown();
-  }, [emailEnabled, isLoginTwoFAFlow, startCountdown]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
-    if (!emailEnabled || isLoginTwoFAFlow) return;
-    if (count === 0) {
-      setVisible(false);
-    }
-  }, [count, emailEnabled, isLoginTwoFAFlow]);
+    if (!canResend) return;
+    if (count === 0) setVisible(false);
+  }, [count, canResend]);
 
   // If emails disabled, skip page entirely
   useEffect(() => {
@@ -147,7 +154,37 @@ const AccountVerification = () => {
   }, [challengeToken, emailEnabled, isLoginTwoFAFlow, router]);
 
   const resendOtp = async () => {
-    if (!emailEnabled || isLoginTwoFAFlow) return;
+    if (!canResend) return;
+
+    if (isLoginTwoFAFlow) {
+      const raw = sessionStorage.getItem("_2fa_pending");
+      if (!raw) return;
+      const { username, password } = JSON.parse(raw);
+      await login({ username, password })
+        .unwrap()
+        .then((payload) => {
+          const responseData = payload?.data ?? payload;
+          if (responseData?.challengeToken) {
+            dispatch(setPreAuth({ info: { challengeToken: responseData.challengeToken } }));
+          }
+          setVisible(true);
+          resetCountdown();
+          startCountdown();
+          toaster.create({
+            title: "Code Resent",
+            description: "A new verification code has been sent.",
+            type: "success",
+            duration: 9000,
+            closable: true,
+          });
+        })
+        .catch((error) => {
+          const msg = error?.data?.message ?? "Failed to resend code. Please try again.";
+          toaster.create({ title: "Error", description: msg, type: "error", duration: 9000, closable: true });
+        });
+      return;
+    }
+
     await sendOtp({ email: forgotInfo.email })
       .unwrap()
       .then(() => {
@@ -165,13 +202,7 @@ const AccountVerification = () => {
       .catch((error) => {
         const errorMessage =
           error instanceof Error ? error.message : "An unknown error occurred";
-        toaster.create({
-          title: "Error",
-          description: errorMessage,
-          type: "error",
-          duration: 9000,
-          closable: true,
-        });
+        toaster.create({ title: "Error", description: errorMessage, type: "error", duration: 9000, closable: true });
       });
   };
 
@@ -295,7 +326,7 @@ const AccountVerification = () => {
         </FormErrorMessage> */}
 
             <VStack w="full" alignItems="center" gap={2}>
-              {!isLoginTwoFAFlow && visible ? (
+              {canResend && visible ? (
                 <HStack gap={2}>
                   <Text
                     color={count > 60 ? "green.500" : count > 30 ? "orange.400" : "red.500"}
@@ -305,7 +336,7 @@ const AccountVerification = () => {
                     Code expires in {formatTime(count)}
                   </Text>
                 </HStack>
-              ) : !isLoginTwoFAFlow ? (
+              ) : canResend ? (
                 <HStack gap={1}>
                   <Text color="red.500" fontWeight="500" fontSize="0.875rem">
                     Code expired.
@@ -321,19 +352,6 @@ const AccountVerification = () => {
                   </Link>
                 </HStack>
               ) : null}
-              {!isLoginTwoFAFlow && visible && (
-                <Text color="grey.500" fontSize="0.8rem">
-                  {`Didn't receive a code?`}{" "}
-                  <Link
-                    textDecor="underline"
-                    color="text_primary"
-                    fontWeight="600"
-                    onClick={resendOtp}
-                  >
-                    Resend
-                  </Link>
-                </Text>
-              )}
             </VStack>
 
             <CustomButton
