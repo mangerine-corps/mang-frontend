@@ -8,32 +8,30 @@ import { useWindowSize } from 'react-use'
 import { useRouter } from 'next/router'
 export const images = [
   {
-    bg: "/images/bg2.svg",
-    bg2: "/images/bg1Dark.svg",
-    image: "/images/onboard1.png",
-    imageDark: "/images/stayImageDark.svg",
-
+    bg: "/images/bg2.webp",
+    bg2: "/images/bg1Dark.webp",
+    image: "/images/onboard1.webp",
+    imageDark: "/images/stayImageDark.webp",
     title: "Stay connected.",
     extra: "Solve Real Problems",
     description:
       "Talk directly with professionals and businesses. Get expert help when it matters.",
   },
   {
-    bg: "/images/bg2Dark.svg",
-    bg2: "/images/bg1Dark.svg",
-    image: "/images/onboard2.svg",
-    imageDark: "/images/joinImageDark.svg",
-
+    bg: "/images/bg2Dark.webp",
+    bg2: "/images/bg1Dark.webp",
+    image: "/images/onboard2.webp",
+    imageDark: "/images/joinImageDark.webp",
     title: "Join the Community ",
     extra: "Share Your Value",
     description:
       "Explore posts, connect live, and show the world what you can do—in your own words.",
   },
   {
-    bg: "/images/bgDark3.svg",
-    bg2: "/images/bg1Dark.svg",
-    image: "/images/onboard3.svg",
-    imageDark: "/images/liveImageDark.svg",
+    bg: "/images/bgDark3.webp",
+    bg2: "/images/bg1Dark.webp",
+    image: "/images/onboard3.webp",
+    imageDark: "/images/liveImageDark.webp",
     title: "Go Live,",
     extra: " Get Discovered",
     description: "Consult, showcase your work to others. Earn income.",
@@ -57,7 +55,6 @@ const OnboardingCarousel = () => {
   const handleClick = (index: number) => {
     setImageIndex(index)
   }
-  console.log(height)
   useEffect(() => {
     if (height < 600) {
       setCarouselHeight(height / 4)
@@ -134,25 +131,25 @@ const OnboardingCarousel = () => {
               mx="auto"
               minW={{ base: "300px", md: "350px", lg: "600px" }}
               maxWidth={{ base: "300px", md: "350px", lg: "600px" }}
-              // minW={"600px"}
               alignItems="center"
               flex={2}
               pt={isIndex ? "12"  : 24}
-
             >
-              <Image
-                objectFit="contain"
-                w="full"
-                h="80%"
-                alt="Group image"
-                src={
-                  !isClient
-                    ? item.image
-                    : colorMode === "dark"
-                      ? item.imageDark
-                      : `${item.image}`
-                }
-              />
+              {index === imageIndex && (
+                <Image
+                  objectFit="contain"
+                  w="full"
+                  h="80%"
+                  alt="Group image"
+                  src={
+                    !isClient
+                      ? item.image
+                      : colorMode === "dark"
+                        ? item.imageDark
+                        : `${item.image}`
+                  }
+                />
+              )}
             </Flex>
 
             <Flex
