@@ -1,4 +1,4 @@
-import { Box, Flex, HStack, Skeleton, SkeletonCircle, VStack } from '@chakra-ui/react';
+import { Box, Flex, VStack } from '@chakra-ui/react';
 import React, { FC, useEffect } from 'react'
 import Header from './Header';
 import { usePersistReady } from 'mangarine/components/ui/provider';
@@ -28,37 +28,6 @@ type Props = {
   children: React.ReactElement;
 }
 
-const ContentSkeleton = () => (
-  <Flex flex={1} minH={0} px={{ base: 3, md: 4, lg: 6, xl: 8 }} py={4} gap={4} overflow="hidden">
-    <VStack w="260px" flexShrink={0} gap={3} display={{ base: "none", md: "flex" }} align="stretch">
-      <Skeleton h="200px" rounded="xl" />
-      <Skeleton h="280px" rounded="xl" />
-    </VStack>
-    <VStack flex={1} gap={3} align="stretch" overflow="hidden">
-      <Skeleton h="80px" rounded="xl" />
-      {[1, 2, 3].map((i) => (
-        <Box key={i} bg="bg_box" rounded="xl" p={5}>
-          <HStack gap={3} mb={4}>
-            <SkeletonCircle size="10" flexShrink={0} />
-            <VStack align="flex-start" gap={2} flex={1}>
-              <Skeleton h="3" w="35%" />
-              <Skeleton h="2.5" w="20%" />
-            </VStack>
-          </HStack>
-          <Skeleton h="3" w="full" mb={2} />
-          <Skeleton h="3" w="90%" mb={2} />
-          <Skeleton h="3" w="75%" mb={4} />
-          <Skeleton h="160px" rounded="lg" />
-        </Box>
-      ))}
-    </VStack>
-    <VStack w="260px" flexShrink={0} gap={3} display={{ base: "none", lg: "flex" }} align="stretch">
-      <Skeleton h="180px" rounded="xl" />
-      <Skeleton h="220px" rounded="xl" />
-      <Skeleton h="240px" rounded="xl" />
-    </VStack>
-  </Flex>
-);
 
 const AppLayout: FC<Props> = ({ children }) => {
   const { token, user } = useAuth()
@@ -83,9 +52,6 @@ const AppLayout: FC<Props> = ({ children }) => {
 
         <Box mb={{ base: "12px", md: "16px" }} />
 
-        {!persistReady ? (
-          <ContentSkeleton />
-        ) : (
           <Flex
             flex={1}
             minH={0}
@@ -128,7 +94,6 @@ const AppLayout: FC<Props> = ({ children }) => {
               </Box>
             </Flex>
           </Flex>
-        )}
       </VStack>
     </SSENotificationProvider>
   );
