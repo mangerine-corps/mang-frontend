@@ -2,6 +2,7 @@ import { Box } from "@chakra-ui/react";
 import { Providers } from "mangarine/components/ui/provider";
 import { Toaster } from "mangarine/components/ui/toaster";
 import AppLayout from "mangarine/layouts/AppLayout";
+import { useAuth } from "mangarine/state/hooks/user.hook";
 
 import "mangarine/styles/globals.css";
 import type { AppProps } from "next/app";
@@ -10,6 +11,8 @@ import Head from "next/head";
 import { useRouter } from "next/router";
 import { PagesTopLoader } from 'nextjs-toploader/pages';
 import { GoogleOAuthProvider } from "@react-oauth/google";
+import * as Sentry from "@sentry/nextjs";
+import { useEffect } from "react";
 
 const APP_NAME = "Mangerine";
 
@@ -80,6 +83,18 @@ const AUTH_PREFIXES = ["/auth", "/privacypolicy", "/termsofservice"];
 const isAuthRoute = (pathname: string) =>
   pathname === "/" || AUTH_PREFIXES.some((p) => pathname.startsWith(p));
 
+function SentryUserSync() {
+  const { user } = useAuth();
+  useEffect(() => {
+    if (user?.id) {
+      Sentry.setUser({ id: user.id, email: user.email, username: user.fullName ?? user.username });
+    } else {
+      Sentry.setUser(null);
+    }
+  }, [user?.id]);
+  return null;
+}
+
 export default function App({ Component, pageProps }: AppProps) {
   const router = useRouter();
   const authRoute = isAuthRoute(router.pathname);
@@ -91,6 +106,7 @@ export default function App({ Component, pageProps }: AppProps) {
       </Head>
     <GoogleOAuthProvider clientId={process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID!}>
       <Providers>
+        <SentryUserSync />
         <Box bg="bd_background" h="100vh" as="main" overflowX="hidden" className={`${outfit.className}`}>
           <PagesTopLoader color="#111D4A" height={3} />
 

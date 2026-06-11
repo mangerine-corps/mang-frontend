@@ -25,6 +25,11 @@ import {
   useGetWorkQuery,
   useGetUserInfoQuery,
 } from "mangarine/state/services/profile.service";
+import {
+  useFollowUserMutation,
+  useUnfollowUserMutation,
+  useGetFollowingQuery,
+} from "mangarine/state/services/posts.service";
 import { useDispatch } from "react-redux";
 import Head from "next/head";
 import { isEmpty } from "es-toolkit/compat";
@@ -234,6 +239,26 @@ const Profile = () => {
   const [bookingOpen, setBookingOpen] = useState(false);
   const showBookButton = !isOwnProfile && displayUser?.isConsultant;
 
+  const { data: followData, refetch: refetchFollow } = useGetFollowingQuery(
+    { targetUserId: profileId },
+    { skip: isOwnProfile || !profileId || !routerReady }
+  );
+  const isFollowing: boolean =
+    followData?.data?.isFollowing ?? followData?.isFollowing ?? false;
+  const [followUser, { isLoading: isFollowingLoading }] = useFollowUserMutation();
+  const [unfollowUser, { isLoading: isUnfollowingLoading }] = useUnfollowUserMutation();
+  const followBusy = isFollowingLoading || isUnfollowingLoading;
+
+  const handleFollowToggle = async () => {
+    if (!profileId) return;
+    if (isFollowing) {
+      await unfollowUser({ targetUserId: profileId });
+    } else {
+      await followUser({ targetUserId: profileId });
+    }
+    refetchFollow();
+  };
+
   const noScrollbar = {
     "&::-webkit-scrollbar": { width: "0px", height: "0px" },
     "&::-webkit-scrollbar-track": { width: "0px", background: "transparent", height: "0px" },
@@ -340,21 +365,42 @@ const Profile = () => {
               followers={displayUser?.followerCount}
               following={displayUser?.followingCount}
             />
-            {showBookButton && (
-              <Button
-                bg="bt_schedule"
-                color="white"
-                size="sm"
-                px={5}
-                borderRadius="8px"
-                flexShrink={0}
-                _hover={{ bg: "bt_schedule_hover" }}
-                onClick={() => setBookingOpen(true)}
-              >
-                <Icon mr={1}><LuCalendarDays /></Icon>
-                Book Consultation
-              </Button>
-            )}
+            <HStack gap={2} flexShrink={0}>
+              {!isOwnProfile && (
+                <Button
+                  size="sm"
+                  px={5}
+                  borderRadius="8px"
+                  loading={followBusy}
+                  bg={isFollowing ? "transparent" : "#111D4A"}
+                  color={isFollowing ? "text_primary" : "white"}
+                  borderWidth={isFollowing ? "1.5px" : "0"}
+                  borderColor="text_primary"
+                  _hover={{
+                    bg: isFollowing ? "red.50" : "#1C275D",
+                    color: isFollowing ? "red.500" : "white",
+                    borderColor: isFollowing ? "red.400" : "#1C275D",
+                  }}
+                  onClick={handleFollowToggle}
+                >
+                  {isFollowing ? "Following" : "Follow"}
+                </Button>
+              )}
+              {showBookButton && (
+                <Button
+                  bg="bt_schedule"
+                  color="white"
+                  size="sm"
+                  px={5}
+                  borderRadius="8px"
+                  _hover={{ bg: "bt_schedule_hover" }}
+                  onClick={() => setBookingOpen(true)}
+                >
+                  <Icon mr={1}><LuCalendarDays /></Icon>
+                  Book Consultation
+                </Button>
+              )}
+            </HStack>
           </Flex>
 
           <EditMyWorksCard
