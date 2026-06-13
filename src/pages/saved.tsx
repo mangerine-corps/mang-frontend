@@ -229,6 +229,8 @@ function SavedPage() {
                   variant="outline"
                   borderRadius="8px"
                   fontFamily="Outfit"
+                  px={6}
+                  py={5}
                   onClick={() => setShowCreateDialog(false)}
                 >
                   Cancel

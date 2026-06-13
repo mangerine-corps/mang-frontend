@@ -249,13 +249,21 @@ const Profile = () => {
   const [unfollowUser, { isLoading: isUnfollowingLoading }] = useUnfollowUserMutation();
   const followBusy = isFollowingLoading || isUnfollowingLoading;
 
+  const [localFollowerCount, setLocalFollowerCount] = useState<number | undefined>(undefined);
+  // Reset local override when navigating to a different profile
+  useEffect(() => { setLocalFollowerCount(undefined); }, [profileId]);
+
   const handleFollowToggle = async () => {
     if (!profileId) return;
-    if (isFollowing) {
-      await unfollowUser({ targetUserId: profileId });
-    } else {
-      await followUser({ targetUserId: profileId });
-    }
+    try {
+      if (isFollowing) {
+        const res = await unfollowUser({ targetUserId: profileId }).unwrap();
+        setLocalFollowerCount(res.followerCount ?? Math.max(0, (displayUser?.followerCount ?? 1) - 1));
+      } else {
+        const res = await followUser({ targetUserId: profileId }).unwrap();
+        setLocalFollowerCount(res.followerCount ?? (displayUser?.followerCount ?? 0) + 1);
+      }
+    } catch {}
     refetchFollow();
   };
 
@@ -362,7 +370,7 @@ const Profile = () => {
           >
             <StatusCard
               data={displayUser}
-              followers={displayUser?.followerCount}
+              followers={localFollowerCount ?? displayUser?.followerCount}
               following={displayUser?.followingCount}
             />
             <HStack gap={2} flexShrink={0}>
