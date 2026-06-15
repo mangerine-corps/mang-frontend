@@ -76,7 +76,7 @@ export default function ConsultantLearnMore() {
         w="fit-content"
       >
         <IoArrowBack size={18} color="var(--chakra-colors-text_primary)" />
-        <Text fontSize="1rem" fontWeight="700" color="text_primary" letterSpacing="0.04em">
+        <Text fontSize="1.125rem" fontWeight="700" color="text_primary">
           Become a Consultant
         </Text>
       </HStack>
@@ -84,7 +84,7 @@ export default function ConsultantLearnMore() {
       <VStack alignItems="flex-start" spaceY={6} w="full">
         {/* Intro */}
         <VStack alignItems="flex-start" spaceY={2} w="full">
-          <Text fontSize="0.875rem" fontWeight="700" color="text_primary" letterSpacing="0.1em">
+          <Text fontSize="1rem" fontWeight="700" color="text_primary">
             Turn Your Experience into Opportunity
           </Text>
           <Body>
