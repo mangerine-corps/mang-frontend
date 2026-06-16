@@ -3,15 +3,17 @@ import HeaderContent from "./settings/headercontent";
 import ContentComp from "./settings/contentcomp";
 import ContentCompWithSubs from "./settings/contentcompwithsubs";
 import LegalContent from "./settings/legalcontents";
-import { Privacy } from "./settings/privacy";
 import { useState } from "react";
 // import { LegalSetting } from "mangarine/components/ui-components/legalsetting";
-import { Terms } from "./settings/terms";
 
-import Refundpolicy from "./refundpolicy";
 import { PaymentTerms } from "./paymentterms";
 import Cookies from "./settings/cookies";
 
+const LEGAL_LINKS = {
+  terms: "https://mangerine.com/terms",
+  privacy: "https://mangerine.com/privacy",
+  refund: "https://mangerine.com/refund",
+};
 
 const LegalSetting = () => {
   const [Active, setActive] = useState(null);
@@ -20,16 +22,10 @@ const LegalSetting = () => {
   };
   const renderChild = () => {
     switch (Active) {
-      case "a":
-        return <Terms onClick={back} />;
-      case "b":
-        return <Privacy onClick={back} />;
       case "c":
         return <Cookies onClick={back} />;
-        case "d":
-            return <Refundpolicy onClick={back} />;
-            case "e":
-                return <PaymentTerms onClick={back} />;
+      case "e":
+        return <PaymentTerms onClick={back} />;
       default:
         return (
           <Box
@@ -52,19 +48,19 @@ const LegalSetting = () => {
             </Text>
 
             <LegalContent title={"Terms of services"}  onClick={() => {
-                setActive("a");
+                window.open(LEGAL_LINKS.terms, "_blank");
               }}/>
             <LegalContent
               title={"Privacy Policy"}
               onClick={() => {
-                setActive("b");
+                window.open(LEGAL_LINKS.privacy, "_blank");
               }}
             />
             <LegalContent title={"Cookies"}  onClick={() => {
                 setActive("c");
               }}/>
             <LegalContent title={"Refund Policy"}  onClick={() => {
-                setActive("d");
+                window.open(LEGAL_LINKS.refund, "_blank");
               }}/>
             <LegalContent title={"Payment Terms"}  onClick={() => {
                 setActive("e");

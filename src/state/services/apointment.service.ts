@@ -149,14 +149,65 @@ export const appointmentApi = createApi({
         params,
       }),
     }),
-    joinConsultation: builder.mutation<any, { appointmentId: string }>({
+    getMeetingSession: builder.mutation<any, { appointmentId: string }>({
       query: ({ appointmentId }) => ({
-        url: `/appointment/${appointmentId}/join`,
+        url: `/appointment/${appointmentId}/meeting/session`,
+        method: "POST",
+        body: {},
+      }),
+    }),
+    getMeetingDetails: builder.query<any, string>({
+      query: (appointmentId) => ({
+        url: `/appointment/${appointmentId}/meeting`,
+        method: "GET",
+      }),
+    }),
+    joinMeetingPresence: builder.mutation<any, { appointmentId: string; uid: number }>({
+      query: ({ appointmentId, uid }) => ({
+        url: `/appointment/${appointmentId}/meeting/join`,
+        method: "POST",
+        body: { uid },
+      }),
+    }),
+    leaveMeetingPresence: builder.mutation<any, { appointmentId: string; uid: number }>({
+      query: ({ appointmentId, uid }) => ({
+        url: `/appointment/${appointmentId}/meeting/leave`,
+        method: "POST",
+        body: { uid },
+      }),
+    }),
+    endMeeting: builder.mutation<any, { appointmentId: string }>({
+      query: ({ appointmentId }) => ({
+        url: `/appointment/${appointmentId}/meeting/end`,
         method: "POST",
       }),
-      invalidatesTags: (result, error, arg) => [
-        { type: "Appointment", id: arg.appointmentId },
-      ],
+    }),
+    meetingHeartbeat: builder.mutation<any, { appointmentId: string; uid: number }>({
+      query: ({ appointmentId, uid }) => ({
+        url: `/appointment/${appointmentId}/meeting/heartbeat`,
+        method: "POST",
+        body: { uid },
+      }),
+    }),
+    submitConsultationReview: builder.mutation<any, { appointmentId: string; rating: number; comment?: string }>({
+      query: ({ appointmentId, rating, comment }) => ({
+        url: `/appointment/${appointmentId}/review`,
+        method: "POST",
+        body: { rating, ...(comment ? { comment } : {}) },
+      }),
+    }),
+    submitMeetingQualityFeedback: builder.mutation<any, { appointmentId: string; score: number; label: string }>({
+      query: ({ appointmentId, score, label }) => ({
+        url: `/appointment/${appointmentId}/meeting/quality-feedback`,
+        method: "POST",
+        body: { score, label },
+      }),
+    }),
+    getRejoinStatus: builder.query<any, string>({
+      query: (appointmentId) => ({
+        url: `/appointment/${appointmentId}/meeting/rejoin-status`,
+        method: "GET",
+      }),
     }),
     getConsultationHistory: builder.query<any, {
       page?: number;
@@ -206,6 +257,14 @@ export const {
   useGetAppointmentByPaymentIntentQuery,
   useCancelAppointmentMutation,
   useGetMyPaymentsQuery,
-  useJoinConsultationMutation,
   useGetConsultationHistoryQuery,
+  useGetMeetingSessionMutation,
+  useGetMeetingDetailsQuery,
+  useJoinMeetingPresenceMutation,
+  useLeaveMeetingPresenceMutation,
+  useEndMeetingMutation,
+  useMeetingHeartbeatMutation,
+  useSubmitConsultationReviewMutation,
+  useSubmitMeetingQualityFeedbackMutation,
+  useLazyGetRejoinStatusQuery,
 } = appointmentApi;

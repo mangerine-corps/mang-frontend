@@ -2,9 +2,6 @@ import {
   Box,
   Button,
   Flex,
-  Image,
-  Input,
-  Icon,
   Link,
   Text,
   useBreakpointValue,
@@ -24,7 +21,6 @@ const ConsultationPage = () => {
   const isConsultant = user?.isConsultant === true;
 
   const [activeTab, setActiveTab] = useState("history");
-  const [searchTerm, setSearchTerm] = useState("");
   // fallback: 'md' ensures SSR renders the same value as a desktop client, avoiding hydration mismatch
   const isMobile = useBreakpointValue({ base: true, md: false }, { fallback: "md" }) ?? false;
 
@@ -91,47 +87,6 @@ const ConsultationPage = () => {
 
   return (
     <Box w="full" mx="auto">
-      {/* Search Bar — only shown on history tab for normal users */}
-      {!isConsultant && activeTab === "history" && (
-        <Flex justify="center" align="center" mb={4}>
-          <Box position="relative" width="100%">
-            <Input
-              type="text"
-              placeholder="Search my consultation"
-              pl="40px"
-              pr="40px"
-              borderRadius="lg"
-              bg="main_background"
-              fontSize={{ base: "sm", md: "0.875rem" }}
-              border="1.5px solid"
-              borderColor="gray.200"
-              fontFamily="Outfit"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
-            <Box
-              position="absolute"
-              top="50%"
-              left="12px"
-              transform="translateY(-50%)"
-            >
-              <Icon>
-                <Image src="/Icons/searchSvg.svg" alt="search" />
-              </Icon>
-            </Box>
-            <Box
-              position="absolute"
-              top="50%"
-              right="12px"
-              transform="translateY(-50%)"
-              cursor="pointer"
-            >
-              <Image src="/icons/filter.svg" alt="Filter" />
-            </Box>
-          </Box>
-        </Flex>
-      )}
-
       {/* Tabs */}
       <Flex
         w="full"
@@ -155,7 +110,7 @@ const ConsultationPage = () => {
       </Flex>
 
       {/* Content */}
-      {activeTab === "history" && <ConsultationHistory searchTerm={searchTerm} />}
+      {activeTab === "history" && <ConsultationHistory />}
       {activeTab === "payment" && <PaymentHistory />}
       {activeTab === "videos" && (
         <EmptyConsultationVideo onUnlock={() => setActiveTab("videosGrid")} />

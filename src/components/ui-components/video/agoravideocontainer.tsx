@@ -38,12 +38,12 @@ const partdp1 = DEFAULT_AVATAR;
 import { FC, useEffect, useRef, useState, useMemo } from "react";
 import AgoraRTC, { AgoraRTCProvider } from "agora-rtc-react";
 import { useAppointment } from "mangarine/state/hooks/appointment.hook";
-import { useGetVideoTokenMutation, useGetConversationMutation, useGetAppointmentByIdQuery, useRequestTimeExtensionMutation } from "mangarine/state/services/apointment.service";
+import { useGetVideoTokenMutation, useGetConversationMutation, useGetAppointmentByIdQuery, useRequestTimeExtensionMutation, useGetMeetingSessionMutation, useJoinMeetingPresenceMutation, useLeaveMeetingPresenceMutation, useEndMeetingMutation, useMeetingHeartbeatMutation, useSubmitConsultationReviewMutation, useSubmitMeetingQualityFeedbackMutation, useLazyGetRejoinStatusQuery } from "mangarine/state/services/apointment.service";
 import { formatSessionTime } from "mangarine/hooks/useCountdown";
 import { setCurrentConversation } from "mangarine/state/reducers/appointment.reducer";
 import { useDispatch } from "react-redux";
 import { useConsultationJoin } from "../../../hooks/useConsultationJoin";
-import { Avatar, AvatarGroup, Box, Button, Flex, HStack, Icon, IconButton, Image, Input, Stack, Text, VStack, Menu, Portal, Dialog, CloseButton, Tooltip } from '@chakra-ui/react';
+import { Avatar, AvatarGroup, Box, Button, Flex, HStack, Icon, IconButton, Image, Input, Stack, Text, Textarea, VStack, Menu, Portal, Dialog, CloseButton, Tooltip } from '@chakra-ui/react';
 import { useAuth } from "mangarine/state/hooks/user.hook";
 import { BiChevronLeft, BiChevronDown } from "react-icons/bi";
 import { useRouter } from "next/router";
@@ -647,7 +647,6 @@ const VideoContainer = ({ consultationId }: { consultationId?: string }) => {
     const { markUserJoined } = useConsultationJoin();
     const [hasMarkedJoined, setHasMarkedJoined] = useState(false);
 
-
     // Screen sharing states
     const [screenShareOn, setScreenShareOn] = useState(false);
     const [screenTrack, setScreenTrack] = useState<ILocalVideoTrack | null>(null);
@@ -685,28 +684,25 @@ const VideoContainer = ({ consultationId }: { consultationId?: string }) => {
         }
     }, [isConnected, localCameraTrack, cameraOn]);
 
-    // Mark user as joined when they connect to the video call
+    // Mark joined + start heartbeat when Agora connects
     useEffect(() => {
-        if (isConnected && currentConversation?.id && !hasMarkedJoined) {
-            // The endpoint expects the UUID of the messaging conversation linked to the appointment,
-            // not the appointment ID itself. The appointment object carries this as `conversationId`.
-            const convId: string | undefined =
-                (currentConversation as any)?.conversationId ??
-                (currentConversation as any)?.conversation?.id;
+        if (isConnected && consultationId && currentUidRef.current != null) {
+            const uid = currentUidRef.current;
+            joinMeetingPresence({ appointmentId: consultationId, uid }).catch(() => {});
 
-            if (!convId) {
-                // No conversation UUID available — mark as done so we don't retry
-                setHasMarkedJoined(true);
-                return;
-            }
-
-            markUserJoined(convId)
-                .then(() => setHasMarkedJoined(true))
-                .catch(() => {
-                    setHasMarkedJoined(true); // prevent repeated attempts
-                });
+            // heartbeat every 25s
+            heartbeatRef.current = setInterval(() => {
+                meetingHeartbeat({ appointmentId: consultationId, uid }).catch(() => {});
+            }, 25_000);
         }
-    }, [isConnected, currentConversation?.id, hasMarkedJoined, markUserJoined]);
+        if (!isConnected && heartbeatRef.current) {
+            clearInterval(heartbeatRef.current);
+            heartbeatRef.current = null;
+        }
+        return () => {
+            if (heartbeatRef.current) { clearInterval(heartbeatRef.current); heartbeatRef.current = null; }
+        };
+    }, [isConnected, consultationId]);
 
 
     // Recording states
@@ -1209,6 +1205,25 @@ const VideoContainer = ({ consultationId }: { consultationId?: string }) => {
     const [consultationStatus, setConsultationStatus] = useState<string | null>(null);
     const [getVideoToken, { isLoading }] = useGetVideoTokenMutation();
     const [getConversations] = useGetConversationMutation();
+    const [getMeetingSession] = useGetMeetingSessionMutation();
+    const [joinMeetingPresence] = useJoinMeetingPresenceMutation();
+    const [leaveMeetingPresence] = useLeaveMeetingPresenceMutation();
+    const [endMeeting] = useEndMeetingMutation();
+    const [meetingHeartbeat] = useMeetingHeartbeatMutation();
+    const [submitReview] = useSubmitConsultationReviewMutation();
+    const [submitQualityFeedback] = useSubmitMeetingQualityFeedbackMutation();
+    const [fetchRejoinStatus, { isLoading: isCheckingRejoin }] = useLazyGetRejoinStatusQuery();
+
+    // Post-call screens
+    const [showQualityScreen, setShowQualityScreen] = useState(false);
+    const [showReviewScreen, setShowReviewScreen] = useState(false);
+    const [qualitySubmitted, setQualitySubmitted] = useState(false);
+    const [reviewRating, setReviewRating] = useState(0);
+    const [reviewComment, setReviewComment] = useState('');
+    const [reviewSubmitting, setReviewSubmitting] = useState(false);
+    const [reviewDone, setReviewDone] = useState(false);
+    const heartbeatRef = useRef<ReturnType<typeof setInterval> | null>(null);
+    const currentUidRef = useRef<number | null>(null);
     const dispatch = useDispatch();
 
     // Fetch appointment directly when consultationId is in URL — this is more reliable
@@ -1353,7 +1368,7 @@ const VideoContainer = ({ consultationId }: { consultationId?: string }) => {
         prevRemoteCountRef.current = remoteUsers.length;
     }, [remoteUsers]);
 
-    // Fetch token using appointmentId as the channel name
+    // Fetch meeting session (token + eligibility) using appointmentId
     useEffect(() => {
         const channelId = consultationId;
         if (!channelId) return;
@@ -1361,47 +1376,68 @@ const VideoContainer = ({ consultationId }: { consultationId?: string }) => {
         setTokenReady(false);
         setJoinError(null);
         setTokenUid(null);
-        getVideoToken(channelId)
+
+        getMeetingSession({ appointmentId: channelId })
             .unwrap()
             .then((payload) => {
-                console.log('[Agora] rtc-token response:', payload);
-                if (!payload?.token) {
-                    setJoinError('Failed to get a video token from the server. Please try again.');
-                    setTokenReady(true); // Unblock UI so retry button is accessible
+                const data = payload?.data ?? payload;
+                console.log('[Agora] meeting/session response:', data);
+
+                if (!data?.canJoin) {
+                    const status = (data?.meetingStatus || '').toUpperCase();
+                    if (['EXPIRED', 'CANCELLED', 'COMPLETED', 'ENDED'].includes(status)) {
+                        setConsultationStatus(status === 'ENDED' ? 'COMPLETED' : status);
+                    } else {
+                        setJoinError('You are not allowed to join this meeting.');
+                    }
+                    setTokenReady(true);
                     return;
                 }
-                console.log('[Agora] rtc-token:', payload.token);
-                setToken(payload.token);
-                // Use the UID returned by the server so it matches the token
-                if (typeof payload.uid === "string" || typeof payload.uid === "number") {
-                    console.log('[Agora] rtc-uid from token response:', payload.uid);
-                    setTokenUid(payload.uid);
-                } else if (fallbackJoinUid !== null) {
-                    console.log('[Agora] rtc-uid fallback from stringToAgoraUid(user.id):', fallbackJoinUid, '| user.id:', user?.id);
-                } else {
-                    console.warn('[Agora] no rtc uid from backend response and no user.id fallback');
+
+                const token = data?.rtcToken;
+                const uid = data?.uid;
+
+                if (!token) {
+                    // fallback to raw token endpoint
+                    getVideoToken(channelId)
+                        .unwrap()
+                        .then((p) => {
+                            if (!p?.token) { setJoinError('Failed to get a video token.'); setTokenReady(true); return; }
+                            setToken(p.token);
+                            if (p.uid != null) { setTokenUid(p.uid); currentUidRef.current = Number(p.uid); }
+                            setTokenReady(true);
+                        })
+                        .catch(() => { setJoinError('Could not retrieve a video token.'); setTokenReady(true); });
+                    return;
                 }
+
+                setToken(token);
+                if (uid != null) { setTokenUid(uid); currentUidRef.current = Number(uid); }
                 setTokenReady(true);
             })
             .catch((error) => {
-                console.error('Video token fetch failed:', error);
-                const serverMsg: string = (error as any)?.data?.message ?? (error as any)?.message ?? '';
-                const upperMsg = serverMsg.toUpperCase();
-                if (upperMsg.includes('EXPIRED')) {
-                    setConsultationStatus('EXPIRED');
-                    setJoinError('This consultation has expired and can no longer be joined.');
-                } else if (upperMsg.includes('CANCELLED')) {
-                    setConsultationStatus('CANCELLED');
-                    setJoinError('This consultation has been cancelled.');
-                } else if (upperMsg.includes('COMPLETED')) {
-                    setConsultationStatus('COMPLETED');
-                    setJoinError('This consultation has already been completed.');
-                } else {
-                    setJoinError(serverMsg || 'Could not retrieve a video token. Please try again.');
-                }
-                setTokenReady(true); // Unblock the UI so the retry button is reachable
+                console.error('meeting/session failed, falling back to rtc-token:', error);
+                // fallback
+                getVideoToken(channelId)
+                    .unwrap()
+                    .then((p) => {
+                        if (!p?.token) { setJoinError('Failed to get a video token.'); setTokenReady(true); return; }
+                        const serverMsg: string = '';
+                        setToken(p.token);
+                        if (p.uid != null) { setTokenUid(p.uid); currentUidRef.current = Number(p.uid); }
+                        setTokenReady(true);
+                    })
+                    .catch((err) => {
+                        const serverMsg: string = (err as any)?.data?.message ?? (err as any)?.message ?? '';
+                        const upperMsg = serverMsg.toUpperCase();
+                        if (upperMsg.includes('EXPIRED')) setConsultationStatus('EXPIRED');
+                        else if (upperMsg.includes('CANCELLED')) setConsultationStatus('CANCELLED');
+                        else if (upperMsg.includes('COMPLETED')) setConsultationStatus('COMPLETED');
+                        else setJoinError(serverMsg || 'Could not retrieve a video token. Please try again.');
+                        setTokenReady(true);
+                    });
             });
-    }, [consultationId, getVideoToken, tokenRetryCount]);
+    }, [consultationId, tokenRetryCount]);
 
     // If calling but Agora hasn't connected after 12s, surface an error
     useEffect(() => {
@@ -1649,65 +1685,56 @@ const VideoContainer = ({ consultationId }: { consultationId?: string }) => {
     const handleEndCall = async () => {
         try {
             setIsEndingCall(true);
-            console.log('Ending video call...');
-            // Stop any ongoing recording first
+
+            // stop heartbeat
+            if (heartbeatRef.current) { clearInterval(heartbeatRef.current); heartbeatRef.current = null; }
+
+            // notify backend
+            if (consultationId && currentUidRef.current != null) {
+                const uid = currentUidRef.current;
+                const isConsultant = !!(user as any)?.isConsultant;
+                try {
+                    if (isConsultant) {
+                        await endMeeting({ appointmentId: consultationId }).unwrap();
+                    } else {
+                        await leaveMeetingPresence({ appointmentId: consultationId, uid }).unwrap();
+                    }
+                } catch { }
+            }
+
             try { stopRecording(); } catch { }
 
-            // Stop and close (release hardware) local tracks
             if (localCameraTrack) {
-                try {
-                    localCameraTrack.stop();
-                    (localCameraTrack as any).close?.();
-                } catch (error) {
-                    console.error('Error stopping camera track:', error);
-                }
+                try { localCameraTrack.stop(); (localCameraTrack as any).close?.(); } catch { }
             }
-
             if (localMicrophoneTrack) {
-                try {
-                    localMicrophoneTrack.stop();
-                    (localMicrophoneTrack as any).close?.();
-                } catch (error) {
-                    console.error('Error stopping microphone track:', error);
-                }
+                try { localMicrophoneTrack.stop(); (localMicrophoneTrack as any).close?.(); } catch { }
             }
 
-            // Disable camera and mic state so tracks are not re-acquired
             setCamera(false);
             setMic(false);
 
-            // Clean up Socket.IO connections
             if (socketRef.current && chatConnected) {
-                console.log('Cleaning up Socket.IO...');
-                socketRef.current.emit('leave-video-room', {
-                    roomId: `video-chat-${currentConversation.id}`,
-                    userId: user?.id
-                });
+                socketRef.current.emit('leave-video-room', { roomId: `video-chat-${currentConversation.id}`, userId: user?.id });
                 socketRef.current.disconnect();
                 setChatConnected(false);
             }
 
-            // Clear chat messages
             setChatMessages([]);
-
-            // Reset video call state - this will trigger useJoin to leave the channel
-            console.log('Resetting video call state...');
             setCalling(false);
             setEndSession(true);
 
-            // Final forced hardware release after a short delay
             setTimeout(() => {
                 try { localCameraTrack?.stop(); (localCameraTrack as any)?.close?.(); } catch { }
                 try { localMicrophoneTrack?.stop(); (localMicrophoneTrack as any)?.close?.(); } catch { }
             }, 300);
 
-            // Navigate back to the conversation or show end call UI
-            setTimeout(() => {
-                router.push('/message');
-            }, 1500);
+            // show quality feedback screen instead of immediately redirecting
+            setShowQualityScreen(true);
 
         } catch (error) {
             console.error('Error ending call:', error);
+            router.push('/message');
         } finally {
             setIsEndingCall(false);
         }
@@ -1716,6 +1743,35 @@ const VideoContainer = ({ consultationId }: { consultationId?: string }) => {
     // Confirm end call function
     const confirmEndCall = () => {
         setShowEndCallModal(true);
+    };
+
+    // Rejoin function — checks eligibility before reloading back into the meeting,
+    // since a full reload is the only reliable way to reset closed Agora tracks/hooks.
+    const handleRejoin = async () => {
+        if (!consultationId) return;
+        try {
+            const result = await fetchRejoinStatus(consultationId).unwrap();
+            const data = (result as any)?.data ?? result;
+            if (data?.canRejoin) {
+                window.location.reload();
+            } else {
+                toaster.create({
+                    title: 'Unable to rejoin',
+                    description: data?.meetingStatus
+                        ? `This meeting has already ${String(data.meetingStatus).toLowerCase()}.`
+                        : 'This meeting can no longer be rejoined.',
+                    type: 'error',
+                    duration: 4000,
+                });
+            }
+        } catch {
+            toaster.create({
+                title: 'Unable to rejoin',
+                description: 'Could not check meeting status. Please try again.',
+                type: 'error',
+                duration: 3000,
+            });
+        }
     };
 
     useEffect(() => {
@@ -1771,6 +1827,140 @@ const VideoContainer = ({ consultationId }: { consultationId?: string }) => {
             window.removeEventListener('beforeunload', release);
         };
     }, [router.events]);
+
+    // Quality feedback screen
+    if (showQualityScreen) {
+        const qualityOptions = [
+            { score: 1, label: 'Bad' },
+            { score: 2, label: 'Poor' },
+            { score: 3, label: 'Okay' },
+            { score: 4, label: 'Good' },
+            { score: 5, label: 'Excellent' },
+        ];
+        return (
+            <Flex h="100vh" w="full" align="center" justify="center" bg="white" direction="column" gap={6} px={6}>
+                <VStack gap={1} textAlign="center">
+                    <Text fontSize="1.35rem" fontWeight="700" color="#202124" fontFamily="Outfit">How was the call quality?</Text>
+                    <Text fontSize="0.9rem" color="#5f6368" fontFamily="Outfit">Rate your audio and video experience</Text>
+                </VStack>
+                <HStack gap={3}>
+                    {qualityOptions.map((opt) => (
+                        <VStack
+                            key={opt.score}
+                            gap={1}
+                            cursor="pointer"
+                            onClick={async () => {
+                                if (consultationId) {
+                                    try { await submitQualityFeedback({ appointmentId: consultationId, score: opt.score, label: opt.label }).unwrap(); } catch { }
+                                }
+                                setQualitySubmitted(true);
+                                setShowQualityScreen(false);
+                                setShowReviewScreen(true);
+                            }}
+                        >
+                            <Box
+                                w="52px" h="52px" borderRadius="full" bg="#f1f3f4"
+                                display="flex" alignItems="center" justifyContent="center"
+                                fontSize="1.5rem"
+                                _hover={{ bg: '#e8eaed' }}
+                                transition="background 0.15s"
+                            >
+                                {['😞', '😕', '😐', '🙂', '😄'][opt.score - 1]}
+                            </Box>
+                            <Text fontSize="0.72rem" color="#5f6368" fontFamily="Outfit">{opt.label}</Text>
+                        </VStack>
+                    ))}
+                </HStack>
+                <Button
+                    variant="outline"
+                    borderColor="#1C275D"
+                    color="#1C275D"
+                    borderRadius="10px"
+                    fontFamily="Outfit"
+                    loading={isCheckingRejoin}
+                    onClick={handleRejoin}
+                    _hover={{ bg: '#f0f2f8' }}
+                >
+                    Rejoin Meeting
+                </Button>
+                <Button variant="ghost" color="#5f6368" fontSize="0.875rem" fontFamily="Outfit"
+                    onClick={() => { setShowQualityScreen(false); setShowReviewScreen(true); }}>
+                    Skip
+                </Button>
+            </Flex>
+        );
+    }
+
+    // Review screen
+    if (showReviewScreen) {
+        return (
+            <Flex h="100vh" w="full" align="center" justify="center" bg="white" direction="column" gap={5} px={6}>
+                {reviewDone ? (
+                    <VStack gap={4} textAlign="center">
+                        <Box w="72px" h="72px" borderRadius="full" bg="#E8F5E9" display="flex" alignItems="center" justifyContent="center">
+                            <Text fontSize="2rem">✓</Text>
+                        </Box>
+                        <Text fontSize="1.2rem" fontWeight="700" color="#202124" fontFamily="Outfit">Thank you!</Text>
+                        <Text fontSize="0.9rem" color="#5f6368" fontFamily="Outfit">Your feedback has been submitted.</Text>
+                        <Button bg="#1C275D" color="white" borderRadius="10px" px={6} fontFamily="Outfit"
+                            onClick={() => router.push('/message')} _hover={{ bg: '#16214F' }}>
+                            Back to Messages
+                        </Button>
+                    </VStack>
+                ) : (
+                    <VStack gap={4} w="full" maxW="420px" textAlign="center">
+                        <Text fontSize="1.35rem" fontWeight="700" color="#202124" fontFamily="Outfit">Rate this consultation</Text>
+                        <Text fontSize="0.9rem" color="#5f6368" fontFamily="Outfit">How was your session?</Text>
+                        <HStack gap={2} justify="center">
+                            {[1, 2, 3, 4, 5].map((star) => (
+                                <Box
+                                    key={star}
+                                    fontSize="2rem"
+                                    cursor="pointer"
+                                    color={star <= reviewRating ? '#F59E0B' : '#D1D5DB'}
+                                    onClick={() => setReviewRating(star)}
+                                    _hover={{ transform: 'scale(1.1)' }}
+                                    transition="all 0.1s"
+                                >
+                                    ★
+                                </Box>
+                            ))}
+                        </HStack>
+                        <Textarea
+                            placeholder="Leave a comment (optional)"
+                            value={reviewComment}
+                            onChange={(e) => setReviewComment(e.target.value)}
+                            w="full" minH="90px" p={3} borderRadius="10px"
+                            border="1px solid #e0e0e0" fontSize="0.875rem"
+                            fontFamily="Outfit" resize="none" color="#202124"
+                            _focus={{ outline: 'none', borderColor: '#1C275D' }}
+                        />
+                        <Button
+                            w="full" h="44px" bg="#1C275D" color="white" borderRadius="10px"
+                            fontFamily="Outfit" fontWeight="600" _hover={{ bg: '#16214F' }}
+                            disabled={reviewRating === 0 || reviewSubmitting}
+                            loading={reviewSubmitting}
+                            onClick={async () => {
+                                if (!consultationId || reviewRating === 0) return;
+                                setReviewSubmitting(true);
+                                try {
+                                    await submitReview({ appointmentId: consultationId, rating: reviewRating, comment: reviewComment || undefined }).unwrap();
+                                } catch { }
+                                setReviewSubmitting(false);
+                                setReviewDone(true);
+                            }}
+                        >
+                            Submit Review
+                        </Button>
+                        <Button variant="ghost" color="#5f6368" fontSize="0.875rem" fontFamily="Outfit"
+                            onClick={() => router.push('/message')}>
+                            Skip
+                        </Button>
+                    </VStack>
+                )}
+            </Flex>
+        );
+    }
 
     // Show loading state while fetching consultation data
     if (isLoadingConversation || (isApptLoading && consultationId && !currentConversation?.id)) {
