@@ -1230,7 +1230,7 @@ const VideoContainer = ({ consultationId }: { consultationId?: string }) => {
     // than scanning the conversations list which uses message-thread IDs that may differ
     const { data: appointmentData, isLoading: isApptLoading, error: apptError } = useGetAppointmentByIdQuery(
         consultationId as string,
-        { skip: !consultationId || !!currentConversation?.id }
+        { skip: !consultationId || currentConversation?.id === consultationId }
     );
 
     const muteRemoteAudio = (audioTrack: IRemoteAudioTrack | null) => {
@@ -1376,6 +1376,7 @@ const VideoContainer = ({ consultationId }: { consultationId?: string }) => {
         setTokenReady(false);
         setJoinError(null);
         setTokenUid(null);
+        setToken("");
 
         getMeetingSession({ appointmentId: channelId })
             .unwrap()
