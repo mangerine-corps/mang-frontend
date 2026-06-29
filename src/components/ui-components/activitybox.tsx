@@ -129,11 +129,11 @@ const ActivitiesBox = () => {
                       <Box
                         w="28px" h="28px"
                         display="flex" alignItems="center" justifyContent="center"
-                        bg="#111D4A" borderRadius="7px"
+                        bg="button_bg" borderRadius="7px"
                         cursor="pointer" _hover={{ opacity: 0.85 }}
                         onClick={() => router.push(`/message/videoconsultation?consultationId=${item.id}`)}
                       >
-                        <Icon color="white" fontSize="13px"><LuVideo /></Icon>
+                        <Icon color="button_text" fontSize="13px"><LuVideo /></Icon>
                       </Box>
                     </HStack>
                   </Flex>

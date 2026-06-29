@@ -70,7 +70,7 @@ const ResetPassword = () => {
   const eyeIcon = (
     <Button
       variant="ghost"
-      color="#697586"
+      color="text_muted"
       bg="none"
       p={0}
       borderWidth={0}

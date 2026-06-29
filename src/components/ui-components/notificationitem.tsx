@@ -74,7 +74,7 @@ const NotificationItem = ({
               justifyContent="center"
               alignItems="center"
               alignSelf="stretch"
-              color={"white"}
+              color={"button_text"}
               width={{ base: "100%", md: "auto" }} // Responsive width
               onClick={() => {}}
             >

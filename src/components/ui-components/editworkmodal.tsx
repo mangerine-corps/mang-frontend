@@ -208,7 +208,7 @@ const EditWorkModal = ({
               render={({ field: { onChange, value } }) => (
                 <VStack>
                   <Text
-                    color="#999"
+                    color="text_muted"
                     fontFamily="Outfit"
                     fontSize="12px"
                     fontStyle="normal"
@@ -233,7 +233,7 @@ const EditWorkModal = ({
 
             <Box
               rounded="10px"
-              bg="#f2f2f2"
+              bg="border_background"
               //   onClick={() => <ImagePicker />}
               //   border={"1px"}
               //   borderColor={"primary.300"}
@@ -287,8 +287,8 @@ const EditWorkModal = ({
                 <Button
                   borderColor="primary.300"
                   borderWidth={1}
-                  color={"white"}
-                  bg={"white"}
+                  color={"text_primary"}
+                  bg="bg_box"
                   py={2}
                   rounded="6px"
                   w="45%"

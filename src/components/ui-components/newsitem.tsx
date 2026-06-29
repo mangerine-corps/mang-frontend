@@ -745,8 +745,8 @@ const NewsItem: React.FC<NewsItemProps> = ({ post, isDetailPage = false }) => {
                     </Text>
                     <Button
                       size="xs"
-                      bg="#111D4A"
-                      color="white"
+                      bg="button_bg"
+                      color="button_text"
                       borderRadius="8px"
                       fontFamily="Outfit"
                       fontWeight="600"

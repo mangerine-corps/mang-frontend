@@ -331,7 +331,7 @@ const EditContactMeCard = ({
                 fontSize={"0.875rem"}
                 fontFamily={"outfit"}
                 fontWeight={"400"}
-                color="#999999"
+                color="text_muted"
               >
                 Make visible to public
               </Text>
@@ -374,7 +374,7 @@ const EditContactMeCard = ({
                 fontSize={"0.875rem"}
                 fontFamily={"outfit"}
                 fontWeight={"400"}
-                color="#999999"
+                color="text_muted"
               >
                 Make visible to public
               </Text>
@@ -421,7 +421,7 @@ const EditContactMeCard = ({
                 fontSize={"0.875rem"}
                 fontFamily={"outfit"}
                 fontWeight={"400"}
-                color="#999999"
+                color="text_muted"
               >
                 Make visible to public
               </Text>
@@ -429,9 +429,9 @@ const EditContactMeCard = ({
           </Box>
           <HStack w="100%" display={"flex"} flexDir={"row"} spaceX={6}>
             <Button
-              bg="#111D4A"
+              bg="button_bg"
               borderWidth={1}
-              color={"white"}
+              color={"button_text"}
               borderColor={"#111D4A"}
               py={2}
               w="45%"
@@ -449,7 +449,7 @@ const EditContactMeCard = ({
               <Text
                 ml={2}
                 className="text5"
-                color={"white"}
+                color={"button_text"}
                 fontSize={"0.875rem"}
                 fontWeight={"500"}
               >

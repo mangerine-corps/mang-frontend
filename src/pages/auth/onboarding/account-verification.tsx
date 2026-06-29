@@ -209,7 +209,7 @@ const AccountVerification = () => {
                       <>
                         {/* {size(otp)} */}
                         <Input
-                          bg="white"
+                          bg="bg_box"
                           borderWidth={1}
                           borderRadius={"10px"}
                           fontSize={{ base: "16px", lg: "30px" }}

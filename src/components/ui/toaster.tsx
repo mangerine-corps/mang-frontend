@@ -21,7 +21,7 @@ export const Toaster = () => {
           <Toast.Root
             px={5}
             py={3}
-            bg="#FFF8EC"
+            bg="time_box"
             borderWidth="1px"
             borderColor="#F0D9B5"
             rounded="lg"
@@ -36,7 +36,7 @@ export const Toaster = () => {
               fontFamily="Outfit"
               fontSize="0.875rem"
               fontWeight="500"
-              color="#1A1A1A"
+              color="text_primary"
               textAlign="center"
             >
               {toast.description ?? toast.title}

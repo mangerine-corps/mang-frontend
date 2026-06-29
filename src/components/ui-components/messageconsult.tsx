@@ -90,7 +90,7 @@ const VideoActions = ({
       borderWidth={1}
       borderColor={"gray.300"}
       color={"primary.200"}
-      bg={"white"}
+      bg="bg_box"
       shadow={"lg"}
       boxShadow={"lg"}
       {...props}
@@ -185,7 +185,7 @@ const SideParticipant = ({ name, image }: { name?: any; image: any }) => {
       w="90%"
       p={3}
       px={3}
-      bg="white"
+      bg="bg_box"
     >
       <HStack justifyContent={"space-between"} w="full" rounded={"15px"}>
         <HStack>
@@ -202,7 +202,7 @@ const SideParticipant = ({ name, image }: { name?: any; image: any }) => {
             borderWidth={1}
             borderColor={"gray.50"}
             color={"primary.200"}
-            bg={"white"}
+            bg="bg_box"
             shadow={"lg"}
             boxShadow={"lg"}
           >
@@ -225,7 +225,7 @@ const SideParticipant = ({ name, image }: { name?: any; image: any }) => {
             borderWidth={1}
             borderColor={"gray.50"}
             color={"primary.200"}
-            bg={"white"}
+            bg="bg_box"
             shadow={"lg"}
             boxShadow={"lg"}
           >
@@ -340,7 +340,7 @@ export const VideoConsultation = () => {
         shadow="md"
         w="full"
         p={4}
-        // bg="white"
+        // bg="bg_box"
         overflow={"auto"}
         flex={2}
         spaceY={8}
@@ -357,7 +357,7 @@ export const VideoConsultation = () => {
               borderWidth={1}
               borderColor={"gray.300"}
               color={"primary.200"}
-              bg={"white"}
+              bg="bg_box"
               shadow={"lg"}
               boxShadow={"lg"}
             >
@@ -375,7 +375,7 @@ export const VideoConsultation = () => {
             px={4}
             rounded="full"
             spaceX={"3"}
-            bg="white"
+            bg="bg_box"
             shadow={"lg"}
           >
             <Box w={4} h={4} bg="red" rounded="full" />
@@ -668,7 +668,7 @@ export const VideoConsultation = () => {
                   _hover={{ bg: "primary.400" }}
                   _focus={{ bg: "primary.400" }}
                   py={3}
-                  icon={<FiMaximize color="#999999" size={24} />}
+                  icon={<FiMaximize color="text_muted" size={24} />}
                 >
                   Full Screen
                 </MenuItem>
@@ -738,7 +738,7 @@ export const VideoConsultation = () => {
         minH={{ "2xl": "85vh" }}
         w="full"
         // p={6}
-        bg="white"
+        bg="bg_box"
         spaceY={5}
         h="full"
         flex={1}
@@ -767,7 +767,7 @@ export const VideoConsultation = () => {
                 borderWidth={1}
                 borderColor={"gray.50"}
                 color={"black"}
-                bg={"white"}
+                bg="bg_box"
                 shadow={"lg"}
                 boxShadow={"lg"}
                 onClick={() => {
@@ -904,7 +904,7 @@ export const VideoConsultation = () => {
             bg="main_background"
           >
             <HStack
-              bg="#F3F0F0"
+              bg="chat_textbg"
               // ml={4}
               // mr={4}
               px="3"

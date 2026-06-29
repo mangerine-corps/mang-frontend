@@ -302,7 +302,7 @@ const StepProgress = ({
                   rounded="full"
                   borderWidth="3px"
                   borderColor="#48BB34"
-                  bg="white"
+                  bg="bg_box"
                   align="center"
                   justify="center"
                 />
@@ -384,7 +384,7 @@ const RequirementStatus = ({
           variant="outline"
           borderColor="#B8C0D4"
           color="text_primary"
-          bg="white"
+          bg="bg_box"
           px={4}
           minH="36px"
           borderRadius="10px"
@@ -428,7 +428,7 @@ const UploadCard = ({
       borderWidth="1px"
       borderColor="#ECECEC"
       borderRadius="20px"
-      bg="white"
+      bg="bg_box"
       opacity={disabled ? 0.6 : 1}
     >
       <Input
@@ -464,7 +464,7 @@ const UploadCard = ({
 
       <Box
         borderRadius="16px"
-        bg="#F3F3F4"
+        bg="border_background"
         minH="126px"
         px="4"
         py="5"
@@ -474,7 +474,7 @@ const UploadCard = ({
             <Flex
               boxSize="72px"
               borderRadius="16px"
-              bg="#E5E5E5"
+              bg="border_background"
               align="center"
               justify="center"
             >

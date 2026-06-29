@@ -143,7 +143,7 @@ export default function PaymentForm({
                   borderRadius="full"
                   borderWidth="1px"
                   borderColor="rgba(17, 29, 74, 0.08)"
-                  bg="white"
+                  bg="bg_box"
                   color="text_primary"
                   size="sm"
                   onClick={() => {
@@ -168,7 +168,7 @@ export default function PaymentForm({
               borderRadius="18px"
               borderWidth="1px"
               borderColor="rgba(17, 29, 74, 0.08)"
-              bg="white"
+              bg="bg_box"
               backgroundImage="linear-gradient(rgba(255, 255, 255, 0.99), rgba(255, 255, 255, 0.99)), url('/paymentbg.webp')"
               backgroundPosition="center"
               backgroundRepeat="no-repeat"
@@ -301,7 +301,7 @@ export default function PaymentForm({
                   borderRadius="16px"
                   borderWidth="1px"
                   borderColor="rgba(17, 29, 74, 0.08)"
-                  bg="white"
+                  bg="bg_box"
                   p={{ base: 4, lg: 5 }}
                 >
                   <CardElement
@@ -334,7 +334,7 @@ export default function PaymentForm({
                   borderRadius="16px"
                   borderWidth="1px"
                   borderColor="rgba(17, 29, 74, 0.08)"
-                  bg="white"
+                  bg="bg_box"
                   p={{ base: 4, lg: 5 }}
                   textAlign="center"
                 >
@@ -346,8 +346,8 @@ export default function PaymentForm({
             </VStack>
 
             <Button
-              bg="#111D4A"
-              color="white"
+              bg="button_bg"
+              color="button_text"
               type="submit"
               borderRadius="8px"
               disabled={
@@ -359,7 +359,7 @@ export default function PaymentForm({
               }
               id="submit"
               py="12px"
-              _hover={{ bg: "#111D4A" }}
+              _hover={{ opacity: 0.85 }}
               width="100%"
               loading={isLoading}
             >
@@ -369,7 +369,7 @@ export default function PaymentForm({
             <Text
               fontSize="0.8rem"
               lineHeight="1.45"
-              color="#999999"
+              color="text_muted"
             >
               Your payment information is safeguarded with advanced encryption
               technology.

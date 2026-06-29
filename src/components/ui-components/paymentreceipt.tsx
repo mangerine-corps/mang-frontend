@@ -263,7 +263,7 @@ const PaymentModal = ({ isOpen, onOpenChange, data }: PaymentModalProps) => {
 
                   <Button
                     flex={1}
-                    bg="#1B2B65"
+                    bg="button_bg"
                     color="white"
                     h="44px"
                     borderRadius="8px"

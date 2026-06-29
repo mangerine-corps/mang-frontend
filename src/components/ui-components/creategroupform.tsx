@@ -378,7 +378,7 @@ const {
 
             <Box
               rounded="10px"
-              bg="#f2f2f2"
+              bg="border_background"
               //   onClick={() => <ImagePicker />}
               //   border={"1px"}
               //   borderColor={"primary.300"}

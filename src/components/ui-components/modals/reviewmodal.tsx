@@ -86,7 +86,7 @@ const ReviewModal = ({ onOpenChange, isOpen, consultantName, consultantPic, cons
                     </RatingGroup.Control>
                   </RatingGroup.Root>
                   <Field.Root id="review" pb="8" w="full">
-                    <Field.Label color="#999" fontFamily="Outfit" fontSize="1rem" fontWeight="400">
+                    <Field.Label color="text_muted" fontFamily="Outfit" fontSize="1rem" fontWeight="400">
                       Write Your Review
                     </Field.Label>
                     <Textarea

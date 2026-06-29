@@ -131,7 +131,7 @@ const AppointmentTable = ({ filters = {} }: { filters?: Filters }) => {
             </Portal>
           </Menu.Root>
 
-          <Button bg="#0B1441" color="white" rounded="lg" px={5} py={2} _hover={{ bg: "#1a2a6e" }}>
+          <Button bg="button_bg" color="button_text" rounded="lg" px={5} py={2} _hover={{ opacity: 0.85 }}>
             <HStack gap={2}>
               <MdOutlineFileUpload size={18} />
               <Text fontSize="0.875rem" fontWeight="500">Export</Text>

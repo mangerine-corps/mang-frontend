@@ -205,8 +205,8 @@ export default function PaymentSuccessPage() {
           {/* Action button */}
           <Button
             w="full"
-            bg="#111D4A"
-            color="white"
+            bg="button_bg"
+            color="button_text"
             borderRadius="12px"
             py={6}
             fontFamily="Outfit"

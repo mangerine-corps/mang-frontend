@@ -4,6 +4,7 @@ import {
   HStack,
   Flex,
   Spinner,
+  Image,
 } from "@chakra-ui/react";
 import CustomSelect from "../customcomponents/select";
 import { yupResolver } from "@hookform/resolvers/yup";
@@ -11,7 +12,7 @@ import { Controller, useForm } from "react-hook-form";
 import * as Yup from "yup";
 import { useEffect, useMemo } from "react";
 import { useGetGeneralSettingsQuery, useUpdateGeneralSettingsMutation } from "mangarine/state/services/settings.service";
-import { ColorModeButton } from "../ui/color-mode";
+import { useColorMode } from "../ui/color-mode";
 import { toaster } from "../ui/toaster";
 import { TIME_ZONE_OPTIONS, normalizeTimeZoneValue } from "mangarine/lib/timezone-options";
 import { useDispatch } from "react-redux";
@@ -31,6 +32,7 @@ const Schema = Yup.object().shape({
 const GeneralSetting = () => {
   const dispatch = useDispatch();
   const { user } = useAuth();
+  const { colorMode, setColorMode } = useColorMode();
   const { data, isLoading, isFetching, refetch } = useGetGeneralSettingsQuery();
   const [updateGeneral, { isLoading: saving }] = useUpdateGeneralSettingsMutation();
   const server = useMemo(() => (data as any)?.data || {}, [data]);
@@ -199,8 +201,61 @@ const GeneralSetting = () => {
           Interface Theme
         </Text>
 
-        <HStack gap={6} align="flex-start" py={4}>
-          <ColorModeButton />
+        <HStack gap={4} align="flex-start" py={2} flexWrap="wrap">
+          {(["light", "dark"] as const).map((mode) => {
+            const isActive = colorMode === mode;
+            return (
+              <Box
+                key={mode}
+                onClick={() => setColorMode(mode)}
+                cursor="pointer"
+                borderWidth="2px"
+                borderColor={isActive ? "primary.950" : "border_background"}
+                borderRadius="12px"
+                overflow="hidden"
+                transition="border-color 0.2s, box-shadow 0.2s"
+                boxShadow={isActive ? "0 0 0 3px rgba(17,29,74,0.18)" : "none"}
+                _hover={{ borderColor: "primary.950" }}
+                w={{ base: "140px", md: "160px" }}
+              >
+                <Image
+                  src={mode === "light" ? "/images/theme1.png" : "/images/theme2.png"}
+                  alt={`${mode} theme preview`}
+                  w="full"
+                  objectFit="cover"
+                />
+                <Box
+                  px={3}
+                  py={2}
+                  bg={isActive ? "primary.950" : "bg_box"}
+                  display="flex"
+                  alignItems="center"
+                  justifyContent="space-between"
+                >
+                  <Text
+                    fontSize="0.8rem"
+                    fontWeight={isActive ? "600" : "400"}
+                    color={isActive ? "white" : "text_primary"}
+                    textTransform="capitalize"
+                  >
+                    {mode}
+                  </Text>
+                  {isActive && (
+                    <Box
+                      boxSize="16px"
+                      borderRadius="full"
+                      bg="white"
+                      display="flex"
+                      alignItems="center"
+                      justifyContent="center"
+                    >
+                      <Box boxSize="8px" borderRadius="full" bg="primary.950" />
+                    </Box>
+                  )}
+                </Box>
+              </Box>
+            );
+          })}
         </HStack>
       </Box>
     </Flex>

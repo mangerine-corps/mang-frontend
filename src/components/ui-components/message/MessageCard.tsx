@@ -131,7 +131,7 @@ const MessageCard = ({ message }: { message: ChatMessage }) => {
           borderColor={"primary.300"}
           w="full"
           p={2}
-          bg="white"
+          bg="bg_box"
         >
           <Text lineClamp={1} fontSize={"0.75rem"} fontFamily={"Outfit"}>
             {message?.parent.content}
@@ -142,9 +142,9 @@ const MessageCard = ({ message }: { message: ChatMessage }) => {
         gap="0"
         shadow="0 12px 28px rgba(17, 29, 74, 0.08)"
         p={4}
-        bg="white"
+        bg="bg_box"
         borderWidth="1px"
-        borderColor="#EEF0F4"
+        borderColor="border_background"
         rounded="20px"
         maxW="100%"
         alignItems="stretch"
@@ -174,10 +174,10 @@ const MessageCard = ({ message }: { message: ChatMessage }) => {
               <Stack
                 key={key}
                 borderWidth={1}
-                borderColor="#E6EAF2"
+                borderColor="border_background"
                 borderRadius="16px"
                 p={2}
-                bg="#F9FAFC"
+                bg="bg_box"
                 maxW="300px"
               >
                 {/* Image Preview */}

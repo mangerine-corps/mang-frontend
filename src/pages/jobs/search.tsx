@@ -138,14 +138,14 @@ const JobSearchPage = () => {
   return (
         <Box flex={1} h={{ base: "auto", md: "full" }} minH={0} overflowY={{ base: "visible", md: "auto" }} css={noScrollbar}>
           {/* Search banner */}
-          <Box bg="#FFF4EC" borderRadius="16px" p={{ base: 5, md: 8 }} mb={4}>
+          <Box bg="orange.50" _dark={{ bg: "orange.900" }} borderRadius="16px" p={{ base: 5, md: 8 }} mb={4}>
             <Text fontFamily="Outfit" fontWeight="700" fontSize={{ base: "1.25rem", md: "1.5rem" }} color="text_primary" mb={1}>
               Find Your Next Career Move
             </Text>
             <Text fontSize="0.875rem" color="gray.500" mb={4}>
               Explore opportunities tailored to your interests and take the next step toward the career you deserve.
             </Text>
-            <HStack bg="white" borderRadius="10px" border="1px solid" borderColor="input_border" px={3} py={2} gap={2}>
+            <HStack bg="bg_box" borderRadius="10px" border="1px solid" borderColor="input_border" px={3} py={2} gap={2}>
               <Box color="gray.400" flexShrink={0} cursor="pointer" onClick={handleSearch}>
                 <BiSearch size={18} />
               </Box>

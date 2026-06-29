@@ -11,7 +11,7 @@ export default function NotFoundPage() {
         <Text
           fontSize={{ base: "5rem", md: "7rem" }}
           fontWeight="800"
-          color="#111D4A"
+          color="button_bg"
           lineHeight="1"
           fontFamily="Outfit"
           opacity={0.12}
@@ -31,8 +31,8 @@ export default function NotFoundPage() {
 
         <Flex gap={3} wrap="wrap" justify="center">
           <Button
-            bg="#111D4A"
-            color="white"
+            bg="button_bg"
+            color="button_text"
             borderRadius="10px"
             px={6}
             fontFamily="Outfit"

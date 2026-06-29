@@ -44,7 +44,7 @@ const FeedbackOverviewcompTwo = () => {
                   <Text color="text_primary" fontSize="1.5rem" fontWeight="600">{totalReviews}</Text>
                 )}
               </VStack>
-              <Stack bg="#EEFBF3" justifyContent="center" alignItems="center" py="4" px="4" rounded="md">
+              <Stack bg="green.50" _dark={{ bg: "green.900" }} justifyContent="center" alignItems="center" py="4" px="4" rounded="md">
                 <Image src="/icons/tr.svg" alt="review-img" />
               </Stack>
             </HStack>
@@ -63,7 +63,7 @@ const FeedbackOverviewcompTwo = () => {
                   </Text>
                 )}
               </VStack>
-              <Stack bg="#F5F3FF" justifyContent="center" alignItems="center" py="4" px="4" rounded="md">
+              <Stack bg="purple.50" _dark={{ bg: "purple.900" }} justifyContent="center" alignItems="center" py="4" px="4" rounded="md">
                 <Image src="/icons/ar.svg" alt="rating-img" />
               </Stack>
             </HStack>

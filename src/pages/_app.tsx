@@ -108,7 +108,7 @@ export default function App({ Component, pageProps }: AppProps) {
       <Providers>
         <SentryUserSync />
         <Box bg="bd_background" h="100vh" as="main" overflowX="hidden" className={`${outfit.className}`}>
-          <PagesTopLoader color="#111D4A" height={3} />
+          <PagesTopLoader color="button_bg" height={3} />
 
           {authRoute ? (
             <Component {...pageProps} />

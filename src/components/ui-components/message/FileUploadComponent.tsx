@@ -454,7 +454,7 @@ const FileUploadComponent: React.FC<FileUploadComponentProps> = ({
           borderWidth={1}
           borderColor="gray.200"
           borderRadius="md"
-          bg="white"
+          bg="bg_box"
         >
           <HStack justify="space-between" mb={3}>
             <Text fontWeight="semibold" fontSize="sm">

@@ -135,12 +135,12 @@ const ScheduledConsultation = () => {
                       <Box
                         w="28px" h="28px"
                         display="flex" alignItems="center" justifyContent="center"
-                        bg="#111D4A" borderRadius="7px"
+                        bg="button_bg" borderRadius="7px"
                         cursor="pointer" _hover={{ opacity: 0.85 }}
                         flexShrink={0}
                         onClick={() => router.push(`/message/videoconsultation?consultationId=${item.id}`)}
                       >
-                        <Icon color="white" fontSize="13px"><LuVideo /></Icon>
+                        <Icon color="button_text" fontSize="13px"><LuVideo /></Icon>
                       </Box>
                     </HStack>
                   </Flex>
@@ -174,7 +174,7 @@ const ScheduledConsultation = () => {
                   {/* Actions */}
                   {joinable ? (
                     <Button
-                      bg="#111D4A" color="white" w="full" h="36px"
+                      bg="button_bg" color="button_text" w="full" h="36px"
                       borderRadius="8px" fontSize="0.8rem" fontFamily="Outfit"
                       fontWeight="600" _hover={{ opacity: 0.85 }}
                       onClick={() => router.push(`/message/videoconsultation?consultationId=${item.id}`)}
@@ -193,7 +193,7 @@ const ScheduledConsultation = () => {
                         Cancel
                       </Button>
                       <Button
-                        bg="#111D4A" color="white" flex={1} h="36px"
+                        bg="button_bg" color="button_text" flex={1} h="36px"
                         borderRadius="8px" fontSize="0.78rem" fontFamily="Outfit"
                         fontWeight="600" _hover={{ opacity: 0.85 }}
                         onClick={() => setRescheduleId(item.id)}

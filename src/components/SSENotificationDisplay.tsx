@@ -176,7 +176,7 @@ export const SSENotificationDisplay: React.FC<SSENotificationDisplayProps> = ({
         borderColor="gray.200"
         borderRadius="md"
         p={3}
-        bg="white"
+        bg="bg_box"
         shadow="sm"
       >
         {displayNotifications.length === 0 ? (

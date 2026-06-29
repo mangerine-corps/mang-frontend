@@ -155,7 +155,7 @@ const GeneralFeed: React.FC<GeneralFeedProps> = ({
           {location ? (
             <Flex align="center" gap="4px" minW={0} flex={1}>
               <Image src={locale} alt="location" boxSize="13px" flexShrink={0} />
-              <Text fontSize="0.68rem" fontWeight="400" color="#999" truncate>
+              <Text fontSize="0.68rem" fontWeight="400" color="text_muted" truncate>
                 {location}
               </Text>
             </Flex>

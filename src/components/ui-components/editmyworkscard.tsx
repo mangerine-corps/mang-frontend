@@ -498,8 +498,8 @@ const EditMyWorksCard = ({
                         <Button
                           variant="outline"
                           bg="transparent"
-                          color="#111D4A"
-                          borderColor="#111D4A"
+                          color="button_bg"
+                          borderColor="button_bg"
                           borderWidth="1px"
                           px={6}
                           rounded="md"

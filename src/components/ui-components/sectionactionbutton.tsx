@@ -15,8 +15,8 @@ const SectionActionButton = ({
     <Button
       variant="outline"
       bg="transparent"
-      color="#111D4A"
-      borderColor="#111D4A"
+      color="button_bg"
+      borderColor="button_bg"
       borderWidth="1px"
       rounded="6px"
       px={{ base: 3, lg: 4 }}

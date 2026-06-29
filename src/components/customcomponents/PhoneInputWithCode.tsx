@@ -70,7 +70,7 @@ const PhoneInputWithCode = ({
         <VStack w="full" alignItems="flex-start" spaceY={0}>
             {label && (
                 <Text
-                    color="#999999"
+                    color="text_muted"
                     fontWeight="400"
                     fontSize="0.75rem"
                     mb="1px"

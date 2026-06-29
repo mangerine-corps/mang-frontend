@@ -180,7 +180,7 @@ const OnboardingThree = () => {
               h="100px"
               pos="relative"
               rounded={"full"}
-              bg="#E7E8ED"
+              bg="border_background"
             >
               {imageSrc ? (
                 <Image

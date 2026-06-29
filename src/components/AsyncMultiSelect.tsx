@@ -143,12 +143,12 @@ const CustomMenuList = ({ selectProps, ...props }) => {
     "aria-labelledby": selectProps["aria-labelledby"],
   };
   return (
-    <Box rounded={"15px"} bg="white">
+    <Box rounded={"15px"} bg="bg_box">
       <InputGroup
         _hover={{
           borderColor: "gray.50",
         }}
-        bg="white"
+        bg="bg_box"
         borderWidth={1}
         rounded={"15px"}
         borderColor={"gray.50"}

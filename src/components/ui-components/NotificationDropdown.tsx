@@ -262,7 +262,7 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({ trigger }) 
                                 <Flex
                                   boxSize="40px"
                                   borderRadius="full"
-                                  bg="#111D4A"
+                                  bg="button_bg"
                                   align="center"
                                   justify="center"
                                 >
@@ -355,10 +355,10 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({ trigger }) 
                 onClick={handleMarkAll}
                 _hover={{ opacity: 0.75 }}
               >
-                <CheckCheck size={14} color="#111D4A" />
+                <CheckCheck size={14} color="button_bg" />
                 <Text
                   fontSize="0.8rem"
-                  color="#111D4A"
+                  color="button_bg"
                   fontFamily="Outfit"
                   textDecoration="underline"
                 >
@@ -372,7 +372,7 @@ const NotificationDropdown: React.FC<NotificationDropdownProps> = ({ trigger }) 
               >
                 <Text
                   fontSize="0.8rem"
-                  color="#111D4A"
+                  color="button_bg"
                   fontFamily="Outfit"
                   textDecoration="underline"
                 >

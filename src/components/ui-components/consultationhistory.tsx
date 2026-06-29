@@ -230,8 +230,8 @@ const ConsultationHistory: FC<Props> = ({ searchTerm = "" }) => {
                           <CountdownBadge appointment={item} />
                           <Button
                             size="xs"
-                            bg="#111D4A"
-                            color="white"
+                            bg="button_bg"
+                            color="button_text"
                             borderRadius="6px"
                             fontFamily="Outfit"
                             fontSize="0.75rem"

@@ -379,11 +379,12 @@ const ChatPage = ({ onNewMessage }: Props) => {
               px={4}
               py={3}
               borderRadius="14px"
-              bg="#FFF5F5"
+              bg="red.50"
+              _dark={{ bg: "red.900" }}
               borderWidth="1px"
-              borderColor="#FED7D7"
+              borderColor="red.200"
             >
-              <Text fontSize="0.88rem" color="#C53030">
+              <Text fontSize="0.88rem" color="red.600" _dark={{ color: "red.300" }}>
                 Messaging is unavailable because this conversation is blocked.
               </Text>
             </Box>
@@ -439,7 +440,7 @@ const ChatPage = ({ onNewMessage }: Props) => {
                               ? IoVideocam
                               : IoDocument
                         }
-                        color="#1C275D"
+                        color="button_bg"
                       />
                       <Text
                         fontSize="0.82rem"

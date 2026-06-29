@@ -240,8 +240,8 @@ const JoinGroup = ({ open, onOpenChange, selected, action }: Prop) => {
                 <Button
                   borderColor="primary.300"
                   borderWidth={1}
-                  color={"white"}
-                  bg={"white"}
+                  color={"button_text"}
+                  bg="bg_box"
                   py={2}
                   rounded="6px"
                   w="35%"

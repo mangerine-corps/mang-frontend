@@ -53,7 +53,7 @@ const FileUploadTest: React.FC = () => {
             </Text>
             <VStack gap={2} align="start">
               {uploadedFiles.map((file, index) => (
-                <HStack key={file.fileName} gap={3} w="full" p={2} bg="white" borderRadius="md">
+                <HStack key={file.fileName} gap={3} w="full" p={2} bg="bg_box" borderRadius="md">
                   <Icon 
                     as={file.fileType.startsWith('image/') ? IoImage : 
                         file.fileType.startsWith('video/') ? IoVideocam : IoDocument}

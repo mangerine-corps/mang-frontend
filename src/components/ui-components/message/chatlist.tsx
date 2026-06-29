@@ -72,7 +72,7 @@ const ChatList = ({
                 top="50%"
                 left="16px"
                 transform="translateY(-50%)"
-                color="#9CA3AF"
+                color="text_muted"
                 zIndex={1}
               >
                 <LuSearch size={16} />
@@ -103,7 +103,7 @@ const ChatList = ({
                 ))
               ) : (
                 <Box py={10} textAlign="center">
-                  <Text fontSize="0.92rem" color="#7E8495">
+                  <Text fontSize="0.92rem" color="text_muted">
                     No conversations found.
                   </Text>
                 </Box>

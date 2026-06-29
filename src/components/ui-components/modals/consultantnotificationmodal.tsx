@@ -80,11 +80,11 @@ const ConsultantNotificationModal = ({
                   h="56px"
                   w="56px"
                   borderRadius="full"
-                  bg="#F5F7FB"
+                  bg="bg_box"
                   align="center"
                   justify="center"
                 >
-                  <Box color="#111D4A">
+                  <Box color="button_bg">
                     <MdNotifications size={28} />
                   </Box>
                 </Flex>
@@ -133,7 +133,7 @@ const ConsultantNotificationModal = ({
                         flexShrink={0}
                       >
                         {isSelected && (
-                          <Box h="8px" w="8px" borderRadius="full" bg="#111D4A" />
+                          <Box h="8px" w="8px" borderRadius="full" bg="button_bg" />
                         )}
                       </Flex>
                       <Text
@@ -156,7 +156,7 @@ const ConsultantNotificationModal = ({
                   h="40px"
                   borderRadius="10px"
                   variant="outline"
-                  borderColor="#B5B9C7"
+                  borderColor="input_border"
                   color="text_primary"
                   fontSize="0.875rem"
                   fontWeight="600"
@@ -169,12 +169,12 @@ const ConsultantNotificationModal = ({
                   flex="1"
                   h="40px"
                   borderRadius="10px"
-                  bg="#111D4A"
-                  color="white"
+                  bg="button_bg"
+                  color="button_text"
                   fontSize="0.875rem"
                   fontWeight="600"
                   fontFamily="Outfit"
-                  _hover={{ bg: "#111D4A" }}
+                  _hover={{ opacity: 0.85 }}
                   onClick={handleSave}
                 >
                   Save

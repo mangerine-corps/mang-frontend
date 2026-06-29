@@ -138,8 +138,8 @@ function Home() {
               pointerEvents="none"
             >
               <HStack
-                bg="#111D4A"
-                color="white"
+                bg="button_bg"
+                color="button_text"
                 px={4}
                 py={2}
                 rounded="full"
@@ -170,14 +170,14 @@ function Home() {
             >
               <HStack alignItems="flex-start" justify="space-between">
                 <HStack alignItems="flex-start" gap={2}>
-                  <Icon color="#111D4A" mt={0.5}>
+                  <Icon color="button_bg" mt={0.5}>
                     <PiSparkle />
                   </Icon>
                   <VStack alignItems="flex-start" gap={0.5}>
-                    <Text fontWeight="600" fontSize="0.875rem" color="#111D4A">
+                    <Text fontWeight="600" fontSize="0.875rem" color="button_bg">
                       Become a consultant?
                     </Text>
-                    <Text fontSize="0.8rem" color="#111D4A">
+                    <Text fontSize="0.8rem" color="button_bg">
                       Share your expertise and earn from sessions.
                     </Text>
                   </VStack>
@@ -185,7 +185,7 @@ function Home() {
                 <Icon
                   as={IoClose}
                   cursor="pointer"
-                  color="#111D4A"
+                  color="button_bg"
                   onClick={() => setShowConsultantBanner(false)}
                 />
               </HStack>
@@ -193,7 +193,7 @@ function Home() {
                 <Text
                   fontSize="0.875rem"
                   fontWeight="600"
-                  color="#111D4A"
+                  color="button_bg"
                   cursor="pointer"
                   _hover={{ textDecoration: "underline" }}
                   onClick={() => router.push("/consultant-learn-more")}
@@ -220,7 +220,7 @@ function Home() {
               <Text
                 fontSize="0.875rem"
                 fontWeight="600"
-                color="#111D4A"
+                color="button_bg"
                 cursor="pointer"
                 _hover={{ textDecoration: "underline" }}
                 onClick={() => refetch()}
@@ -238,7 +238,7 @@ function Home() {
                       <Text fontSize="sm" color="gray.400">You&apos;re all caught up</Text>
                       <Text
                         fontSize="0.8rem"
-                        color="#111D4A"
+                        color="button_bg"
                         fontWeight="600"
                         cursor="pointer"
                         _hover={{ textDecoration: "underline" }}

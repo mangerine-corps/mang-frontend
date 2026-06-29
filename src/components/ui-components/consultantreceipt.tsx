@@ -57,7 +57,7 @@
 //             Payment Successful!
 //           </Text>
 
-//           <Text fontSize="14px" color="#999" mb={2}>
+//           <Text fontSize="14px" color="text_muted" mb={2}>
 //             Your payment has been successfully made
 //           </Text>
 

@@ -33,7 +33,7 @@ const NetworkingCard = () => {
       >
         <Text
           // colorScheme="Secondary:800"
-          // color="#8C7254"
+          // color="secondary.700"
           borderRadius="full"
           px={2}
           py={1}
@@ -44,7 +44,7 @@ const NetworkingCard = () => {
           textAlign={"center"}
           w="28"
           // bg="act_box"
-          color="#8C7254"
+          color="secondary.700"
         >
           {eventInfo.category}
         </Text>

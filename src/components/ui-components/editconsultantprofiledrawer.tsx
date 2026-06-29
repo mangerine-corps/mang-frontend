@@ -416,7 +416,7 @@ const EditConsultDrawer = ({
                 />
               )}
               <Box w="full">
-                <Text color="#999999" fontWeight="400" fontSize="0.75rem" mb={1}>
+                <Text color="text_muted" fontWeight="400" fontSize="0.75rem" mb={1}>
                   Title
                 </Text>
                 <Controller
@@ -588,7 +588,7 @@ const EditConsultDrawer = ({
               />
               <Box w="full">
                 <Text
-                  color="#999999"
+                  color="text_muted"
                   fontWeight={"400"}
                   fontSize={"0.75rem"}
                   mb={1}
@@ -614,7 +614,7 @@ const EditConsultDrawer = ({
                 />
               </Box>
               <Box w="full">
-                <Text color="#999999" fontWeight="400" fontSize="0.75rem" mb={1}>
+                <Text color="text_muted" fontWeight="400" fontSize="0.75rem" mb={1}>
                   Time Zone
                 </Text>
                 <Controller
@@ -655,10 +655,10 @@ const EditConsultDrawer = ({
                 >
                 <HStack w="100%" display={"flex"} flexDir={"row"} spaceX={6}>
                   <Button
-                    borderColor="primary.300"
+                    borderColor="border_background"
                     borderWidth={1}
-                    color={"white"}
-                    bg={"white"}
+                    color="text_primary"
+                    bg="transparent"
                     py={2}
                     rounded="6px"
                     w="45%"
@@ -666,14 +666,12 @@ const EditConsultDrawer = ({
                     _hover={{
                       textDecor: "none",
                     }}
-                    // isDisabled={isEmpty(selectedDay) || selectedTime == ''}
-
                     onClick={onOpenChange}
                   >
                     <Text
                       ml={2}
                       className="text5"
-                      color={"primary.300"}
+                      color={"text_primary"}
                       fontSize={"0.875rem"}
                       fontWeight={"500"}
                     >
@@ -681,25 +679,22 @@ const EditConsultDrawer = ({
                     </Text>
                   </Button>
                   <Button
-                    bg="#111D4A"
+                    bg="button_bg"
                     borderWidth={1}
-                    color={"white"}
-                    borderColor={"#111D4A"}
+                    color="button_text"
+                    borderColor="button_bg"
                     py={2}
                     w="45%"
                     loading={profileLoading || uploading}
                     px={4}
-                    _hover={{
-                      textDecor: "none",
-                      bg: "#111D4A",
-                    }}
+                    _hover={{ opacity: 0.85 }}
                     rounded={"6px"}
                     onClick={handleSubmit(handleProfileUpdate)}
                   >
                     <Text
                       ml={2}
                       className="text5"
-                      color={"white"}
+                      color={"button_text"}
                       fontSize={"0.875rem"}
                       fontWeight={"500"}
                     >

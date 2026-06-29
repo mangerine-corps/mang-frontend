@@ -51,7 +51,7 @@ const MessageEmpty = ({ onClick, children }: Props) => {
           fontSize={{ base: "0.95rem", md: "1.05rem" }}
           fontWeight="400"
           lineHeight="1.65"
-          color="#5F6473"
+          color="text_muted"
         >
           Here you can start new conversations, manage your messages, and stay
           connected. Tap the &apos;New Message&apos; button to begin.
@@ -63,7 +63,7 @@ const MessageEmpty = ({ onClick, children }: Props) => {
         maxW="520px"
         h="52px"
         borderRadius="8px"
-        bg="#1C275D"
+        bg="primary.600"
         color="white"
         fontWeight="600"
         onClick={onClick}

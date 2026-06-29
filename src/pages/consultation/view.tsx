@@ -173,7 +173,7 @@ const ConsultationJoinSection = ({
           Cancel
         </Button>
         <Button
-          bg="#111D4A" color="white" flex={1} h="36px" borderRadius="8px"
+          bg="button_bg" color="button_text" flex={1} h="36px" borderRadius="8px"
           fontSize="0.78rem" fontFamily="Outfit" fontWeight="600"
           _hover={{ opacity: 0.85 }}
           onClick={onReschedule}
@@ -231,7 +231,7 @@ export default function ConsultationViewPage() {
           <Text fontSize="0.8rem" color="gray.500" fontFamily="Outfit">
             This appointment could not be found or you don't have access.
           </Text>
-          <Button bg="#111D4A" color="white" borderRadius="8px" px={5} h="36px"
+          <Button bg="button_bg" color="button_text" borderRadius="8px" px={5} h="36px"
             fontSize="0.82rem" fontFamily="Outfit" onClick={() => router.push('/consultation')}>
             Back to Consultations
           </Button>
@@ -248,7 +248,7 @@ export default function ConsultationViewPage() {
           <Text fontSize="0.9rem" fontWeight="600" color="text_primary" fontFamily="Outfit">
             Appointment not found
           </Text>
-          <Button bg="#111D4A" color="white" borderRadius="8px" px={5} h="36px"
+          <Button bg="button_bg" color="button_text" borderRadius="8px" px={5} h="36px"
             fontSize="0.82rem" fontFamily="Outfit" onClick={() => router.push('/consultation')}>
             View My Consultations
           </Button>

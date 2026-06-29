@@ -105,7 +105,7 @@ const AppointmentDetails = ({ onOpenChange, isOpen, info }: props) => {
             <Dialog.Body>
               {info ? (
                 <VStack
-                  bg="white"
+                  bg="bg_box"
                   flex={1}
                   h="fit-content"
                   // bg="main_background"

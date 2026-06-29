@@ -49,15 +49,15 @@ export const BlockedComp = ({ info, onUnblocked }: props) => {
       </VStack>
 
       <Button
-        bg="#111D4A"
-        color="white"
+        bg="button_bg"
+        color="button_text"
         px={10}
         h="44px"
         borderRadius="10px"
         fontSize="0.875rem"
         fontWeight="600"
         fontFamily="Outfit"
-        _hover={{ bg: "#111D4A" }}
+        _hover={{ opacity: 0.85 }}
         loading={isLoading}
         onClick={handleUnblock}
       >

@@ -329,7 +329,7 @@ function SearchPage() {
         </Button>
       ))}
       {/* Pipe divider */}
-      <Box w="1px" h="18px" bg="#B5B9C7" mx={2} flexShrink={0} />
+      <Box w="1px" h="18px" bg="input_border" mx={2} flexShrink={0} />
       <Button
         size="xs"
         px={3}
@@ -339,8 +339,8 @@ function SearchPage() {
         fontSize="0.72rem"
         fontWeight="500"
         variant="outline"
-        color="#111D4A"
-        borderColor="#B5B9C7"
+        color="button_bg"
+        borderColor="input_border"
         _hover={{ bg: "transparent", opacity: 0.8 }}
       >
         All filters

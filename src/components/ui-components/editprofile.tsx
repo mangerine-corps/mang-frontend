@@ -386,7 +386,7 @@ const EditProfileModal = ({
                 }}
                 render={({ field: { onChange, value } }) => (
                   <Field.Root mt={10} invalid={!!errors.fullName}>
-                    <Field.Label color="#999" fontFamily="Outfit" fontSize="12px" fontWeight="400">
+                    <Field.Label color="text_muted" fontFamily="Outfit" fontSize="12px" fontWeight="400">
                       Full Name <Text as="span" color="red.500">*</Text>
                     </Field.Label>
                     <Input
@@ -415,7 +415,7 @@ const EditProfileModal = ({
                 }}
                 render={({ field: { onChange, value } }) => (
                   <Field.Root invalid={!!errors.occupation}>
-                    <Field.Label color="#999" fontFamily="Outfit" fontSize="12px" fontWeight="400">
+                    <Field.Label color="text_muted" fontFamily="Outfit" fontSize="12px" fontWeight="400">
                       Occupation <Text as="span" color="red.500">*</Text>
                     </Field.Label>
                     <Input
@@ -444,7 +444,7 @@ const EditProfileModal = ({
                 }}
                 render={({ field: { onChange, value } }) => (
                   <Field.Root invalid={!!errors.location}>
-                    <Field.Label color="#999" fontFamily="Outfit" fontSize="12px" fontWeight="400">
+                    <Field.Label color="text_muted" fontFamily="Outfit" fontSize="12px" fontWeight="400">
                       Location <Text as="span" color="red.500">*</Text>
                     </Field.Label>
                     <Input
@@ -474,7 +474,7 @@ const EditProfileModal = ({
                 render={({ field: { onChange, value } }) => (
                   <Box flex={1} w="full" flexDir={{ base: "column", md: "row" }} mb={{ base: "3", md: "0" }}>
                     <Field.Root w="full" invalid={!!errors.dateOfBirth}>
-                      <Field.Label htmlFor="birthdate" color="#999" fontFamily="Outfit" fontSize="12px" fontWeight="400">
+                      <Field.Label htmlFor="birthdate" color="text_muted" fontFamily="Outfit" fontSize="12px" fontWeight="400">
                         Date of Birth <Text as="span" color="red.500">*</Text>
                       </Field.Label>
                       <DatePicker
@@ -505,7 +505,7 @@ const EditProfileModal = ({
                 }}
                 render={({ field: { onChange, value } }) => (
                   <Field.Root invalid={!!errors.bio}>
-                    <Field.Label color="#999" fontFamily="Outfit" fontSize="12px" fontWeight="400">
+                    <Field.Label color="text_muted" fontFamily="Outfit" fontSize="12px" fontWeight="400">
                       Bio <Text as="span" color="red.500">*</Text>
                     </Field.Label>
                     <Textarea
@@ -535,8 +535,8 @@ const EditProfileModal = ({
                   <Button
                     borderColor="primary.300"
                     borderWidth={1}
-                    color={"white"}
-                    bg={"white"}
+                    color={"text_primary"}
+                    bg="bg_box"
                     py={2}
                     rounded="6px"
                     w="45%"

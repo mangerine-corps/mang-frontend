@@ -49,7 +49,7 @@ const ConsultationHistory = () => {
               value={fromDate}
               onChange={(e) => setFromDate(e.target.value)}
             />
-            <FaCalendar color="#9CA3AF" size={14} />
+            <FaCalendar color="text_muted" size={14} />
           </HStack>
         </VStack>
 
@@ -78,7 +78,7 @@ const ConsultationHistory = () => {
               value={toDate}
               onChange={(e) => setToDate(e.target.value)}
             />
-            <FaCalendar color="#9CA3AF" size={14} />
+            <FaCalendar color="text_muted" size={14} />
           </HStack>
         </VStack>
 

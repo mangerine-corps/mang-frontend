@@ -265,8 +265,8 @@ const LanguageItem = ({
           <Button
             borderColor="primary.300"
             borderWidth={1}
-            color={"white"}
-            bg={"white"}
+            color={"text_primary"}
+            bg="bg_box"
             py={2}
             rounded="6px"
             minW="160px"
@@ -289,9 +289,9 @@ const LanguageItem = ({
             </Text>
           </Button>
           <Button
-            bg="#111D4A"
+            bg="button_bg"
             borderWidth={1}
-            color={"white"}
+            color={"button_text"}
             borderColor={"#111D4A"}
             py={2}
             minW="160px"
@@ -308,7 +308,7 @@ const LanguageItem = ({
             <Text
               ml={2}
               className="text5"
-              color={"white"}
+              color={"button_text"}
               fontSize={"0.875rem"}
               fontWeight={"500"}
             >

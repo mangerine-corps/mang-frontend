@@ -46,7 +46,7 @@ const Feedback = () => {
                 </Text>
               </VStack>
               <Stack
-                bg="#EEFBF3"
+                bg="green.50" _dark={{ bg: "green.900" }}
                 justifyContent={"center"}
                 objectFit={"contain"}
                 alignItems={"center"}
@@ -83,7 +83,7 @@ const Feedback = () => {
                 </Text>
               </VStack>
               <Stack
-                bg="#F5F3FF"
+                bg="purple.50" _dark={{ bg: "purple.900" }}
                 justifyContent={"center"}
                 objectFit={"contain"}
                 alignItems={"center"}

@@ -116,7 +116,7 @@ const NotificationItem: React.FC<NotificationItemProps> = ({
 
   return (
     <Box
-      bg="white"
+      bg="bg_box"
       border="1px solid"
       borderColor={notification.read ? "gray.200" : "blue.200"}
       borderRadius="lg"
@@ -416,7 +416,7 @@ export const FloatingNotification: React.FC<FloatingNotificationProps> = ({
         {/* Notifications Panel */}
         {isOpen && (
           <Box
-            bg="white"
+            bg="bg_box"
             borderRadius="lg"
             boxShadow="2xl"
             p={4}

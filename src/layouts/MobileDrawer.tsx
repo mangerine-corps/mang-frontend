@@ -23,6 +23,7 @@ import { useRouter } from "next/router";
 import { useGetUnreadTotalMessagesQuery } from "mangarine/state/services/chat-management.service";
 import { FiHeart, FiSettings, FiUser, FiHelpCircle } from "react-icons/fi";
 import { type SVGProps } from "react";
+import { useColorMode } from "mangarine/components/ui/color-mode";
 
 const noScrollbar = {
   "&::-webkit-scrollbar": { width: "0px" },
@@ -68,6 +69,8 @@ type QuickLink = {
 
 export const MobileDrawer = () => {
   const [isClient, setIsClient] = useState(false);
+  const { colorMode } = useColorMode();
+  const isDark = colorMode === "dark";
   const { user } = useAuth();
   const dispatch = useDispatch();
   const router = useRouter();
@@ -118,7 +121,7 @@ export const MobileDrawer = () => {
                     px={3}
                     py={3}
                     borderRadius="14px"
-                    bg="#F4F5FA"
+                    bg={isDark ? "whiteAlpha.100" : "#F4F5FA"}
                     cursor="pointer"
                     onClick={() => router.push("/profile")}
                     gap={3}
@@ -136,7 +139,7 @@ export const MobileDrawer = () => {
                         {user?.email}
                       </Text>
                     </VStack>
-                    <Text fontSize="0.75rem" color="#111D4A" fontWeight="600" flexShrink={0}>
+                    <Text fontSize="0.75rem" color="button_bg" fontWeight="600" flexShrink={0}>
                       View →
                     </Text>
                   </HStack>
@@ -187,7 +190,7 @@ export const MobileDrawer = () => {
                         cursor="pointer"
                         gap={3}
                         onClick={item.action}
-                        _hover={{ bg: "#F4F5FA" }}
+                        _hover={{ bg: isDark ? "whiteAlpha.100" : "#F4F5FA" }}
                         transition="background 0.15s"
                       >
                         <Icon as={item.icon} boxSize={4} color="text_primary" />
@@ -213,7 +216,7 @@ export const MobileDrawer = () => {
                       <HStack
                         key={item.label}
                         px={3} py={2.5} borderRadius="10px" cursor="pointer" gap={3}
-                        onClick={item.action} _hover={{ bg: "#F4F5FA" }} transition="background 0.15s"
+                        onClick={item.action} _hover={{ bg: isDark ? "whiteAlpha.100" : "#F4F5FA" }} transition="background 0.15s"
                       >
                         <Icon as={item.icon} boxSize={4} color="text_primary" />
                         <Text fontSize="0.875rem" color="text_primary" fontWeight="400">{item.label}</Text>
@@ -231,7 +234,7 @@ export const MobileDrawer = () => {
                     borderRadius="10px"
                     gap={3}
                     onClick={logout}
-                    _hover={{ bg: "#FFF5F5" }}
+                    _hover={{ bg: isDark ? "red.900" : "#FFF5F5" }}
                     transition="background 0.15s"
                   >
                     <Icon color="red.500">

@@ -221,7 +221,7 @@ const BookingCalendar = () => {
       bg="bg_box"
       rounded="xl"
       borderWidth="1px"
-      borderColor="#E8E8E9"
+      borderColor="border_background"
       p={4}
       w="full"
       display={{ base: "none", md: "block", lg: "block" }}
@@ -290,7 +290,7 @@ const BookingCalendar = () => {
 
         <Flex
           borderWidth="1px"
-          borderColor="#E8E8E9"
+          borderColor="border_background"
           rounded="xl"
           overflow="hidden"
           minH="116px"
@@ -304,13 +304,13 @@ const BookingCalendar = () => {
                 key={day.key}
                 flex="1"
                 borderLeftWidth={index === 0 ? "0" : "1px"}
-                borderColor="#E8E8E9"
+                borderColor="border_background"
               >
                 <Box
                   py={3}
                   px={3}
                   borderBottomWidth="1px"
-                  borderColor="#E8E8E9"
+                  borderColor="border_background"
                   textAlign="center"
                 >
                   <Text

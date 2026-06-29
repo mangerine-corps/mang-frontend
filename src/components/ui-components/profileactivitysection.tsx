@@ -133,7 +133,7 @@ const ProfileActivitySection = ({
               />
 
               <Text
-                color="#8C8C8C"
+                color="text_muted"
                 fontSize={{ base: "0.95rem", lg: "1.05rem" }}
                 lineHeight="1.8"
               >
@@ -142,8 +142,8 @@ const ProfileActivitySection = ({
 
               {isOwnProfile && (
                 <Button
-                  bg="#111D4A"
-                  color="white"
+                  bg="button_bg"
+                  color="button_text"
                   px={6}
                   rounded="md"
                   onClick={() => setOpenCreatePost(true)}
@@ -170,7 +170,7 @@ const ProfileActivitySection = ({
                 key={image.id}
                 overflow="hidden"
                 rounded="12px"
-                bg="#F6F7FB"
+                bg="bd_background"
                 aspectRatio={1}
               >
                 <Image

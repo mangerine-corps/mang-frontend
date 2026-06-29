@@ -147,7 +147,7 @@ const DashboardCard = () => {
           w="full"
           borderWidth="2px"
           borderStyle="solid"
-          borderColor="#E8E8E9"
+          borderColor="border_background"
           borderRadius="16px"
           bg="transparent"
           p="8px"

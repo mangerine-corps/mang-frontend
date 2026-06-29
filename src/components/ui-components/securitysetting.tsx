@@ -75,7 +75,7 @@ const PrimaryButton = ({ onClick, loading, disabled, children }: {
   onClick: () => void; loading?: boolean; disabled?: boolean; children: React.ReactNode;
 }) => (
   <Button
-    bg="#111D4A" color="white" rounded="md" px={5}
+    bg="button_bg" color="button_text" rounded="md" px={5}
     fontSize="0.875rem" fontWeight="500"
     loading={loading} onClick={onClick}
     _hover={{ bg: "#1a2a6c" }} disabled={disabled}
@@ -153,7 +153,7 @@ const TfaSection = ({ title, description, step, onActivate, onDeactivate, activa
         </HStack>
         <Box flexShrink={0} pl={2}>
           {step === "idle" && (
-            <Text cursor="pointer" onClick={onActivate} fontSize="0.825rem" fontWeight="600" color="#111D4A" whiteSpace="nowrap">
+            <Text cursor="pointer" onClick={onActivate} fontSize="0.825rem" fontWeight="600" color="button_bg" whiteSpace="nowrap">
               {activating ? "Setting up…" : "Activate"}
             </Text>
           )}

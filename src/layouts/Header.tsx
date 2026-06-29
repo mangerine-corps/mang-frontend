@@ -135,7 +135,7 @@ const Header = () => {
   return (
     <Flex
       as="header"
-      bg="#FFFFFF"
+      bg="bg_box"
       borderBottomWidth="1px"
       borderColor={panelBorder}
       w="full"

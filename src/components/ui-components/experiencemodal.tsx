@@ -411,7 +411,7 @@ const ExperienceItem = ({
             borderColor="primary.300"
             borderWidth={1}
             color={"white"}
-            bg={"white"}
+            bg="bg_box"
             py={2}
             rounded="6px"
             w="45%"
@@ -434,7 +434,7 @@ const ExperienceItem = ({
             </Text>
           </Button>
           <Button
-            bg="#111D4A"
+            bg="button_bg"
             borderWidth={1}
             color={"white"}
             borderColor={"#111D4A"}

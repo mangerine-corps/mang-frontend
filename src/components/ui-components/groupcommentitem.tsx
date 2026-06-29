@@ -328,7 +328,7 @@ export const GroupCommentItem = () => {
           <Button
             bg="primary.300"
             borderWidth={1}
-            color={"white"}
+            color={"button_text"}
             borderColor={"gray.50"}
             py={2}
             w="full"
@@ -344,7 +344,7 @@ export const GroupCommentItem = () => {
             <Text
               ml={2}
               className="text5"
-              color={"white"}
+              color={"button_text"}
               fontSize={"0.875rem"}
               fontWeight={"500"}
             >

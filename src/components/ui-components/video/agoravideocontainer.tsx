@@ -427,7 +427,7 @@ export const PreJoinPanel: React.FC<{
                             size="sm"
                             variant="outline"
                             borderColor="#1C275D"
-                            color="#1C275D"
+                            color="button_bg"
                             borderRadius="8px"
                             onClick={onRetry}
                             _hover={{ bg: "#f0f2f8" }}
@@ -1875,7 +1875,7 @@ const VideoContainer = ({ consultationId }: { consultationId?: string }) => {
                 <Button
                     variant="outline"
                     borderColor="#1C275D"
-                    color="#1C275D"
+                    color="button_bg"
                     borderRadius="10px"
                     fontFamily="Outfit"
                     loading={isCheckingRejoin}
@@ -1968,7 +1968,7 @@ const VideoContainer = ({ consultationId }: { consultationId?: string }) => {
         return (
             <Flex justify="center" align="center" h="100vh" direction="column" gap={3} bg="white">
                 <Box w="40px" h="40px" borderRadius="full" bg="#f0f2f8" display="flex" alignItems="center" justifyContent="center">
-                    <IoCall size={20} color="#1C275D" />
+                    <IoCall size={20} color="button_bg" />
                 </Box>
                 <Text fontSize="0.95rem" color="#5f6368">Loading consultation...</Text>
             </Flex>
@@ -2356,9 +2356,9 @@ const VideoContainer = ({ consultationId }: { consultationId?: string }) => {
                                                             <Box px={4} pt={2} pb={1}>
                                                                 <HStack gap={2} mb={2}>
                                                                     <Box p={1.5} bg="#f0f4ff" borderRadius="8px">
-                                                                        <Mic size={13} color="#1C275D" />
+                                                                        <Mic size={13} color="button_bg" />
                                                                     </Box>
-                                                                    <Text fontSize="0.75rem" fontWeight="700" color="#1C275D" letterSpacing="0.04em" textTransform="uppercase">Microphone</Text>
+                                                                    <Text fontSize="0.75rem" fontWeight="700" color="button_bg" letterSpacing="0.04em" textTransform="uppercase">Microphone</Text>
                                                                 </HStack>
                                                                 {microphones.map(d => {
                                                                     const isActive = d.deviceId === activeMicId;
@@ -2376,7 +2376,7 @@ const VideoContainer = ({ consultationId }: { consultationId?: string }) => {
                                                                             <Text fontSize="0.82rem" color={isActive ? "#1C275D" : "#444"} fontWeight={isActive ? "600" : "400"} lineClamp={1}>
                                                                                 {d.label || `Microphone ${d.deviceId.slice(0, 6)}`}
                                                                             </Text>
-                                                                            {isActive && <Check size={14} color="#1C275D" />}
+                                                                            {isActive && <Check size={14} color="button_bg" />}
                                                                         </HStack>
                                                                     );
                                                                 })}
@@ -2388,9 +2388,9 @@ const VideoContainer = ({ consultationId }: { consultationId?: string }) => {
                                                                     <Box px={4} pb={2}>
                                                                         <HStack gap={2} mb={2}>
                                                                             <Box p={1.5} bg="#f0f4ff" borderRadius="8px">
-                                                                                <Volume2 size={13} color="#1C275D" />
+                                                                                <Volume2 size={13} color="button_bg" />
                                                                             </Box>
-                                                                            <Text fontSize="0.75rem" fontWeight="700" color="#1C275D" letterSpacing="0.04em" textTransform="uppercase">Speaker</Text>
+                                                                            <Text fontSize="0.75rem" fontWeight="700" color="button_bg" letterSpacing="0.04em" textTransform="uppercase">Speaker</Text>
                                                                         </HStack>
                                                                         {speakers.map(d => {
                                                                             const isActive = d.deviceId === activeSpeakerId;
@@ -2408,7 +2408,7 @@ const VideoContainer = ({ consultationId }: { consultationId?: string }) => {
                                                                                     <Text fontSize="0.82rem" color={isActive ? "#1C275D" : "#444"} fontWeight={isActive ? "600" : "400"} lineClamp={1}>
                                                                                         {d.label || `Speaker ${d.deviceId.slice(0, 6)}`}
                                                                                     </Text>
-                                                                                    {isActive && <Check size={14} color="#1C275D" />}
+                                                                                    {isActive && <Check size={14} color="button_bg" />}
                                                                                 </HStack>
                                                                             );
                                                                         })}
@@ -2450,9 +2450,9 @@ const VideoContainer = ({ consultationId }: { consultationId?: string }) => {
                                                             <Box px={4} pt={2} pb={2}>
                                                                 <HStack gap={2} mb={2}>
                                                                     <Box p={1.5} bg="#f0f4ff" borderRadius="8px">
-                                                                        <Video size={13} color="#1C275D" />
+                                                                        <Video size={13} color="button_bg" />
                                                                     </Box>
-                                                                    <Text fontSize="0.75rem" fontWeight="700" color="#1C275D" letterSpacing="0.04em" textTransform="uppercase">Camera</Text>
+                                                                    <Text fontSize="0.75rem" fontWeight="700" color="button_bg" letterSpacing="0.04em" textTransform="uppercase">Camera</Text>
                                                                 </HStack>
                                                                 {cameras.map(d => {
                                                                     const isActive = d.deviceId === activeCameraId;
@@ -2470,7 +2470,7 @@ const VideoContainer = ({ consultationId }: { consultationId?: string }) => {
                                                                             <Text fontSize="0.82rem" color={isActive ? "#1C275D" : "#444"} fontWeight={isActive ? "600" : "400"} lineClamp={1}>
                                                                                 {d.label || `Camera ${d.deviceId.slice(0, 6)}`}
                                                                             </Text>
-                                                                            {isActive && <Check size={14} color="#1C275D" />}
+                                                                            {isActive && <Check size={14} color="button_bg" />}
                                                                         </HStack>
                                                                     );
                                                                 })}

@@ -71,7 +71,7 @@ const BlockConsultant = ({ onOpenChange, isOpen, data, onBlocked }: props) => {
                   h="44px"
                   borderRadius="10px"
                   variant="outline"
-                  borderColor="#B5B9C7"
+                  borderColor="input_border"
                   color="text_primary"
                   fontSize="0.875rem"
                   fontWeight="600"
@@ -84,12 +84,12 @@ const BlockConsultant = ({ onOpenChange, isOpen, data, onBlocked }: props) => {
                   flex="1"
                   h="44px"
                   borderRadius="10px"
-                  bg="#111D4A"
-                  color="white"
+                  bg="button_bg"
+                  color="button_text"
                   fontSize="0.875rem"
                   fontWeight="600"
                   fontFamily="Outfit"
-                  _hover={{ bg: "#111D4A" }}
+                  _hover={{ opacity: 0.85 }}
                   loading={isLoading}
                   onClick={handleBlockUser}
                 >

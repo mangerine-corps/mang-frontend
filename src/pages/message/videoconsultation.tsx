@@ -50,7 +50,7 @@ class VideoErrorBoundary extends Component<
               {this.state.message}
             </Text>
             <Button
-              bg="#1C275D"
+              bg="primary.600"
               color="white"
               borderRadius="10px"
               onClick={() => {

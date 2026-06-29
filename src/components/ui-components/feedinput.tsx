@@ -289,7 +289,7 @@ const addTag =(username:string)=>{
               px={4}
               py={3}
               borderBottomWidth="1px"
-              borderColor="#E8E8E9"
+              borderColor="border_background"
               justifyContent="space-between"
               alignItems="center"
             >
@@ -306,8 +306,8 @@ const addTag =(username:string)=>{
                 Create Post
               </Text>
               <Button
-                bg="#111D4A"
-                color="white"
+                bg="button_bg"
+                color="button_text"
                 size="sm"
                 borderRadius="8px"
                 px={4}
@@ -327,7 +327,7 @@ const addTag =(username:string)=>{
               </Avatar.Root>
               <HStack
                 borderWidth="1px"
-                borderColor="#E8E8E9"
+                borderColor="border_background"
                 borderRadius="full"
                 px={3}
                 py={1}
@@ -399,7 +399,7 @@ const addTag =(username:string)=>{
               px={4}
               py={3}
               borderTopWidth="1px"
-              borderColor="#E8E8E9"
+              borderColor="border_background"
               gap={4}
             >
               <Box onClick={handleImageClick} cursor="pointer">
@@ -786,8 +786,8 @@ const addTag =(username:string)=>{
                   Cancel
                 </Button>
                 <Button
-                  bg="#111D4A"
-                  color="white"
+                  bg="button_bg"
+                  color="button_text"
                   size="sm"
                   borderRadius="8px"
                   px={5}

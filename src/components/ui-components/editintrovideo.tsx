@@ -196,7 +196,7 @@ const EditIntroVideoModal = ({
         <Button
           borderColor="primary.300"
           borderWidth={1}
-          bg="white"
+          bg="bg_box"
           py={2}
           rounded="6px"
           flex={1}
@@ -208,9 +208,9 @@ const EditIntroVideoModal = ({
           </Text>
         </Button>
         <Button
-          bg="#111D4A"
+          bg="button_bg"
           borderWidth={1}
-          borderColor="#111D4A"
+          borderColor="button_bg"
           py={2}
           flex={1}
           loading={isLoading}

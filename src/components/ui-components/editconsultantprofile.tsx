@@ -185,7 +185,7 @@ const EditConsultantProfileCard = ({
             flexShrink={0}
             rounded="full"
             border="3px solid"
-            borderColor="#B5B9C7"
+            borderColor="input_border"
             bg="bg_box"
             overflow="hidden"
             boxSize={{ base: "88px", lg: "148px" }}
@@ -215,7 +215,7 @@ const EditConsultantProfileCard = ({
                 h="32px"
                 px={3}
                 bg="bg_box"
-                borderColor="#B5B9C7"
+                borderColor="input_border"
                 onClick={() => setOpen(true)}
               >
                 <BiSolidEditAlt />
@@ -283,7 +283,7 @@ const EditConsultantProfileCard = ({
                               {typeof window !== "undefined" ? `${window.location.origin}/profile/${info?.id}` : `/profile/${info?.id}`}
                             </Text>
                             <Button
-                              size="xs" bg="#111D4A" color="white" borderRadius="8px"
+                              size="xs" bg="button_bg" color="button_text" borderRadius="8px"
                               fontFamily="Outfit" fontWeight="600" fontSize="0.75rem" px={3} flexShrink={0}
                               w={{ base: "full", sm: "auto" }}
                               _hover={{ bg: "#0D173B" }}

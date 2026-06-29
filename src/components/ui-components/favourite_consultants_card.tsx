@@ -134,7 +134,7 @@ const FavouriteConsultantsComp = () => {
                   <Text fontSize="sm" fontWeight="bold" color="text_primary" truncate>
                     {item?.consultant?.fullName}
                   </Text>
-                  <Text fontSize="xs" fontWeight="400" color="#999" truncate>
+                  <Text fontSize="xs" fontWeight="400" color="text_muted" truncate>
                     {item?.consultant?.businessName}
                   </Text>
                 </Box>

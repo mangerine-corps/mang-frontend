@@ -215,10 +215,10 @@ const SkillItem = ({
         <Button
           flex={1}
           rounded="6px"
-          bg="#111D4A"
-          borderColor="#111D4A"
+          bg="button_bg"
+          borderColor="button_bg"
           color="white"
-          _hover={{ bg: "#111D4A" }}
+          _hover={{ opacity: 0.85 }}
           loading={isLoading}
           onClick={handleSave}
           h="44px"

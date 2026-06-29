@@ -23,7 +23,7 @@ const SearchInput = ({  }) => {
         bg="gray.50"
         w="100%"
       >
-        <BiSearch color="#999" size="18px" />
+        <BiSearch color="text_muted" size="18px" />
         <Text fontSize="14px" color="gray.600" mx={2} whiteSpace="nowrap">
           Search Settings
         </Text>

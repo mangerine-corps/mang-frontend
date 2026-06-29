@@ -183,7 +183,7 @@ const NewMessageDrawer = ({ open, onOpenChange }: Props) => {
             maxH="80vh"
             p={{ base: 5, md: 7 }}
             borderRadius="18px"
-            bg="white"
+            bg="bg_box"
             boxShadow="0 24px 80px rgba(17, 29, 74, 0.16)"
           >
             <Dialog.CloseTrigger asChild>
@@ -193,9 +193,9 @@ const NewMessageDrawer = ({ open, onOpenChange }: Props) => {
                 top="20px"
                 right="20px"
                 size="sm"
-                bg="white"
+                bg="bg_box"
                 borderWidth="1px"
-                borderColor="#EEF0F4"
+                borderColor="border_background"
                 borderRadius="12px"
                 boxShadow="0 6px 18px rgba(17, 29, 74, 0.08)"
               />
@@ -213,7 +213,7 @@ const NewMessageDrawer = ({ open, onOpenChange }: Props) => {
                   >
                     New Message
                   </Text>
-                  <Text fontSize="0.84rem" color="#9CA3AF">
+                  <Text fontSize="0.84rem" color="text_muted">
                     You can only message consultants you&apos;ve booked with.
                   </Text>
                 </VStack>
@@ -225,7 +225,7 @@ const NewMessageDrawer = ({ open, onOpenChange }: Props) => {
                     top="50%"
                     left="16px"
                     transform="translateY(-50%)"
-                    color="#9CA3AF"
+                    color="text_muted"
                     zIndex={1}
                   >
                     <LuSearch size={16} />
@@ -236,8 +236,8 @@ const NewMessageDrawer = ({ open, onOpenChange }: Props) => {
                     placeholder="Search consultants"
                     h="46px"
                     borderRadius="10px"
-                    borderColor="#EEF0F4"
-                    bg="#FCFCFD"
+                    borderColor="border_background"
+                    bg="bg_box"
                     ps="42px"
                     _placeholder={{ color: "#B0B5C2", fontSize: "0.875rem" }}
                     _focusVisible={{ borderColor: "#1C275D", boxShadow: "none" }}
@@ -260,7 +260,7 @@ const NewMessageDrawer = ({ open, onOpenChange }: Props) => {
                       ))
                     ) : (
                       <Box py={10} textAlign="center">
-                        <Text fontSize="0.92rem" color="#7B8190">
+                        <Text fontSize="0.92rem" color="text_muted">
                           No consultants found for &ldquo;{search}&rdquo;.
                         </Text>
                       </Box>
@@ -306,7 +306,7 @@ const NewMessageDrawer = ({ open, onOpenChange }: Props) => {
                         </>
                       ) : recentContacts.length === 0 ? (
                         <Box py={10} textAlign="center">
-                          <Text fontSize="0.92rem" color="#7B8190">
+                          <Text fontSize="0.92rem" color="text_muted">
                             Search for a consultant to message.
                           </Text>
                         </Box>
@@ -324,15 +324,15 @@ const NewMessageDrawer = ({ open, onOpenChange }: Props) => {
                     px={4}
                     py={3}
                     borderRadius="14px"
-                    bg="#FFF8EC"
+                    bg="time_box"
                     borderWidth="1px"
-                    borderColor="#F6C960"
+                    borderColor="yellow.400"
                   >
                     <VStack align="stretch" gap={0}>
-                      <Text fontSize="0.84rem" fontWeight="600" color="#92620A">
+                      <Text fontSize="0.84rem" fontWeight="600" color="yellow.800" _dark={{ color: "yellow.300" }}>
                         No active conversation
                       </Text>
-                      <Text fontSize="0.78rem" color="#B07C2A">
+                      <Text fontSize="0.78rem" color="yellow.700" _dark={{ color: "yellow.400" }}>
                         Book an appointment first to unlock messaging.
                       </Text>
                     </VStack>
@@ -380,7 +380,7 @@ const SectionLabel = ({ children, mt = 0 }: { children: React.ReactNode; mt?: nu
   <Text
     fontSize="0.75rem"
     fontWeight="600"
-    color="#9CA3AF"
+    color="text_muted"
     textTransform="uppercase"
     letterSpacing="0.06em"
     px={3}
@@ -432,7 +432,7 @@ const PersonRow = ({
         ) : null}
       </HStack>
       {person.subtitle ? (
-        <Text fontSize="0.82rem" color="#9CA3AF" lineClamp={1}>
+        <Text fontSize="0.82rem" color="text_muted" lineClamp={1}>
           {person.subtitle}
         </Text>
       ) : null}

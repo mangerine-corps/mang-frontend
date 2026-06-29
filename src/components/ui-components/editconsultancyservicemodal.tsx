@@ -166,7 +166,7 @@ const EditConsultancyServiceModal = ({ open, onOpenChange, service }: EditConsul
                 )}
               />
 
-              <Box rounded="10px" bg="#f2f2f2" my={4} w={"full"} h={44} display={"flex"} flexDir={"column"} justifyContent={"center"} alignItems={"center"}>
+              <Box rounded="10px" bg="border_background" my={4} w={"full"} h={44} display={"flex"} flexDir={"column"} justifyContent={"center"} alignItems={"center"}>
                 <input id="hidden-file-input-edit" type="file" accept="image/*" style={{ display: "none" }} onChange={handleFileChange} />
                 {previewUrl ? (
                   <Image cursor={"pointer"} onClick={handleImageClick} w={"100%"} h={"full"} src={previewUrl} alt={"selectedimage"} />
@@ -176,7 +176,7 @@ const EditConsultancyServiceModal = ({ open, onOpenChange, service }: EditConsul
               </Box>
 
               <HStack w="full" spaceX={6}>
-                <Button borderColor="primary.300" borderWidth={1} color={"white"} bg={"white"} py={2} rounded="6px" flex={1} onClick={onOpenChange}>
+                <Button borderColor="primary.300" borderWidth={1} color="text_primary" bg="transparent" borderColor="border_background" py={2} rounded="6px" flex={1} onClick={onOpenChange}>
                   <Text className="text5" color={"primary.300"} fontSize={"0.875rem"} fontWeight={"500"}>
                     Cancel
                   </Text>

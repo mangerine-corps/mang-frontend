@@ -319,7 +319,7 @@ const AddWorkDrawer = ({
             {/* Media upload */}
             {mode === "media" && (
               <Box w="full">
-                <Text color="#999999" fontSize="0.75rem" fontWeight="400" mb={2}>
+                <Text color="text_muted" fontSize="0.75rem" fontWeight="400" mb={2}>
                   Media
                   {!isEditing && (
                     <Text as="span" color="red.400" ml={1}>*</Text>
@@ -371,7 +371,7 @@ const AddWorkDrawer = ({
               control={control}
               render={({ field: { onChange, value } }) => (
                 <VStack w="full" alignItems="flex-start" gap={0}>
-                  <Text color="#999999" fontSize="0.75rem" fontWeight="400" mb={2}>
+                  <Text color="text_muted" fontSize="0.75rem" fontWeight="400" mb={2}>
                     Work Description
                     <Text as="span" color="red.400" ml={1}>*</Text>
                   </Text>
@@ -398,7 +398,7 @@ const AddWorkDrawer = ({
               <Button
                 borderColor="primary.300"
                 borderWidth={1}
-                bg="white"
+                bg="bg_box"
                 py={2}
                 rounded="6px"
                 flex={1}
@@ -407,12 +407,12 @@ const AddWorkDrawer = ({
                 <Text color="primary.300" fontSize="0.875rem" fontWeight="500">Cancel</Text>
               </Button>
               <Button
-                bg="#111D4A"
+                bg="button_bg"
                 borderWidth={1}
-                borderColor="#111D4A"
+                borderColor="button_bg"
                 py={2}
                 flex={1}
-                _hover={{ bg: "#111D4A" }}
+                _hover={{ opacity: 0.85 }}
                 loading={isEditing ? isLoading : addwork}
                 onClick={handleSubmit(createWork, (e) => console.log(e))}
               >

@@ -86,7 +86,7 @@ const SidebarSearchField = ({
         top="50%"
         left="16px"
         transform="translateY(-50%)"
-        color="#9CA3AF"
+        color="text_muted"
         zIndex={1}
       >
         <LuSearch size={16} />
