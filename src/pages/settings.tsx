@@ -118,6 +118,7 @@ const Settings = () => {
       borderRight="1px"
       borderBottom="1px"
       borderLeft="1px"
+      borderColor="border_background"
       overflow="hidden"
       display="flex"
       flexDirection="column"
@@ -129,7 +130,7 @@ const Settings = () => {
           flex={1.5}
           borderRight="1px"
           h="full"
-          borderColor="gray.200"
+          borderColor="border_background"
           display={{ base: "none", lg: "flex" }}
           flexDirection="column"
           minW={0}
@@ -197,16 +198,17 @@ const Settings = () => {
                     boxSize={{ lg: "8", xl: "10" }}
                     borderRadius="full"
                     bg={item.iconCircleBg}
+                    _dark={{ bg: "whiteAlpha.200" }}
                     flexShrink={0}
                     marginRight={{ lg: "3", xl: "4" }}
                   >
-                    <Image src={item.icon} alt={item.text} boxSize={{ lg: "4", xl: "5" }} />
+                    <Image src={item.icon} alt={item.text} boxSize={{ lg: "4", xl: "5" }} _dark={{ filter: "invert(1)" }} />
                   </Box>
-                  <Text fontSize={{ lg: "1rem", xl: "1.2rem" }} fontFamily="Outfit" fontWeight="500" truncate>
+                  <Text fontSize={{ lg: "1rem", xl: "1.2rem" }} fontFamily="Outfit" fontWeight="500" truncate color="text_primary">
                     {item.text}
                   </Text>
                 </Flex>
-                <Image src={item.iconBg} alt="arrow" />
+                <Image src={item.iconBg} alt="arrow" _dark={{ filter: "invert(1)" }} />
               </Flex>
             ))}
           </Box>
@@ -283,15 +285,16 @@ const Settings = () => {
                     boxSize={10}
                     borderRadius="full"
                     bg={item.iconCircleBg}
+                    _dark={{ bg: "whiteAlpha.200" }}
                     flexShrink={0}
                   >
-                    <Image src={item.icon} alt={item.text} boxSize={5} />
+                    <Image src={item.icon} alt={item.text} boxSize={5} _dark={{ filter: "invert(1)" }} />
                   </Box>
                   <Text fontFamily="Outfit" fontWeight="500" fontSize="1rem" color="text_primary">
                     {item.text}
                   </Text>
                 </HStack>
-                <Image src={item.iconBg} alt="arrow" boxSize={4} />
+                <Image src={item.iconBg} alt="arrow" boxSize={4} _dark={{ filter: "invert(1)" }} />
               </Flex>
             ))}
           </Box>
@@ -310,7 +313,7 @@ const Settings = () => {
             px={4}
             py={3}
             borderBottomWidth="1px"
-            borderBottomColor="gray.200"
+            borderBottomColor="border_background"
             bg="main_background"
             gap={3}
             flexShrink={0}

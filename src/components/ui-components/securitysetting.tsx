@@ -55,7 +55,7 @@ const OtpBoxes = ({ otp, onChange }: { otp: string; onChange: (v: string) => voi
           minW="40px"
           maxW="40px"
           color="text_primary"
-          borderColor={size(otp) > index ? "primary.200" : "gray.200"}
+          borderColor={size(otp) > index ? "primary.200" : "border_background"}
           focusRingColor="primary.200"
           textAlign="center"
           css={{
@@ -78,7 +78,7 @@ const PrimaryButton = ({ onClick, loading, disabled, children }: {
     bg="button_bg" color="button_text" rounded="md" px={5}
     fontSize="0.875rem" fontWeight="500"
     loading={loading} onClick={onClick}
-    _hover={{ bg: "#1a2a6c" }} disabled={disabled}
+    _hover={{ opacity: 0.85 }} disabled={disabled}
     w={{ base: "full", sm: "auto" }}
   >
     {children}
@@ -177,7 +177,7 @@ const TfaSection = ({ title, description, step, onActivate, onDeactivate, activa
   </Box>
 );
 
-const ExpandBox = ({ children, borderColor = "gray.200" }: { children: React.ReactNode; borderColor?: string }) => (
+const ExpandBox = ({ children, borderColor = "border_background" }: { children: React.ReactNode; borderColor?: string }) => (
   <Box borderTopWidth="1px" borderColor={borderColor} pt={3} mb={4}>
     <VStack align="stretch" gap={3}>
       {children}
@@ -231,7 +231,7 @@ const EmailTfa = ({ initialActive, enablePhone2FA, enableApp2FA }: { initialActi
         <ExpandBox>
           <Text fontSize="0.85rem" fontWeight="600" color="text_primary">Verify your email address</Text>
           <Text fontSize="0.78rem" color="grey.500">We&apos;ll send a one-time code to confirm it belongs to you.</Text>
-          <Input value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Enter your email" type="email" borderWidth={1} borderColor="gray.200" rounded="md" px={3} fontSize="0.875rem" color="text_primary" bg="main_background" />
+          <Input value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Enter your email" type="email" borderWidth={1} borderColor="border_background" rounded="md" px={3} fontSize="0.875rem" color="text_primary" bg="main_background" />
           <PrimaryButton loading={sending} onClick={sendCode}>Send Verification Code</PrimaryButton>
         </ExpandBox>
       )}

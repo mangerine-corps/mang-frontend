@@ -138,7 +138,7 @@ const Feedback = ({ onClick }: { onClick: () => void }) => {
               borderWidth={1}
               color="text_primary"
               bg="main_background"
-              borderColor="gray.100"
+              borderColor="border_background"
               rows={5}
               resize="none"
               placeholder="Tell us in detail"

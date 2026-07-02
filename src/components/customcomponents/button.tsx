@@ -44,7 +44,7 @@ const CustomButton = ({
       bg={bgColor}
       borderWidth={variant === "outline" ? 1 : 0}
       borderColor={"primary.300"}
-      color={variant === "solid" ? "white" : "primary.300"}
+      color={variant === "solid" ? "button_text" : "primary.300"}
       loading={loading}
       _hover={{ bg: bgColor, opacity: 0.9 }}
       _active={{ transform: "scale(0.96)", opacity: 0.8 }}

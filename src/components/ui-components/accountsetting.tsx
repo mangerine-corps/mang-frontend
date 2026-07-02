@@ -209,7 +209,7 @@ function AccountSetting() {
                   rightIcon={
                     <Button
                       variant={"ghost"}
-                      color={"#697586"}
+                      color={"text_muted"}
                       bg="none"
                       p={0}
                       loading={isLoading}
@@ -260,7 +260,7 @@ function AccountSetting() {
                     rightIcon={
                       <Button
                         variant={"ghost"}
-                        color={"#697586"}
+                        color={"text_muted"}
                         bg="none"
                         p={0}
                         borderWidth={0}
@@ -312,7 +312,7 @@ function AccountSetting() {
                     rightIcon={
                       <Button
                         variant={"ghost"}
-                        color={"#697586"}
+                        color={"text_muted"}
                         bg="none"
                         p={0}
                         borderWidth={0}
