@@ -794,7 +794,7 @@ const NewsItem: React.FC<NewsItemProps> = ({ post, isDetailPage = false }) => {
 
       <CommentList
         open={comment}
-        onOpenChange={(e: any) => setComment(e.open)}
+        onOpenChange={() => setComment(false)}
         data={commentsList}
         post={post}
       />
