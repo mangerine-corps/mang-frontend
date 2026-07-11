@@ -3,6 +3,7 @@ import {
   Avatar,
   Box,
   Button,
+  Field,
   HStack,
   Icon,
   Image,
@@ -68,12 +69,12 @@ const TITLE_OPTIONS = [
 
 const profileSchema = Yup.object().shape({
   fullName: Yup.string().required("Full name is required"),
-  title: Yup.string().optional(),
+  title: Yup.string().required("Title is required"),
   email: Yup.string().required("Email is required").email("Enter a valid email address"),
   location: Yup.string().required("Location is required"),
   occupation: Yup.string().required("Occupation is required"),
   dateOfBirth: Yup.date().required("Date of birth is required"),
-  bio: Yup.string().optional(),
+  bio: Yup.string().required("Bio is required").min(10, "Bio must be at least 10 characters"),
   timeZone: Yup.string().optional(),
 });
 
@@ -101,7 +102,7 @@ const EditConsultDrawer = ({
   const [resume, setResume] = useState<any>({})
   const [video, setVideo] = useState<any>({})
   const [addInfo, { isLoading: uploading }] = useUpdateDetailsMutation();
-  const { control, handleSubmit, reset } = useForm({
+  const { control, handleSubmit, reset, formState: { errors } } = useForm({
     resolver: yupResolver(profileSchema),
     defaultValues: {
       fullName: user?.fullName ?? "",
@@ -415,10 +416,10 @@ const EditConsultDrawer = ({
                   close={() => setShowToast(false)}
                 />
               )}
-              <Box w="full">
-                <Text color="text_muted" fontWeight="400" fontSize="0.75rem" mb={1}>
-                  Title
-                </Text>
+              <Field.Root w="full" invalid={!!errors.title}>
+                <Field.Label color="text_muted" fontWeight="400" fontSize="0.75rem">
+                  Title <Text as="span" color="red.500">*</Text>
+                </Field.Label>
                 <Controller
                   name="title"
                   control={control}
@@ -428,7 +429,7 @@ const EditConsultDrawer = ({
                         value={value}
                         onChange={(e) => onChange(e.target.value)}
                         borderWidth={1}
-                        borderColor="gray.100"
+                        borderColor={errors.title ? "red.500" : "gray.100"}
                         color="text_primary"
                         px={3}
                       >
@@ -465,7 +466,8 @@ const EditConsultDrawer = ({
                     </NativeSelect.Root>
                   )}
                 />
-              </Box>
+                {errors.title && <Field.ErrorText>{errors.title.message as string}</Field.ErrorText>}
+              </Field.Root>
               <Controller
                 name="fullName"
                 control={control}
@@ -586,22 +588,17 @@ const EditConsultDrawer = ({
                   />
                 )}
               />
-              <Box w="full">
-                <Text
-                  color="text_muted"
-                  fontWeight={"400"}
-                  fontSize={"0.75rem"}
-                  mb={1}
-                >
-                  Bio
-                </Text>
+              <Field.Root w="full" invalid={!!errors.bio}>
+                <Field.Label color="text_muted" fontWeight="400" fontSize="0.75rem">
+                  Bio <Text as="span" color="red.500">*</Text>
+                </Field.Label>
                 <Controller
                   name="bio"
                   control={control}
                   render={({ field: { onChange, value } }) => (
                     <Textarea
                       borderWidth={1}
-                      borderColor={"gray.100"}
+                      borderColor={errors.bio ? "red.500" : "gray.100"}
                       px="3"
                       color="text_primary"
                       rows={5}
@@ -612,7 +609,8 @@ const EditConsultDrawer = ({
                     />
                   )}
                 />
-              </Box>
+                {errors.bio && <Field.ErrorText>{errors.bio.message as string}</Field.ErrorText>}
+              </Field.Root>
               <Box w="full">
                 <Text color="text_muted" fontWeight="400" fontSize="0.75rem" mb={1}>
                   Time Zone

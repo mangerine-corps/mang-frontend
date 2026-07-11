@@ -4,6 +4,7 @@ import { useGetUpcomingConsultationQuery } from "mangarine/state/services/apoint
 import { format, isAfter, subMinutes, isBefore, addMinutes } from "date-fns";
 import { useRouter } from "next/router";
 import AreyouCancellingModal from "./modals/areyoucancelling";
+import CancelConsultation from "./modals/cancelconsultationmodal";
 import { safeProfilePic, imgErrorFallback } from "mangarine/lib/constants";
 import RescheduleConsultation from "./modals/rescheduleconsultation";
 import { LuMail, LuVideo, LuCalendar, LuClock } from "react-icons/lu";
@@ -21,6 +22,7 @@ const isJoinable = (item: any): boolean => {
 
 const ScheduledConsultation = () => {
   const [cancelId, setCancelId] = useState<string | null>(null);
+  const [showCancelSuccess, setShowCancelSuccess] = useState(false);
   const [rescheduleId, setRescheduleId] = useState<string | null>(null);
   const [, setTick] = useState(0);
   const router = useRouter();
@@ -212,6 +214,12 @@ const ScheduledConsultation = () => {
       <AreyouCancellingModal
         isOpen={!!cancelId}
         onOpenChange={() => setCancelId(null)}
+        consultationId={cancelId}
+        onSuccess={() => setShowCancelSuccess(true)}
+      />
+      <CancelConsultation
+        isOpen={showCancelSuccess}
+        onOpenChange={() => setShowCancelSuccess(false)}
       />
       <RescheduleConsultation
         isOpen={!!rescheduleId}

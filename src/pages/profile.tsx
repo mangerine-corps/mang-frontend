@@ -88,10 +88,13 @@ const Profile = () => {
   }, [profileId, router]);
 
   const { user } = useAuth();
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => { setMounted(true); }, []);
   // router.query is empty on the first render before hydration — wait for it to be ready
-  // so we never incorrectly treat a /profile/[id] route as the own-profile route
+  // so we never incorrectly treat a /profile/[id] route as the own-profile route.
+  // Also gate on `mounted` so server and initial client render agree (avoids hydration mismatch).
   const routerReady = router.isReady;
-  const isOwnProfile = routerReady ? (!profileId || profileId === user?.id) : false;
+  const isOwnProfile = mounted && routerReady ? (!profileId || profileId === user?.id) : false;
   const { works, skills, educations, experiences, languages, consultings ,contact} =
     useProfile();
   // Fetch fresh profile data — for own profile pass undefined so the API hits /users/get/

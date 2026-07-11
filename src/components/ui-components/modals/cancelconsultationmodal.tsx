@@ -97,13 +97,11 @@ const CancelConsultation = ({ onOpenChange, isOpen }: props) => {
               >
                 <CustomButton
                   customStyle={{
-                    w: "40%",
+                    flex: 1,
                     bg: "main_background",
                     borderWidth:"2px"
                   }}
-                  onClick={() => {}}
-                  // loading={isLoading}
-                  // onClick={handleSubmit(onSubmit, (error) => console.log(error))}
+                  onClick={onOpenChange}
                 >
                   <Text
                     color={"text_primary"}
@@ -111,24 +109,7 @@ const CancelConsultation = ({ onOpenChange, isOpen }: props) => {
                     fontSize={"1rem"}
                     lineHeight={"100%"}
                   >
-                    Cancel
-                  </Text>
-                </CustomButton>
-                <CustomButton
-                  customStyle={{
-                    w: "40%",
-                  }}
-                  onClick={() => {}}
-                  // loading={isLoading}
-                  // onClick={handleSubmit(onSubmit, (error) => console.log(error))}
-                >
-                  <Text
-                    color={"button_text"}
-                    fontWeight={"600"}
-                    fontSize={"1rem"}
-                    lineHeight={"100%"}
-                  >
-                    View Transactions
+                    Close
                   </Text>
                 </CustomButton>
               </HStack>

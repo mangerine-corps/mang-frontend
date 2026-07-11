@@ -1,4 +1,4 @@
-import { Box, Flex, HStack, Avatar, Textarea, VStack } from "@chakra-ui/react";
+import { Box, Flex, HStack, Avatar, Text, Textarea, VStack } from "@chakra-ui/react";
 import dynamic from "next/dynamic";
 const EmojiPicker = dynamic(() => import("emoji-picker-react"), { ssr: false, loading: () => null });
 import { useAuth } from "mangarine/state/hooks/user.hook";
@@ -9,6 +9,7 @@ import { Button } from "../ui/button";
 import { useDispatch } from "react-redux";
 import { incrementCommentCount } from "mangarine/state/reducers/post.reducer";
 import FeedAction from "./feedaction";
+import { useRouter } from "next/router";
 
 const smily = "/icons/smily.svg";
 
@@ -18,6 +19,7 @@ interface CommentInputWrapperProps {
 
 const CommentInputWrapper: React.FC<CommentInputWrapperProps> = ({ postId }) => {
   const { user } = useAuth();
+  const router = useRouter();
   const [comment, setComment] = useState("");
   const [isActive, setIsActive] = useState(false);
   const [addComment, { isLoading }] = useAddCommentMutation();
@@ -32,6 +34,28 @@ const CommentInputWrapper: React.FC<CommentInputWrapperProps> = ({ postId }) => 
   }, [postId]);
 
   if (!numericPostId) return null;
+
+  if (!user) {
+    return (
+      <Flex
+        alignItems="center" gap={3} my={6} alignSelf="stretch"
+        px={4} py={3} borderWidth={1} borderColor="border_background"
+        borderRadius="lg" cursor="pointer"
+        onClick={() => router.push("/auth/login")}
+        _hover={{ bg: "bg_box" }}
+      >
+        <Avatar.Root w={8} h={8}>
+          <Avatar.Fallback />
+        </Avatar.Root>
+        <Text fontSize="sm" color="text_muted">
+          Sign in to leave a comment…
+        </Text>
+        <Button size="sm" ml="auto" bg="button_bg" color="button_text" borderRadius="lg" px={4} onClick={() => router.push("/auth/login")}>
+          Sign in
+        </Button>
+      </Flex>
+    );
+  }
 
   const onEmojiClick = (emojiObject) => {
     setComment(`${comment} ${emojiObject.emoji}`);

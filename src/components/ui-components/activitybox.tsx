@@ -7,6 +7,7 @@ import { setUpcomingConsultation } from "mangarine/state/reducers/consultant.red
 import { isEmpty } from "es-toolkit/compat";
 import { format } from "date-fns";
 import AreyouCancellingModal from "./modals/areyoucancelling";
+import CancelConsultation from "./modals/cancelconsultationmodal";
 import { safeProfilePic, imgErrorFallback } from "mangarine/lib/constants";
 import RescheduleConsultation from "./modals/rescheduleconsultation";
 import { LuMail, LuVideo, LuCalendar, LuClock } from "react-icons/lu";
@@ -25,6 +26,7 @@ const fmtDate = (val: string) => {
 
 const ActivitiesBox = () => {
   const [cancelId, setCancelId] = useState<string | null>(null);
+  const [showCancelSuccess, setShowCancelSuccess] = useState(false);
   const [rescheduleId, setRescheduleId] = useState<string | null>(null);
   const router = useRouter();
 
@@ -204,6 +206,12 @@ const ActivitiesBox = () => {
       <AreyouCancellingModal
         isOpen={!!cancelId}
         onOpenChange={() => setCancelId(null)}
+        consultationId={cancelId}
+        onSuccess={() => setShowCancelSuccess(true)}
+      />
+      <CancelConsultation
+        isOpen={showCancelSuccess}
+        onOpenChange={() => setShowCancelSuccess(false)}
       />
       <RescheduleConsultation
         isOpen={!!rescheduleId}

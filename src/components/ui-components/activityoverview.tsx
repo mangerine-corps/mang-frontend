@@ -1,12 +1,10 @@
 import { Box, Flex, Grid, GridItem, HStack, Image, Spinner, Text, VStack } from "@chakra-ui/react";
-import { useRouter } from "next/router";
 import { useGetDashboardStatsQuery } from "mangarine/state/services/dashboard.service";
 
 const formatCurrency = (n: number) =>
   new Intl.NumberFormat(undefined, { style: "currency", currency: "USD", maximumFractionDigits: 2 }).format(n ?? 0);
 
 const ActivityOverview = () => {
-  const router = useRouter();
   const { data, isLoading } = useGetDashboardStatsQuery();
 
   const stats = data?.data ?? data ?? null;
@@ -55,19 +53,13 @@ const ActivityOverview = () => {
       )}
 
       {!isLoading && !hasData && (
-        <Box mt={5} p={4} borderRadius="lg" bg="blue.50" borderWidth="1px" borderColor="blue.100">
-          <Flex align="center" gap={2} mb={1}>
+        <Box mt={5} p={4} borderRadius="lg" bg="blue.50" borderWidth="1px" borderColor="blue.100" _dark={{ bg: "blue.900", borderColor: "blue.800" }}>
+          <Flex align="center" gap={2}>
             <Image src="/icons/emptyImg.svg" alt="no data" boxSize="18px" opacity={0.6} />
-            <Text fontSize="sm" color="blue.700" fontWeight="500">
+            <Text fontSize="sm" color="blue.700" fontWeight="500" _dark={{ color: "blue.200" }}>
               Your stats will appear here once you start receiving bookings.
             </Text>
           </Flex>
-          <Text
-            fontSize="sm" color="blue.500" fontWeight="600" cursor="pointer" textDecoration="underline"
-            onClick={() => router.push("/my-business/dashboard?tab=meetings")}
-          >
-            Set up your availability to get started →
-          </Text>
         </Box>
       )}
     </Box>

@@ -76,7 +76,7 @@ const NewsItem: React.FC<NewsItemProps> = ({ post, isDetailPage = false }) => {
     isLoading: viewsloading,
     error,
   } = useIncrementPostViewsQuery(post?.id, {
-    skip: !isPostDetailRoute,
+    skip: !isPostDetailRoute || !user,
     refetchOnMountOrArgChange: true,
   });
 
@@ -97,6 +97,7 @@ const NewsItem: React.FC<NewsItemProps> = ({ post, isDetailPage = false }) => {
   const [isBookmarked, setIsBookmarked] = useState<boolean>(Boolean((post as any)?.isBookmarked));
 
   const handleBookmark = async () => {
+    if (!user) { router.push("/auth/login"); return; }
     const prev = isBookmarked;
     setIsBookmarked(!prev);
     try {
@@ -174,15 +175,20 @@ const NewsItem: React.FC<NewsItemProps> = ({ post, isDetailPage = false }) => {
   }
 
 
-  const handleFollow = () => toggleFollow();
-  const toggleComment = () => {
+  const requireAuth = (fn: () => void) => {
+    if (!user) { router.push("/auth/login"); return; }
+    fn();
+  };
+
+  const handleFollow = () => requireAuth(() => toggleFollow());
+  const toggleComment = () => requireAuth(() => {
     if (pathname.startsWith("/posts/")) {
       setComment(true);
     } else if (pathname.startsWith("/home")) {
       router.push(`/posts/${post?.id}`);
       setComment(true);
     }
-  };
+  });
 
   useEffect(() => { }, [posts]);
 
@@ -635,7 +641,7 @@ const NewsItem: React.FC<NewsItemProps> = ({ post, isDetailPage = false }) => {
           }
           count={likeCount || 0}
           desc="Likes"
-          action={handleLikeClick}
+          action={() => requireAuth(handleLikeClick)}
           isDisabled={isLikeLoading}
         />
 

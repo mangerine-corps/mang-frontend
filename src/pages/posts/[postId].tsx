@@ -32,7 +32,7 @@ const PostPage = ({ initialPost }: PostPageProps) => {
   const { user } = useAuth();
   const dispatch = useDispatch();
   const { data: fetchedPost } = useGetPostByIdQuery(postId as string, {
-    skip: !postId,
+    skip: !postId || (!user && !!initialPost),
   });
   const { upcomingConsultation } = useConsultants();
 

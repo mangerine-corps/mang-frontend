@@ -116,8 +116,29 @@ apiClient.interceptors.request.use((config) => {
   return config;
 });
 
+let isHandling401 = false;
+
+const hadActiveSession = (): boolean => !!getPersistedAuthToken();
+
 apiClient.interceptors.response.use(
   (response) => response,
-  (error) => Promise.reject(error)
+  (error) => {
+    const status = error?.response?.status;
+    const url: string = error?.config?.url ?? "";
+    const isAuthEndpoint = url.includes("/auth/");
+
+    if (status === 401 && !isAuthEndpoint && !isHandling401 && hadActiveSession()) {
+      isHandling401 = true;
+      import("mangarine/state/store").then(({ store }) => {
+        import("mangarine/state/reducers/auth.reducer").then(({ signOut }) => {
+          store.dispatch(signOut());
+          try { localStorage.removeItem("persist:root"); } catch {}
+          window.location.href = "/auth/login";
+        });
+      });
+    }
+
+    return Promise.reject(error);
+  }
 );
 

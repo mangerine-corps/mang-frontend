@@ -5,7 +5,6 @@ import {
   LinearScale, PointElement, Tooltip, Filler,
 } from "chart.js";
 import { Line } from "react-chartjs-2";
-import { useRouter } from "next/router";
 import { useGetDashboardEarningsQuery } from "mangarine/state/services/dashboard.service";
 
 ChartJS.register(LineElement, CategoryScale, LinearScale, PointElement, Tooltip, Filler);
@@ -14,7 +13,6 @@ type Period = "day" | "week" | "month" | "year";
 
 const EarningDashboard: React.FC = () => {
   const [period, setPeriod] = useState<Period>("month");
-  const router = useRouter();
 
   const { data, isLoading } = useGetDashboardEarningsQuery({ period });
 
@@ -88,18 +86,12 @@ const EarningDashboard: React.FC = () => {
                 <Box
                   position="absolute" top="0" left="0" right="0" bottom="0"
                   display="flex" flexDir="column" alignItems="center" justifyContent="center"
-                  bg="rgba(255,255,255,0.85)" borderRadius="md"
+                  bg="rgba(255,255,255,0.85)" _dark={{ bg: "rgba(21,20,20,0.85)" }} borderRadius="md"
                 >
                   <Image src="/icons/money.svg" alt="no earnings" boxSize="32px" mb={2} opacity={0.4} />
-                  <Text fontWeight="600" color="gray.700" fontSize="md">No earnings yet</Text>
+                  <Text fontWeight="600" color="gray.700" _dark={{ color: "gray.300" }} fontSize="md">No earnings yet</Text>
                   <Text fontSize="sm" color="gray.500" textAlign="center" maxW="260px" mt={1}>
                     Complete your first consultation to start tracking your income here.
-                  </Text>
-                  <Text
-                    fontSize="sm" color="blue.500" fontWeight="600" mt={3} cursor="pointer" textDecoration="underline"
-                    onClick={() => router.push("/my-business/dashboard?tab=meetings")}
-                  >
-                    Set up your availability →
                   </Text>
                 </Box>
               )}

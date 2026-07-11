@@ -1,5 +1,4 @@
 import {
-  Button,
   Center,
   CloseButton,
   Dialog,
@@ -9,33 +8,45 @@ import {
   Text,
   VStack,
 } from "@chakra-ui/react";
-import { useState } from "react";
-import ScheduleCard from "../schedulecard";
+import { useCancelAppointmentMutation } from "mangarine/state/services/apointment.service";
 import CustomButton from "mangarine/components/customcomponents/button";
-import CancelConsultation from "./cancelconsultationmodal";
 
 type props = {
-  onOpenChange: any;
-  isOpen: any;
-  // Optional callback to run when user confirms action
+  onOpenChange: () => void;
+  isOpen: boolean;
+  consultationId?: string | null;
+  onSuccess?: () => void;
+  // Legacy: caller manages the mutation itself
   onConfirm?: () => Promise<void> | void;
-  // Optional loading state to disable buttons while confirming
   isLoading?: boolean;
 };
 
-const AreyouCancellingModal = ({ onOpenChange, isOpen, onConfirm, isLoading }: props) => {
-    const [open, setOpen] = useState<boolean>(false);
+const AreyouCancellingModal = ({
+  onOpenChange,
+  isOpen,
+  consultationId,
+  onSuccess,
+  onConfirm,
+  isLoading: externalLoading,
+}: props) => {
+  const [cancelAppointment, { isLoading: internalLoading }] = useCancelAppointmentMutation();
+  const isLoading = externalLoading ?? internalLoading;
 
-    const handleConfirm = async () => {
-      // If a custom onConfirm is provided, use it; otherwise preserve legacy behavior
-      if (onConfirm) {
-        await onConfirm();
-        onOpenChange();
-      } else {
-        onOpenChange();
-        setOpen(true);
-      }
-    };
+  const handleConfirm = async () => {
+    if (onConfirm) {
+      await onConfirm();
+      return;
+    }
+    if (!consultationId) return;
+    try {
+      await cancelAppointment({ appointmentId: consultationId }).unwrap();
+      onOpenChange();
+      onSuccess?.();
+    } catch {
+      // errors handled by RTK Query
+    }
+  };
+
   return (
     <Dialog.Root
       lazyMount
@@ -43,38 +54,23 @@ const AreyouCancellingModal = ({ onOpenChange, isOpen, onConfirm, isLoading }: p
       onOpenChange={onOpenChange}
       placement={"center"}
       size={"xs"}
-
-      // motionPreset="slide-in-bottom"
     >
-      {/* <Dialog.Trigger asChild>
-        <Button variant="outline">Open</Button>
-      </Dialog.Trigger> */}
       <Portal>
         <Dialog.Backdrop />
         <Dialog.Positioner>
           <Dialog.Content p="3" rounded={"xl"} bg="bg_box">
-            {/* <Dialog.Header>
-              <Dialog.Title>Dialog Title</Dialog.Title>
-            </Dialog.Header> */}
-            <Dialog.Body pb={4}  bg="bg_box">
-              <VStack
-              // w={{ base: "95%", md: "280px", lg: "340px", xl: "340px" }}
-              >
-                {/* Centering the image */}
+            <Dialog.Body pb={4} bg="bg_box">
+              <VStack>
                 <Center alignItems={"center"} pt="4" pb="3">
                   <Image
                     src={"/icons/cancel.svg"}
-                    alt="Regulations Image"
-                    // boxSize={6}
+                    alt="Cancel icon"
                     objectFit="contain"
-
-                    // height="auto"
                   />
                 </Center>
                 <Text
                   textAlign={"center"}
                   w="full"
-                  // px={"6"}
                   fontSize={"1.25rem"}
                   fontFamily={"Outfit"}
                   color={"text_primary"}
@@ -86,23 +82,15 @@ const AreyouCancellingModal = ({ onOpenChange, isOpen, onConfirm, isLoading }: p
                 <Text
                   textAlign={"center"}
                   w="full"
-                  // px={"6"}
                   fontSize={"0.875rem"}
                   fontFamily={"Outfit"}
                   color={"text_primary"}
                   fontWeight={"400"}
                 >
-                  You’ll lose the option to reschedule, and 10% of your payment
+                  You'll lose the option to reschedule, and 10% of your payment
                   will be deducted. Proceed?
                 </Text>
               </VStack>
-              {/* <ScheduleCard
-                title="Consultation Canceled Successfully"
-                imageSrc={"/icons/cancel.svg"}
-                content={""}
-                width="95%"
-                details="10% has been deducted, and the remaining amount is credited to your wallet."
-              /> */}
             </Dialog.Body>
             <Dialog.Footer mx="auto" w="100%" pb={6}>
               <HStack
@@ -111,7 +99,6 @@ const AreyouCancellingModal = ({ onOpenChange, isOpen, onConfirm, isLoading }: p
                 alignItems={"center"}
                 justifyContent={"center"}
                 flexDir={"row"}
-                // mx="auto"
               >
                 <CustomButton
                   customStyle={{
@@ -122,8 +109,6 @@ const AreyouCancellingModal = ({ onOpenChange, isOpen, onConfirm, isLoading }: p
                   onClick={() => {
                     if (!isLoading) onOpenChange();
                   }}
-                  // loading={isLoading}
-                  // onClick={handleSubmit(onSubmit, (error) => console.log(error))}
                 >
                   <Text
                     color={"text_primary"}
@@ -135,13 +120,9 @@ const AreyouCancellingModal = ({ onOpenChange, isOpen, onConfirm, isLoading }: p
                   </Text>
                 </CustomButton>
                 <CustomButton
-                  customStyle={{
-                    w: "40%",
-                  }}
+                  customStyle={{ w: "40%" }}
                   onClick={handleConfirm}
-                  loading={Boolean(isLoading)}
-                  // loading={isLoading}
-                  // onClick={handleSubmit(onSubmit, (error) => console.log(error))}
+                  loading={isLoading}
                 >
                   <Text
                     color={"button_text"}
@@ -152,9 +133,7 @@ const AreyouCancellingModal = ({ onOpenChange, isOpen, onConfirm, isLoading }: p
                     Yes, you can
                   </Text>
                 </CustomButton>
-
               </HStack>
-              <CancelConsultation isOpen={open} onOpenChange={()=>{setOpen(false)}}/>
             </Dialog.Footer>
             <Dialog.CloseTrigger asChild>
               <CloseButton size="sm" />
@@ -166,4 +145,3 @@ const AreyouCancellingModal = ({ onOpenChange, isOpen, onConfirm, isLoading }: p
   );
 };
 export default AreyouCancellingModal;
-

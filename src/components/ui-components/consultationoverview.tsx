@@ -1,9 +1,7 @@
 import { Box, Flex, HStack, Image, Spinner, Text, VStack } from "@chakra-ui/react";
-import { useRouter } from "next/router";
 import { useGetDashboardConsultationsQuery } from "mangarine/state/services/dashboard.service";
 
 const ConsultationOverview = () => {
-  const router = useRouter();
   const { data, isLoading } = useGetDashboardConsultationsQuery({ period: "monthly" });
 
   const months: string[]     = data?.data?.months     ?? data?.months     ?? [];
@@ -61,14 +59,8 @@ const ConsultationOverview = () => {
             bg="gray.50" borderRadius="lg" borderWidth="1px" borderColor="gray.100" borderStyle="dashed"
           >
             <Image src="/icons/emptyct.svg" alt="no consultations" boxSize="32px" mb={1} opacity={0.5} />
-            <Text fontSize="sm" fontWeight="600" color="gray.600">No consultations yet</Text>
+            <Text fontSize="sm" fontWeight="600" color="gray.600" _dark={{ color: "gray.400" }}>No consultations yet</Text>
             <Text fontSize="xs" color="gray.400" mt={1}>Your session history will appear here.</Text>
-            <Text
-              fontSize="xs" color="blue.500" fontWeight="600" mt={2} cursor="pointer" textDecoration="underline"
-              onClick={() => router.push("/my-business/dashboard?tab=meetings")}
-            >
-              Set up availability →
-            </Text>
           </Flex>
         )}
       </VStack>

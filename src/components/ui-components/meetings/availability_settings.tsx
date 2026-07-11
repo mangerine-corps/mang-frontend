@@ -112,7 +112,7 @@ function buildAvailabilities(days: DayState[], startDate: Date, totalDays: numbe
     return result;
 }
 
-const AvailabilitySettings = () => {
+const AvailabilitySettings = ({ onSaveSuccess }: { onSaveSuccess?: () => void }) => {
     const [timezone, setTimezone] = useState<string[]>([]);
     const [timeSlotOptions, setTimeSlotOptions] = useState<SelectOptions[]>([]);
     const [confirmDelete, setConfirmDelete] = useState(false);
@@ -284,7 +284,8 @@ const AvailabilitySettings = () => {
         createAvailability({ timezone: timezone[0], availability_settings, availabilities })
             .unwrap()
             .then(() => {
-                toaster.create({ description: "Availability settings saved successfully", type: "success", closable: true, duration: 6000 });
+                toaster.create({ description: "Availability saved! Now set up your pricing.", type: "success", closable: true, duration: 5000 });
+                onSaveSuccess?.();
             })
             .catch(console.error);
     };

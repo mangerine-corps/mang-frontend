@@ -1,9 +1,7 @@
 import { Box, Flex, HStack, Image, Spinner, Text, VStack } from "@chakra-ui/react";
-import { useRouter } from "next/router";
 import { useGetDashboardGaugeQuery } from "mangarine/state/services/dashboard.service";
 
 const ConsultationGauge = () => {
-  const router = useRouter();
   const { data, isLoading } = useGetDashboardGaugeQuery();
 
   const scheduled: number = data?.data?.scheduled ?? data?.scheduled ?? 0;
@@ -59,12 +57,6 @@ const ConsultationGauge = () => {
                   <Text fontSize="2xl" fontWeight="bold" color="gray.300">0%</Text>
                   <Image src="/icons/emptyct.svg" alt="no sessions" boxSize="20px" opacity={0.4} />
                   <Text fontSize="xs" color="gray.400" textAlign="center">No sessions yet</Text>
-                  <Text
-                    fontSize="xs" color="blue.500" fontWeight="600" cursor="pointer" textDecoration="underline"
-                    onClick={() => router.push("/my-business/dashboard?tab=meetings")}
-                  >
-                    Get started →
-                  </Text>
                 </VStack>
               ) : (
                 <>

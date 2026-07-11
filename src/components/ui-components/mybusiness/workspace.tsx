@@ -90,7 +90,7 @@ const MyBusinessWorkspace = () => {
   const renderContent = () => {
     switch (activeTab) {
       case "dashboard":   return <Dashboard />;
-      case "meetings":    return <MyMeetings page={activePage} />;
+      case "meetings":    return <MyMeetings page={activePage} onAvailabilitySaved={() => setActivePage("pricing")} />;
       case "wallet":      return <MyWalletComponent />;
       case "myaccount":   return <MyAccounts page={feedbackActivePage} />;
       default:            return <Dashboard />;

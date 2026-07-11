@@ -18,6 +18,9 @@ const SIDEBAR_ROUTES = new Set([
   '/jobs/[jobId]', '/posts/[postId]',
 ]);
 
+// Routes accessible without authentication
+const PUBLIC_ROUTES = new Set(['/posts/[postId]']);
+
 const noScrollbar = {
   "&::-webkit-scrollbar": { width: "0px", height: "0px" },
   "&::-webkit-scrollbar-track": { width: "0px", background: "transparent", height: "0px" },
@@ -35,12 +38,14 @@ const AppLayout: FC<Props> = ({ children }) => {
   const router = useRouter()
   const showSidebar = SIDEBAR_ROUTES.has(router.pathname)
 
+  const isPublic = PUBLIC_ROUTES.has(router.pathname);
+
   useEffect(() => {
     if (!persistReady) return;
-    if (isEmpty(token)) {
+    if (isEmpty(token) && !isPublic) {
       router.replace('/auth/login');
     }
-  }, [persistReady, token, router])
+  }, [persistReady, token, router, isPublic])
 
   return (
     <SSENotificationProvider
@@ -68,7 +73,7 @@ const AppLayout: FC<Props> = ({ children }) => {
               px={{ base: "10px", md: "16px", lg: "20px", xl: "24px" }}
               gap={4}
             >
-              {showSidebar && (
+              {showSidebar && !isEmpty(token) && (
                 <VStack
                   display={{ base: "none", md: "flex" }}
                   alignItems="stretch"
