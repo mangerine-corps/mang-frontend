@@ -51,7 +51,8 @@ import { usePostLikes } from "mangarine/hooks/usePostLikes";
 import ReportPost from "./modals/reportpost";
 import { MessageSquareText } from "lucide-react";
 import DeletePost from "./deletepost";
-import { useReportCommentMutation } from "../../state/services/posts.service";
+import { useReportCommentMutation, useGetPostCommentsQuery } from "../../state/services/posts.service";
+import CommentList from "./commentdrawer";
 import ImageLightbox from "./imagelightbox";
 interface NewsItemProps {
   post: Post;
@@ -180,15 +181,14 @@ const NewsItem: React.FC<NewsItemProps> = ({ post, isDetailPage = false }) => {
     fn();
   };
 
+  const { data: commentsData } = useGetPostCommentsQuery(
+    { postId: post?.id },
+    { skip: !comment || !post?.id }
+  );
+  const commentsList: any[] = (commentsData as any)?.data ?? [];
+
   const handleFollow = () => requireAuth(() => toggleFollow());
-  const toggleComment = () => requireAuth(() => {
-    if (pathname.startsWith("/posts/")) {
-      setComment(true);
-    } else if (pathname.startsWith("/home")) {
-      router.push(`/posts/${post?.id}`);
-      setComment(true);
-    }
-  });
+  const toggleComment = () => requireAuth(() => setComment(true));
 
   useEffect(() => { }, [posts]);
 
@@ -791,6 +791,13 @@ const NewsItem: React.FC<NewsItemProps> = ({ post, isDetailPage = false }) => {
           }}
         />
       </HStack>
+
+      <CommentList
+        open={comment}
+        onOpenChange={(e: any) => setComment(e.open)}
+        data={commentsList}
+        post={post}
+      />
     </Box>
   );
 };

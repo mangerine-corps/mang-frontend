@@ -1,4 +1,5 @@
 import { useState } from "react";
+import CommentInputWrapper from "./commentinputwrapper";
 import {
   Box,
   Button,
@@ -74,7 +75,9 @@ const CommentList = ({ open, onOpenChange, data, post }) => {
               ))}
             </VStack>
           </Drawer.Body>
-          <Drawer.Footer />
+          <Drawer.Footer borderTopWidth="1px" py={3} px={4}>
+            <CommentInputWrapper postId={post?.id} />
+          </Drawer.Footer>
         </Drawer.Content>
       </Drawer.Positioner>
     </Drawer.Root>

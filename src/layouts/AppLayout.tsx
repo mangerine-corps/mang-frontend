@@ -1,4 +1,4 @@
-import { Box, Flex, VStack } from '@chakra-ui/react';
+import { Box, Flex, VStack, Spinner } from '@chakra-ui/react';
 import React, { FC, useEffect } from 'react'
 import Header from './Header';
 import { usePersistReady } from 'mangarine/components/ui/provider';
@@ -95,7 +95,11 @@ const AppLayout: FC<Props> = ({ children }) => {
                 h={{ base: "auto", md: "full" }}
                 overflow={{ base: "visible", md: "hidden" }}
               >
-                {children}
+                {!persistReady ? (
+                  <Box h="full" display="flex" alignItems="center" justifyContent="center">
+                    <Spinner size="lg" color="button_bg" />
+                  </Box>
+                ) : children}
               </Box>
             </Flex>
           </Flex>
