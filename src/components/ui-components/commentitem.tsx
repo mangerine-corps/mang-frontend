@@ -104,6 +104,10 @@ const CommentItem = ({
   const [likedComments, setLikedComments] = useState<Record<number, boolean>>(
     {}
   ); // track liked comments
+  const isLikedByMe: boolean =
+    likedComments[comment.id] !== undefined
+      ? likedComments[comment.id]
+      : (comment.likes as any[])?.some((l: any) => l.id === user?.id) ?? false;
   const dispatch = useDispatch();
   const [, setCurrentPost] = useState<Post>(post);
   const [reply, setReply] = useState<number | null>(null);
@@ -359,7 +363,7 @@ const CommentItem = ({
                 cursor="pointer"
                 onClick={() => handleLikeComment(comment.id)}
               >
-                <Icon boxSize={4} color={"gray.400"}>
+                <Icon boxSize={4} color={isLikedByMe ? "blue.500" : "gray.400"}>
                   <FiThumbsUp />
                 </Icon>
               </IconButton>
