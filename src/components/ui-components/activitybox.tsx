@@ -12,6 +12,17 @@ import { safeProfilePic, imgErrorFallback } from "mangarine/lib/constants";
 import RescheduleConsultation from "./modals/rescheduleconsultation";
 import { LuMail, LuVideo, LuCalendar, LuClock } from "react-icons/lu";
 
+// Join window: 10 min before start → 10 min after end (or 65 min after start if no end)
+const isJoinableNow = (item: any): boolean => {
+  const startRaw = item?.scheduledDateTimeStart ?? item?.scheduledDate;
+  if (!startRaw) return false;
+  const now = Date.now();
+  const start = new Date(startRaw).getTime();
+  const endRaw = item?.scheduledDateTimeEnd;
+  const end = endRaw ? new Date(endRaw).getTime() : start + 65 * 60 * 1000;
+  return now >= start - 10 * 60 * 1000 && now <= end + 10 * 60 * 1000;
+};
+
 const fmtTime = (val: string) => {
   if (!val) return "";
   try { return format(new Date(val), "HH:mm"); }
@@ -128,15 +139,22 @@ const ActivitiesBox = () => {
                       >
                         <Icon color="gray.500" fontSize="13px"><LuMail /></Icon>
                       </Box>
-                      <Box
-                        w="28px" h="28px"
-                        display="flex" alignItems="center" justifyContent="center"
-                        bg="button_bg" borderRadius="7px"
-                        cursor="pointer" _hover={{ opacity: 0.85 }}
-                        onClick={() => router.push(`/message/videoconsultation?consultationId=${item.id}`)}
-                      >
-                        <Icon color="button_text" fontSize="13px"><LuVideo /></Icon>
-                      </Box>
+                      {(() => {
+                        const joinable = isJoinableNow(item);
+                        return (
+                          <Box
+                            w="28px" h="28px"
+                            display="flex" alignItems="center" justifyContent="center"
+                            bg={joinable ? "button_bg" : "gray.200"} borderRadius="7px"
+                            cursor={joinable ? "pointer" : "not-allowed"}
+                            _hover={{ opacity: joinable ? 0.85 : 1 }}
+                            onClick={() => joinable && router.push(`/message/videoconsultation?consultationId=${item.id}`)}
+                            title={joinable ? 'Join video call' : 'Not within join window'}
+                          >
+                            <Icon color={joinable ? "button_text" : "gray.400"} fontSize="13px"><LuVideo /></Icon>
+                          </Box>
+                        );
+                      })()}
                     </HStack>
                   </Flex>
 

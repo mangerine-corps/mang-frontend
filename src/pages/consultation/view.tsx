@@ -104,6 +104,18 @@ const urgencyConfig = {
   now:      { joinBg: '#2E7D32', joinLabel: 'Join Now — Live!',   urgentBorder: '#66BB6A' },
 };
 
+// Returns end time from API data, falling back to start + duration (default 60 min)
+const resolveEndTime = (appointment: any, start: Date | null): Date | null => {
+  if (appointment?.scheduledDateTimeEnd) {
+    const d = new Date(appointment.scheduledDateTimeEnd);
+    if (!isNaN(d.getTime())) return d;
+  }
+  if (!start) return null;
+  const ts = appointment?.timeslots?.[0];
+  const dur = ts?.duration ?? appointment?.duration ?? 60;
+  return new Date(start.getTime() + Number(dur) * 60 * 1000);
+};
+
 const ConsultationJoinSection = ({
   appointment, isCancelling, onCancel, onReschedule, onJoin,
 }: {
@@ -118,9 +130,32 @@ const ConsultationJoinSection = ({
   const cfg = urgencyConfig[countdown.urgency] ?? urgencyConfig.future;
   const isUrgent = ['imminent', 'now'].includes(countdown.urgency) || countdown.isPast;
 
+  // Refresh every 10 s so the join window stays accurate without a page reload
+  const [nowMs, setNowMs] = useState(() => Date.now());
+  useEffect(() => {
+    const t = setInterval(() => setNowMs(Date.now()), 10_000);
+    return () => clearInterval(t);
+  }, []);
+
+  const endTime   = resolveEndTime(appointment, startTime);
+  const joinFrom  = startTime ? startTime.getTime() - 10 * 60 * 1000 : null;
+  const joinUntil = endTime
+    ? endTime.getTime() + 10 * 60 * 1000
+    : startTime ? startTime.getTime() + 65 * 60 * 1000 : null;
+
+  const sessionEnded = joinUntil != null && nowMs > joinUntil;
+  const tooEarly     = joinFrom  != null && nowMs < joinFrom;
+  const canJoin      = !sessionEnded && !tooEarly;
+
   return (
     <Box w="full" bg="bg_box" borderRadius="16px" borderWidth="1px" borderColor="gray.100" p={4}>
-      {startTime && countdown.label && (
+      {sessionEnded ? (
+        <HStack mb={3} px={3} py={2} borderRadius="10px" bg="#FEE2E2" justify="center">
+          <Text fontSize="0.82rem" fontWeight="600" color="#DC2626" fontFamily="Outfit">
+            Session has ended
+          </Text>
+        </HStack>
+      ) : startTime && countdown.label && (
         <HStack
           mb={3} px={3} py={2} borderRadius="10px"
           bg={isUrgent ? (countdown.urgency === 'now' || countdown.isPast ? '#E8F5E9' : '#FFF3E0') : 'badge_background'}
@@ -152,14 +187,17 @@ const ConsultationJoinSection = ({
       )}
 
       <Button
-        w="full" bg={cfg.joinBg} color="white" borderRadius="10px" h="42px"
+        w="full" bg={canJoin ? cfg.joinBg : 'gray.300'} color={canJoin ? 'white' : 'gray.500'}
+        borderRadius="10px" h="42px"
         fontSize="0.875rem" fontWeight="700" fontFamily="Outfit" mb={3}
-        _hover={{ opacity: 0.88 }}
-        onClick={onJoin}
-        style={isUrgent ? { boxShadow: `0 0 0 3px ${cfg.urgentBorder}40` } : undefined}
+        _hover={{ opacity: canJoin ? 0.88 : 1 }}
+        cursor={canJoin ? 'pointer' : 'not-allowed'}
+        disabled={!canJoin}
+        onClick={canJoin ? onJoin : undefined}
+        style={isUrgent && canJoin ? { boxShadow: `0 0 0 3px ${cfg.urgentBorder}40` } : undefined}
       >
         <Icon mr={2}><LuVideo /></Icon>
-        {cfg.joinLabel}
+        {sessionEnded ? 'Session Ended' : cfg.joinLabel}
       </Button>
 
       <HStack gap={2.5}>

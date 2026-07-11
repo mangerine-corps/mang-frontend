@@ -123,7 +123,7 @@ function Home() {
       <>
       <Flex gap={4} w="full" h={{ base: "auto", md: "full" }} overflow={{ base: "visible", md: "hidden" }}>
         {/* Center feed */}
-        <Stack bg="bg_box" rounded="xl" px={4} pb={4} h={{ base: "auto", md: "full" }} flex={1} minW={0} overflowY={{ base: "auto", md: "auto" }} css={noScrollbar} position="relative">
+        <Stack bg="main_background" rounded="xl" px={4} py={4} h={{ base: "auto", md: "full" }} flex={1} minW={0} overflowY={{ base: "auto", md: "auto" }} css={noScrollbar} position="relative">
           {/* Scroll anchor */}
           <div ref={feedTopRef} />
 
@@ -229,7 +229,7 @@ function Home() {
               </Text>
             </VStack>
           ) : (
-            <Stack css={noScrollbar}>
+            <Stack gap={3} css={noScrollbar}>
               {!isEmpty(posts) && size(posts) > 0 ? (
                 <>
                   {(posts as Post[]).map((post: Post) => post && <NewsItem key={post?.id} post={post} />)}

@@ -739,13 +739,15 @@ const VideoContainer = ({ consultationId }: { consultationId?: string }) => {
                 const videoTrack: ILocalVideoTrack = Array.isArray(result) ? result[0] : result as ILocalVideoTrack;
                 setScreenTrack(videoTrack);
                 setScreenShareOn(true);
-                // Keep camera ON — we show it in PiP while screen sharing
+                // Disable camera publish while screen sharing (Agora only supports one video track)
+                localCameraTrack?.setEnabled(false).catch(() => {});
                 setForceUpdate((p) => p + 1);
                 // Auto stop when user ends share via browser UI
                 try {
                     videoTrack.on && (videoTrack as any).on('track-ended', () => {
                         setScreenTrack(null);
                         setScreenShareOn(false);
+                        if (cameraOn) localCameraTrack?.setEnabled(true).catch(() => {});
                         setForceUpdate((p) => p + 1);
                     });
                 } catch { }
@@ -786,6 +788,8 @@ const VideoContainer = ({ consultationId }: { consultationId?: string }) => {
             }
             setScreenTrack(null);
             setScreenShareOn(false);
+            // Re-enable camera when screen share stops
+            if (cameraOn) localCameraTrack?.setEnabled(true).catch(() => {});
             setForceUpdate(prev => prev + 1);
         }
     };
@@ -1317,8 +1321,9 @@ const VideoContainer = ({ consultationId }: { consultationId?: string }) => {
         }
     }, [joinErr]);
     const publishedTracks = useMemo(() => {
+        // Agora only supports one video track per publisher — screen replaces camera when sharing
         const tracks = screenShareOn && screenTrack
-            ? [localMicrophoneTrack, screenTrack, localCameraTrack]
+            ? [localMicrophoneTrack, screenTrack]
             : [localMicrophoneTrack, localCameraTrack];
         return tracks.filter(Boolean);
     }, [screenShareOn, screenTrack, localMicrophoneTrack, localCameraTrack]);
@@ -1386,12 +1391,34 @@ const VideoContainer = ({ consultationId }: { consultationId?: string }) => {
 
                 if (!data?.canJoin) {
                     const status = (data?.meetingStatus || '').toUpperCase();
-                    if (['EXPIRED', 'CANCELLED', 'COMPLETED', 'ENDED'].includes(status)) {
-                        setConsultationStatus(status === 'ENDED' ? 'COMPLETED' : status);
-                    } else {
-                        setJoinError('You are not allowed to join this meeting.');
+                    // Cancelled is final — block immediately
+                    if (status === 'CANCELLED') {
+                        setConsultationStatus('CANCELLED');
+                        setTokenReady(true);
+                        return;
                     }
-                    setTokenReady(true);
+                    // For EXPIRED / COMPLETED / ENDED the backend may have marked it too early
+                    // (before the actual join-window grace period ends). Try the token endpoint
+                    // directly — if it succeeds the user can still join; if it fails, block then.
+                    getVideoToken(channelId)
+                        .unwrap()
+                        .then((p) => {
+                            if (!p?.token) {
+                                setConsultationStatus(status === 'COMPLETED' ? 'COMPLETED' : 'EXPIRED');
+                                setTokenReady(true);
+                                return;
+                            }
+                            setToken(p.token);
+                            if (p.uid != null) { setTokenUid(p.uid); currentUidRef.current = Number(p.uid); }
+                            setTokenReady(true);
+                        })
+                        .catch((err) => {
+                            const msg = ((err as any)?.data?.message ?? (err as any)?.message ?? '').toUpperCase();
+                            if (msg.includes('CANCELLED')) setConsultationStatus('CANCELLED');
+                            else if (msg.includes('COMPLETED') || status === 'COMPLETED') setConsultationStatus('COMPLETED');
+                            else setConsultationStatus('EXPIRED');
+                            setTokenReady(true);
+                        });
                     return;
                 }
 
@@ -1466,7 +1493,9 @@ const VideoContainer = ({ consultationId }: { consultationId?: string }) => {
 
         // Surface any terminal status so the gate screen shows
         const status = (appt.status || '').toUpperCase();
-        if (['EXPIRED', 'CANCELLED', 'COMPLETED'].includes(status)) {
+        // EXPIRED is set automatically at scheduled time — don't block here;
+        // the token endpoint is the authority on whether you can actually join.
+        if (['CANCELLED', 'COMPLETED'].includes(status)) {
             setConsultationStatus(status);
             setIsLoadingConversation(false);
             return;
@@ -1878,6 +1907,8 @@ const VideoContainer = ({ consultationId }: { consultationId?: string }) => {
                     color="button_bg"
                     borderRadius="10px"
                     fontFamily="Outfit"
+                    px={8}
+                    py={6}
                     loading={isCheckingRejoin}
                     onClick={handleRejoin}
                     _hover={{ bg: '#f0f2f8' }}

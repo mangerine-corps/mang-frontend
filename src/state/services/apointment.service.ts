@@ -198,7 +198,7 @@ export const appointmentApi = createApi({
     }),
     submitMeetingQualityFeedback: builder.mutation<any, { appointmentId: string; score: number; label: string }>({
       query: ({ appointmentId, score, label }) => ({
-        url: `/appointment/${appointmentId}/meeting/quality-feedback`,
+        url: `/appointment/${appointmentId}/complete`,
         method: "POST",
         body: { score, label },
       }),
