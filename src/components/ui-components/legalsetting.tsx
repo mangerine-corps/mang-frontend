@@ -31,9 +31,9 @@ const LegalSetting = () => {
           <Box
             borderRadius="lg"
             boxShadow="lg"
-            bg="main_background"
+            bg="bg_box"
             w="full"
-            h="full"
+            flex={1}
           >
             <Text
               font="outfit"
@@ -71,7 +71,7 @@ const LegalSetting = () => {
   };
 
   return (
-    <Box w="full" h="full">
+    <Box w="full" flex={1} display="flex" flexDirection="column">
       {renderChild()}
     </Box>
   );

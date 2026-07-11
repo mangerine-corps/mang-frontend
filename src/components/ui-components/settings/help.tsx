@@ -23,10 +23,10 @@ const Help = () => {
           <Box
             borderRadius="lg"
             boxShadow="lg"
-            bg="main_background"
+            bg="bg_box"
             p={8}
             w="full"
-            minH="full"
+            flex={1}
             mt={0}
           >
             <Text
@@ -65,7 +65,7 @@ const Help = () => {
 
   };
 
-  return <Box w="full"overflowY={"scroll"} h="100vh" >{renderChild()}</Box>;
+  return <Box w="full" flex={1} display="flex" flexDirection="column">{renderChild()}</Box>;
 };
 
 export default Help;

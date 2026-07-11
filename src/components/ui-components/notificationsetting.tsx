@@ -106,14 +106,14 @@ const NotificationSetting = () => {
   };
 
   return (
-    <Flex direction="column" align="flex-start" justify="flex-start" h="full" w="full" className={outfit.className}>
+    <Flex direction="column" align="flex-start" justify="flex-start" flex={1} w="full" className={outfit.className}>
       <Box
         borderRadius="lg"
         boxShadow="lg"
-        bg="main_background"
+        bg="bg_box"
         p={{ base: 4, md: 8 }}
         w="full"
-        h="full"
+        flex={1}
       >
         <HStack justify="space-between" mb={4}>
           <Text color="text_primary" fontSize={{ base: "1rem", md: "1.5rem" }} fontWeight="600">

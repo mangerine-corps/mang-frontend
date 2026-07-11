@@ -61,16 +61,16 @@ const PrivacySetting = () => {
       direction="column"
       align="flex-start"
       justify="flex-start"
-      h="full"
       w="full"
-      overflowY="auto"
+      flex={1}
     >
       <Box
         borderRadius="lg"
         boxShadow="lg"
-        bg="main_background"
+        bg="bg_box"
         p={{ base: 4, md: 8 }}
         w="full"
+        flex={1}
       >
         <HStack justify="space-between" mb={4}>
           <Text fontSize={{ base: "1rem", md: "1.5rem" }} fontWeight="600">Privacy Settings</Text>

@@ -168,10 +168,10 @@ export const postsApi = createApi({
     }),
 
     likeComment: builder.mutation({
-      query: ({ commentId }) => ({
-        url: `posts/comment/${commentId}/like`,
+      query: ({ commentId, userId }) => ({
+        url: `/posts/comment/${commentId}/like`,
         method: "POST",
-        body: { commentId },
+        body: { userId },
       }),
       invalidatesTags: (result, error, { commentId }) => [
         { type: "Post", id: commentId },

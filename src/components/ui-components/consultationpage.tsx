@@ -42,7 +42,7 @@ const ConsultationPage = () => {
   const tabs = [
     { label: "Consultation History", value: "history" },
     { label: "Payment History", value: "payment" },
-    { label: "Consultation Videos", value: "videos" },
+    // { label: "Consultation Videos", value: "videos" },
   ];
 
   const renderTab = (label: string, value: string) => {
@@ -112,10 +112,10 @@ const ConsultationPage = () => {
       {/* Content */}
       {activeTab === "history" && <ConsultationHistory />}
       {activeTab === "payment" && <PaymentHistory />}
-      {activeTab === "videos" && (
+      {/* {activeTab === "videos" && (
         <EmptyConsultationVideo onUnlock={() => setActiveTab("videosGrid")} />
       )}
-      {activeTab === "videosGrid" && <VideoGrid />}
+      {activeTab === "videosGrid" && <VideoGrid />} */}
     </Box>
   );
 };

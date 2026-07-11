@@ -1,4 +1,4 @@
-import { Text, VStack, Image, Box, HStack, AspectRatio, Flex } from "@chakra-ui/react";
+import { Text, VStack, Image, Box, HStack, Flex } from "@chakra-ui/react";
 import { isEmpty } from "lodash";
 import { useState } from "react";
 import EditIntroVideoModal from "./editintrovideo";
@@ -75,14 +75,27 @@ const EditIntroductionVideoCard = ({
       <Box w="full" px="4">
         {hasVideo ? (
           playing ? (
-            <AspectRatio ratio={16 / 9} w="full" mx="auto" borderRadius="12px" overflow="hidden">
+            <Box
+              position="relative"
+              w="full"
+              paddingBottom="56.25%"
+              borderRadius="12px"
+              overflow="hidden"
+              bg="black"
+            >
               <iframe
                 title="intro-video"
                 src={videoLink}
                 allowFullScreen
-                style={{ borderRadius: "12px" }}
+                style={{
+                  position: "absolute",
+                  top: 0, left: 0,
+                  width: "100%",
+                  height: "100%",
+                  border: "none",
+                }}
               />
-            </AspectRatio>
+            </Box>
           ) : (
             <Flex
               w="full"

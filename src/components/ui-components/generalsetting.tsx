@@ -102,8 +102,8 @@ const GeneralSetting = () => {
   };
 
   return (
-    <Flex direction="column" align="flex-start" justify="flex-start" h="full" w="full">
-      <Box w="full" h="full" p={{ base: 4, md: 8 }} borderRadius="lg" boxShadow="lg" bg="bg_box">
+    <Flex direction="column" align="flex-start" justify="flex-start" flex={1} w="full">
+      <Box w="full" flex={1} p={{ base: 4, md: 8 }} borderRadius="lg" boxShadow="lg" bg="bg_box">
         <HStack justify="space-between" mb={4}>
           <Text
             fontSize={{ base: "1rem", md: "1.4rem" }}

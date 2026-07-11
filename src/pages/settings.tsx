@@ -217,17 +217,22 @@ const Settings = () => {
         {/* ── Desktop content ───────────────────────────────────────── */}
         <Box
           flex="3"
-          overflowY="scroll"
+          overflowY="auto"
+          minH={0}
           h="full"
-          px={{ lg: 5, xl: 6 }}
-          display={{ base: "none", lg: "block" }}
+          px={{ lg: 4, xl: 5 }}
+          py={{ lg: 4, xl: 5 }}
+          display={{ base: "none", lg: "flex" }}
+          flexDirection="column"
           css={{
             "&::-webkit-scrollbar": { width: "0px", height: "0px" },
             "&::-webkit-scrollbar-track": { width: "0px", background: "transparent" },
             "&::-webkit-scrollbar-thumb": { background: "transparent" },
           }}
         >
-          {renderContent()}
+          <Box flex={1} display="flex" flexDirection="column">
+            {renderContent()}
+          </Box>
         </Box>
 
         {/* ── Mobile: settings list ─────────────────────────────────── */}

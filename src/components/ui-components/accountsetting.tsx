@@ -119,18 +119,16 @@ function AccountSetting() {
       direction="column"
       align="flex-start"
       justify="flex-start"
-      h="full"
       w="full"
-      overflowY="auto"
+      flex={1}
     >
       <Box
-        //w={{ base: "95%", md: "280px", lg: "340px", xl: "340px" }}
-        h="full"
         borderRadius="lg"
         boxShadow="lg"
-        bg="main_background"
+        bg="bg_box"
         p={{ base: 4, md: 8 }}
         w="full"
+        flex={1}
         //px={6}
         //py={6}
         // marginLeft={40}
