@@ -224,7 +224,11 @@ const CommentItem = ({
       return;
     }
 
-    if (likedComments[commentId]) {
+    const currentlyLiked = likedComments[commentId] !== undefined
+      ? likedComments[commentId]
+      : (comment.likes as any[])?.some((l: any) => l.id === userId) ?? false;
+
+    if (currentlyLiked) {
       // unlike the comment
       unlikeCommentApi({ commentId, userId })
         .unwrap()
