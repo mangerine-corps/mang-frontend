@@ -107,7 +107,9 @@ const CommentItem = ({
   const isLikedByMe: boolean =
     likedComments[comment.id] !== undefined
       ? likedComments[comment.id]
-      : (comment.likes as any[])?.some((l: any) => l.id === user?.id) ?? false;
+      : (comment.likes as any[])?.some((l: any) =>
+          l.id === user?.id || l.email === user?.email
+        ) ?? false;
   const dispatch = useDispatch();
   const [, setCurrentPost] = useState<Post>(post);
   const [reply, setReply] = useState<number | null>(null);
@@ -226,7 +228,9 @@ const CommentItem = ({
 
     const currentlyLiked = likedComments[commentId] !== undefined
       ? likedComments[commentId]
-      : (comment.likes as any[])?.some((l: any) => l.id === userId) ?? false;
+      : (comment.likes as any[])?.some((l: any) =>
+          l.id === userId || l.email === user?.email
+        ) ?? false;
 
     if (currentlyLiked) {
       // unlike the comment
@@ -371,6 +375,11 @@ const CommentItem = ({
                   <FiThumbsUp />
                 </Icon>
               </IconButton>
+              {(comment.likeCount > 0) && (
+                <Text fontSize="xs" color={isLikedByMe ? "blue.500" : "gray.500"} mr={2}>
+                  {comment.likeCount}
+                </Text>
+              )}
               {/* <Image
                 src={thumbsup}
                 alt="like icon"
